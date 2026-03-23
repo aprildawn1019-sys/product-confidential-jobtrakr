@@ -437,20 +437,108 @@ export default function ProfileEditor() {
           </div>
         </section>
 
-        {/* Industries & Skills */}
+        {/* Job Preferences */}
         <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-          <h2 className="font-display font-semibold text-lg">Industries & Skills</h2>
-          <div className="space-y-4">
+          <h2 className="font-display font-semibold text-lg">Job Preferences</h2>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Industries (in order of preference)</Label>
-              <TagInput value={form.industries} onChange={v => setForm(f => ({ ...f, industries: v }))} placeholder="e.g. Life Sciences / Biotech" />
+              <Label>Company Size</Label>
+              <TagInput value={form.company_sizes} onChange={v => setForm(f => ({ ...f, company_sizes: v }))} placeholder="e.g. Startup, Mid-size, Enterprise" />
             </div>
             <div className="space-y-2">
-              <Label>Key Skills</Label>
-              <TagInput value={form.skills} onChange={v => setForm(f => ({ ...f, skills: v }))} placeholder="e.g. Product Strategy" />
+              <Label>Work Style</Label>
+              <Select value={form.work_style} onValueChange={v => setForm(f => ({ ...f, work_style: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ic">Individual Contributor</SelectItem>
+                  <SelectItem value="manager">People Manager</SelectItem>
+                  <SelectItem value="executive">Executive / VP+</SelectItem>
+                  <SelectItem value="open">Open to Any</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Travel Willingness</Label>
+              <Select value={form.travel_willingness} onValueChange={v => setForm(f => ({ ...f, travel_willingness: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No Travel</SelectItem>
+                  <SelectItem value="occasional">Occasional ({"<"}25%)</SelectItem>
+                  <SelectItem value="moderate">Moderate (25-50%)</SelectItem>
+                  <SelectItem value="frequent">Frequent (50%+)</SelectItem>
+                  <SelectItem value="open">Open to Any</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Start Availability</Label>
+              <Select value={form.start_availability} onValueChange={v => setForm(f => ({ ...f, start_availability: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="immediately">Immediately</SelectItem>
+                  <SelectItem value="2_weeks">2 Weeks Notice</SelectItem>
+                  <SelectItem value="1_month">1 Month</SelectItem>
+                  <SelectItem value="2_months">2+ Months</SelectItem>
+                  <SelectItem value="flexible">Flexible</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Culture Preferences</Label>
+            <TagInput value={form.culture_preferences} onChange={v => setForm(f => ({ ...f, culture_preferences: v }))} placeholder="e.g. Collaborative, Fast-paced, Mission-driven" />
+          </div>
+        </section>
+
+        {/* Skills Profile */}
+        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+          <h2 className="font-display font-semibold text-lg">Skills Profile</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Years of Experience</Label>
+              <Input
+                type="number"
+                value={form.years_experience ?? ""}
+                onChange={e => setForm(f => ({ ...f, years_experience: e.target.value ? parseInt(e.target.value) : null }))}
+                placeholder="e.g. 15"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Languages</Label>
+              <TagInput value={form.spoken_languages} onChange={v => setForm(f => ({ ...f, spoken_languages: v }))} placeholder="e.g. English, Spanish" />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Technical Skills</Label>
+              <TagInput value={form.technical_skills} onChange={v => setForm(f => ({ ...f, technical_skills: v }))} placeholder="e.g. Data Analytics, SQL, Python" />
+            </div>
+            <div className="space-y-2">
+              <Label>Soft Skills</Label>
+              <TagInput value={form.soft_skills} onChange={v => setForm(f => ({ ...f, soft_skills: v }))} placeholder="e.g. Executive Communication, Team Building" />
+            </div>
+            <div className="space-y-2">
+              <Label>Tools & Platforms</Label>
+              <TagInput value={form.tools_platforms} onChange={v => setForm(f => ({ ...f, tools_platforms: v }))} placeholder="e.g. Jira, Figma, Salesforce, Tableau" />
+            </div>
+            <div className="space-y-2">
+              <Label>Certifications</Label>
+              <TagInput value={form.certifications} onChange={v => setForm(f => ({ ...f, certifications: v }))} placeholder="e.g. PMP, CSPO, Six Sigma" />
             </div>
           </div>
         </section>
+
+        {/* Industries */}
+        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+          <h2 className="font-display font-semibold text-lg">Industries</h2>
+          <div className="space-y-2">
+            <Label>Industries (in order of preference)</Label>
+            <TagInput value={form.industries} onChange={v => setForm(f => ({ ...f, industries: v }))} placeholder="e.g. Life Sciences / Biotech" />
+          </div>
+          <div className="space-y-2">
+            <Label>General Skills Keywords</Label>
+            <TagInput value={form.skills} onChange={v => setForm(f => ({ ...f, skills: v }))} placeholder="e.g. Product Strategy, P&L Ownership" />
+          </div>
 
         {/* Requirements */}
         <section className="rounded-xl border border-border bg-card p-5 space-y-4">
