@@ -296,6 +296,37 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
           <p className="text-sm">Click "Search Jobs" to find opportunities matching your profile</p>
         </div>
       )}
+
+      {/* Dismissed Jobs Section */}
+      {dismissedJobs.length > 0 && (
+        <div className="rounded-xl border border-border bg-card">
+          <button
+            onClick={() => setShowDismissed(prev => !prev)}
+            className="flex items-center justify-between w-full p-4 text-left hover:bg-muted/50 transition-colors rounded-xl"
+          >
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <EyeOff className="h-4 w-4" />
+              Dismissed Jobs ({dismissedJobs.length})
+            </div>
+            {showDismissed ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+          {showDismissed && (
+            <div className="border-t border-border px-4 pb-4 space-y-2">
+              {dismissedJobs.map((d, i) => (
+                <div key={i} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50">
+                  <div className="text-sm">
+                    <span className="font-medium">{d.title}</span>
+                    <span className="text-muted-foreground"> at {d.company}</span>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => handleUndismiss(d)} className="text-muted-foreground hover:text-foreground">
+                    <Undo2 className="h-3.5 w-3.5" /> Restore
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
