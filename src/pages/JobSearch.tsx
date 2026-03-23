@@ -59,6 +59,12 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     if (data) setDismissedJobs(data as DismissedJob[]);
   };
 
+  const [activeBoards, setActiveBoards] = useState<any[]>([]);
+  const loadActiveBoards = async () => {
+    const { data } = await supabase.from("job_boards").select("*").eq("is_active", true);
+    if (data) setActiveBoards(data);
+  };
+
   const handleSearch = async () => {
     if (!profile) {
       toast({ title: "No profile found", description: "Please set up your job search profile first.", variant: "destructive" });
