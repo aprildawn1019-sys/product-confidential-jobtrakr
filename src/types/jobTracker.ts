@@ -13,6 +13,11 @@ export interface Job {
   notes?: string;
   contactId?: string;
   createdAt: string;
+  statusUpdatedAt?: string;
+  posterName?: string;
+  posterEmail?: string;
+  posterPhone?: string;
+  posterRole?: string;
 }
 
 export interface Contact {
@@ -36,4 +41,20 @@ export interface Interview {
   time?: string;
   notes?: string;
   status: "scheduled" | "completed" | "cancelled";
+}
+
+export interface JobContact {
+  id: string;
+  jobId: string;
+  contactId: string;
+  createdAt: string;
+}
+
+export interface ContactConnection {
+  id: string;
+  contactId1: string;
+  contactId2: string;
+  connectionType: string;
+  notes?: string;
+  createdAt: string;
 }
