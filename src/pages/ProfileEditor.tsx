@@ -266,7 +266,18 @@ export default function ProfileEditor() {
             skills: form.skills,
             summary: form.summary,
             resume_text: form.resume_text,
-          })
+            company_sizes: form.company_sizes,
+            work_style: form.work_style,
+            travel_willingness: form.travel_willingness,
+            start_availability: form.start_availability,
+            culture_preferences: form.culture_preferences,
+            technical_skills: form.technical_skills,
+            soft_skills: form.soft_skills,
+            tools_platforms: form.tools_platforms,
+            certifications: form.certifications,
+            spoken_languages: form.spoken_languages,
+            years_experience: form.years_experience,
+          } as any)
           .select()
           .single();
         if (error) throw error;
