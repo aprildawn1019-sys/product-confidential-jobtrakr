@@ -219,6 +219,59 @@ export default function ProfileEditor() {
     }
   };
 
+  const parseProfileText = async (text: string, section: "preferences" | "skills") => {
+    const setParsingState = section === "preferences" ? setParsingPrefs : setParsingSkills;
+    setParsingState(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("parse-profile-text", {
+        body: { text, section },
+      });
+      if (error) throw error;
+      if (!data?.success || !data?.data) throw new Error(data?.error || "Parsing failed");
+      const p = data.data;
+      if (section === "preferences") {
+        setForm(f => ({
+          ...f,
+          company_sizes: p.company_sizes?.length ? p.company_sizes : f.company_sizes,
+          work_style: p.work_style || f.work_style,
+          travel_willingness: p.travel_willingness || f.travel_willingness,
+          start_availability: p.start_availability || f.start_availability,
+          culture_preferences: p.culture_preferences?.length ? p.culture_preferences : f.culture_preferences,
+          remote_preference: p.remote_preference || f.remote_preference,
+          locations: p.locations?.length ? p.locations : f.locations,
+          target_roles: p.target_roles?.length ? p.target_roles : f.target_roles,
+          industries: p.industries?.length ? p.industries : f.industries,
+          must_haves: p.must_haves?.length ? p.must_haves : f.must_haves,
+          nice_to_haves: p.nice_to_haves?.length ? p.nice_to_haves : f.nice_to_haves,
+          dealbreakers: p.dealbreakers?.length ? p.dealbreakers : f.dealbreakers,
+          min_base_salary: p.min_base_salary || f.min_base_salary,
+          compensation_notes: p.compensation_notes || f.compensation_notes,
+        }));
+        setShowPrefsPaste(false);
+        setPrefsText("");
+      } else {
+        setForm(f => ({
+          ...f,
+          technical_skills: p.technical_skills?.length ? p.technical_skills : f.technical_skills,
+          soft_skills: p.soft_skills?.length ? p.soft_skills : f.soft_skills,
+          tools_platforms: p.tools_platforms?.length ? p.tools_platforms : f.tools_platforms,
+          certifications: p.certifications?.length ? p.certifications : f.certifications,
+          spoken_languages: p.spoken_languages?.length ? p.spoken_languages : f.spoken_languages,
+          years_experience: p.years_experience ?? f.years_experience,
+          skills: p.skills?.length ? p.skills : f.skills,
+          summary: p.summary || f.summary,
+        }));
+        setShowSkillsPaste(false);
+        setSkillsText("");
+      }
+      toast({ title: "Text parsed!", description: `${section === "preferences" ? "Job preferences" : "Skills profile"} fields have been auto-filled. Review and save.` });
+    } catch (err: any) {
+      toast({ title: "Parsing failed", description: err.message, variant: "destructive" });
+    } finally {
+      setParsingState(false);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
