@@ -10,6 +10,7 @@ const links = [
   { to: "/recommendations", icon: Sparkles, label: "Recommendations" },
   { to: "/job-search", icon: Search, label: "AI Job Search" },
   { to: "/profile", icon: UserCog, label: "Search Profile" },
+  { to: "/job-boards", icon: Globe, label: "Job Boards" },
 ];
 
 export default function AppSidebar() {
