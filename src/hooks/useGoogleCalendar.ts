@@ -30,16 +30,20 @@ export function useGoogleCalendar() {
     checkStatus();
   }, [checkStatus]);
 
-  // Handle OAuth callback
+  // Handle OAuth callback from Google (redirects with ?code=...&state=gcal)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get("gcal_code");
-    if (code) {
+    const code = params.get("code");
+    const state = params.get("state");
+    if (code && state === "gcal") {
       // Clean URL
       const url = new URL(window.location.href);
-      url.searchParams.delete("gcal_code");
+      url.searchParams.delete("code");
       url.searchParams.delete("state");
-      window.history.replaceState({}, "", url.pathname + url.search);
+      url.searchParams.delete("scope");
+      url.searchParams.delete("authuser");
+      url.searchParams.delete("prompt");
+      window.history.replaceState({}, "", url.pathname);
 
       // Exchange code for tokens
       (async () => {
