@@ -7,11 +7,12 @@ import StatusBadge from "@/components/StatusBadge";
 import AddJobDialog from "@/components/AddJobDialog";
 import JobKanban from "@/components/JobKanban";
 import JobDetailPanel from "@/components/JobDetailPanel";
-import type { Job, Contact, JobStatus } from "@/types/jobTracker";
+import type { Job, Contact, JobStatus, Interview } from "@/types/jobTracker";
 
 interface JobsProps {
   jobs: Job[];
   contacts: Contact[];
+  interviews: Interview[];
   onAdd: (job: Omit<Job, "id" | "createdAt">) => void;
   onUpdateStatus: (id: string, status: JobStatus) => void;
   onUpdateJob: (id: string, updates: Partial<Job>) => void;
@@ -20,11 +21,15 @@ interface JobsProps {
   onUnlinkContact: (jobId: string, contactId: string) => void;
   getContactsForJob: (jobId: string) => Contact[];
   getNetworkMatchesForJob: (job: Job) => Contact[];
+  onAddInterview: (interview: Omit<Interview, "id">) => void;
+  onUpdateInterview: (id: string, updates: Partial<Interview>) => void;
+  onDeleteInterview: (id: string) => void;
 }
 
 export default function Jobs({
-  jobs, contacts, onAdd, onUpdateStatus, onUpdateJob, onDelete,
+  jobs, contacts, interviews, onAdd, onUpdateStatus, onUpdateJob, onDelete,
   onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
+  onAddInterview, onUpdateInterview, onDeleteInterview,
 }: JobsProps) {
   const [view, setView] = useState<"list" | "kanban">("list");
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
@@ -60,6 +65,7 @@ export default function Jobs({
         <JobKanban
           jobs={jobs}
           contacts={contacts}
+          interviews={interviews}
           onUpdateStatus={onUpdateStatus}
           onUpdateJob={onUpdateJob}
           onDelete={onDelete}
@@ -67,6 +73,9 @@ export default function Jobs({
           onUnlinkContact={onUnlinkContact}
           getContactsForJob={getContactsForJob}
           getNetworkMatchesForJob={getNetworkMatchesForJob}
+          onAddInterview={onAddInterview}
+          onUpdateInterview={onUpdateInterview}
+          onDeleteInterview={onDeleteInterview}
         />
       ) : (
         <div className="space-y-3">
@@ -138,9 +147,13 @@ export default function Jobs({
                       linkedContacts={linkedContacts}
                       networkMatches={networkMatches}
                       allContacts={contacts}
+                      interviews={interviews.filter(i => i.jobId === job.id)}
                       onUpdateJob={onUpdateJob}
                       onLinkContact={onLinkContact}
                       onUnlinkContact={onUnlinkContact}
+                      onAddInterview={onAddInterview}
+                      onUpdateInterview={onUpdateInterview}
+                      onDeleteInterview={onDeleteInterview}
                     />
                   </div>
                 )}

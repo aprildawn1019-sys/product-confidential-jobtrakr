@@ -1,4 +1,4 @@
-import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, Network, LogOut } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, Network, LogOut, CalendarDays } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ const links = [
   { to: "/jobs", icon: Briefcase, label: "Job Postings" },
   { to: "/contacts", icon: Users, label: "Connections" },
   { to: "/applications", icon: CalendarCheck, label: "Applications" },
+  { to: "/interviews", icon: CalendarDays, label: "Interviews" },
   { to: "/recommendations", icon: Sparkles, label: "Recommendations" },
   { to: "/job-search", icon: Search, label: "AI Job Search" },
   { to: "/profile", icon: UserCog, label: "Search Profile" },

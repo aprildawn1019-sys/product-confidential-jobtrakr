@@ -1,26 +1,94 @@
 import { useState } from "react";
-import { ExternalLink, MapPin, Calendar, Clock, User, Mail, Phone, Linkedin, Users, Link2, Unlink, Edit3, Save, X } from "lucide-react";
+import { format } from "date-fns";
+import { ExternalLink, MapPin, Calendar, Clock, User, Mail, Phone, Linkedin, Users, Link2, Unlink, Edit3, Save, X, Plus, CalendarDays, CheckCircle2, XCircle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import CoverLetterDialog from "@/components/CoverLetterDialog";
-import type { Job, Contact } from "@/types/jobTracker";
+import type { Job, Contact, Interview } from "@/types/jobTracker";
 
 interface JobDetailPanelProps {
   job: Job;
   linkedContacts: Contact[];
   networkMatches: Contact[];
   allContacts: Contact[];
+  interviews: Interview[];
   onUpdateJob: (id: string, updates: Partial<Job>) => void;
   onLinkContact: (jobId: string, contactId: string) => void;
   onUnlinkContact: (jobId: string, contactId: string) => void;
+  onAddInterview: (interview: Omit<Interview, "id">) => void;
+  onUpdateInterview: (id: string, updates: Partial<Interview>) => void;
+  onDeleteInterview: (id: string) => void;
+}
+
+function QuickScheduleInterview({ jobId, onAdd }: { jobId: string; onAdd: (i: Omit<Interview, "id">) => void }) {
+  const [open, setOpen] = useState(false);
+  const [type, setType] = useState<Interview["type"]>("phone");
+  const [date, setDate] = useState<Date | undefined>();
+  const [time, setTime] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const handleAdd = () => {
+    if (!date) return;
+    onAdd({ jobId, type, date: format(date, "yyyy-MM-dd"), time: time || undefined, notes: notes || undefined, status: "scheduled" });
+    setOpen(false);
+    setType("phone");
+    setDate(undefined);
+    setTime("");
+    setNotes("");
+  };
+
+  if (!open) {
+    return (
+      <Button variant="outline" size="sm" className="text-xs" onClick={() => setOpen(true)}>
+        <Plus className="h-3 w-3 mr-1" />Schedule Interview
+      </Button>
+    );
+  }
+
+  return (
+    <div className="rounded-md border border-border bg-card p-3 space-y-2">
+      <div className="grid grid-cols-3 gap-2">
+        <Select value={type} onValueChange={v => setType(v as Interview["type"])}>
+          <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="phone">Phone</SelectItem>
+            <SelectItem value="technical">Technical</SelectItem>
+            <SelectItem value="behavioral">Behavioral</SelectItem>
+            <SelectItem value="onsite">On-site</SelectItem>
+            <SelectItem value="final">Final</SelectItem>
+          </SelectContent>
+        </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className={cn("h-7 text-xs justify-start", !date && "text-muted-foreground")}>
+              <CalendarDays className="h-3 w-3 mr-1" />
+              {date ? format(date, "MMM d") : "Date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <CalendarPicker mode="single" selected={date} onSelect={setDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+          </PopoverContent>
+        </Popover>
+        <Input type="time" value={time} onChange={e => setTime(e.target.value)} className="h-7 text-xs" />
+      </div>
+      <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes (optional)" className="h-7 text-xs" />
+      <div className="flex gap-1.5">
+        <Button size="sm" className="h-7 text-xs" onClick={handleAdd} disabled={!date}>Add</Button>
+        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setOpen(false)}>Cancel</Button>
+      </div>
+    </div>
+  );
 }
 
 export default function JobDetailPanel({
-  job, linkedContacts, networkMatches, allContacts, onUpdateJob, onLinkContact, onUnlinkContact,
+  job, linkedContacts, networkMatches, allContacts, interviews, onUpdateJob, onLinkContact, onUnlinkContact, onAddInterview, onUpdateInterview, onDeleteInterview,
 }: JobDetailPanelProps) {
   const [editingJob, setEditingJob] = useState(false);
   const [editingPoster, setEditingPoster] = useState(false);
@@ -175,6 +243,46 @@ export default function JobDetailPanel({
             )}
           </div>
         )}
+      </div>
+
+      {/* Interviews */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />Interviews</h4>
+        </div>
+
+        {interviews.length > 0 ? (
+          <div className="space-y-1.5">
+            {interviews.map(iv => (
+              <div key={iv.id} className="flex items-center justify-between rounded-md border border-border bg-card px-3 py-1.5 text-sm">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs capitalize">{iv.type}</Badge>
+                  <span className="text-muted-foreground">{iv.date}{iv.time ? ` at ${iv.time}` : ""}</span>
+                  <Badge variant={iv.status === "scheduled" ? "default" : iv.status === "completed" ? "secondary" : "destructive"} className="text-xs capitalize">{iv.status}</Badge>
+                </div>
+                <div className="flex items-center gap-0.5">
+                  {iv.status === "scheduled" && (
+                    <>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateInterview(iv.id, { status: "completed" })} title="Complete">
+                        <CheckCircle2 className="h-3 w-3 text-green-600" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateInterview(iv.id, { status: "cancelled" })} title="Cancel">
+                        <XCircle className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </>
+                  )}
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onDeleteInterview(iv.id)}>
+                    <Trash2 className="h-3 w-3 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">No interviews scheduled</p>
+        )}
+
+        <QuickScheduleInterview jobId={job.id} onAdd={onAddInterview} />
       </div>
 
       {/* Network Connections */}

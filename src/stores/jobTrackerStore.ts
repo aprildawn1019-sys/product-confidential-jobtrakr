@@ -143,6 +143,22 @@ export function useJobTrackerStore() {
     if (data) setInterviews(prev => [...prev, mapInterview(data)]);
   };
 
+  const updateInterview = async (id: string, updates: Partial<Interview>) => {
+    const dbUpdates: any = {};
+    if (updates.type !== undefined) dbUpdates.type = updates.type;
+    if (updates.date !== undefined) dbUpdates.date = updates.date;
+    if (updates.time !== undefined) dbUpdates.time = updates.time || null;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    await supabase.from("interviews").update(dbUpdates).eq("id", id);
+    setInterviews(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));
+  };
+
+  const deleteInterview = async (id: string) => {
+    await supabase.from("interviews").delete().eq("id", id);
+    setInterviews(prev => prev.filter(i => i.id !== id));
+  };
+
   const linkContactToJob = async (jobId: string, contactId: string) => {
     const userId = await getUserId();
     if (!userId) return;
@@ -206,7 +222,7 @@ export function useJobTrackerStore() {
   return {
     jobs, contacts, interviews, jobContacts, contactConnections, loading,
     addJob, updateJobStatus, updateJob, deleteJob,
-    addContact, deleteContact, addInterview,
+    addContact, deleteContact, addInterview, updateInterview, deleteInterview,
     linkContactToJob, unlinkContactFromJob, getContactsForJob, getNetworkMatchesForJob,
     addContactConnection, removeContactConnection, getConnectionsForContact, getContactsAtSameOrg,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
