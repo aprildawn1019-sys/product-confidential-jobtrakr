@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff } from "lucide-react";
+import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp } from "lucide-react";
 import type { Job } from "@/types/jobTracker";
 
 interface SearchResult {
@@ -36,7 +36,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [profile, setProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [dismissedJobs, setDismissedJobs] = useState<DismissedJob[]>([]);
-
+  const [showDismissed, setShowDismissed] = useState(false);
   useEffect(() => {
     loadProfile();
     loadDismissed();
@@ -113,6 +113,14 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       setDismissedJobs(prev => [...prev, { id: "", company: result.company, title: result.title }]);
       setResults(prev => prev.filter(r => !(r.company === result.company && r.title === result.title)));
       toast({ title: "Job dismissed", description: `${result.title} at ${result.company} won't appear in future searches.` });
+    }
+  };
+
+  const handleUndismiss = async (dismissed: DismissedJob) => {
+    const { error } = await supabase.from("dismissed_jobs").delete().eq("company", dismissed.company).eq("title", dismissed.title);
+    if (!error) {
+      setDismissedJobs(prev => prev.filter(d => !(d.company === dismissed.company && d.title === dismissed.title)));
+      toast({ title: "Job restored", description: `${dismissed.title} at ${dismissed.company} will appear in future searches.` });
     }
   };
 
@@ -286,6 +294,37 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
           <Search className="h-10 w-10 mb-4 opacity-40" />
           <p className="font-medium">Ready to search</p>
           <p className="text-sm">Click "Search Jobs" to find opportunities matching your profile</p>
+        </div>
+      )}
+
+      {/* Dismissed Jobs Section */}
+      {dismissedJobs.length > 0 && (
+        <div className="rounded-xl border border-border bg-card">
+          <button
+            onClick={() => setShowDismissed(prev => !prev)}
+            className="flex items-center justify-between w-full p-4 text-left hover:bg-muted/50 transition-colors rounded-xl"
+          >
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <EyeOff className="h-4 w-4" />
+              Dismissed Jobs ({dismissedJobs.length})
+            </div>
+            {showDismissed ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+          {showDismissed && (
+            <div className="border-t border-border px-4 pb-4 space-y-2">
+              {dismissedJobs.map((d, i) => (
+                <div key={i} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50">
+                  <div className="text-sm">
+                    <span className="font-medium">{d.title}</span>
+                    <span className="text-muted-foreground"> at {d.company}</span>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => handleUndismiss(d)} className="text-muted-foreground hover:text-foreground">
+                    <Undo2 className="h-3.5 w-3.5" /> Restore
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
