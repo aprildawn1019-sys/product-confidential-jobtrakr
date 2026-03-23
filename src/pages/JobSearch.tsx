@@ -36,7 +36,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [profile, setProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [dismissedJobs, setDismissedJobs] = useState<DismissedJob[]>([]);
-
+  const [showDismissed, setShowDismissed] = useState(false);
   useEffect(() => {
     loadProfile();
     loadDismissed();
