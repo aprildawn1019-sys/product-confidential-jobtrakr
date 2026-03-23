@@ -28,7 +28,7 @@ interface JobDetailPanelProps {
 }
 
 export default function JobDetailPanel({
-  job, linkedContacts, networkMatches, allContacts, onUpdateJob, onLinkContact, onUnlinkContact,
+  job, linkedContacts, networkMatches, allContacts, interviews, onUpdateJob, onLinkContact, onUnlinkContact, onAddInterview, onUpdateInterview, onDeleteInterview,
 }: JobDetailPanelProps) {
   const [editingJob, setEditingJob] = useState(false);
   const [editingPoster, setEditingPoster] = useState(false);
