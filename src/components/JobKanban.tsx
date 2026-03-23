@@ -1,7 +1,10 @@
-import { MapPin, ExternalLink, Trash2, GripVertical } from "lucide-react";
+import { useState } from "react";
+import { MapPin, ExternalLink, Trash2, GripVertical, Calendar, Clock, User, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/StatusBadge";
-import type { Job, JobStatus } from "@/types/jobTracker";
+import JobDetailPanel from "@/components/JobDetailPanel";
+import type { Job, Contact, JobStatus } from "@/types/jobTracker";
 
 const columns: { status: JobStatus; label: string }[] = [
   { status: "saved", label: "Saved" },
@@ -15,11 +18,22 @@ const columns: { status: JobStatus; label: string }[] = [
 
 interface JobKanbanProps {
   jobs: Job[];
+  contacts: Contact[];
   onUpdateStatus: (id: string, status: JobStatus) => void;
+  onUpdateJob: (id: string, updates: Partial<Job>) => void;
   onDelete: (id: string) => void;
+  onLinkContact: (jobId: string, contactId: string) => void;
+  onUnlinkContact: (jobId: string, contactId: string) => void;
+  getContactsForJob: (jobId: string) => Contact[];
+  getNetworkMatchesForJob: (job: Job) => Contact[];
 }
 
-export default function JobKanban({ jobs, onUpdateStatus, onDelete }: JobKanbanProps) {
+export default function JobKanban({
+  jobs, contacts, onUpdateStatus, onUpdateJob, onDelete,
+  onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
+}: JobKanbanProps) {
+  const [expandedJob, setExpandedJob] = useState<string | null>(null);
+
   const handleDragStart = (e: React.DragEvent, jobId: string) => {
     e.dataTransfer.setData("text/plain", jobId);
     e.dataTransfer.effectAllowed = "move";
@@ -33,9 +47,12 @@ export default function JobKanban({ jobs, onUpdateStatus, onDelete }: JobKanbanP
   const handleDrop = (e: React.DragEvent, status: JobStatus) => {
     e.preventDefault();
     const jobId = e.dataTransfer.getData("text/plain");
-    if (jobId) {
-      onUpdateStatus(jobId, status);
-    }
+    if (jobId) onUpdateStatus(jobId, status);
+  };
+
+  const formatDate = (d?: string) => {
+    if (!d) return null;
+    return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
   return (
@@ -45,7 +62,7 @@ export default function JobKanban({ jobs, onUpdateStatus, onDelete }: JobKanbanP
         return (
           <div
             key={col.status}
-            className="flex-shrink-0 w-64 flex flex-col rounded-xl border border-border bg-muted/30"
+            className="flex-shrink-0 w-72 flex flex-col rounded-xl border border-border bg-muted/30"
             onDragOver={handleDragOver}
             onDrop={e => handleDrop(e, col.status)}
           >
@@ -56,41 +73,92 @@ export default function JobKanban({ jobs, onUpdateStatus, onDelete }: JobKanbanP
               </div>
             </div>
             <div className="flex-1 p-2 space-y-2 overflow-y-auto">
-              {colJobs.map(job => (
-                <div
-                  key={job.id}
-                  draggable
-                  onDragStart={e => handleDragStart(e, job.id)}
-                  className="rounded-lg border border-border bg-card p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow group"
-                >
-                  <div className="flex items-start gap-1.5">
-                    <GripVertical className="h-3.5 w-3.5 mt-0.5 text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm truncate">{job.title}</h4>
-                      <p className="text-xs text-muted-foreground truncate">{job.company}</p>
-                      <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        <span className="truncate">{job.location}</span>
+              {colJobs.map(job => {
+                const isExpanded = expandedJob === job.id;
+                const linkedContacts = getContactsForJob(job.id);
+                const networkMatches = getNetworkMatchesForJob(job);
+                const hasNetwork = linkedContacts.length > 0 || networkMatches.length > 0;
+
+                return (
+                  <div
+                    key={job.id}
+                    draggable={!isExpanded}
+                    onDragStart={e => handleDragStart(e, job.id)}
+                    className="rounded-lg border border-border bg-card p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow group"
+                  >
+                    <div className="flex items-start gap-1.5">
+                      <GripVertical className="h-3.5 w-3.5 mt-0.5 text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <h4 className="font-semibold text-sm truncate flex-1">{job.title}</h4>
+                          {hasNetwork && (
+                            <Badge variant="outline" className="text-[10px] h-4 px-1 shrink-0">
+                              <Users className="h-2.5 w-2.5" />
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{job.company}</p>
+                        <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          <span className="truncate">{job.location}</span>
+                        </div>
+                        {job.salary && <p className="text-xs text-muted-foreground mt-1">{job.salary}</p>}
+
+                        {/* Dates row */}
+                        <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground">
+                          {job.appliedDate && (
+                            <span className="flex items-center gap-0.5"><Calendar className="h-2.5 w-2.5" />{formatDate(job.appliedDate)}</span>
+                          )}
+                          {job.statusUpdatedAt && (
+                            <span className="flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{formatDate(job.statusUpdatedAt)}</span>
+                          )}
+                        </div>
+
+                        {job.posterName && (
+                          <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
+                            <User className="h-2.5 w-2.5" />{job.posterName}
+                          </p>
+                        )}
                       </div>
-                      {job.salary && (
-                        <p className="text-xs text-muted-foreground mt-1">{job.salary}</p>
-                      )}
                     </div>
-                  </div>
-                  <div className="flex items-center justify-end gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {job.url && (
-                      <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
-                        <a href={job.url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
+                    <div className="flex items-center justify-between mt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 px-1 text-[10px] text-muted-foreground"
+                        onClick={e => { e.stopPropagation(); setExpandedJob(isExpanded ? null : job.id); }}
+                      >
+                        {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                        Details
                       </Button>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {job.url && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
+                            <a href={job.url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onDelete(job.id)}>
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <JobDetailPanel
+                        job={job}
+                        linkedContacts={linkedContacts}
+                        networkMatches={networkMatches}
+                        allContacts={contacts}
+                        onUpdateJob={onUpdateJob}
+                        onLinkContact={onLinkContact}
+                        onUnlinkContact={onUnlinkContact}
+                      />
                     )}
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onDelete(job.id)}>
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {colJobs.length === 0 && (
                 <div className="flex items-center justify-center h-20 text-xs text-muted-foreground border border-dashed border-border rounded-lg">
                   Drop here
