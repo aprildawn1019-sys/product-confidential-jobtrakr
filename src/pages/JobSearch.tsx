@@ -217,7 +217,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
                   <div className="shrink-0">
                     {tracked ? (
                       <Button variant="ghost" size="sm" disabled>
-                        <CheckCircle2 className="h-4 w-4 text-green-600" /> Tracked
+                        <CheckCircle2 className="h-4 w-4 text-primary" /> Tracked
                       </Button>
                     ) : added ? (
                       <Button variant="ghost" size="sm" disabled>
