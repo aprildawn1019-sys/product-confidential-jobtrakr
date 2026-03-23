@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { profile, dismissed } = await req.json();
+    const { profile, dismissed, activeBoards } = await req.json();
     if (!profile) {
       return new Response(JSON.stringify({ error: "Profile is required" }), {
         status: 400,
