@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { profile, dismissed } = await req.json();
+    const { profile, dismissed, activeBoards } = await req.json();
     if (!profile) {
       return new Response(JSON.stringify({ error: "Profile is required" }), {
         status: 400,
@@ -42,6 +42,10 @@ PROFESSIONAL SUMMARY: ${profile.summary}
       ? `\n\nEXCLUDE these previously dismissed jobs (do NOT include them):\n${dismissed.map((d: any) => `- ${d.title} at ${d.company}`).join("\n")}`
       : "";
 
+    const boardsContext = activeBoards?.length
+      ? `\n\nSOURCE JOBS FROM THESE JOB BOARDS/PLATFORMS (use these as the job_source field):\n${activeBoards.map((b: any) => `- ${b.name}${b.url ? ` (${b.url})` : ""}`).join("\n")}\n\nFor each job, specify which of these sources the job would realistically be found on. Use company ATS sites (Workday, Greenhouse, Lever) when the job would be posted directly on the company's careers page.`
+      : "";
+
     const aiRes = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -69,6 +73,7 @@ For each job, provide:
 - A realistic, working careers page URL (use real company career page patterns like careers.company.com/jobs/... or company.com/careers/...)
 - How long ago the job was posted (e.g. "2 days ago", "1 week ago", "3 weeks ago") — make it realistic
 - The name and title of a hiring manager or recruiter if plausible (e.g. "Sarah Chen, VP Engineering" or "Talent Acquisition Team")
+- The job source/platform where this posting would be found (e.g. "LinkedIn", "Company Workday Site", "BioSpace", "Indeed", etc.)
 
 Use actual well-known companies in these industries that hire for these roles.
 
@@ -76,7 +81,7 @@ You MUST call the generate_jobs tool with the results.`,
             },
             {
               role: "user",
-              content: `Find matching job opportunities for this candidate:\n\n${profileContext}${dismissedContext}`,
+              content: `Find matching job opportunities for this candidate:\n\n${profileContext}${dismissedContext}${boardsContext}`,
             },
           ],
           tools: [
@@ -103,8 +108,9 @@ You MUST call the generate_jobs tool with the results.`,
                           url: { type: "string", description: "Real careers page URL for this job posting" },
                           posted_ago: { type: "string", description: "How long ago posted, e.g. '2 days ago', '1 week ago'" },
                           hiring_contact: { type: "string", description: "Hiring manager or recruiter name and title if available, e.g. 'Sarah Chen, VP Engineering'" },
+                          job_source: { type: "string", description: "Where this job is posted, e.g. 'LinkedIn', 'Company Workday Site', 'BioSpace', 'Indeed'" },
                         },
-                        required: ["company", "title", "location", "type", "salary", "match_score", "match_reason", "url", "posted_ago"],
+                        required: ["company", "title", "location", "type", "salary", "match_score", "match_reason", "url", "posted_ago", "job_source"],
                         additionalProperties: false,
                       },
                     },

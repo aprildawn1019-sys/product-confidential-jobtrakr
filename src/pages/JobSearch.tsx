@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe } from "lucide-react";
 import type { Job } from "@/types/jobTracker";
 
 interface SearchResult {
@@ -16,6 +16,7 @@ interface SearchResult {
   url?: string;
   posted_ago?: string;
   hiring_contact?: string;
+  job_source?: string;
 }
 
 interface DismissedJob {
@@ -40,6 +41,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   useEffect(() => {
     loadProfile();
     loadDismissed();
+    loadActiveBoards();
   }, []);
 
   const loadProfile = async () => {
@@ -57,6 +59,12 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     if (data) setDismissedJobs(data as DismissedJob[]);
   };
 
+  const [activeBoards, setActiveBoards] = useState<any[]>([]);
+  const loadActiveBoards = async () => {
+    const { data } = await supabase.from("job_boards").select("*").eq("is_active", true);
+    if (data) setActiveBoards(data);
+  };
+
   const handleSearch = async () => {
     if (!profile) {
       toast({ title: "No profile found", description: "Please set up your job search profile first.", variant: "destructive" });
@@ -68,7 +76,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-job-search", {
-        body: { profile, dismissed: dismissedJobs },
+        body: { profile, dismissed: dismissedJobs, activeBoards },
       });
 
       if (error) throw error;
@@ -257,7 +265,15 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
                         <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{result.hiring_contact}</span>
                       )}
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground italic">{result.match_reason}</p>
+                    <div className="flex items-center gap-3 mt-2 flex-wrap">
+                      <p className="text-sm text-muted-foreground italic flex-1">{result.match_reason}</p>
+                      {result.job_source && (
+                        <span className="inline-flex items-center gap-1 text-xs rounded-full border border-border bg-muted px-2.5 py-0.5 text-muted-foreground shrink-0">
+                          <Globe className="h-3 w-3" />
+                          {result.job_source}
+                        </span>
+                      )}
+                    </div>
                     {result.url && (
                       <a href={result.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-sm text-primary hover:underline">
                         <ExternalLink className="h-3.5 w-3.5" /> View Job Posting

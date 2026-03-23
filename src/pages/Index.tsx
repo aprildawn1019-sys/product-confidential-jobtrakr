@@ -7,6 +7,7 @@ import Applications from "@/pages/Applications";
 import Recommendations from "@/pages/Recommendations";
 import JobSearch from "@/pages/JobSearch";
 import ProfileEditor from "@/pages/ProfileEditor";
+import JobBoards from "@/pages/JobBoards";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
 
 export default function Index() {
@@ -24,6 +25,7 @@ export default function Index() {
           <Route path="recommendations" element={<Recommendations />} />
           <Route path="job-search" element={<JobSearch onAddJob={store.addJob} existingJobs={store.jobs} />} />
           <Route path="profile" element={<ProfileEditor />} />
+          <Route path="job-boards" element={<JobBoards />} />
         </Routes>
       </main>
     </div>

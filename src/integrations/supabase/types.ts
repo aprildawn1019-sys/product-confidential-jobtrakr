@@ -115,6 +115,36 @@ export type Database = {
           },
         ]
       }
+      job_boards: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          url: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          url?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
       job_search_profile: {
         Row: {
           compensation_notes: string | null
