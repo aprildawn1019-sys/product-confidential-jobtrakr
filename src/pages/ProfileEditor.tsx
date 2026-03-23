@@ -114,12 +114,6 @@ export default function ProfileEditor() {
       return;
     }
 
-    const allowedTypes = [
-      "text/plain",
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
-
     let resumeText = "";
 
     setParsing(true);
@@ -127,20 +121,26 @@ export default function ProfileEditor() {
       if (file.type === "text/plain" || file.name.endsWith(".txt") || file.name.endsWith(".md")) {
         resumeText = await file.text();
       } else if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
-        // For PDF, we read as text - basic extraction
-        resumeText = await file.text();
-        // If it's binary PDF, we'll send whatever we can extract
-        if (resumeText.startsWith("%PDF")) {
-          toast({
-            title: "PDF detected",
-            description: "For best results, paste your resume text directly below instead of uploading a PDF.",
-            variant: "destructive",
-          });
-          setParsing(false);
-          return;
+        const pdfjsLib = await import("pdfjs-dist");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const pages: string[] = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          pages.push(content.items.map((item: any) => item.str).join(" "));
         }
+        resumeText = pages.join("\n\n");
+      } else if (
+        file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        file.name.endsWith(".docx")
+      ) {
+        const mammoth = await import("mammoth");
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        resumeText = result.value;
       } else {
-        // Try reading as text anyway
         resumeText = await file.text();
       }
 
@@ -276,14 +276,14 @@ export default function ProfileEditor() {
             <label className="cursor-pointer">
               <input
                 type="file"
-                accept=".txt,.md,.text"
+                accept=".txt,.md,.text,.pdf,.docx"
                 onChange={handleResumeUpload}
                 className="hidden"
                 disabled={parsing}
               />
               <div className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors">
                 {parsing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                Upload File (.txt)
+                Upload Resume (.pdf, .docx, .txt)
               </div>
             </label>
             {form.resume_text && (

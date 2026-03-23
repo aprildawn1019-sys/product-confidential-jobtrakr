@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format, parseISO, isToday, isTomorrow, isThisWeek, isPast, isFuture } from "date-fns";
-import { Calendar as CalendarIcon, Clock, Plus, Trash2, CheckCircle2, XCircle, Filter, Briefcase } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Plus, Trash2, CheckCircle2, XCircle, Filter, Briefcase, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -242,6 +242,23 @@ export default function InterviewsPage({ jobs, interviews, onAdd, onUpdate, onDe
                           <>
                             <Button
                               variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              title="Add to Google Calendar"
+                              onClick={() => {
+                                const startDate = interview.date.replace(/-/g, "");
+                                const startTime = interview.time ? interview.time.replace(":", "") + "00" : "090000";
+                                const endH = interview.time ? String(parseInt(interview.time.split(":")[0]) + 1).padStart(2, "0") : "10";
+                                const endTime = endH + (interview.time ? interview.time.split(":")[1] : "00") + "00";
+                                const title = encodeURIComponent(`${interview.type.charAt(0).toUpperCase() + interview.type.slice(1)} Interview — ${job?.title || "Job"} at ${job?.company || "Company"}`);
+                                const details = encodeURIComponent(interview.notes || "");
+                                const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}T${startTime}/${startDate}T${endTime}&details=${details}`;
+                                window.open(url, "_blank");
+                              }}
+                            >
+                              <CalendarIcon className="h-4 w-4 text-primary" />
+                            </Button>
+                            <Button
                               size="icon"
                               className="h-7 w-7"
                               title="Mark completed"
