@@ -27,6 +27,66 @@ interface JobDetailPanelProps {
   onDeleteInterview: (id: string) => void;
 }
 
+function QuickScheduleInterview({ jobId, onAdd }: { jobId: string; onAdd: (i: Omit<Interview, "id">) => void }) {
+  const [open, setOpen] = useState(false);
+  const [type, setType] = useState<Interview["type"]>("phone");
+  const [date, setDate] = useState<Date | undefined>();
+  const [time, setTime] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const handleAdd = () => {
+    if (!date) return;
+    onAdd({ jobId, type, date: format(date, "yyyy-MM-dd"), time: time || undefined, notes: notes || undefined, status: "scheduled" });
+    setOpen(false);
+    setType("phone");
+    setDate(undefined);
+    setTime("");
+    setNotes("");
+  };
+
+  if (!open) {
+    return (
+      <Button variant="outline" size="sm" className="text-xs" onClick={() => setOpen(true)}>
+        <Plus className="h-3 w-3 mr-1" />Schedule Interview
+      </Button>
+    );
+  }
+
+  return (
+    <div className="rounded-md border border-border bg-card p-3 space-y-2">
+      <div className="grid grid-cols-3 gap-2">
+        <Select value={type} onValueChange={v => setType(v as Interview["type"])}>
+          <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="phone">Phone</SelectItem>
+            <SelectItem value="technical">Technical</SelectItem>
+            <SelectItem value="behavioral">Behavioral</SelectItem>
+            <SelectItem value="onsite">On-site</SelectItem>
+            <SelectItem value="final">Final</SelectItem>
+          </SelectContent>
+        </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className={cn("h-7 text-xs justify-start", !date && "text-muted-foreground")}>
+              <CalendarDays className="h-3 w-3 mr-1" />
+              {date ? format(date, "MMM d") : "Date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <CalendarPicker mode="single" selected={date} onSelect={setDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+          </PopoverContent>
+        </Popover>
+        <Input type="time" value={time} onChange={e => setTime(e.target.value)} className="h-7 text-xs" />
+      </div>
+      <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes (optional)" className="h-7 text-xs" />
+      <div className="flex gap-1.5">
+        <Button size="sm" className="h-7 text-xs" onClick={handleAdd} disabled={!date}>Add</Button>
+        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setOpen(false)}>Cancel</Button>
+      </div>
+    </div>
+  );
+}
+
 export default function JobDetailPanel({
   job, linkedContacts, networkMatches, allContacts, interviews, onUpdateJob, onLinkContact, onUnlinkContact, onAddInterview, onUpdateInterview, onDeleteInterview,
 }: JobDetailPanelProps) {
