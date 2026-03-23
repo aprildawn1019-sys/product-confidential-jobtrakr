@@ -94,6 +94,60 @@ export type Database = {
           },
         ]
       }
+      job_search_profile: {
+        Row: {
+          compensation_notes: string | null
+          created_at: string
+          dealbreakers: string[]
+          id: string
+          industries: string[]
+          locations: string[]
+          min_base_salary: number | null
+          must_haves: string[]
+          nice_to_haves: string[]
+          remote_preference: string
+          resume_text: string | null
+          skills: string[]
+          summary: string | null
+          target_roles: string[]
+          updated_at: string
+        }
+        Insert: {
+          compensation_notes?: string | null
+          created_at?: string
+          dealbreakers?: string[]
+          id?: string
+          industries?: string[]
+          locations?: string[]
+          min_base_salary?: number | null
+          must_haves?: string[]
+          nice_to_haves?: string[]
+          remote_preference?: string
+          resume_text?: string | null
+          skills?: string[]
+          summary?: string | null
+          target_roles?: string[]
+          updated_at?: string
+        }
+        Update: {
+          compensation_notes?: string | null
+          created_at?: string
+          dealbreakers?: string[]
+          id?: string
+          industries?: string[]
+          locations?: string[]
+          min_base_salary?: number | null
+          must_haves?: string[]
+          nice_to_haves?: string[]
+          remote_preference?: string
+          resume_text?: string | null
+          skills?: string[]
+          summary?: string | null
+          target_roles?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       jobs: {
         Row: {
           applied_date: string | null
