@@ -498,7 +498,33 @@ export default function ProfileEditor() {
 
         {/* Job Preferences */}
         <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-          <h2 className="font-display font-semibold text-lg">Job Preferences</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-display font-semibold text-lg">Job Preferences</h2>
+            <Button variant="outline" size="sm" onClick={() => setShowPrefsPaste(v => !v)}>
+              <ClipboardPaste className="h-4 w-4 mr-1" />
+              {showPrefsPaste ? "Hide" : "Paste Text to Auto-fill"}
+            </Button>
+          </div>
+          {showPrefsPaste && (
+            <div className="space-y-2 rounded-lg border border-dashed border-border bg-muted/50 p-4">
+              <Label>Paste your job preferences text</Label>
+              <Textarea
+                value={prefsText}
+                onChange={e => setPrefsText(e.target.value)}
+                placeholder="Paste any text describing your job preferences, e.g. 'Looking for a remote VP Product role at a mid-size SaaS company, collaborative culture, no travel required...'"
+                rows={5}
+                className="text-sm"
+              />
+              <Button
+                size="sm"
+                onClick={() => parseProfileText(prefsText, "preferences")}
+                disabled={parsingPrefs || prefsText.trim().length < 10}
+              >
+                {parsingPrefs ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <ClipboardPaste className="h-4 w-4 mr-1" />}
+                Parse & Auto-fill Preferences
+              </Button>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Company Size</Label>
