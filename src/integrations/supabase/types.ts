@@ -53,6 +53,27 @@ export type Database = {
         }
         Relationships: []
       }
+      dismissed_jobs: {
+        Row: {
+          company: string
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       interviews: {
         Row: {
           created_at: string

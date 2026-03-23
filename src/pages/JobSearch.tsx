@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2 } from "lucide-react";
-import StatusBadge from "@/components/StatusBadge";
+import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff } from "lucide-react";
 import type { Job } from "@/types/jobTracker";
 
 interface SearchResult {
@@ -15,6 +14,14 @@ interface SearchResult {
   match_score: number;
   match_reason: string;
   url?: string;
+  posted_ago?: string;
+  hiring_contact?: string;
+}
+
+interface DismissedJob {
+  id: string;
+  company: string;
+  title: string;
 }
 
 interface JobSearchProps {
@@ -28,9 +35,11 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [addedJobs, setAddedJobs] = useState<Set<string>>(new Set());
   const [profile, setProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [dismissedJobs, setDismissedJobs] = useState<DismissedJob[]>([]);
 
   useEffect(() => {
     loadProfile();
+    loadDismissed();
   }, []);
 
   const loadProfile = async () => {
@@ -41,6 +50,11 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       .single();
     setProfile(data);
     setLoadingProfile(false);
+  };
+
+  const loadDismissed = async () => {
+    const { data } = await supabase.from("dismissed_jobs").select("*");
+    if (data) setDismissedJobs(data as DismissedJob[]);
   };
 
   const handleSearch = async () => {
@@ -54,7 +68,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-job-search", {
-        body: { profile },
+        body: { profile, dismissed: dismissedJobs },
       });
 
       if (error) throw error;
@@ -82,11 +96,24 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       salary: result.salary,
       url: result.url,
       status: "saved",
-      notes: `AI Match Score: ${result.match_score}/100 — ${result.match_reason}`,
+      notes: `AI Match Score: ${result.match_score}/100 — ${result.match_reason}${result.hiring_contact ? `\nHiring Contact: ${result.hiring_contact}` : ""}${result.posted_ago ? `\nPosted: ${result.posted_ago}` : ""}`,
     });
 
     setAddedJobs(prev => new Set(prev).add(key));
     toast({ title: "Job added!", description: `${result.title} at ${result.company} added to your tracker.` });
+  };
+
+  const handleDismiss = async (result: SearchResult) => {
+    const { error } = await supabase.from("dismissed_jobs").insert({
+      company: result.company,
+      title: result.title,
+    });
+
+    if (!error) {
+      setDismissedJobs(prev => [...prev, { id: "", company: result.company, title: result.title }]);
+      setResults(prev => prev.filter(r => !(r.company === result.company && r.title === result.title)));
+      toast({ title: "Job dismissed", description: `${result.title} at ${result.company} won't appear in future searches.` });
+    }
   };
 
   const handleAddAll = () => {
@@ -94,7 +121,6 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     for (const result of results) {
       const key = `${result.company}-${result.title}`;
       if (addedJobs.has(key)) continue;
-      // Check if already in tracker
       const exists = existingJobs.some(j => j.company === result.company && j.title === result.title);
       if (exists) continue;
 
@@ -106,7 +132,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
         salary: result.salary,
         url: result.url,
         status: "saved",
-        notes: `AI Match Score: ${result.match_score}/100 — ${result.match_reason}`,
+        notes: `AI Match Score: ${result.match_score}/100 — ${result.match_reason}${result.hiring_contact ? `\nHiring Contact: ${result.hiring_contact}` : ""}${result.posted_ago ? `\nPosted: ${result.posted_ago}` : ""}`,
       });
 
       setAddedJobs(prev => new Set(prev).add(key));
@@ -154,7 +180,12 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       {/* Profile summary card */}
       {profile && (
         <div className="rounded-xl border border-border bg-card p-5">
-          <h3 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3">Your Search Profile</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider">Your Search Profile</h3>
+            {dismissedJobs.length > 0 && (
+              <span className="text-xs text-muted-foreground">{dismissedJobs.length} job{dismissedJobs.length !== 1 ? "s" : ""} dismissed</span>
+            )}
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <p className="font-medium">Target Roles</p>
@@ -208,13 +239,24 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
                       <Building2 className="h-3.5 w-3.5" />
                       <span>{result.company}</span>
                     </div>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
                       <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{result.location}</span>
                       {result.salary && <span>{result.salary}</span>}
+                      {result.posted_ago && (
+                        <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{result.posted_ago}</span>
+                      )}
+                      {result.hiring_contact && (
+                        <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{result.hiring_contact}</span>
+                      )}
                     </div>
                     <p className="mt-2 text-sm text-muted-foreground italic">{result.match_reason}</p>
+                    {result.url && (
+                      <a href={result.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-sm text-primary hover:underline">
+                        <ExternalLink className="h-3.5 w-3.5" /> View Job Posting
+                      </a>
+                    )}
                   </div>
-                  <div className="shrink-0">
+                  <div className="flex flex-col gap-1 shrink-0">
                     {tracked ? (
                       <Button variant="ghost" size="sm" disabled>
                         <CheckCircle2 className="h-4 w-4 text-primary" /> Tracked
@@ -228,6 +270,9 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
                         <Plus className="h-4 w-4" /> Add
                       </Button>
                     )}
+                    <Button variant="ghost" size="sm" onClick={() => handleDismiss(result)} className="text-muted-foreground hover:text-destructive">
+                      <EyeOff className="h-4 w-4" /> Hide
+                    </Button>
                   </div>
                 </div>
               </div>
