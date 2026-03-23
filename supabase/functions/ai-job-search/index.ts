@@ -42,6 +42,10 @@ PROFESSIONAL SUMMARY: ${profile.summary}
       ? `\n\nEXCLUDE these previously dismissed jobs (do NOT include them):\n${dismissed.map((d: any) => `- ${d.title} at ${d.company}`).join("\n")}`
       : "";
 
+    const boardsContext = activeBoards?.length
+      ? `\n\nSOURCE JOBS FROM THESE JOB BOARDS/PLATFORMS (use these as the job_source field):\n${activeBoards.map((b: any) => `- ${b.name}${b.url ? ` (${b.url})` : ""}`).join("\n")}\n\nFor each job, specify which of these sources the job would realistically be found on. Use company ATS sites (Workday, Greenhouse, Lever) when the job would be posted directly on the company's careers page.`
+      : "";
+
     const aiRes = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
