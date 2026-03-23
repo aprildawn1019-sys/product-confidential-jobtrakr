@@ -73,6 +73,7 @@ For each job, provide:
 - A realistic, working careers page URL (use real company career page patterns like careers.company.com/jobs/... or company.com/careers/...)
 - How long ago the job was posted (e.g. "2 days ago", "1 week ago", "3 weeks ago") — make it realistic
 - The name and title of a hiring manager or recruiter if plausible (e.g. "Sarah Chen, VP Engineering" or "Talent Acquisition Team")
+- The job source/platform where this posting would be found (e.g. "LinkedIn", "Company Workday Site", "BioSpace", "Indeed", etc.)
 
 Use actual well-known companies in these industries that hire for these roles.
 
