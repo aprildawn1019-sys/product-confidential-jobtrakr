@@ -16,6 +16,7 @@ interface SearchResult {
   url?: string;
   posted_ago?: string;
   hiring_contact?: string;
+  job_source?: string;
 }
 
 interface DismissedJob {
