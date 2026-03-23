@@ -281,11 +281,8 @@ export type Database = {
       }
       job_search_profile: {
         Row: {
-          certifications: string[]
-          company_sizes: string[]
           compensation_notes: string | null
           created_at: string
-          culture_preferences: string[]
           dealbreakers: string[]
           id: string
           industries: string[]
@@ -296,25 +293,14 @@ export type Database = {
           remote_preference: string
           resume_text: string | null
           skills: string[]
-          soft_skills: string[]
-          spoken_languages: string[]
-          start_availability: string
           summary: string | null
           target_roles: string[]
-          technical_skills: string[]
-          tools_platforms: string[]
-          travel_willingness: string
           updated_at: string
           user_id: string | null
-          work_style: string
-          years_experience: number | null
         }
         Insert: {
-          certifications?: string[]
-          company_sizes?: string[]
           compensation_notes?: string | null
           created_at?: string
-          culture_preferences?: string[]
           dealbreakers?: string[]
           id?: string
           industries?: string[]
@@ -325,25 +311,14 @@ export type Database = {
           remote_preference?: string
           resume_text?: string | null
           skills?: string[]
-          soft_skills?: string[]
-          spoken_languages?: string[]
-          start_availability?: string
           summary?: string | null
           target_roles?: string[]
-          technical_skills?: string[]
-          tools_platforms?: string[]
-          travel_willingness?: string
           updated_at?: string
           user_id?: string | null
-          work_style?: string
-          years_experience?: number | null
         }
         Update: {
-          certifications?: string[]
-          company_sizes?: string[]
           compensation_notes?: string | null
           created_at?: string
-          culture_preferences?: string[]
           dealbreakers?: string[]
           id?: string
           industries?: string[]
@@ -354,18 +329,10 @@ export type Database = {
           remote_preference?: string
           resume_text?: string | null
           skills?: string[]
-          soft_skills?: string[]
-          spoken_languages?: string[]
-          start_availability?: string
           summary?: string | null
           target_roles?: string[]
-          technical_skills?: string[]
-          tools_platforms?: string[]
-          travel_willingness?: string
           updated_at?: string
           user_id?: string | null
-          work_style?: string
-          years_experience?: number | null
         }
         Relationships: []
       }

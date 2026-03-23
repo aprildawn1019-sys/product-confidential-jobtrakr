@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Save, Plus, X, Upload, FileText, ClipboardPaste } from "lucide-react";
+import { Loader2, Save, Plus, X, Upload, FileText } from "lucide-react";
 
 function TagInput({ value, onChange, placeholder }: { value: string[]; onChange: (v: string[]) => void; placeholder?: string }) {
   const [input, setInput] = useState("");
@@ -57,12 +57,6 @@ export default function ProfileEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [parsing, setParsing] = useState(false);
-  const [parsingPrefs, setParsingPrefs] = useState(false);
-  const [parsingSkills, setParsingSkills] = useState(false);
-  const [prefsText, setPrefsText] = useState("");
-  const [skillsText, setSkillsText] = useState("");
-  const [showPrefsPaste, setShowPrefsPaste] = useState(false);
-  const [showSkillsPaste, setShowSkillsPaste] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [form, setForm] = useState({
     target_roles: [] as string[],
@@ -77,19 +71,6 @@ export default function ProfileEditor() {
     skills: [] as string[],
     summary: "",
     resume_text: "",
-    // Job Preferences
-    company_sizes: [] as string[],
-    work_style: "open",
-    travel_willingness: "open",
-    start_availability: "flexible",
-    culture_preferences: [] as string[],
-    // Skills Profile
-    technical_skills: [] as string[],
-    soft_skills: [] as string[],
-    tools_platforms: [] as string[],
-    certifications: [] as string[],
-    spoken_languages: [] as string[],
-    years_experience: null as number | null,
   });
 
   useEffect(() => {
@@ -118,17 +99,6 @@ export default function ProfileEditor() {
         skills: data.skills || [],
         summary: data.summary || "",
         resume_text: data.resume_text || "",
-        company_sizes: (data as any).company_sizes || [],
-        work_style: (data as any).work_style || "open",
-        travel_willingness: (data as any).travel_willingness || "open",
-        start_availability: (data as any).start_availability || "flexible",
-        culture_preferences: (data as any).culture_preferences || [],
-        technical_skills: (data as any).technical_skills || [],
-        soft_skills: (data as any).soft_skills || [],
-        tools_platforms: (data as any).tools_platforms || [],
-        certifications: (data as any).certifications || [],
-        spoken_languages: (data as any).spoken_languages || [],
-        years_experience: (data as any).years_experience ?? null,
       });
     }
     setLoading(false);
@@ -219,59 +189,6 @@ export default function ProfileEditor() {
     }
   };
 
-  const parseProfileText = async (text: string, section: "preferences" | "skills") => {
-    const setParsingState = section === "preferences" ? setParsingPrefs : setParsingSkills;
-    setParsingState(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("parse-profile-text", {
-        body: { text, section },
-      });
-      if (error) throw error;
-      if (!data?.success || !data?.data) throw new Error(data?.error || "Parsing failed");
-      const p = data.data;
-      if (section === "preferences") {
-        setForm(f => ({
-          ...f,
-          company_sizes: p.company_sizes?.length ? p.company_sizes : f.company_sizes,
-          work_style: p.work_style || f.work_style,
-          travel_willingness: p.travel_willingness || f.travel_willingness,
-          start_availability: p.start_availability || f.start_availability,
-          culture_preferences: p.culture_preferences?.length ? p.culture_preferences : f.culture_preferences,
-          remote_preference: p.remote_preference || f.remote_preference,
-          locations: p.locations?.length ? p.locations : f.locations,
-          target_roles: p.target_roles?.length ? p.target_roles : f.target_roles,
-          industries: p.industries?.length ? p.industries : f.industries,
-          must_haves: p.must_haves?.length ? p.must_haves : f.must_haves,
-          nice_to_haves: p.nice_to_haves?.length ? p.nice_to_haves : f.nice_to_haves,
-          dealbreakers: p.dealbreakers?.length ? p.dealbreakers : f.dealbreakers,
-          min_base_salary: p.min_base_salary || f.min_base_salary,
-          compensation_notes: p.compensation_notes || f.compensation_notes,
-        }));
-        setShowPrefsPaste(false);
-        setPrefsText("");
-      } else {
-        setForm(f => ({
-          ...f,
-          technical_skills: p.technical_skills?.length ? p.technical_skills : f.technical_skills,
-          soft_skills: p.soft_skills?.length ? p.soft_skills : f.soft_skills,
-          tools_platforms: p.tools_platforms?.length ? p.tools_platforms : f.tools_platforms,
-          certifications: p.certifications?.length ? p.certifications : f.certifications,
-          spoken_languages: p.spoken_languages?.length ? p.spoken_languages : f.spoken_languages,
-          years_experience: p.years_experience ?? f.years_experience,
-          skills: p.skills?.length ? p.skills : f.skills,
-          summary: p.summary || f.summary,
-        }));
-        setShowSkillsPaste(false);
-        setSkillsText("");
-      }
-      toast({ title: "Text parsed!", description: `${section === "preferences" ? "Job preferences" : "Skills profile"} fields have been auto-filled. Review and save.` });
-    } catch (err: any) {
-      toast({ title: "Parsing failed", description: err.message, variant: "destructive" });
-    } finally {
-      setParsingState(false);
-    }
-  };
-
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -291,19 +208,8 @@ export default function ProfileEditor() {
             skills: form.skills,
             summary: form.summary,
             resume_text: form.resume_text,
-            company_sizes: form.company_sizes,
-            work_style: form.work_style,
-            travel_willingness: form.travel_willingness,
-            start_availability: form.start_availability,
-            culture_preferences: form.culture_preferences,
-            technical_skills: form.technical_skills,
-            soft_skills: form.soft_skills,
-            tools_platforms: form.tools_platforms,
-            certifications: form.certifications,
-            spoken_languages: form.spoken_languages,
-            years_experience: form.years_experience,
             updated_at: new Date().toISOString(),
-          } as any)
+          })
           .eq("id", profileId);
         if (error) throw error;
       } else {
@@ -325,18 +231,7 @@ export default function ProfileEditor() {
             skills: form.skills,
             summary: form.summary,
             resume_text: form.resume_text,
-            company_sizes: form.company_sizes,
-            work_style: form.work_style,
-            travel_willingness: form.travel_willingness,
-            start_availability: form.start_availability,
-            culture_preferences: form.culture_preferences,
-            technical_skills: form.technical_skills,
-            soft_skills: form.soft_skills,
-            tools_platforms: form.tools_platforms,
-            certifications: form.certifications,
-            spoken_languages: form.spoken_languages,
-            years_experience: form.years_experience,
-          } as any)
+          })
           .select()
           .single();
         if (error) throw error;
@@ -496,159 +391,18 @@ export default function ProfileEditor() {
           </div>
         </section>
 
-        {/* Job Preferences */}
+        {/* Industries & Skills */}
         <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-semibold text-lg">Job Preferences</h2>
-            <Button variant="outline" size="sm" onClick={() => setShowPrefsPaste(v => !v)}>
-              <ClipboardPaste className="h-4 w-4 mr-1" />
-              {showPrefsPaste ? "Hide" : "Paste Text to Auto-fill"}
-            </Button>
-          </div>
-          {showPrefsPaste && (
-            <div className="space-y-2 rounded-lg border border-dashed border-border bg-muted/50 p-4">
-              <Label>Paste your job preferences text</Label>
-              <Textarea
-                value={prefsText}
-                onChange={e => setPrefsText(e.target.value)}
-                placeholder="Paste any text describing your job preferences, e.g. 'Looking for a remote VP Product role at a mid-size SaaS company, collaborative culture, no travel required...'"
-                rows={5}
-                className="text-sm"
-              />
-              <Button
-                size="sm"
-                onClick={() => parseProfileText(prefsText, "preferences")}
-                disabled={parsingPrefs || prefsText.trim().length < 10}
-              >
-                {parsingPrefs ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <ClipboardPaste className="h-4 w-4 mr-1" />}
-                Parse & Auto-fill Preferences
-              </Button>
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Company Size</Label>
-              <TagInput value={form.company_sizes} onChange={v => setForm(f => ({ ...f, company_sizes: v }))} placeholder="e.g. Startup, Mid-size, Enterprise" />
-            </div>
-            <div className="space-y-2">
-              <Label>Work Style</Label>
-              <Select value={form.work_style} onValueChange={v => setForm(f => ({ ...f, work_style: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ic">Individual Contributor</SelectItem>
-                  <SelectItem value="manager">People Manager</SelectItem>
-                  <SelectItem value="executive">Executive / VP+</SelectItem>
-                  <SelectItem value="open">Open to Any</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Travel Willingness</Label>
-              <Select value={form.travel_willingness} onValueChange={v => setForm(f => ({ ...f, travel_willingness: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Travel</SelectItem>
-                  <SelectItem value="occasional">Occasional ({"<"}25%)</SelectItem>
-                  <SelectItem value="moderate">Moderate (25-50%)</SelectItem>
-                  <SelectItem value="frequent">Frequent (50%+)</SelectItem>
-                  <SelectItem value="open">Open to Any</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Start Availability</Label>
-              <Select value={form.start_availability} onValueChange={v => setForm(f => ({ ...f, start_availability: v }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="immediately">Immediately</SelectItem>
-                  <SelectItem value="2_weeks">2 Weeks Notice</SelectItem>
-                  <SelectItem value="1_month">1 Month</SelectItem>
-                  <SelectItem value="2_months">2+ Months</SelectItem>
-                  <SelectItem value="flexible">Flexible</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Culture Preferences</Label>
-            <TagInput value={form.culture_preferences} onChange={v => setForm(f => ({ ...f, culture_preferences: v }))} placeholder="e.g. Collaborative, Fast-paced, Mission-driven" />
-          </div>
-        </section>
-
-        {/* Skills Profile */}
-        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-semibold text-lg">Skills Profile</h2>
-            <Button variant="outline" size="sm" onClick={() => setShowSkillsPaste(v => !v)}>
-              <ClipboardPaste className="h-4 w-4 mr-1" />
-              {showSkillsPaste ? "Hide" : "Paste Text to Auto-fill"}
-            </Button>
-          </div>
-          {showSkillsPaste && (
-            <div className="space-y-2 rounded-lg border border-dashed border-border bg-muted/50 p-4">
-              <Label>Paste your skills/experience text</Label>
-              <Textarea
-                value={skillsText}
-                onChange={e => setSkillsText(e.target.value)}
-                placeholder="Paste any text describing your skills and experience, e.g. '15 years in product management, skilled in SQL, Python, Tableau, PMP certified, fluent in English and Spanish...'"
-                rows={5}
-                className="text-sm"
-              />
-              <Button
-                size="sm"
-                onClick={() => parseProfileText(skillsText, "skills")}
-                disabled={parsingSkills || skillsText.trim().length < 10}
-              >
-                {parsingSkills ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <ClipboardPaste className="h-4 w-4 mr-1" />}
-                Parse & Auto-fill Skills
-              </Button>
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Years of Experience</Label>
-              <Input
-                type="number"
-                value={form.years_experience ?? ""}
-                onChange={e => setForm(f => ({ ...f, years_experience: e.target.value ? parseInt(e.target.value) : null }))}
-                placeholder="e.g. 15"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Languages</Label>
-              <TagInput value={form.spoken_languages} onChange={v => setForm(f => ({ ...f, spoken_languages: v }))} placeholder="e.g. English, Spanish" />
-            </div>
-          </div>
+          <h2 className="font-display font-semibold text-lg">Industries & Skills</h2>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Technical Skills</Label>
-              <TagInput value={form.technical_skills} onChange={v => setForm(f => ({ ...f, technical_skills: v }))} placeholder="e.g. Data Analytics, SQL, Python" />
+              <Label>Industries (in order of preference)</Label>
+              <TagInput value={form.industries} onChange={v => setForm(f => ({ ...f, industries: v }))} placeholder="e.g. Life Sciences / Biotech" />
             </div>
             <div className="space-y-2">
-              <Label>Soft Skills</Label>
-              <TagInput value={form.soft_skills} onChange={v => setForm(f => ({ ...f, soft_skills: v }))} placeholder="e.g. Executive Communication, Team Building" />
+              <Label>Key Skills</Label>
+              <TagInput value={form.skills} onChange={v => setForm(f => ({ ...f, skills: v }))} placeholder="e.g. Product Strategy" />
             </div>
-            <div className="space-y-2">
-              <Label>Tools & Platforms</Label>
-              <TagInput value={form.tools_platforms} onChange={v => setForm(f => ({ ...f, tools_platforms: v }))} placeholder="e.g. Jira, Figma, Salesforce, Tableau" />
-            </div>
-            <div className="space-y-2">
-              <Label>Certifications</Label>
-              <TagInput value={form.certifications} onChange={v => setForm(f => ({ ...f, certifications: v }))} placeholder="e.g. PMP, CSPO, Six Sigma" />
-            </div>
-          </div>
-        </section>
-
-        {/* Industries */}
-        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-          <h2 className="font-display font-semibold text-lg">Industries</h2>
-          <div className="space-y-2">
-            <Label>Industries (in order of preference)</Label>
-            <TagInput value={form.industries} onChange={v => setForm(f => ({ ...f, industries: v }))} placeholder="e.g. Life Sciences / Biotech" />
-          </div>
-          <div className="space-y-2">
-            <Label>General Skills Keywords</Label>
-            <TagInput value={form.skills} onChange={v => setForm(f => ({ ...f, skills: v }))} placeholder="e.g. Product Strategy, P&L Ownership" />
           </div>
         </section>
 
