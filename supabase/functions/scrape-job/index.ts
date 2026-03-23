@@ -93,8 +93,12 @@ serve(async (req) => {
                       type: "string",
                       description: "Salary range if mentioned",
                     },
+                    description: {
+                      type: "string",
+                      description: "Full job description text including responsibilities, qualifications, and requirements. Return as much detail as possible.",
+                    },
                   },
-                  required: ["company", "title", "location", "type", "salary"],
+                  required: ["company", "title", "location", "type", "salary", "description"],
                   additionalProperties: false,
                 },
               },
