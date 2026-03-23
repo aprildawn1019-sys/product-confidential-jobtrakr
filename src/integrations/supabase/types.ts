@@ -14,7 +14,139 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contacts: {
+        Row: {
+          company: string
+          created_at: string
+          email: string | null
+          id: string
+          last_contacted_at: string | null
+          linkedin: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          role: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_contacted_at?: string | null
+          linkedin?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_contacted_at?: string | null
+          linkedin?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string
+        }
+        Relationships: []
+      }
+      interviews: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          job_id: string
+          notes: string | null
+          status: string
+          time: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          status?: string
+          time?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          status?: string
+          time?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interviews_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          applied_date: string | null
+          company: string
+          contact_id: string | null
+          created_at: string
+          id: string
+          location: string
+          notes: string | null
+          salary: string | null
+          status: string
+          title: string
+          type: string
+          url: string | null
+        }
+        Insert: {
+          applied_date?: string | null
+          company: string
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          location?: string
+          notes?: string | null
+          salary?: string | null
+          status?: string
+          title: string
+          type?: string
+          url?: string | null
+        }
+        Update: {
+          applied_date?: string | null
+          company?: string
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          location?: string
+          notes?: string | null
+          salary?: string | null
+          status?: string
+          title?: string
+          type?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
