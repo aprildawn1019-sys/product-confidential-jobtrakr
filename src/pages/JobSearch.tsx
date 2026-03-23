@@ -221,7 +221,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
                       </Button>
                     ) : added ? (
                       <Button variant="ghost" size="sm" disabled>
-                        <CheckCircle2 className="h-4 w-4 text-green-600" /> Added
+                        <CheckCircle2 className="h-4 w-4 text-primary" /> Added
                       </Button>
                     ) : (
                       <Button variant="outline" size="sm" onClick={() => handleAddJob(result)}>
