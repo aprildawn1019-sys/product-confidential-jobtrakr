@@ -112,7 +112,10 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   };
 
   const handleDismiss = async (result: SearchResult) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
     const { error } = await supabase.from("dismissed_jobs").insert({
+      user_id: user.id,
       company: result.company,
       title: result.title,
     });

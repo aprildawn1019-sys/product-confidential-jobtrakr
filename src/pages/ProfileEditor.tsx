@@ -124,9 +124,12 @@ export default function ProfileEditor() {
           .eq("id", profileId);
         if (error) throw error;
       } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
         const { data, error } = await supabase
           .from("job_search_profile")
           .insert({
+            user_id: user.id,
             target_roles: form.target_roles,
             locations: form.locations,
             remote_preference: form.remote_preference,
