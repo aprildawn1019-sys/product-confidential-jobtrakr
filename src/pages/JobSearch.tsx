@@ -120,8 +120,8 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-green-600 bg-green-50 border-green-200";
-    if (score >= 70) return "text-amber-600 bg-amber-50 border-amber-200";
+    if (score >= 85) return "text-primary bg-primary/10 border-primary/30";
+    if (score >= 70) return "text-accent-foreground bg-accent border-accent/50";
     return "text-muted-foreground bg-muted border-border";
   };
 
