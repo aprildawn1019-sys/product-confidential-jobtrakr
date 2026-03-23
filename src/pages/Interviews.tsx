@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { format, parseISO, isToday, isTomorrow } from "date-fns";
-import { Calendar as CalendarIcon, Clock, Plus, Trash2, CheckCircle2, XCircle, Briefcase, Link2, Unlink } from "lucide-react";
+import { useState } from "react";
+import { format, parseISO, isToday, isTomorrow, isThisWeek, isPast, isFuture } from "date-fns";
+import { Calendar as CalendarIcon, Clock, Plus, Trash2, CheckCircle2, XCircle, Filter, Briefcase, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,7 +11,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import type { Job, Interview } from "@/types/jobTracker";
 
 interface InterviewsPageProps {
@@ -37,7 +36,6 @@ export default function InterviewsPage({ jobs, interviews, onAdd, onUpdate, onDe
     jobId: "", type: "phone" as Interview["type"], date: "", time: "", notes: "",
   });
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const gcal = useGoogleCalendar();
 
   const filtered = interviews.filter(i => {
     if (filter === "upcoming") return i.status === "scheduled";
@@ -52,24 +50,9 @@ export default function InterviewsPage({ jobs, interviews, onAdd, onUpdate, onDe
     return new Date(a.date).getTime() - new Date(b.date).getTime();
   });
 
-  const handleAdd = async () => {
+  const handleAdd = () => {
     if (!newInterview.jobId || !newInterview.date) return;
-    const job = jobs.find(j => j.id === newInterview.jobId);
-    
-    // Add to DB
     onAdd({ ...newInterview, status: "scheduled" });
-
-    // Sync to Google Calendar if connected
-    if (gcal.connected && job) {
-      const summary = `${newInterview.type.charAt(0).toUpperCase() + newInterview.type.slice(1)} Interview — ${job.title} at ${job.company}`;
-      await gcal.createEvent({
-        summary,
-        description: newInterview.notes || undefined,
-        date: newInterview.date,
-        time: newInterview.time || undefined,
-      });
-    }
-
     setNewInterview({ jobId: "", type: "phone", date: "", time: "", notes: "" });
     setSelectedDate(undefined);
     setDialogOpen(false);
@@ -102,107 +85,87 @@ export default function InterviewsPage({ jobs, interviews, onAdd, onUpdate, onDe
             {upcomingCount} upcoming · {completedCount} completed
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Google Calendar connect/disconnect */}
-          {gcal.connected ? (
-            <Button variant="outline" size="sm" onClick={gcal.disconnect} className="gap-1.5">
-              <Unlink className="h-3.5 w-3.5" />
-              Disconnect Calendar
-            </Button>
-          ) : (
-            <Button variant="outline" size="sm" onClick={gcal.connect} className="gap-1.5">
-              <Link2 className="h-3.5 w-3.5" />
-              Connect Google Calendar
-            </Button>
-          )}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4" /> Schedule Interview</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Schedule Interview</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-2">
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button><Plus className="h-4 w-4" /> Schedule Interview</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Schedule Interview</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label>Job</Label>
+                <Select value={newInterview.jobId} onValueChange={v => setNewInterview(f => ({ ...f, jobId: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Select a job..." /></SelectTrigger>
+                  <SelectContent>
+                    {jobs.filter(j => !["rejected", "withdrawn"].includes(j.status)).map(j => (
+                      <SelectItem key={j.id} value={j.id}>{j.title} — {j.company}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>Job</Label>
-                  <Select value={newInterview.jobId} onValueChange={v => setNewInterview(f => ({ ...f, jobId: v }))}>
-                    <SelectTrigger><SelectValue placeholder="Select a job..." /></SelectTrigger>
+                  <Label>Type</Label>
+                  <Select value={newInterview.type} onValueChange={v => setNewInterview(f => ({ ...f, type: v as Interview["type"] }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {jobs.filter(j => !["rejected", "withdrawn"].includes(j.status)).map(j => (
-                        <SelectItem key={j.id} value={j.id}>{j.title} — {j.company}</SelectItem>
-                      ))}
+                      <SelectItem value="phone">Phone Screen</SelectItem>
+                      <SelectItem value="technical">Technical</SelectItem>
+                      <SelectItem value="behavioral">Behavioral</SelectItem>
+                      <SelectItem value="onsite">On-site</SelectItem>
+                      <SelectItem value="final">Final Round</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Type</Label>
-                    <Select value={newInterview.type} onValueChange={v => setNewInterview(f => ({ ...f, type: v as Interview["type"] }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="phone">Phone Screen</SelectItem>
-                        <SelectItem value="technical">Technical</SelectItem>
-                        <SelectItem value="behavioral">Behavioral</SelectItem>
-                        <SelectItem value="onsite">On-site</SelectItem>
-                        <SelectItem value="final">Final Round</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Time</Label>
-                    <Input
-                      type="time"
-                      value={newInterview.time}
-                      onChange={e => setNewInterview(f => ({ ...f, time: e.target.value }))}
-                    />
-                  </div>
-                </div>
                 <div className="space-y-2">
-                  <Label>Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}>
-                        <CalendarIcon className="h-4 w-4 mr-2" />
-                        {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={d => {
-                          setSelectedDate(d);
-                          if (d) setNewInterview(f => ({ ...f, date: format(d, "yyyy-MM-dd") }));
-                        }}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="space-y-2">
-                  <Label>Notes</Label>
-                  <Textarea
-                    value={newInterview.notes}
-                    onChange={e => setNewInterview(f => ({ ...f, notes: e.target.value }))}
-                    placeholder="Interviewer name, prep notes, etc."
-                    rows={3}
+                  <Label>Time</Label>
+                  <Input
+                    type="time"
+                    value={newInterview.time}
+                    onChange={e => setNewInterview(f => ({ ...f, time: e.target.value }))}
                   />
                 </div>
-                {gcal.connected && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <CalendarIcon className="h-3 w-3" />
-                    Will automatically sync to Google Calendar
-                  </p>
-                )}
-                <Button onClick={handleAdd} disabled={!newInterview.jobId || !newInterview.date} className="w-full">
-                  Schedule Interview
-                </Button>
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <div className="space-y-2">
+                <Label>Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}>
+                      <CalendarIcon className="h-4 w-4 mr-2" />
+                      {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={d => {
+                        setSelectedDate(d);
+                        if (d) setNewInterview(f => ({ ...f, date: format(d, "yyyy-MM-dd") }));
+                      }}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label>Notes</Label>
+                <Textarea
+                  value={newInterview.notes}
+                  onChange={e => setNewInterview(f => ({ ...f, notes: e.target.value }))}
+                  placeholder="Interviewer name, prep notes, etc."
+                  rows={3}
+                />
+              </div>
+              <Button onClick={handleAdd} disabled={!newInterview.jobId || !newInterview.date} className="w-full">
+                Schedule Interview
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Filter & Calendar Overview */}
@@ -281,6 +244,23 @@ export default function InterviewsPage({ jobs, interviews, onAdd, onUpdate, onDe
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7"
+                              title="Add to Google Calendar"
+                              onClick={() => {
+                                const startDate = interview.date.replace(/-/g, "");
+                                const startTime = interview.time ? interview.time.replace(":", "") + "00" : "090000";
+                                const endH = interview.time ? String(parseInt(interview.time.split(":")[0]) + 1).padStart(2, "0") : "10";
+                                const endTime = endH + (interview.time ? interview.time.split(":")[1] : "00") + "00";
+                                const title = encodeURIComponent(`${interview.type.charAt(0).toUpperCase() + interview.type.slice(1)} Interview — ${job?.title || "Job"} at ${job?.company || "Company"}`);
+                                const details = encodeURIComponent(interview.notes || "");
+                                const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}T${startTime}/${startDate}T${endTime}&details=${details}`;
+                                window.open(url, "_blank");
+                              }}
+                            >
+                              <CalendarIcon className="h-4 w-4 text-primary" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              className="h-7 w-7"
                               title="Mark completed"
                               onClick={() => onUpdate(interview.id, { status: "completed" })}
                             >
@@ -316,46 +296,21 @@ export default function InterviewsPage({ jobs, interviews, onAdd, onUpdate, onDe
         </div>
 
         {/* Calendar sidebar */}
-        <div className="space-y-4">
-          <div className="rounded-xl border border-border bg-card p-4">
-            <h3 className="font-display font-semibold text-sm mb-3">Interview Calendar</h3>
-            <Calendar
-              mode="single"
-              className={cn("p-0 pointer-events-auto")}
-              modifiers={{
-                interview: (date) => interviewDates.has(format(date, "yyyy-MM-dd")),
-              }}
-              modifiersClassNames={{
-                interview: "bg-primary/20 text-primary font-bold rounded-full",
-              }}
-            />
-            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="h-3 w-3 rounded-full bg-primary/20" />
-              Scheduled interview
-            </div>
-          </div>
-
-          {/* Google Calendar Status */}
-          <div className="rounded-xl border border-border bg-card p-4">
-            <h3 className="font-display font-semibold text-sm mb-2">Google Calendar</h3>
-            {gcal.loading ? (
-              <p className="text-xs text-muted-foreground">Checking connection...</p>
-            ) : gcal.connected ? (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-green-500" />
-                  <p className="text-xs text-muted-foreground">Connected — interviews sync automatically</p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">Connect to automatically create Google Calendar events when you schedule interviews.</p>
-                <Button size="sm" variant="outline" onClick={gcal.connect} className="w-full gap-1.5">
-                  <Link2 className="h-3.5 w-3.5" />
-                  Connect Google Calendar
-                </Button>
-              </div>
-            )}
+        <div className="rounded-xl border border-border bg-card p-4">
+          <h3 className="font-display font-semibold text-sm mb-3">Interview Calendar</h3>
+          <Calendar
+            mode="single"
+            className={cn("p-0 pointer-events-auto")}
+            modifiers={{
+              interview: (date) => interviewDates.has(format(date, "yyyy-MM-dd")),
+            }}
+            modifiersClassNames={{
+              interview: "bg-primary/20 text-primary font-bold rounded-full",
+            }}
+          />
+          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="h-3 w-3 rounded-full bg-primary/20" />
+            Scheduled interview
           </div>
         </div>
       </div>
