@@ -1,0 +1,19 @@
+
+ALTER TABLE public.interviews ADD COLUMN google_calendar_event_id text;
+
+CREATE TABLE public.google_tokens (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL UNIQUE,
+  access_token text NOT NULL,
+  refresh_token text NOT NULL,
+  expires_at timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.google_tokens ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users manage own google_tokens" ON public.google_tokens
+  FOR ALL TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
