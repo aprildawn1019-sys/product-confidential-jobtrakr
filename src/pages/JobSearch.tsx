@@ -76,7 +76,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-job-search", {
-        body: { profile, dismissed: dismissedJobs },
+        body: { profile, dismissed: dismissedJobs, activeBoards },
       });
 
       if (error) throw error;
