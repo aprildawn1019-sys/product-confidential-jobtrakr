@@ -25,6 +25,7 @@ export default function Index() {
             <Jobs
               jobs={store.jobs}
               contacts={store.contacts}
+              interviews={store.interviews}
               onAdd={store.addJob}
               onUpdateStatus={store.updateJobStatus}
               onUpdateJob={store.updateJob}
@@ -33,6 +34,9 @@ export default function Index() {
               onUnlinkContact={store.unlinkContactFromJob}
               getContactsForJob={store.getContactsForJob}
               getNetworkMatchesForJob={store.getNetworkMatchesForJob}
+              onAddInterview={store.addInterview}
+              onUpdateInterview={store.updateInterview}
+              onDeleteInterview={store.deleteInterview}
             />
           } />
           <Route path="contacts" element={
