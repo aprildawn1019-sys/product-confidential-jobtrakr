@@ -222,7 +222,7 @@ export function useJobTrackerStore() {
   return {
     jobs, contacts, interviews, jobContacts, contactConnections, loading,
     addJob, updateJobStatus, updateJob, deleteJob,
-    addContact, deleteContact, addInterview,
+    addContact, deleteContact, addInterview, updateInterview, deleteInterview,
     linkContactToJob, unlinkContactFromJob, getContactsForJob, getNetworkMatchesForJob,
     addContactConnection, removeContactConnection, getConnectionsForContact, getContactsAtSameOrg,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
