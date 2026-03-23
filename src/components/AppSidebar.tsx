@@ -1,4 +1,4 @@
-import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, Network } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ const links = [
   { to: "/job-search", icon: Search, label: "AI Job Search" },
   { to: "/profile", icon: UserCog, label: "Search Profile" },
   { to: "/job-boards", icon: Globe, label: "Job Boards" },
+  { to: "/network", icon: Network, label: "Network Map" },
 ];
 
 export default function AppSidebar() {

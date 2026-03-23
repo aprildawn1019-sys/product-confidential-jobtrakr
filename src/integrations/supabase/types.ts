@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_connections: {
+        Row: {
+          connection_type: string
+          contact_id_1: string
+          contact_id_2: string
+          created_at: string
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          connection_type?: string
+          contact_id_1: string
+          contact_id_2: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          connection_type?: string
+          contact_id_1?: string
+          contact_id_2?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_connections_contact_id_1_fkey"
+            columns: ["contact_id_1"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_connections_contact_id_2_fkey"
+            columns: ["contact_id_2"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           company: string
@@ -145,6 +187,42 @@ export type Database = {
         }
         Relationships: []
       }
+      job_contacts: {
+        Row: {
+          contact_id: string
+          created_at: string
+          id: string
+          job_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          id?: string
+          job_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_contacts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_search_profile: {
         Row: {
           compensation_notes: string | null
@@ -208,8 +286,13 @@ export type Database = {
           id: string
           location: string
           notes: string | null
+          poster_email: string | null
+          poster_name: string | null
+          poster_phone: string | null
+          poster_role: string | null
           salary: string | null
           status: string
+          status_updated_at: string | null
           title: string
           type: string
           url: string | null
@@ -222,8 +305,13 @@ export type Database = {
           id?: string
           location?: string
           notes?: string | null
+          poster_email?: string | null
+          poster_name?: string | null
+          poster_phone?: string | null
+          poster_role?: string | null
           salary?: string | null
           status?: string
+          status_updated_at?: string | null
           title: string
           type?: string
           url?: string | null
@@ -236,8 +324,13 @@ export type Database = {
           id?: string
           location?: string
           notes?: string | null
+          poster_email?: string | null
+          poster_name?: string | null
+          poster_phone?: string | null
+          poster_role?: string | null
           salary?: string | null
           status?: string
+          status_updated_at?: string | null
           title?: string
           type?: string
           url?: string | null

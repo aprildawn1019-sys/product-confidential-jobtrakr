@@ -8,6 +8,7 @@ import Recommendations from "@/pages/Recommendations";
 import JobSearch from "@/pages/JobSearch";
 import ProfileEditor from "@/pages/ProfileEditor";
 import JobBoards from "@/pages/JobBoards";
+import NetworkMap from "@/pages/NetworkMap";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
 
 export default function Index() {
@@ -19,13 +20,37 @@ export default function Index() {
       <main className="flex-1 ml-64 p-8">
         <Routes>
           <Route index element={<Dashboard jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} />} />
-          <Route path="jobs" element={<Jobs jobs={store.jobs} onAdd={store.addJob} onUpdateStatus={store.updateJobStatus} onDelete={store.deleteJob} />} />
-          <Route path="contacts" element={<Contacts contacts={store.contacts} onAdd={store.addContact} onDelete={store.deleteContact} />} />
+          <Route path="jobs" element={
+            <Jobs
+              jobs={store.jobs}
+              contacts={store.contacts}
+              onAdd={store.addJob}
+              onUpdateStatus={store.updateJobStatus}
+              onUpdateJob={store.updateJob}
+              onDelete={store.deleteJob}
+              onLinkContact={store.linkContactToJob}
+              onUnlinkContact={store.unlinkContactFromJob}
+              getContactsForJob={store.getContactsForJob}
+              getNetworkMatchesForJob={store.getNetworkMatchesForJob}
+            />
+          } />
+          <Route path="contacts" element={
+            <Contacts
+              contacts={store.contacts}
+              onAdd={store.addContact}
+              onDelete={store.deleteContact}
+              getConnectionsForContact={store.getConnectionsForContact}
+              getContactsAtSameOrg={store.getContactsAtSameOrg}
+              onAddConnection={store.addContactConnection}
+              onRemoveConnection={store.removeContactConnection}
+            />
+          } />
           <Route path="applications" element={<Applications jobs={store.jobs} interviews={store.interviews} />} />
           <Route path="recommendations" element={<Recommendations />} />
           <Route path="job-search" element={<JobSearch onAddJob={store.addJob} existingJobs={store.jobs} />} />
           <Route path="profile" element={<ProfileEditor />} />
           <Route path="job-boards" element={<JobBoards />} />
+          <Route path="network" element={<NetworkMap contacts={store.contacts} contactConnections={store.contactConnections} />} />
         </Routes>
       </main>
     </div>
