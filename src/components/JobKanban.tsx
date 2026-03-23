@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/StatusBadge";
 import JobDetailPanel from "@/components/JobDetailPanel";
-import type { Job, Contact, JobStatus } from "@/types/jobTracker";
+import type { Job, Contact, JobStatus, Interview } from "@/types/jobTracker";
 
 const columns: { status: JobStatus; label: string }[] = [
   { status: "saved", label: "Saved" },
@@ -19,6 +19,7 @@ const columns: { status: JobStatus; label: string }[] = [
 interface JobKanbanProps {
   jobs: Job[];
   contacts: Contact[];
+  interviews: Interview[];
   onUpdateStatus: (id: string, status: JobStatus) => void;
   onUpdateJob: (id: string, updates: Partial<Job>) => void;
   onDelete: (id: string) => void;
@@ -26,6 +27,9 @@ interface JobKanbanProps {
   onUnlinkContact: (jobId: string, contactId: string) => void;
   getContactsForJob: (jobId: string) => Contact[];
   getNetworkMatchesForJob: (job: Job) => Contact[];
+  onAddInterview: (interview: Omit<Interview, "id">) => void;
+  onUpdateInterview: (id: string, updates: Partial<Interview>) => void;
+  onDeleteInterview: (id: string) => void;
 }
 
 export default function JobKanban({
