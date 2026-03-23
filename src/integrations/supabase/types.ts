@@ -22,6 +22,7 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          user_id: string | null
         }
         Insert: {
           connection_type?: string
@@ -30,6 +31,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          user_id?: string | null
         }
         Update: {
           connection_type?: string
@@ -38,6 +40,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -68,6 +71,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           role: string
+          user_id: string | null
         }
         Insert: {
           company: string
@@ -80,6 +84,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           role?: string
+          user_id?: string | null
         }
         Update: {
           company?: string
@@ -92,8 +97,47 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           role?: string
+          user_id?: string | null
         }
         Relationships: []
+      }
+      cover_letters: {
+        Row: {
+          company: string
+          content: string
+          created_at: string
+          id: string
+          job_id: string | null
+          job_title: string
+          user_id: string
+        }
+        Insert: {
+          company: string
+          content: string
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          job_title: string
+          user_id: string
+        }
+        Update: {
+          company?: string
+          content?: string
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          job_title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cover_letters_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dismissed_jobs: {
         Row: {
@@ -101,18 +145,21 @@ export type Database = {
           created_at: string
           id: string
           title: string
+          user_id: string | null
         }
         Insert: {
           company: string
           created_at?: string
           id?: string
           title: string
+          user_id?: string | null
         }
         Update: {
           company?: string
           created_at?: string
           id?: string
           title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -126,6 +173,7 @@ export type Database = {
           status: string
           time: string | null
           type: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -136,6 +184,7 @@ export type Database = {
           status?: string
           time?: string | null
           type: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -146,6 +195,7 @@ export type Database = {
           status?: string
           time?: string | null
           type?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -166,6 +216,7 @@ export type Database = {
           name: string
           notes: string | null
           url: string | null
+          user_id: string | null
         }
         Insert: {
           category?: string
@@ -175,6 +226,7 @@ export type Database = {
           name: string
           notes?: string | null
           url?: string | null
+          user_id?: string | null
         }
         Update: {
           category?: string
@@ -184,6 +236,7 @@ export type Database = {
           name?: string
           notes?: string | null
           url?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -193,18 +246,21 @@ export type Database = {
           created_at: string
           id: string
           job_id: string
+          user_id: string | null
         }
         Insert: {
           contact_id: string
           created_at?: string
           id?: string
           job_id: string
+          user_id?: string | null
         }
         Update: {
           contact_id?: string
           created_at?: string
           id?: string
           job_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -240,6 +296,7 @@ export type Database = {
           summary: string | null
           target_roles: string[]
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           compensation_notes?: string | null
@@ -257,6 +314,7 @@ export type Database = {
           summary?: string | null
           target_roles?: string[]
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           compensation_notes?: string | null
@@ -274,6 +332,7 @@ export type Database = {
           summary?: string | null
           target_roles?: string[]
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -296,6 +355,7 @@ export type Database = {
           title: string
           type: string
           url: string | null
+          user_id: string | null
         }
         Insert: {
           applied_date?: string | null
@@ -315,6 +375,7 @@ export type Database = {
           title: string
           type?: string
           url?: string | null
+          user_id?: string | null
         }
         Update: {
           applied_date?: string | null
@@ -334,6 +395,7 @@ export type Database = {
           title?: string
           type?: string
           url?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
