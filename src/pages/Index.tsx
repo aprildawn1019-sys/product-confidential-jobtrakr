@@ -23,6 +23,7 @@ export default function Index() {
           <Route path="applications" element={<Applications jobs={store.jobs} interviews={store.interviews} />} />
           <Route path="recommendations" element={<Recommendations />} />
           <Route path="job-search" element={<JobSearch onAddJob={store.addJob} existingJobs={store.jobs} />} />
+          <Route path="profile" element={<ProfileEditor />} />
         </Routes>
       </main>
     </div>

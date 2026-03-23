@@ -9,6 +9,7 @@ const links = [
   { to: "/applications", icon: CalendarCheck, label: "Applications" },
   { to: "/recommendations", icon: Sparkles, label: "Recommendations" },
   { to: "/job-search", icon: Search, label: "AI Job Search" },
+  { to: "/profile", icon: UserCog, label: "Search Profile" },
 ];
 
 export default function AppSidebar() {
