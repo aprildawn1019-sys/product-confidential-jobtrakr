@@ -283,7 +283,7 @@ export default function ProfileEditor() {
               />
               <div className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors">
                 {parsing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                Upload File (.txt)
+                Upload Resume (.pdf, .docx, .txt)
               </div>
             </label>
             {form.resume_text && (
