@@ -539,6 +539,7 @@ export default function ProfileEditor() {
             <Label>General Skills Keywords</Label>
             <TagInput value={form.skills} onChange={v => setForm(f => ({ ...f, skills: v }))} placeholder="e.g. Product Strategy, P&L Ownership" />
           </div>
+        </section>
 
         {/* Requirements */}
         <section className="rounded-xl border border-border bg-card p-5 space-y-4">
