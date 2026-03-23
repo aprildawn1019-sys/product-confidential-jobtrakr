@@ -57,6 +57,12 @@ export default function ProfileEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [parsing, setParsing] = useState(false);
+  const [parsingPrefs, setParsingPrefs] = useState(false);
+  const [parsingSkills, setParsingSkills] = useState(false);
+  const [prefsText, setPrefsText] = useState("");
+  const [skillsText, setSkillsText] = useState("");
+  const [showPrefsPaste, setShowPrefsPaste] = useState(false);
+  const [showSkillsPaste, setShowSkillsPaste] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [form, setForm] = useState({
     target_roles: [] as string[],
