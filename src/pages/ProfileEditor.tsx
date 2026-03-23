@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Save, Plus, X } from "lucide-react";
+import { Loader2, Save, Plus, X, Upload, FileText } from "lucide-react";
 
 function TagInput({ value, onChange, placeholder }: { value: string[]; onChange: (v: string[]) => void; placeholder?: string }) {
   const [input, setInput] = useState("");
@@ -56,6 +56,7 @@ function TagInput({ value, onChange, placeholder }: { value: string[]; onChange:
 export default function ProfileEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [parsing, setParsing] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [form, setForm] = useState({
     target_roles: [] as string[],
@@ -69,6 +70,7 @@ export default function ProfileEditor() {
     industries: [] as string[],
     skills: [] as string[],
     summary: "",
+    resume_text: "",
   });
 
   useEffect(() => {
@@ -96,9 +98,95 @@ export default function ProfileEditor() {
         industries: data.industries || [],
         skills: data.skills || [],
         summary: data.summary || "",
+        resume_text: data.resume_text || "",
       });
     }
     setLoading(false);
+  };
+
+  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({ title: "File too large", description: "Maximum file size is 5MB", variant: "destructive" });
+      return;
+    }
+
+    const allowedTypes = [
+      "text/plain",
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    let resumeText = "";
+
+    setParsing(true);
+    try {
+      if (file.type === "text/plain" || file.name.endsWith(".txt") || file.name.endsWith(".md")) {
+        resumeText = await file.text();
+      } else if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+        // For PDF, we read as text - basic extraction
+        resumeText = await file.text();
+        // If it's binary PDF, we'll send whatever we can extract
+        if (resumeText.startsWith("%PDF")) {
+          toast({
+            title: "PDF detected",
+            description: "For best results, paste your resume text directly below instead of uploading a PDF.",
+            variant: "destructive",
+          });
+          setParsing(false);
+          return;
+        }
+      } else {
+        // Try reading as text anyway
+        resumeText = await file.text();
+      }
+
+      if (resumeText.trim().length < 20) {
+        toast({ title: "Could not read file", description: "Please paste your resume text manually.", variant: "destructive" });
+        setParsing(false);
+        return;
+      }
+
+      await parseResumeText(resumeText);
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setParsing(false);
+      // Reset file input
+      e.target.value = "";
+    }
+  };
+
+  const parseResumeText = async (text: string) => {
+    setParsing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("parse-resume", {
+        body: { resumeText: text },
+      });
+
+      if (error) throw error;
+      if (!data?.success || !data?.profile) throw new Error(data?.error || "Parsing failed");
+
+      const p = data.profile;
+      setForm(f => ({
+        ...f,
+        summary: p.summary || f.summary,
+        skills: p.skills?.length ? p.skills : f.skills,
+        target_roles: p.target_roles?.length ? p.target_roles : f.target_roles,
+        industries: p.industries?.length ? p.industries : f.industries,
+        locations: p.locations?.length ? p.locations : f.locations,
+        resume_text: p.resume_text || text,
+      }));
+
+      toast({ title: "Resume parsed!", description: "Profile fields have been auto-filled. Review and save." });
+    } catch (err: any) {
+      toast({ title: "Parsing failed", description: err.message, variant: "destructive" });
+    } finally {
+      setParsing(false);
+    }
   };
 
   const handleSave = async () => {
@@ -119,6 +207,7 @@ export default function ProfileEditor() {
             industries: form.industries,
             skills: form.skills,
             summary: form.summary,
+            resume_text: form.resume_text,
             updated_at: new Date().toISOString(),
           })
           .eq("id", profileId);
@@ -141,6 +230,7 @@ export default function ProfileEditor() {
             industries: form.industries,
             skills: form.skills,
             summary: form.summary,
+            resume_text: form.resume_text,
           })
           .select()
           .single();
@@ -174,6 +264,63 @@ export default function ProfileEditor() {
       </div>
 
       <div className="space-y-8">
+        {/* Resume Upload */}
+        <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+          <h2 className="font-display font-semibold text-lg flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Resume / CV
+          </h2>
+          <p className="text-sm text-muted-foreground">Upload your resume or paste the text to auto-fill your profile fields using AI.</p>
+
+          <div className="flex gap-3">
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept=".txt,.md,.text"
+                onChange={handleResumeUpload}
+                className="hidden"
+                disabled={parsing}
+              />
+              <div className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors">
+                {parsing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                Upload File (.txt)
+              </div>
+            </label>
+            {form.resume_text && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => parseResumeText(form.resume_text)}
+                disabled={parsing || form.resume_text.trim().length < 20}
+              >
+                {parsing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                Re-parse Resume
+              </Button>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Resume Text</Label>
+            <Textarea
+              value={form.resume_text}
+              onChange={e => setForm(f => ({ ...f, resume_text: e.target.value }))}
+              placeholder="Paste your resume/CV text here, or upload a file above..."
+              rows={8}
+              className="font-mono text-xs"
+            />
+            {form.resume_text && form.resume_text.trim().length >= 20 && !parsing && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => parseResumeText(form.resume_text)}
+                className="mt-1"
+              >
+                Parse & Auto-fill Profile
+              </Button>
+            )}
+          </div>
+        </section>
+
         {/* Professional Summary */}
         <section className="rounded-xl border border-border bg-card p-5 space-y-4">
           <h2 className="font-display font-semibold text-lg">Professional Summary</h2>
