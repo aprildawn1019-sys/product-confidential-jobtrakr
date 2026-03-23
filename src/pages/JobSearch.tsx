@@ -41,6 +41,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   useEffect(() => {
     loadProfile();
     loadDismissed();
+    loadActiveBoards();
   }, []);
 
   const loadProfile = async () => {
