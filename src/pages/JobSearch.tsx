@@ -265,7 +265,15 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
                         <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{result.hiring_contact}</span>
                       )}
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground italic">{result.match_reason}</p>
+                    <div className="flex items-center gap-3 mt-2 flex-wrap">
+                      <p className="text-sm text-muted-foreground italic flex-1">{result.match_reason}</p>
+                      {result.job_source && (
+                        <span className="inline-flex items-center gap-1 text-xs rounded-full border border-border bg-muted px-2.5 py-0.5 text-muted-foreground shrink-0">
+                          <Globe className="h-3 w-3" />
+                          {result.job_source}
+                        </span>
+                      )}
+                    </div>
                     {result.url && (
                       <a href={result.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-sm text-primary hover:underline">
                         <ExternalLink className="h-3.5 w-3.5" /> View Job Posting
