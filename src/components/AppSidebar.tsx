@@ -1,6 +1,8 @@
-import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, Network } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, Network, LogOut } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 const links = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -15,6 +17,10 @@ const links = [
 ];
 
 export default function AppSidebar() {
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
       <div className="flex h-16 items-center gap-2.5 px-6">
@@ -46,8 +52,15 @@ export default function AppSidebar() {
       </nav>
 
       <div className="border-t border-sidebar-border p-4">
-        <p className="text-xs text-sidebar-muted">Job Search Tracker</p>
-        <p className="text-xs text-sidebar-muted mt-0.5">v1.0 — Stay organized</p>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+          onClick={handleSignOut}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
       </div>
     </aside>
   );
