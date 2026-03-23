@@ -112,6 +112,17 @@ export default function ProfileEditor() {
         skills: data.skills || [],
         summary: data.summary || "",
         resume_text: data.resume_text || "",
+        company_sizes: (data as any).company_sizes || [],
+        work_style: (data as any).work_style || "open",
+        travel_willingness: (data as any).travel_willingness || "open",
+        start_availability: (data as any).start_availability || "flexible",
+        culture_preferences: (data as any).culture_preferences || [],
+        technical_skills: (data as any).technical_skills || [],
+        soft_skills: (data as any).soft_skills || [],
+        tools_platforms: (data as any).tools_platforms || [],
+        certifications: (data as any).certifications || [],
+        spoken_languages: (data as any).spoken_languages || [],
+        years_experience: (data as any).years_experience ?? null,
       });
     }
     setLoading(false);
