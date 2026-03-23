@@ -63,7 +63,10 @@ export default function JobBoards() {
 
   const handleAdd = async () => {
     if (!newBoard.name.trim()) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
     const { data, error } = await supabase.from("job_boards").insert({
+      user_id: user.id,
       name: newBoard.name.trim(),
       url: newBoard.url.trim() || null,
       category: newBoard.category,
