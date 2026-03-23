@@ -185,6 +185,46 @@ export default function JobDetailPanel({
         )}
       </div>
 
+      {/* Interviews */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />Interviews</h4>
+        </div>
+
+        {interviews.length > 0 ? (
+          <div className="space-y-1.5">
+            {interviews.map(iv => (
+              <div key={iv.id} className="flex items-center justify-between rounded-md border border-border bg-card px-3 py-1.5 text-sm">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs capitalize">{iv.type}</Badge>
+                  <span className="text-muted-foreground">{iv.date}{iv.time ? ` at ${iv.time}` : ""}</span>
+                  <Badge variant={iv.status === "scheduled" ? "default" : iv.status === "completed" ? "secondary" : "destructive"} className="text-xs capitalize">{iv.status}</Badge>
+                </div>
+                <div className="flex items-center gap-0.5">
+                  {iv.status === "scheduled" && (
+                    <>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateInterview(iv.id, { status: "completed" })} title="Complete">
+                        <CheckCircle2 className="h-3 w-3 text-green-600" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateInterview(iv.id, { status: "cancelled" })} title="Cancel">
+                        <XCircle className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </>
+                  )}
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onDeleteInterview(iv.id)}>
+                    <Trash2 className="h-3 w-3 text-destructive" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground italic">No interviews scheduled</p>
+        )}
+
+        <QuickScheduleInterview jobId={job.id} onAdd={onAddInterview} />
+      </div>
+
       {/* Network Connections */}
       <div className="space-y-2">
         <h4 className="text-sm font-semibold flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />Network Connections</h4>
