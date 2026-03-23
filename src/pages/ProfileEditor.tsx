@@ -577,7 +577,33 @@ export default function ProfileEditor() {
 
         {/* Skills Profile */}
         <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-          <h2 className="font-display font-semibold text-lg">Skills Profile</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-display font-semibold text-lg">Skills Profile</h2>
+            <Button variant="outline" size="sm" onClick={() => setShowSkillsPaste(v => !v)}>
+              <ClipboardPaste className="h-4 w-4 mr-1" />
+              {showSkillsPaste ? "Hide" : "Paste Text to Auto-fill"}
+            </Button>
+          </div>
+          {showSkillsPaste && (
+            <div className="space-y-2 rounded-lg border border-dashed border-border bg-muted/50 p-4">
+              <Label>Paste your skills/experience text</Label>
+              <Textarea
+                value={skillsText}
+                onChange={e => setSkillsText(e.target.value)}
+                placeholder="Paste any text describing your skills and experience, e.g. '15 years in product management, skilled in SQL, Python, Tableau, PMP certified, fluent in English and Spanish...'"
+                rows={5}
+                className="text-sm"
+              />
+              <Button
+                size="sm"
+                onClick={() => parseProfileText(skillsText, "skills")}
+                disabled={parsingSkills || skillsText.trim().length < 10}
+              >
+                {parsingSkills ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <ClipboardPaste className="h-4 w-4 mr-1" />}
+                Parse & Auto-fill Skills
+              </Button>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Years of Experience</Label>
