@@ -116,6 +116,14 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     }
   };
 
+  const handleUndismiss = async (dismissed: DismissedJob) => {
+    const { error } = await supabase.from("dismissed_jobs").delete().eq("company", dismissed.company).eq("title", dismissed.title);
+    if (!error) {
+      setDismissedJobs(prev => prev.filter(d => !(d.company === dismissed.company && d.title === dismissed.title)));
+      toast({ title: "Job restored", description: `${dismissed.title} at ${dismissed.company} will appear in future searches.` });
+    }
+  };
+
   const handleAddAll = () => {
     let count = 0;
     for (const result of results) {
