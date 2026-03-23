@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { ExternalLink, MapPin, Calendar, Clock, User, Mail, Phone, Linkedin, Users, Link2, Unlink, ChevronDown, ChevronUp } from "lucide-react";
+import { ExternalLink, MapPin, Calendar, Clock, User, Mail, Phone, Linkedin, Users, Link2, Unlink, Edit3, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import StatusBadge from "@/components/StatusBadge";
+import CoverLetterDialog from "@/components/CoverLetterDialog";
 import type { Job, Contact } from "@/types/jobTracker";
 
 interface JobDetailPanelProps {
@@ -21,17 +22,25 @@ interface JobDetailPanelProps {
 export default function JobDetailPanel({
   job, linkedContacts, networkMatches, allContacts, onUpdateJob, onLinkContact, onUnlinkContact,
 }: JobDetailPanelProps) {
-  const [editing, setEditing] = useState(false);
-  const [poster, setPoster] = useState({
-    posterName: job.posterName || "",
-    posterEmail: job.posterEmail || "",
-    posterPhone: job.posterPhone || "",
-    posterRole: job.posterRole || "",
+  const [editingJob, setEditingJob] = useState(false);
+  const [editingPoster, setEditingPoster] = useState(false);
+  const [jobForm, setJobForm] = useState({
+    company: job.company, title: job.title, location: job.location,
+    type: job.type, salary: job.salary || "", url: job.url || "", notes: job.notes || "",
   });
+  const [poster, setPoster] = useState({
+    posterName: job.posterName || "", posterEmail: job.posterEmail || "",
+    posterPhone: job.posterPhone || "", posterRole: job.posterRole || "",
+  });
+
+  const handleSaveJob = () => {
+    onUpdateJob(job.id, jobForm);
+    setEditingJob(false);
+  };
 
   const handleSavePoster = () => {
     onUpdateJob(job.id, poster);
-    setEditing(false);
+    setEditingPoster(false);
   };
 
   const formatDate = (d?: string) => {
@@ -39,47 +48,106 @@ export default function JobDetailPanel({
     return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
-  // Contacts not already linked and not in network matches
   const linkedIds = new Set(linkedContacts.map(c => c.id));
   const matchIds = new Set(networkMatches.map(c => c.id));
   const availableToLink = allContacts.filter(c => !linkedIds.has(c.id) && !matchIds.has(c.id));
 
   return (
     <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border mt-2">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-        <div>
-          <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />Location</span>
-          <p className="font-medium">{job.location || "—"}</p>
+      {/* Job Details - Inline Editing */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold">Job Details</h4>
+          <div className="flex items-center gap-1">
+            <CoverLetterDialog job={job} />
+            {editingJob ? (
+              <>
+                <Button variant="ghost" size="sm" onClick={handleSaveJob}><Save className="h-3.5 w-3.5 mr-1" />Save</Button>
+                <Button variant="ghost" size="sm" onClick={() => setEditingJob(false)}><X className="h-3.5 w-3.5" /></Button>
+              </>
+            ) : (
+              <Button variant="ghost" size="sm" onClick={() => setEditingJob(true)}><Edit3 className="h-3.5 w-3.5 mr-1" />Edit</Button>
+            )}
+          </div>
         </div>
-        <div>
-          <span className="text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />Applied</span>
-          <p className="font-medium">{formatDate(job.appliedDate)}</p>
-        </div>
-        <div>
-          <span className="text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />Stage Updated</span>
-          <p className="font-medium">{formatDate(job.statusUpdatedAt)}</p>
-        </div>
-        <div>
-          <span className="text-muted-foreground">Type / Salary</span>
-          <p className="font-medium capitalize">{job.type}{job.salary ? ` · ${job.salary}` : ""}</p>
-        </div>
-      </div>
 
-      {job.url && (
-        <a href={job.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-          <ExternalLink className="h-3.5 w-3.5" />View Job Posting
-        </a>
-      )}
+        {editingJob ? (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-xs">Company</Label>
+              <Input value={jobForm.company} onChange={e => setJobForm(f => ({ ...f, company: e.target.value }))} className="h-8 text-sm" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Title</Label>
+              <Input value={jobForm.title} onChange={e => setJobForm(f => ({ ...f, title: e.target.value }))} className="h-8 text-sm" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Location</Label>
+              <Input value={jobForm.location} onChange={e => setJobForm(f => ({ ...f, location: e.target.value }))} className="h-8 text-sm" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Type</Label>
+              <Select value={jobForm.type} onValueChange={v => setJobForm(f => ({ ...f, type: v as Job["type"] }))}>
+                <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="remote">Remote</SelectItem>
+                  <SelectItem value="hybrid">Hybrid</SelectItem>
+                  <SelectItem value="onsite">On-site</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Salary</Label>
+              <Input value={jobForm.salary} onChange={e => setJobForm(f => ({ ...f, salary: e.target.value }))} className="h-8 text-sm" placeholder="e.g. $150k-$200k" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">URL</Label>
+              <Input value={jobForm.url} onChange={e => setJobForm(f => ({ ...f, url: e.target.value }))} className="h-8 text-sm" placeholder="https://..." />
+            </div>
+            <div className="col-span-2 space-y-1">
+              <Label className="text-xs">Notes</Label>
+              <Textarea value={jobForm.notes} onChange={e => setJobForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="text-sm" />
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              <div>
+                <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />Location</span>
+                <p className="font-medium">{job.location || "—"}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />Applied</span>
+                <p className="font-medium">{formatDate(job.appliedDate)}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />Stage Updated</span>
+                <p className="font-medium">{formatDate(job.statusUpdatedAt)}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Type / Salary</span>
+                <p className="font-medium capitalize">{job.type}{job.salary ? ` · ${job.salary}` : ""}</p>
+              </div>
+            </div>
+            {job.url && (
+              <a href={job.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                <ExternalLink className="h-3.5 w-3.5" />View Job Posting
+              </a>
+            )}
+            {job.notes && <p className="text-sm text-muted-foreground">{job.notes}</p>}
+          </>
+        )}
+      </div>
 
       {/* Poster / Recruiter Info */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <h4 className="text-sm font-semibold flex items-center gap-1.5"><User className="h-3.5 w-3.5" />Recruiter / Hiring Manager</h4>
-          <Button variant="ghost" size="sm" onClick={() => setEditing(!editing)}>
-            {editing ? "Cancel" : "Edit"}
+          <Button variant="ghost" size="sm" onClick={() => setEditingPoster(!editingPoster)}>
+            {editingPoster ? "Cancel" : "Edit"}
           </Button>
         </div>
-        {editing ? (
+        {editingPoster ? (
           <div className="grid grid-cols-2 gap-2">
             <Input placeholder="Name" value={poster.posterName} onChange={e => setPoster(p => ({ ...p, posterName: e.target.value }))} className="h-8 text-sm" />
             <Input placeholder="Role" value={poster.posterRole} onChange={e => setPoster(p => ({ ...p, posterRole: e.target.value }))} className="h-8 text-sm" />
@@ -113,7 +181,6 @@ export default function JobDetailPanel({
       <div className="space-y-2">
         <h4 className="text-sm font-semibold flex items-center gap-1.5"><Users className="h-3.5 w-3.5" />Network Connections</h4>
 
-        {/* Linked contacts */}
         {linkedContacts.length > 0 && (
           <div className="space-y-1.5">
             <p className="text-xs text-muted-foreground font-medium">Linked Contacts</p>
@@ -139,7 +206,6 @@ export default function JobDetailPanel({
           </div>
         )}
 
-        {/* Auto-matched by company */}
         {networkMatches.length > 0 && (
           <div className="space-y-1.5">
             <p className="text-xs text-muted-foreground font-medium">Contacts at {job.company}</p>
@@ -161,7 +227,6 @@ export default function JobDetailPanel({
           </div>
         )}
 
-        {/* Manual link */}
         {availableToLink.length > 0 && (
           <Select onValueChange={v => onLinkContact(job.id, v)}>
             <SelectTrigger className="h-8 text-xs w-48">
