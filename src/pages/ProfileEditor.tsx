@@ -276,7 +276,7 @@ export default function ProfileEditor() {
             <label className="cursor-pointer">
               <input
                 type="file"
-                accept=".txt,.md,.text"
+                accept=".txt,.md,.text,.pdf,.docx"
                 onChange={handleResumeUpload}
                 className="hidden"
                 disabled={parsing}
