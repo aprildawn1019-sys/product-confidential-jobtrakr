@@ -156,9 +156,13 @@ export default function JobKanban({
                         linkedContacts={linkedContacts}
                         networkMatches={networkMatches}
                         allContacts={contacts}
+                        interviews={interviews.filter(i => i.jobId === job.id)}
                         onUpdateJob={onUpdateJob}
                         onLinkContact={onLinkContact}
                         onUnlinkContact={onUnlinkContact}
+                        onAddInterview={onAddInterview}
+                        onUpdateInterview={onUpdateInterview}
+                        onDeleteInterview={onDeleteInterview}
                       />
                     )}
                   </div>

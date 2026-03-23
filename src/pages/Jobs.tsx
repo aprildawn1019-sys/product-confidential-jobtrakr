@@ -65,6 +65,7 @@ export default function Jobs({
         <JobKanban
           jobs={jobs}
           contacts={contacts}
+          interviews={interviews}
           onUpdateStatus={onUpdateStatus}
           onUpdateJob={onUpdateJob}
           onDelete={onDelete}
@@ -72,6 +73,9 @@ export default function Jobs({
           onUnlinkContact={onUnlinkContact}
           getContactsForJob={getContactsForJob}
           getNetworkMatchesForJob={getNetworkMatchesForJob}
+          onAddInterview={onAddInterview}
+          onUpdateInterview={onUpdateInterview}
+          onDeleteInterview={onDeleteInterview}
         />
       ) : (
         <div className="space-y-3">
