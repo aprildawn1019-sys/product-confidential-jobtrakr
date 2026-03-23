@@ -6,6 +6,7 @@ import Contacts from "@/pages/Contacts";
 import Applications from "@/pages/Applications";
 import Recommendations from "@/pages/Recommendations";
 import JobSearch from "@/pages/JobSearch";
+import ProfileEditor from "@/pages/ProfileEditor";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
 
 export default function Index() {
