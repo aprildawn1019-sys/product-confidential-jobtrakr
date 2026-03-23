@@ -1,8 +1,10 @@
-import { MapPin, ExternalLink, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { MapPin, ExternalLink, Trash2, LayoutList, Kanban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StatusBadge from "@/components/StatusBadge";
 import AddJobDialog from "@/components/AddJobDialog";
+import JobKanban from "@/components/JobKanban";
 import type { Job, JobStatus } from "@/types/jobTracker";
 
 interface JobsProps {
