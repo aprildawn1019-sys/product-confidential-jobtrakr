@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Save, Plus, X, Upload, FileText } from "lucide-react";
+import { Loader2, Save, Plus, X, Upload, FileText, ClipboardPaste } from "lucide-react";
 
 function TagInput({ value, onChange, placeholder }: { value: string[]; onChange: (v: string[]) => void; placeholder?: string }) {
   const [input, setInput] = useState("");
@@ -57,6 +57,12 @@ export default function ProfileEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [parsing, setParsing] = useState(false);
+  const [parsingPrefs, setParsingPrefs] = useState(false);
+  const [parsingSkills, setParsingSkills] = useState(false);
+  const [prefsText, setPrefsText] = useState("");
+  const [skillsText, setSkillsText] = useState("");
+  const [showPrefsPaste, setShowPrefsPaste] = useState(false);
+  const [showSkillsPaste, setShowSkillsPaste] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [form, setForm] = useState({
     target_roles: [] as string[],
@@ -210,6 +216,59 @@ export default function ProfileEditor() {
       toast({ title: "Parsing failed", description: err.message, variant: "destructive" });
     } finally {
       setParsing(false);
+    }
+  };
+
+  const parseProfileText = async (text: string, section: "preferences" | "skills") => {
+    const setParsingState = section === "preferences" ? setParsingPrefs : setParsingSkills;
+    setParsingState(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("parse-profile-text", {
+        body: { text, section },
+      });
+      if (error) throw error;
+      if (!data?.success || !data?.data) throw new Error(data?.error || "Parsing failed");
+      const p = data.data;
+      if (section === "preferences") {
+        setForm(f => ({
+          ...f,
+          company_sizes: p.company_sizes?.length ? p.company_sizes : f.company_sizes,
+          work_style: p.work_style || f.work_style,
+          travel_willingness: p.travel_willingness || f.travel_willingness,
+          start_availability: p.start_availability || f.start_availability,
+          culture_preferences: p.culture_preferences?.length ? p.culture_preferences : f.culture_preferences,
+          remote_preference: p.remote_preference || f.remote_preference,
+          locations: p.locations?.length ? p.locations : f.locations,
+          target_roles: p.target_roles?.length ? p.target_roles : f.target_roles,
+          industries: p.industries?.length ? p.industries : f.industries,
+          must_haves: p.must_haves?.length ? p.must_haves : f.must_haves,
+          nice_to_haves: p.nice_to_haves?.length ? p.nice_to_haves : f.nice_to_haves,
+          dealbreakers: p.dealbreakers?.length ? p.dealbreakers : f.dealbreakers,
+          min_base_salary: p.min_base_salary || f.min_base_salary,
+          compensation_notes: p.compensation_notes || f.compensation_notes,
+        }));
+        setShowPrefsPaste(false);
+        setPrefsText("");
+      } else {
+        setForm(f => ({
+          ...f,
+          technical_skills: p.technical_skills?.length ? p.technical_skills : f.technical_skills,
+          soft_skills: p.soft_skills?.length ? p.soft_skills : f.soft_skills,
+          tools_platforms: p.tools_platforms?.length ? p.tools_platforms : f.tools_platforms,
+          certifications: p.certifications?.length ? p.certifications : f.certifications,
+          spoken_languages: p.spoken_languages?.length ? p.spoken_languages : f.spoken_languages,
+          years_experience: p.years_experience ?? f.years_experience,
+          skills: p.skills?.length ? p.skills : f.skills,
+          summary: p.summary || f.summary,
+        }));
+        setShowSkillsPaste(false);
+        setSkillsText("");
+      }
+      toast({ title: "Text parsed!", description: `${section === "preferences" ? "Job preferences" : "Skills profile"} fields have been auto-filled. Review and save.` });
+    } catch (err: any) {
+      toast({ title: "Parsing failed", description: err.message, variant: "destructive" });
+    } finally {
+      setParsingState(false);
     }
   };
 
@@ -439,7 +498,33 @@ export default function ProfileEditor() {
 
         {/* Job Preferences */}
         <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-          <h2 className="font-display font-semibold text-lg">Job Preferences</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-display font-semibold text-lg">Job Preferences</h2>
+            <Button variant="outline" size="sm" onClick={() => setShowPrefsPaste(v => !v)}>
+              <ClipboardPaste className="h-4 w-4 mr-1" />
+              {showPrefsPaste ? "Hide" : "Paste Text to Auto-fill"}
+            </Button>
+          </div>
+          {showPrefsPaste && (
+            <div className="space-y-2 rounded-lg border border-dashed border-border bg-muted/50 p-4">
+              <Label>Paste your job preferences text</Label>
+              <Textarea
+                value={prefsText}
+                onChange={e => setPrefsText(e.target.value)}
+                placeholder="Paste any text describing your job preferences, e.g. 'Looking for a remote VP Product role at a mid-size SaaS company, collaborative culture, no travel required...'"
+                rows={5}
+                className="text-sm"
+              />
+              <Button
+                size="sm"
+                onClick={() => parseProfileText(prefsText, "preferences")}
+                disabled={parsingPrefs || prefsText.trim().length < 10}
+              >
+                {parsingPrefs ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <ClipboardPaste className="h-4 w-4 mr-1" />}
+                Parse & Auto-fill Preferences
+              </Button>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Company Size</Label>
@@ -492,7 +577,33 @@ export default function ProfileEditor() {
 
         {/* Skills Profile */}
         <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-          <h2 className="font-display font-semibold text-lg">Skills Profile</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-display font-semibold text-lg">Skills Profile</h2>
+            <Button variant="outline" size="sm" onClick={() => setShowSkillsPaste(v => !v)}>
+              <ClipboardPaste className="h-4 w-4 mr-1" />
+              {showSkillsPaste ? "Hide" : "Paste Text to Auto-fill"}
+            </Button>
+          </div>
+          {showSkillsPaste && (
+            <div className="space-y-2 rounded-lg border border-dashed border-border bg-muted/50 p-4">
+              <Label>Paste your skills/experience text</Label>
+              <Textarea
+                value={skillsText}
+                onChange={e => setSkillsText(e.target.value)}
+                placeholder="Paste any text describing your skills and experience, e.g. '15 years in product management, skilled in SQL, Python, Tableau, PMP certified, fluent in English and Spanish...'"
+                rows={5}
+                className="text-sm"
+              />
+              <Button
+                size="sm"
+                onClick={() => parseProfileText(skillsText, "skills")}
+                disabled={parsingSkills || skillsText.trim().length < 10}
+              >
+                {parsingSkills ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <ClipboardPaste className="h-4 w-4 mr-1" />}
+                Parse & Auto-fill Skills
+              </Button>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Years of Experience</Label>
