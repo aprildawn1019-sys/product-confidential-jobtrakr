@@ -258,7 +258,7 @@ export default function InterviewsPage({ jobs, interviews, onAdd, onUpdate, onDe
                             >
                               <CalendarIcon className="h-4 w-4 text-primary" />
                             </Button>
-                              variant="ghost"
+                            <Button
                               size="icon"
                               className="h-7 w-7"
                               title="Mark completed"
