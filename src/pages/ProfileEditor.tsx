@@ -71,6 +71,19 @@ export default function ProfileEditor() {
     skills: [] as string[],
     summary: "",
     resume_text: "",
+    // Job Preferences
+    company_sizes: [] as string[],
+    work_style: "open",
+    travel_willingness: "open",
+    start_availability: "flexible",
+    culture_preferences: [] as string[],
+    // Skills Profile
+    technical_skills: [] as string[],
+    soft_skills: [] as string[],
+    tools_platforms: [] as string[],
+    certifications: [] as string[],
+    spoken_languages: [] as string[],
+    years_experience: null as number | null,
   });
 
   useEffect(() => {
