@@ -33,8 +33,9 @@ interface JobKanbanProps {
 }
 
 export default function JobKanban({
-  jobs, contacts, onUpdateStatus, onUpdateJob, onDelete,
+  jobs, contacts, interviews, onUpdateStatus, onUpdateJob, onDelete,
   onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
+  onAddInterview, onUpdateInterview, onDeleteInterview,
 }: JobKanbanProps) {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
 
