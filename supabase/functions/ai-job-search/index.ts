@@ -81,7 +81,7 @@ You MUST call the generate_jobs tool with the results.`,
             },
             {
               role: "user",
-              content: `Find matching job opportunities for this candidate:\n\n${profileContext}${dismissedContext}`,
+              content: `Find matching job opportunities for this candidate:\n\n${profileContext}${dismissedContext}${boardsContext}`,
             },
           ],
           tools: [
