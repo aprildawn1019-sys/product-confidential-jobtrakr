@@ -1,0 +1,125 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { jobTitle, company, jobDescription } = await req.json();
+
+    if (!jobDescription) {
+      return new Response(JSON.stringify({ error: "Job description is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Get user's profile for resume/skills
+    const authHeader = req.headers.get("Authorization");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    let resumeText = "";
+    let skills: string[] = [];
+    let summary = "";
+
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      // Decode JWT to get user ID
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const userId = payload.sub;
+
+      const profileRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/job_search_profile?user_id=eq.${userId}&select=resume_text,skills,summary&limit=1`,
+        {
+          headers: {
+            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            apikey: SUPABASE_SERVICE_ROLE_KEY,
+          },
+        }
+      );
+      const profiles = await profileRes.json();
+      if (profiles?.[0]) {
+        resumeText = profiles[0].resume_text || "";
+        skills = profiles[0].skills || [];
+        summary = profiles[0].summary || "";
+      }
+    }
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    const systemPrompt = `You are an expert career coach and professional cover letter writer. 
+Write compelling, personalized cover letters that:
+- Align the candidate's experience with the specific job requirements
+- Use a professional but warm tone
+- Highlight relevant skills and achievements
+- Are concise (3-4 paragraphs)
+- Include a strong opening that shows knowledge of the company
+- End with a confident call to action
+- Do NOT include placeholder brackets like [Your Name] - write it as a complete letter
+- Do NOT include the date or address header - just the letter body`;
+
+    const userPrompt = `Write a cover letter for this position:
+
+**Position:** ${jobTitle} at ${company}
+
+**Job Description:**
+${jobDescription}
+
+${resumeText ? `**Candidate's Resume/Experience:**\n${resumeText}` : ""}
+${skills.length > 0 ? `**Key Skills:** ${skills.join(", ")}` : ""}
+${summary ? `**Professional Summary:** ${summary}` : ""}
+
+Write a tailored cover letter that connects my experience to this specific role.`;
+
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      }),
+    });
+
+    if (!aiRes.ok) {
+      if (aiRes.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limited, please try again shortly." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (aiRes.status === 402) {
+        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      throw new Error("AI generation failed");
+    }
+
+    const aiData = await aiRes.json();
+    const coverLetter = aiData.choices?.[0]?.message?.content || "";
+
+    return new Response(JSON.stringify({ coverLetter }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    console.error("generate-cover-letter error:", e);
+    return new Response(
+      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});
