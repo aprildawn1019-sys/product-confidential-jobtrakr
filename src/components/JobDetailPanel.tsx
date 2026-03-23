@@ -1,22 +1,30 @@
 import { useState } from "react";
-import { ExternalLink, MapPin, Calendar, Clock, User, Mail, Phone, Linkedin, Users, Link2, Unlink, Edit3, Save, X } from "lucide-react";
+import { format } from "date-fns";
+import { ExternalLink, MapPin, Calendar, Clock, User, Mail, Phone, Linkedin, Users, Link2, Unlink, Edit3, Save, X, Plus, CalendarDays, CheckCircle2, XCircle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import CoverLetterDialog from "@/components/CoverLetterDialog";
-import type { Job, Contact } from "@/types/jobTracker";
+import type { Job, Contact, Interview } from "@/types/jobTracker";
 
 interface JobDetailPanelProps {
   job: Job;
   linkedContacts: Contact[];
   networkMatches: Contact[];
   allContacts: Contact[];
+  interviews: Interview[];
   onUpdateJob: (id: string, updates: Partial<Job>) => void;
   onLinkContact: (jobId: string, contactId: string) => void;
   onUnlinkContact: (jobId: string, contactId: string) => void;
+  onAddInterview: (interview: Omit<Interview, "id">) => void;
+  onUpdateInterview: (id: string, updates: Partial<Interview>) => void;
+  onDeleteInterview: (id: string) => void;
 }
 
 export default function JobDetailPanel({
