@@ -9,6 +9,7 @@ const links = [
   { to: "/jobs", icon: Briefcase, label: "Job Postings" },
   { to: "/contacts", icon: Users, label: "Connections" },
   { to: "/applications", icon: CalendarCheck, label: "Applications" },
+  { to: "/interviews", icon: CalendarDays, label: "Interviews" },
   { to: "/recommendations", icon: Sparkles, label: "Recommendations" },
   { to: "/job-search", icon: Search, label: "AI Job Search" },
   { to: "/profile", icon: UserCog, label: "Search Profile" },
