@@ -38,6 +38,10 @@ KEY SKILLS: ${profile.skills?.join(", ")}
 PROFESSIONAL SUMMARY: ${profile.summary}
     `.trim();
 
+    const dismissedContext = dismissed?.length
+      ? `\n\nEXCLUDE these previously dismissed jobs (do NOT include them):\n${dismissed.map((d: any) => `- ${d.title} at ${d.company}`).join("\n")}`
+      : "";
+
     const aiRes = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -61,13 +65,18 @@ Focus on:
 3. Industries they prefer (Life Sciences/Biotech first, then EdTech, then B2B SaaS)
 4. Roles that value their specific experience (post-acquisition integration, P&L ownership, AI strategy, international expansion)
 
-For each job, provide realistic details. Use actual well-known companies in these industries that hire for these roles.
+For each job, provide:
+- A realistic, working careers page URL (use real company career page patterns like careers.company.com/jobs/... or company.com/careers/...)
+- How long ago the job was posted (e.g. "2 days ago", "1 week ago", "3 weeks ago") — make it realistic
+- The name and title of a hiring manager or recruiter if plausible (e.g. "Sarah Chen, VP Engineering" or "Talent Acquisition Team")
+
+Use actual well-known companies in these industries that hire for these roles.
 
 You MUST call the generate_jobs tool with the results.`,
             },
             {
               role: "user",
-              content: `Find matching job opportunities for this candidate:\n\n${profileContext}`,
+              content: `Find matching job opportunities for this candidate:\n\n${profileContext}${dismissedContext}`,
             },
           ],
           tools: [
