@@ -31,6 +31,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const RECOMMENDED_BOARDS = [
+  { name: "LinkedIn", url: "https://linkedin.com/jobs", category: "general", reason: "Largest professional network — essential for executive and product roles" },
   { name: "ExecThread", url: "https://execthread.com", category: "executive", reason: "Curated executive roles $200K+, strong for VP/Director level" },
   { name: "Chief", url: "https://chief.com", category: "executive", reason: "Executive network focused on senior women leaders" },
   { name: "BioSpace", url: "https://biospace.com", category: "life_sciences", reason: "Top board for Life Sciences/Biotech — your #1 industry preference" },
