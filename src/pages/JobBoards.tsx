@@ -105,7 +105,10 @@ export default function JobBoards() {
       return;
     }
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
     const { data, error } = await supabase.from("job_boards").insert({
+      user_id: user.id,
       name: rec.name,
       url: rec.url,
       category: rec.category,
