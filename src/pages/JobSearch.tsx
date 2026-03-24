@@ -82,8 +82,28 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Search failed");
 
-      setResults(data.data || []);
-      toast({ title: "Search complete!", description: `Found ${data.data?.length || 0} matching opportunities.` });
+      // Deduplicate by company+title, favoring entries with direct URLs
+      const raw: SearchResult[] = data.data || [];
+      const deduped = new Map<string, SearchResult>();
+      for (const job of raw) {
+        const key = `${job.company.toLowerCase().trim()}-${job.title.toLowerCase().trim()}`;
+        const existing = deduped.get(key);
+        if (!existing) {
+          deduped.set(key, job);
+        } else {
+          // Prefer the one with a URL, or the one with a higher match score
+          const jobHasUrl = !!job.url && !job.url.includes("example.com");
+          const existingHasUrl = !!existing.url && !existing.url.includes("example.com");
+          if (jobHasUrl && !existingHasUrl) {
+            deduped.set(key, job);
+          } else if (jobHasUrl === existingHasUrl && job.match_score > existing.match_score) {
+            deduped.set(key, job);
+          }
+        }
+      }
+      const uniqueResults = Array.from(deduped.values());
+      setResults(uniqueResults);
+      toast({ title: "Search complete!", description: `Found ${uniqueResults.length} matching opportunities${raw.length > uniqueResults.length ? ` (${raw.length - uniqueResults.length} duplicates removed)` : ""}.` });
     } catch (e: any) {
       console.error("Job search error:", e);
       toast({ title: "Search failed", description: e.message || "Could not complete job search.", variant: "destructive" });
