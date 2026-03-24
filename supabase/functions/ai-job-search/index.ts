@@ -93,13 +93,9 @@ PROFESSIONAL SUMMARY: ${profile.summary}
               role: "system",
               content: `You are a job search assistant. Given a candidate's profile and preferences, generate realistic, high-quality job listings that would match their criteria. 
 
-Create 8-12 job listings that this candidate should apply to RIGHT NOW. Make them realistic — use real company names that actually hire for these roles, realistic salary ranges, and accurate job descriptions.
+${paramInstructions}
 
-Focus on:
-1. Roles matching their target titles (VP Product, Head of Product, Sr Director PM, Director PM)
-2. Mix of remote and Michigan-local opportunities
-3. Industries they prefer (Life Sciences/Biotech first, then EdTech, then B2B SaaS)
-4. Roles that value their specific experience (post-acquisition integration, P&L ownership, AI strategy, international expansion)
+Make the listings realistic — use real company names that actually hire for these roles, realistic salary ranges, and accurate job descriptions.
 
 For each job, provide:
 - A realistic, working careers page URL (use real company career page patterns like careers.company.com/jobs/... or company.com/careers/...)
