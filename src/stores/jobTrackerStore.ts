@@ -235,7 +235,7 @@ export function useJobTrackerStore() {
   return {
     jobs, contacts, interviews, jobContacts, contactConnections, loading,
     addJob, updateJobStatus, updateJob, deleteJob,
-    addContact, deleteContact, addInterview, updateInterview, deleteInterview,
+    addContact, addContactsBulk, deleteContact, addInterview, updateInterview, deleteInterview,
     linkContactToJob, unlinkContactFromJob, getContactsForJob, getNetworkMatchesForJob,
     addContactConnection, removeContactConnection, getConnectionsForContact, getContactsAtSameOrg,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
