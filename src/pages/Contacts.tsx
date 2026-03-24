@@ -19,7 +19,7 @@ interface ContactsProps {
 }
 
 export default function Contacts({
-  contacts, onAdd, onDelete,
+  contacts, onAdd, onAddBulk, onDelete,
   getConnectionsForContact, getContactsAtSameOrg, onAddConnection, onRemoveConnection,
 }: ContactsProps) {
   const [expandedContact, setExpandedContact] = useState<string | null>(null);
