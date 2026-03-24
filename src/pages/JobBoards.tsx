@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Plus, ExternalLink, Trash2, Globe, Sparkles } from "lucide-react";
+import { Loader2, Plus, Sparkles, ShieldCheck, AlertTriangle } from "lucide-react";
+import { BoardCard } from "@/components/jobboards/BoardCard";
 
 interface JobBoard {
   id: string;
@@ -16,6 +16,9 @@ interface JobBoard {
   category: string;
   is_active: boolean;
   notes: string | null;
+  is_gated: boolean;
+  public_url: string | null;
+  gate_checked_at: string | null;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -45,18 +48,19 @@ export default function JobBoards() {
   const [boards, setBoards] = useState<JobBoard[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [newBoard, setNewBoard] = useState({ name: "", url: "", category: "general", notes: "" });
 
   useEffect(() => { loadBoards(); }, []);
 
   const loadBoards = async () => {
     const { data } = await supabase.from("job_boards").select("*").order("is_active", { ascending: false }).order("name");
-    if (data) setBoards(data as JobBoard[]);
+    if (data) setBoards(data as unknown as JobBoard[]);
     setLoading(false);
   };
 
   const toggleActive = async (board: JobBoard) => {
-    const { error } = await supabase.from("job_boards").update({ is_active: !board.is_active }).eq("id", board.id);
+    const { error } = await supabase.from("job_boards").update({ is_active: !board.is_active } as any).eq("id", board.id);
     if (!error) {
       setBoards(prev => prev.map(b => b.id === board.id ? { ...b, is_active: !b.is_active } : b));
     }
@@ -73,13 +77,13 @@ export default function JobBoards() {
       category: newBoard.category,
       notes: newBoard.notes.trim() || null,
       is_active: true,
-    }).select().single();
+    } as any).select().single();
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       return;
     }
-    if (data) setBoards(prev => [data as JobBoard, ...prev]);
+    if (data) setBoards(prev => [data as unknown as JobBoard, ...prev]);
     setNewBoard({ name: "", url: "", category: "general", notes: "" });
     setAddOpen(false);
     toast({ title: "Board added", description: `${newBoard.name} added to your job boards.` });
@@ -95,7 +99,6 @@ export default function JobBoards() {
 
   const handleAddRecommended = async (rec: typeof RECOMMENDED_BOARDS[0]) => {
     if (boards.some(b => b.name === rec.name)) {
-      // Already exists, just activate it
       const existing = boards.find(b => b.name === rec.name);
       if (existing && !existing.is_active) {
         await toggleActive(existing);
@@ -114,22 +117,99 @@ export default function JobBoards() {
       url: rec.url,
       category: rec.category,
       is_active: true,
-    }).select().single();
+    } as any).select().single();
 
     if (error) {
       toast({ title: "Error adding board", description: error.message, variant: "destructive" });
       return;
     }
     if (data) {
-      setBoards(prev => [data as JobBoard, ...prev]);
+      setBoards(prev => [data as unknown as JobBoard, ...prev]);
       toast({ title: "Board added", description: `${rec.name} added and activated.` });
+    }
+  };
+
+  const handleUsePublicUrl = async (board: JobBoard) => {
+    if (!board.public_url) return;
+    const { error } = await supabase.from("job_boards")
+      .update({ url: board.public_url, is_gated: false, public_url: null } as any)
+      .eq("id", board.id);
+    if (!error) {
+      setBoards(prev => prev.map(b =>
+        b.id === board.id ? { ...b, url: board.public_url, is_gated: false, public_url: null } : b
+      ));
+      toast({ title: "URL updated", description: `${board.name} switched to public URL.` });
+    }
+  };
+
+  const handleTestAllBoards = async () => {
+    const boardsWithUrls = boards.filter(b => b.url && b.is_active);
+    if (boardsWithUrls.length === 0) {
+      toast({ title: "No boards to test", description: "No active boards with URLs found." });
+      return;
+    }
+
+    setTesting(true);
+    toast({ title: "Testing board access…", description: `Checking ${boardsWithUrls.length} active boards for login gates.` });
+
+    try {
+      const { data, error } = await supabase.functions.invoke("test-board-access", {
+        body: { boards: boardsWithUrls.map(b => ({ id: b.id, name: b.name, url: b.url })) },
+      });
+
+      if (error) {
+        toast({ title: "Test failed", description: error.message, variant: "destructive" });
+        return;
+      }
+
+      if (data?.results) {
+        const now = new Date().toISOString();
+        let gatedCount = 0;
+
+        for (const result of data.results) {
+          const isGated = result.is_gated === true;
+          if (isGated) gatedCount++;
+
+          // Update DB
+          await supabase.from("job_boards").update({
+            is_gated: isGated,
+            public_url: result.public_url || null,
+            gate_checked_at: now,
+          } as any).eq("id", result.id);
+
+          // Update local state
+          setBoards(prev => prev.map(b =>
+            b.id === result.id
+              ? { ...b, is_gated: isGated, public_url: result.public_url || null, gate_checked_at: now }
+              : b
+          ));
+        }
+
+        if (gatedCount > 0) {
+          toast({
+            title: `${gatedCount} board${gatedCount > 1 ? 's' : ''} require login`,
+            description: "Gated boards are flagged below with suggested alternatives.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "All boards accessible ✓",
+            description: `${boardsWithUrls.length} boards tested — no login gates detected.`,
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Error testing boards:", err);
+      toast({ title: "Test error", description: "Failed to test board access.", variant: "destructive" });
+    } finally {
+      setTesting(false);
     }
   };
 
   const activeBoards = boards.filter(b => b.is_active);
   const inactiveBoards = boards.filter(b => !b.is_active);
+  const gatedActiveCount = activeBoards.filter(b => b.is_gated).length;
 
-  // Filter recommendations to only show ones not currently active
   const availableRecommendations = RECOMMENDED_BOARDS.filter(
     rec => !boards.some(b => b.name === rec.name && b.is_active)
   );
@@ -140,50 +220,75 @@ export default function JobBoards() {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight">Job Boards</h1>
           <p className="mt-1 text-muted-foreground">
             Manage which job boards the AI searches. {activeBoards.length} active, {inactiveBoards.length} inactive.
           </p>
         </div>
-        <Dialog open={addOpen} onOpenChange={setAddOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4" /> Add Board</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="font-display">Add Job Board</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Board Name *</Label>
-                <Input value={newBoard.name} onChange={e => setNewBoard(f => ({ ...f, name: e.target.value }))} placeholder="e.g. TechCrunch Jobs" />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleTestAllBoards} disabled={testing}>
+            {testing ? (
+              <><Loader2 className="h-4 w-4 animate-spin" /> Testing…</>
+            ) : (
+              <><ShieldCheck className="h-4 w-4" /> Test Access</>
+            )}
+          </Button>
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4" /> Add Board</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="font-display">Add Job Board</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Board Name *</Label>
+                  <Input value={newBoard.name} onChange={e => setNewBoard(f => ({ ...f, name: e.target.value }))} placeholder="e.g. TechCrunch Jobs" />
+                </div>
+                <div className="space-y-2">
+                  <Label>URL</Label>
+                  <Input value={newBoard.url} onChange={e => setNewBoard(f => ({ ...f, url: e.target.value }))} placeholder="https://..." />
+                </div>
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select value={newBoard.category} onValueChange={v => setNewBoard(f => ({ ...f, category: v }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(CATEGORY_LABELS).map(([val, label]) => (
+                        <SelectItem key={val} value={val}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Notes</Label>
+                  <Input value={newBoard.notes} onChange={e => setNewBoard(f => ({ ...f, notes: e.target.value }))} placeholder="Optional notes..." />
+                </div>
+                <Button onClick={handleAdd} className="w-full" disabled={!newBoard.name.trim()}>Add Board</Button>
               </div>
-              <div className="space-y-2">
-                <Label>URL</Label>
-                <Input value={newBoard.url} onChange={e => setNewBoard(f => ({ ...f, url: e.target.value }))} placeholder="https://..." />
-              </div>
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={newBoard.category} onValueChange={v => setNewBoard(f => ({ ...f, category: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(CATEGORY_LABELS).map(([val, label]) => (
-                      <SelectItem key={val} value={val}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Notes</Label>
-                <Input value={newBoard.notes} onChange={e => setNewBoard(f => ({ ...f, notes: e.target.value }))} placeholder="Optional notes..." />
-              </div>
-              <Button onClick={handleAdd} className="w-full" disabled={!newBoard.name.trim()}>Add Board</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
+
+      {/* Gate warning banner */}
+      {gatedActiveCount > 0 && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-destructive">
+              {gatedActiveCount} active board{gatedActiveCount > 1 ? 's' : ''} require{gatedActiveCount === 1 ? 's' : ''} login
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Gated boards may return limited or no results during AI searches. Switch to public URLs where available, or deactivate boards you can't access.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Recommendations */}
       {availableRecommendations.length > 0 && (
@@ -215,28 +320,14 @@ export default function JobBoards() {
       <div className="space-y-2">
         <h2 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider">Active Boards ({activeBoards.length})</h2>
         {activeBoards.map(board => (
-          <div key={board.id} className="flex items-center justify-between py-3 px-4 rounded-xl border border-border bg-card">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <Switch checked={board.is_active} onCheckedChange={() => toggleActive(board)} />
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">{board.name}</span>
-                  <span className="text-xs rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{CATEGORY_LABELS[board.category] || board.category}</span>
-                </div>
-                {board.notes && <p className="text-xs text-muted-foreground mt-0.5">{board.notes}</p>}
-              </div>
-            </div>
-            <div className="flex items-center gap-1 shrink-0">
-              {board.url && (
-                <Button variant="ghost" size="icon" asChild>
-                  <a href={board.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
-                </Button>
-              )}
-              <Button variant="ghost" size="icon" onClick={() => handleDelete(board)}>
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            </div>
-          </div>
+          <BoardCard
+            key={board.id}
+            board={board}
+            categoryLabels={CATEGORY_LABELS}
+            onToggle={toggleActive}
+            onDelete={handleDelete}
+            onUsePublicUrl={handleUsePublicUrl}
+          />
         ))}
       </div>
 
@@ -245,27 +336,15 @@ export default function JobBoards() {
         <div className="space-y-2">
           <h2 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider">Inactive Boards ({inactiveBoards.length})</h2>
           {inactiveBoards.map(board => (
-            <div key={board.id} className="flex items-center justify-between py-3 px-4 rounded-xl border border-border bg-card opacity-60">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <Switch checked={board.is_active} onCheckedChange={() => toggleActive(board)} />
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm">{board.name}</span>
-                    <span className="text-xs rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{CATEGORY_LABELS[board.category] || board.category}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-1 shrink-0">
-                {board.url && (
-                  <Button variant="ghost" size="icon" asChild>
-                    <a href={board.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
-                  </Button>
-                )}
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(board)}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            </div>
+            <BoardCard
+              key={board.id}
+              board={board}
+              categoryLabels={CATEGORY_LABELS}
+              onToggle={toggleActive}
+              onDelete={handleDelete}
+              onUsePublicUrl={handleUsePublicUrl}
+              inactive
+            />
           ))}
         </div>
       )}
