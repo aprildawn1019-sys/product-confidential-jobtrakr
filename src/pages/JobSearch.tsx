@@ -52,6 +52,16 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [dismissedJobs, setDismissedJobs] = useState<DismissedJob[]>([]);
   const [showDismissed, setShowDismissed] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [searchParams, setSearchParams] = useState<SearchParams>({
+    resultCount: 10,
+    minMatchScore: 60,
+    remoteOnly: false,
+    recencyFilter: "any",
+    creativityLevel: "balanced",
+    focusKeywords: "",
+  });
+
   useEffect(() => {
     loadProfile();
     loadDismissed();
