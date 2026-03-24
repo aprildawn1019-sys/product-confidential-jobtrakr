@@ -6,6 +6,102 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Search real job boards via Firecrawl
+async function searchRealJobs(
+  profile: any,
+  searchParams: any,
+  activeBoards: any[]
+): Promise<{ url: string; title: string; description: string; markdown?: string }[]> {
+  const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
+  if (!FIRECRAWL_API_KEY) {
+    console.log("Firecrawl not configured, skipping real search");
+    return [];
+  }
+
+  const roles = profile.target_roles?.slice(0, 3) || [];
+  const locations = profile.locations?.slice(0, 2) || [];
+  const remoteOnly = searchParams?.remoteOnly || false;
+  const focusKeywords = searchParams?.focusKeywords || "";
+  const recencyFilter = searchParams?.recencyFilter || "any";
+
+  // Build search queries from profile
+  const queries: string[] = [];
+  for (const role of roles) {
+    const locationPart = remoteOnly ? "remote" : locations.join(" OR ");
+    const keywordPart = focusKeywords ? ` ${focusKeywords}` : "";
+    queries.push(`${role} job ${locationPart}${keywordPart}`);
+  }
+
+  // Add board-specific searches
+  for (const board of activeBoards.slice(0, 3)) {
+    if (board.url) {
+      const role = roles[0] || "product leader";
+      queries.push(`site:${new URL(board.url).hostname} ${role}`);
+    }
+  }
+
+  // Map recency to Firecrawl tbs parameter
+  const tbsMap: Record<string, string> = {
+    "3days": "qdr:d3",
+    "1week": "qdr:w",
+    "2weeks": "qdr:w2",
+    "1month": "qdr:m",
+    "any": "",
+  };
+  const tbs = tbsMap[recencyFilter] || "";
+
+  const allResults: { url: string; title: string; description: string; markdown?: string }[] = [];
+
+  // Run searches in parallel (limit to 4 to avoid rate limits)
+  const searchPromises = queries.slice(0, 4).map(async (query) => {
+    try {
+      console.log("Firecrawl search:", query);
+      const response = await fetch("https://api.firecrawl.dev/v1/search", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${FIRECRAWL_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query,
+          limit: 5,
+          tbs: tbs || undefined,
+          scrapeOptions: { formats: ["markdown"] },
+        }),
+      });
+
+      if (!response.ok) {
+        console.error(`Firecrawl search failed for "${query}": ${response.status}`);
+        return [];
+      }
+
+      const data = await response.json();
+      return (data.data || []).map((r: any) => ({
+        url: r.url,
+        title: r.title || "",
+        description: r.description || "",
+        markdown: r.markdown?.slice(0, 2000) || "",
+      }));
+    } catch (e) {
+      console.error(`Firecrawl search error for "${query}":`, e);
+      return [];
+    }
+  });
+
+  const results = await Promise.all(searchPromises);
+  for (const batch of results) {
+    allResults.push(...batch);
+  }
+
+  // Deduplicate by URL
+  const seen = new Set<string>();
+  return allResults.filter((r) => {
+    if (seen.has(r.url)) return false;
+    seen.add(r.url);
+    return true;
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -24,6 +120,10 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
+
+    // Step 1: Search real job boards via Firecrawl
+    const realResults = await searchRealJobs(profile, searchParams, activeBoards || []);
+    console.log(`Found ${realResults.length} real job postings from Firecrawl`);
 
     const profileContext = `
 TARGET ROLES: ${profile.target_roles?.join(", ")}
@@ -66,18 +166,39 @@ PROFESSIONAL SUMMARY: ${profile.summary}
       : "";
 
     const boardsContext = activeBoards?.length
-      ? `\n\nSOURCE JOBS FROM THESE JOB BOARDS/PLATFORMS (use these as the job_source field):\n${activeBoards.map((b: any) => `- ${b.name}${b.url ? ` (${b.url})` : ""}`).join("\n")}\n\nFor each job, specify which of these sources the job would realistically be found on. Use company ATS sites (Workday, Greenhouse, Lever) when the job would be posted directly on the company's careers page.`
+      ? `\n\nACTIVE JOB BOARDS:\n${activeBoards.map((b: any) => `- ${b.name}${b.url ? ` (${b.url})` : ""}`).join("\n")}`
       : "";
 
+    // Build real results context for AI
+    const realJobsContext = realResults.length > 0
+      ? `\n\nREAL JOB POSTINGS FOUND (from live web search — use these URLs and details as-is, score them against the candidate profile):\n${realResults.map((r, i) => `
+[Job ${i + 1}]
+URL: ${r.url}
+Title: ${r.title}
+Description: ${r.description}
+Content Preview: ${r.markdown?.slice(0, 500) || "N/A"}
+`).join("\n")}`
+      : "";
+
+    const realJobCount = realResults.length;
+    const aiSupplementCount = Math.max(0, resultCount - Math.min(realJobCount, resultCount));
+
     const paramInstructions = [
-      `Generate exactly ${resultCount} job listings.`,
+      realJobCount > 0
+        ? `STEP 1: Score and include the ${realJobCount} REAL job postings provided above. Use their EXACT URLs — do NOT modify or fabricate URLs for these. Extract company name, title, location, salary, and other details from the content provided. Only include real postings that score above ${minMatchScore || 0}.`
+        : "",
+      aiSupplementCount > 0
+        ? `STEP 2: Generate ${aiSupplementCount} ADDITIONAL AI-suggested companies to research. For these AI-generated suggestions, clearly mark job_source as "AI Suggestion" and set the URL to the company's actual careers page (e.g. careers.company.com or company.com/careers). Do NOT fabricate specific job posting URLs.`
+        : "",
+      `Return up to ${resultCount} total results.`,
       minMatchScore > 0 ? `Only include jobs with a match score of ${minMatchScore} or higher.` : "",
-      remoteOnly ? "Only include REMOTE positions. Do not suggest hybrid or onsite roles." : "",
-      recencyInstruction ? `Only include jobs that would realistically have been ${recencyInstruction}.` : "",
+      remoteOnly ? "Only include REMOTE positions." : "",
+      recencyInstruction ? `Prefer jobs that were ${recencyInstruction}.` : "",
       creativityInstruction,
-      focusKeywords ? `Pay special attention to these focus areas and keywords: ${focusKeywords}. Prioritize roles that emphasize these skills or domains.` : "",
+      focusKeywords ? `Focus areas: ${focusKeywords}. Prioritize roles emphasizing these skills.` : "",
     ].filter(Boolean).join("\n");
 
+    // Step 2: Send to AI for scoring real results + supplementing with suggestions
     const aiRes = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -91,25 +212,20 @@ PROFESSIONAL SUMMARY: ${profile.summary}
           messages: [
             {
               role: "system",
-              content: `You are a job search assistant. Given a candidate's profile and preferences, generate realistic, high-quality job listings that would match their criteria. 
+              content: `You are a job search assistant that combines REAL job postings with AI-powered suggestions.
 
 ${paramInstructions}
 
-Make the listings realistic — use real company names that actually hire for these roles, realistic salary ranges, and accurate job descriptions.
-
-For each job, provide:
-- A realistic, working careers page URL (use real company career page patterns like careers.company.com/jobs/... or company.com/careers/...)
-- How long ago the job was posted (e.g. "2 days ago", "1 week ago", "3 weeks ago") — make it realistic
-- The name and title of a hiring manager or recruiter if plausible (e.g. "Sarah Chen, VP Engineering" or "Talent Acquisition Team")
-- The job source/platform where this posting would be found (e.g. "LinkedIn", "Company Workday Site", "BioSpace", "Indeed", etc.)
-
-Use actual well-known companies in these industries that hire for these roles.
+IMPORTANT RULES:
+- For REAL job postings (provided in the context): Keep their exact URLs. Extract details from the content. Score them against the candidate profile.
+- For AI suggestions: Use real company names that actually hire for these roles. Set job_source to "AI Suggestion". Use the company's main careers page URL only — never fabricate a specific job posting URL.
+- All match_score values must honestly reflect how well the job fits the candidate.
 
 You MUST call the generate_jobs tool with the results.`,
             },
             {
               role: "user",
-              content: `Find matching job opportunities for this candidate:\n\n${profileContext}${dismissedContext}${boardsContext}`,
+              content: `Find matching job opportunities for this candidate:\n\n${profileContext}${dismissedContext}${boardsContext}${realJobsContext}`,
             },
           ],
           tools: [
@@ -133,12 +249,12 @@ You MUST call the generate_jobs tool with the results.`,
                           salary: { type: "string", description: "Salary range e.g. $200K-$260K" },
                           match_score: { type: "number", description: "How well this matches the profile 0-100" },
                           match_reason: { type: "string", description: "Why this is a good match in 1-2 sentences" },
-                          url: { type: "string", description: "Real careers page URL for this job posting" },
+                          url: { type: "string", description: "URL to the job posting or company careers page" },
                           posted_ago: { type: "string", description: "How long ago posted, e.g. '2 days ago', '1 week ago'" },
-                          hiring_contact: { type: "string", description: "Hiring manager or recruiter name and title if available, e.g. 'Sarah Chen, VP Engineering'" },
-                          job_source: { type: "string", description: "Where this job is posted, e.g. 'LinkedIn', 'Company Workday Site', 'BioSpace', 'Indeed'" },
+                          hiring_contact: { type: "string", description: "Hiring manager or recruiter name and title if available" },
+                          job_source: { type: "string", description: "Source: the actual job board/site name for real postings, or 'AI Suggestion' for AI-generated ones" },
                         },
-                        required: ["company", "title", "location", "type", "salary", "match_score", "match_reason", "url", "posted_ago", "job_source"],
+                        required: ["company", "title", "location", "type", "salary", "match_score", "match_reason", "url", "job_source"],
                         additionalProperties: false,
                       },
                     },
@@ -183,9 +299,14 @@ You MUST call the generate_jobs tool with the results.`,
       result.jobs.sort((a: any, b: any) => (b.match_score || 0) - (a.match_score || 0));
     }
 
-    return new Response(JSON.stringify({ success: true, data: result.jobs }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        data: result.jobs,
+        meta: { realJobsFound: realJobCount, aiSuggestions: aiSupplementCount },
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (e) {
     console.error("ai-job-search error:", e);
     return new Response(
