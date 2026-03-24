@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AddContactDialog from "@/components/AddContactDialog";
+import LinkedInImportDialog from "@/components/LinkedInImportDialog";
 import type { Contact, ContactConnection } from "@/types/jobTracker";
 
 interface ContactsProps {
   contacts: Contact[];
   onAdd: (contact: Omit<Contact, "id" | "createdAt">) => void;
+  onAddBulk: (contacts: Omit<Contact, "id" | "createdAt">[]) => void;
   onDelete: (id: string) => void;
   getConnectionsForContact: (contactId: string) => (ContactConnection & { contact?: Contact })[];
   getContactsAtSameOrg: (contactId: string) => Contact[];
