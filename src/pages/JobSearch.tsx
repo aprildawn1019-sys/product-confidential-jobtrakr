@@ -127,7 +127,9 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       }
       const uniqueResults = Array.from(deduped.values());
       setResults(uniqueResults);
-      toast({ title: "Search complete!", description: `Found ${uniqueResults.length} matching opportunities${raw.length > uniqueResults.length ? ` (${raw.length - uniqueResults.length} duplicates removed)` : ""}.` });
+      const meta = data.meta;
+      const metaInfo = meta ? ` (${meta.realJobsFound} from live search, ${meta.aiSuggestions} AI suggestions)` : "";
+      toast({ title: "Search complete!", description: `Found ${uniqueResults.length} matching opportunities${metaInfo}.` });
     } catch (e: any) {
       console.error("Job search error:", e);
       toast({ title: "Search failed", description: e.message || "Could not complete job search.", variant: "destructive" });
