@@ -101,9 +101,14 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     setResults([]);
     setAddedJobs(new Set());
 
+    // Separate gated from searchable boards
+    const searchableBoards = activeBoards.filter((b: any) => !b.is_gated);
+    const gated = activeBoards.filter((b: any) => b.is_gated);
+    setGatedBoards(gated.map((b: any) => ({ name: b.name, url: b.url })));
+
     try {
       const { data, error } = await supabase.functions.invoke("ai-job-search", {
-        body: { profile, dismissed: dismissedJobs, activeBoards, searchParams },
+        body: { profile, dismissed: dismissedJobs, activeBoards: searchableBoards, searchParams },
       });
 
       if (error) throw error;
