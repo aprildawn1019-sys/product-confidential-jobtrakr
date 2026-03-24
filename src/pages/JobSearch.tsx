@@ -392,6 +392,14 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
       {!searching && results.length > 0 && (
         <div className="space-y-3">
+          {/* Gated boards notice */}
+          <GatedBoardsNotice boards={gatedBoards} />
+
+          {/* Paste URL from gated board */}
+          {gatedBoards.length > 0 && (
+            <GatedBoardScrape onAddJob={onAddJob} />
+          )}
+
           {results.map((result, i) => {
             const key = `${result.company}-${result.title}`;
             const added = addedJobs.has(key);
