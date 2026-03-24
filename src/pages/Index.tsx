@@ -43,6 +43,7 @@ export default function Index() {
             <Contacts
               contacts={store.contacts}
               onAdd={store.addContact}
+              onAddBulk={store.addContactsBulk}
               onDelete={store.deleteContact}
               getConnectionsForContact={store.getConnectionsForContact}
               getContactsAtSameOrg={store.getContactsAtSameOrg}

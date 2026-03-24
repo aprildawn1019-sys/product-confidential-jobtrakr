@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AddContactDialog from "@/components/AddContactDialog";
+import LinkedInImportDialog from "@/components/LinkedInImportDialog";
 import type { Contact, ContactConnection } from "@/types/jobTracker";
 
 interface ContactsProps {
   contacts: Contact[];
   onAdd: (contact: Omit<Contact, "id" | "createdAt">) => void;
+  onAddBulk: (contacts: Omit<Contact, "id" | "createdAt">[]) => void;
   onDelete: (id: string) => void;
   getConnectionsForContact: (contactId: string) => (ContactConnection & { contact?: Contact })[];
   getContactsAtSameOrg: (contactId: string) => Contact[];
@@ -17,7 +19,7 @@ interface ContactsProps {
 }
 
 export default function Contacts({
-  contacts, onAdd, onDelete,
+  contacts, onAdd, onAddBulk, onDelete,
   getConnectionsForContact, getContactsAtSameOrg, onAddConnection, onRemoveConnection,
 }: ContactsProps) {
   const [expandedContact, setExpandedContact] = useState<string | null>(null);
@@ -29,7 +31,10 @@ export default function Contacts({
           <h1 className="font-display text-3xl font-bold tracking-tight">Connections</h1>
           <p className="mt-1 text-muted-foreground">{contacts.length} contacts in your network</p>
         </div>
-        <AddContactDialog onAdd={onAdd} />
+        <div className="flex items-center gap-2">
+          <LinkedInImportDialog onImport={onAddBulk} existingContacts={contacts} />
+          <AddContactDialog onAdd={onAdd} />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
