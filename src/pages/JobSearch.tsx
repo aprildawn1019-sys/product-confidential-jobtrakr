@@ -2,8 +2,22 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe } from "lucide-react";
+import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe, Settings2 } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import type { Job } from "@/types/jobTracker";
+
+interface SearchParams {
+  resultCount: number;
+  minMatchScore: number;
+  remoteOnly: boolean;
+  recencyFilter: string;
+  creativityLevel: string;
+  focusKeywords: string;
+}
 
 interface SearchResult {
   company: string;
