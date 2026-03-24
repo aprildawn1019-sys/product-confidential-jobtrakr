@@ -127,6 +127,19 @@ export function useJobTrackerStore() {
     if (data) setContacts(prev => [mapContact(data), ...prev]);
   };
 
+  const addContactsBulk = async (contactsList: Omit<Contact, "id" | "createdAt">[]) => {
+    const userId = await getUserId();
+    if (!userId || contactsList.length === 0) return;
+    const rows = contactsList.map(c => ({
+      user_id: userId, name: c.name, company: c.company, role: c.role,
+      email: c.email || null, phone: c.phone || null,
+      linkedin: c.linkedin || null, notes: c.notes || null,
+      last_contacted_at: c.lastContactedAt || null,
+    }));
+    const { data } = await supabase.from("contacts").insert(rows).select();
+    if (data) setContacts(prev => [...data.map(mapContact), ...prev]);
+  };
+
   const deleteContact = async (id: string) => {
     await supabase.from("contacts").delete().eq("id", id);
     setContacts(prev => prev.filter(c => c.id !== id));
