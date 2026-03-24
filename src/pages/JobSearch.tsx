@@ -418,7 +418,11 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
                     <div className="flex items-center gap-3 mt-2 flex-wrap">
                       <p className="text-sm text-muted-foreground italic flex-1">{result.match_reason}</p>
                       {result.job_source && (
-                        <span className="inline-flex items-center gap-1 text-xs rounded-full border border-border bg-muted px-2.5 py-0.5 text-muted-foreground shrink-0">
+                        <span className={`inline-flex items-center gap-1 text-xs rounded-full border px-2.5 py-0.5 shrink-0 ${
+                          result.job_source === "AI Suggestion"
+                            ? "border-accent bg-accent/10 text-accent-foreground"
+                            : "border-primary/30 bg-primary/10 text-primary"
+                        }`}>
                           <Globe className="h-3 w-3" />
                           {result.job_source}
                         </span>
