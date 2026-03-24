@@ -115,7 +115,11 @@ export default function JobBoards() {
       is_active: true,
     }).select().single();
 
-    if (!error && data) {
+    if (error) {
+      toast({ title: "Error adding board", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (data) {
       setBoards(prev => [data as JobBoard, ...prev]);
       toast({ title: "Board added", description: `${rec.name} added and activated.` });
     }
