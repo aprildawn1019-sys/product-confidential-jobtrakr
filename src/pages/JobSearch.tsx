@@ -55,6 +55,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [dismissedJobs, setDismissedJobs] = useState<DismissedJob[]>([]);
   const [showDismissed, setShowDismissed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [gatedBoards, setGatedBoards] = useState<{ name: string; url: string | null }[]>([]);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     resultCount: 10,
     minMatchScore: 60,
