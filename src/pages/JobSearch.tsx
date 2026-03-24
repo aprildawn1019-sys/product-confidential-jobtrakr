@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe, Settings2 } from "lucide-react";
+import { GatedBoardsNotice } from "@/components/jobsearch/GatedBoardsNotice";
+import { GatedBoardScrape } from "@/components/jobsearch/GatedBoardScrape";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -53,6 +55,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [dismissedJobs, setDismissedJobs] = useState<DismissedJob[]>([]);
   const [showDismissed, setShowDismissed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [gatedBoards, setGatedBoards] = useState<{ name: string; url: string | null }[]>([]);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     resultCount: 10,
     minMatchScore: 60,
@@ -98,9 +101,14 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     setResults([]);
     setAddedJobs(new Set());
 
+    // Separate gated from searchable boards
+    const searchableBoards = activeBoards.filter((b: any) => !b.is_gated);
+    const gated = activeBoards.filter((b: any) => b.is_gated);
+    setGatedBoards(gated.map((b: any) => ({ name: b.name, url: b.url })));
+
     try {
       const { data, error } = await supabase.functions.invoke("ai-job-search", {
-        body: { profile, dismissed: dismissedJobs, activeBoards, searchParams },
+        body: { profile, dismissed: dismissedJobs, activeBoards: searchableBoards, searchParams },
       });
 
       if (error) throw error;
@@ -384,6 +392,14 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
       {!searching && results.length > 0 && (
         <div className="space-y-3">
+          {/* Gated boards notice */}
+          <GatedBoardsNotice boards={gatedBoards} />
+
+          {/* Paste URL from gated board */}
+          {gatedBoards.length > 0 && (
+            <GatedBoardScrape onAddJob={onAddJob} />
+          )}
+
           {results.map((result, i) => {
             const key = `${result.company}-${result.title}`;
             const added = addedJobs.has(key);
