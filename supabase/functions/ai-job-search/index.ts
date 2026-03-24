@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { profile, dismissed, activeBoards } = await req.json();
+    const { profile, dismissed, activeBoards, searchParams } = await req.json();
     if (!profile) {
       return new Response(JSON.stringify({ error: "Profile is required" }), {
         status: 400,
@@ -38,6 +38,29 @@ KEY SKILLS: ${profile.skills?.join(", ")}
 PROFESSIONAL SUMMARY: ${profile.summary}
     `.trim();
 
+    const resultCount = searchParams?.resultCount || 10;
+    const minMatchScore = searchParams?.minMatchScore || 0;
+    const remoteOnly = searchParams?.remoteOnly || false;
+    const recencyFilter = searchParams?.recencyFilter || "any";
+    const creativityLevel = searchParams?.creativityLevel || "balanced";
+    const focusKeywords = searchParams?.focusKeywords || "";
+
+    const recencyMap: Record<string, string> = {
+      "3days": "posted within the last 3 days",
+      "1week": "posted within the last week",
+      "2weeks": "posted within the last 2 weeks",
+      "1month": "posted within the last month",
+      "any": "",
+    };
+    const recencyInstruction = recencyMap[recencyFilter] || "";
+
+    const creativityMap: Record<string, string> = {
+      conservative: "Stick very closely to the candidate's exact target roles and industries. Only suggest roles that are a near-perfect match.",
+      balanced: "Suggest a mix of close matches and some stretch opportunities that leverage transferable skills.",
+      exploratory: "Cast a wide net. Include adjacent roles, unexpected industries, and creative lateral moves that could leverage the candidate's experience in novel ways.",
+    };
+    const creativityInstruction = creativityMap[creativityLevel] || creativityMap.balanced;
+
     const dismissedContext = dismissed?.length
       ? `\n\nEXCLUDE these previously dismissed jobs (do NOT include them):\n${dismissed.map((d: any) => `- ${d.title} at ${d.company}`).join("\n")}`
       : "";
@@ -45,6 +68,15 @@ PROFESSIONAL SUMMARY: ${profile.summary}
     const boardsContext = activeBoards?.length
       ? `\n\nSOURCE JOBS FROM THESE JOB BOARDS/PLATFORMS (use these as the job_source field):\n${activeBoards.map((b: any) => `- ${b.name}${b.url ? ` (${b.url})` : ""}`).join("\n")}\n\nFor each job, specify which of these sources the job would realistically be found on. Use company ATS sites (Workday, Greenhouse, Lever) when the job would be posted directly on the company's careers page.`
       : "";
+
+    const paramInstructions = [
+      `Generate exactly ${resultCount} job listings.`,
+      minMatchScore > 0 ? `Only include jobs with a match score of ${minMatchScore} or higher.` : "",
+      remoteOnly ? "Only include REMOTE positions. Do not suggest hybrid or onsite roles." : "",
+      recencyInstruction ? `Only include jobs that would realistically have been ${recencyInstruction}.` : "",
+      creativityInstruction,
+      focusKeywords ? `Pay special attention to these focus areas and keywords: ${focusKeywords}. Prioritize roles that emphasize these skills or domains.` : "",
+    ].filter(Boolean).join("\n");
 
     const aiRes = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -61,13 +93,9 @@ PROFESSIONAL SUMMARY: ${profile.summary}
               role: "system",
               content: `You are a job search assistant. Given a candidate's profile and preferences, generate realistic, high-quality job listings that would match their criteria. 
 
-Create 8-12 job listings that this candidate should apply to RIGHT NOW. Make them realistic — use real company names that actually hire for these roles, realistic salary ranges, and accurate job descriptions.
+${paramInstructions}
 
-Focus on:
-1. Roles matching their target titles (VP Product, Head of Product, Sr Director PM, Director PM)
-2. Mix of remote and Michigan-local opportunities
-3. Industries they prefer (Life Sciences/Biotech first, then EdTech, then B2B SaaS)
-4. Roles that value their specific experience (post-acquisition integration, P&L ownership, AI strategy, international expansion)
+Make the listings realistic — use real company names that actually hire for these roles, realistic salary ranges, and accurate job descriptions.
 
 For each job, provide:
 - A realistic, working careers page URL (use real company career page patterns like careers.company.com/jobs/... or company.com/careers/...)
