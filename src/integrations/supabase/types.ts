@@ -244,30 +244,39 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          gate_checked_at: string | null
           id: string
           is_active: boolean
+          is_gated: boolean
           name: string
           notes: string | null
+          public_url: string | null
           url: string | null
           user_id: string | null
         }
         Insert: {
           category?: string
           created_at?: string
+          gate_checked_at?: string | null
           id?: string
           is_active?: boolean
+          is_gated?: boolean
           name: string
           notes?: string | null
+          public_url?: string | null
           url?: string | null
           user_id?: string | null
         }
         Update: {
           category?: string
           created_at?: string
+          gate_checked_at?: string | null
           id?: string
           is_active?: boolean
+          is_gated?: boolean
           name?: string
           notes?: string | null
+          public_url?: string | null
           url?: string | null
           user_id?: string | null
         }
