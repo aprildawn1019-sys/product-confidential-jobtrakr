@@ -38,6 +38,29 @@ KEY SKILLS: ${profile.skills?.join(", ")}
 PROFESSIONAL SUMMARY: ${profile.summary}
     `.trim();
 
+    const resultCount = searchParams?.resultCount || 10;
+    const minMatchScore = searchParams?.minMatchScore || 0;
+    const remoteOnly = searchParams?.remoteOnly || false;
+    const recencyFilter = searchParams?.recencyFilter || "any";
+    const creativityLevel = searchParams?.creativityLevel || "balanced";
+    const focusKeywords = searchParams?.focusKeywords || "";
+
+    const recencyMap: Record<string, string> = {
+      "3days": "posted within the last 3 days",
+      "1week": "posted within the last week",
+      "2weeks": "posted within the last 2 weeks",
+      "1month": "posted within the last month",
+      "any": "",
+    };
+    const recencyInstruction = recencyMap[recencyFilter] || "";
+
+    const creativityMap: Record<string, string> = {
+      conservative: "Stick very closely to the candidate's exact target roles and industries. Only suggest roles that are a near-perfect match.",
+      balanced: "Suggest a mix of close matches and some stretch opportunities that leverage transferable skills.",
+      exploratory: "Cast a wide net. Include adjacent roles, unexpected industries, and creative lateral moves that could leverage the candidate's experience in novel ways.",
+    };
+    const creativityInstruction = creativityMap[creativityLevel] || creativityMap.balanced;
+
     const dismissedContext = dismissed?.length
       ? `\n\nEXCLUDE these previously dismissed jobs (do NOT include them):\n${dismissed.map((d: any) => `- ${d.title} at ${d.company}`).join("\n")}`
       : "";
@@ -45,6 +68,15 @@ PROFESSIONAL SUMMARY: ${profile.summary}
     const boardsContext = activeBoards?.length
       ? `\n\nSOURCE JOBS FROM THESE JOB BOARDS/PLATFORMS (use these as the job_source field):\n${activeBoards.map((b: any) => `- ${b.name}${b.url ? ` (${b.url})` : ""}`).join("\n")}\n\nFor each job, specify which of these sources the job would realistically be found on. Use company ATS sites (Workday, Greenhouse, Lever) when the job would be posted directly on the company's careers page.`
       : "";
+
+    const paramInstructions = [
+      `Generate exactly ${resultCount} job listings.`,
+      minMatchScore > 0 ? `Only include jobs with a match score of ${minMatchScore} or higher.` : "",
+      remoteOnly ? "Only include REMOTE positions. Do not suggest hybrid or onsite roles." : "",
+      recencyInstruction ? `Only include jobs that would realistically have been ${recencyInstruction}.` : "",
+      creativityInstruction,
+      focusKeywords ? `Pay special attention to these focus areas and keywords: ${focusKeywords}. Prioritize roles that emphasize these skills or domains.` : "",
+    ].filter(Boolean).join("\n");
 
     const aiRes = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
