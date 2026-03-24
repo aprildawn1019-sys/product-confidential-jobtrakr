@@ -245,9 +245,15 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
         <div className="rounded-xl border border-border bg-card p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider">Your Search Profile</h3>
-            {dismissedJobs.length > 0 && (
-              <span className="text-xs text-muted-foreground">{dismissedJobs.length} job{dismissedJobs.length !== 1 ? "s" : ""} dismissed</span>
-            )}
+            <div className="flex items-center gap-3">
+              {dismissedJobs.length > 0 && (
+                <span className="text-xs text-muted-foreground">{dismissedJobs.length} job{dismissedJobs.length !== 1 ? "s" : ""} dismissed</span>
+              )}
+              <Button variant="ghost" size="sm" onClick={() => setShowSettings(prev => !prev)} className="text-muted-foreground">
+                <Settings2 className="h-4 w-4" />
+                {showSettings ? "Hide Settings" : "Search Settings"}
+              </Button>
+            </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
@@ -265,6 +271,101 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
             <div>
               <p className="font-medium">Top Industries</p>
               <p className="text-muted-foreground">{profile.industries?.slice(0, 2).join(", ")}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Search Parameters Panel */}
+      {showSettings && (
+        <div className="rounded-xl border border-border bg-card p-5 space-y-5 animate-fade-in">
+          <h3 className="font-display font-semibold text-sm text-muted-foreground uppercase tracking-wider">Search Parameters</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Number of Results */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Number of Results</Label>
+              <div className="flex items-center gap-3">
+                <Slider
+                  value={[searchParams.resultCount]}
+                  onValueChange={([v]) => setSearchParams(p => ({ ...p, resultCount: v }))}
+                  min={4}
+                  max={20}
+                  step={2}
+                  className="flex-1"
+                />
+                <span className="text-sm font-mono text-muted-foreground w-6 text-right">{searchParams.resultCount}</span>
+              </div>
+            </div>
+
+            {/* Min Match Score */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Minimum Match Score</Label>
+              <div className="flex items-center gap-3">
+                <Slider
+                  value={[searchParams.minMatchScore]}
+                  onValueChange={([v]) => setSearchParams(p => ({ ...p, minMatchScore: v }))}
+                  min={0}
+                  max={90}
+                  step={5}
+                  className="flex-1"
+                />
+                <span className="text-sm font-mono text-muted-foreground w-8 text-right">{searchParams.minMatchScore}%</span>
+              </div>
+            </div>
+
+            {/* Creativity / Exploration */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Search Style</Label>
+              <Select value={searchParams.creativityLevel} onValueChange={(v) => setSearchParams(p => ({ ...p, creativityLevel: v }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="conservative">Conservative — close matches only</SelectItem>
+                  <SelectItem value="balanced">Balanced — mix of close &amp; stretch</SelectItem>
+                  <SelectItem value="exploratory">Exploratory — cast a wider net</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Recency */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Posted Within</Label>
+              <Select value={searchParams.recencyFilter} onValueChange={(v) => setSearchParams(p => ({ ...p, recencyFilter: v }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="any">Any time</SelectItem>
+                  <SelectItem value="3days">Last 3 days</SelectItem>
+                  <SelectItem value="1week">Last week</SelectItem>
+                  <SelectItem value="2weeks">Last 2 weeks</SelectItem>
+                  <SelectItem value="1month">Last month</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Remote Only Toggle */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Remote Only</Label>
+              <div className="flex items-center gap-2 pt-1">
+                <Switch
+                  checked={searchParams.remoteOnly}
+                  onCheckedChange={(v) => setSearchParams(p => ({ ...p, remoteOnly: v }))}
+                />
+                <span className="text-sm text-muted-foreground">{searchParams.remoteOnly ? "Yes" : "No"}</span>
+              </div>
+            </div>
+
+            {/* Focus Keywords */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Focus Keywords</Label>
+              <Input
+                placeholder="e.g. AI strategy, P&L ownership"
+                value={searchParams.focusKeywords}
+                onChange={(e) => setSearchParams(p => ({ ...p, focusKeywords: e.target.value }))}
+              />
             </div>
           </div>
         </div>
