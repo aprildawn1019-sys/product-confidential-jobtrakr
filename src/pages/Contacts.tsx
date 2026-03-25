@@ -590,10 +590,13 @@ export default function Contacts({
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center rounded-lg border border-border p-0.5">
-            <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("grid")}>
+            <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("grid")} title="Grid view">
               <LayoutGrid className="h-4 w-4" />
             </Button>
-            <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("list")}>
+            <Button variant={viewMode === "compact" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("compact")} title="Compact list">
+              <List className="h-4 w-4" />
+            </Button>
+            <Button variant={viewMode === "detailed" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("detailed")} title="Detailed list">
               <LayoutList className="h-4 w-4" />
             </Button>
           </div>
