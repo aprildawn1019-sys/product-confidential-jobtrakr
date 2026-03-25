@@ -79,6 +79,7 @@ export default function Jobs({
               <Kanban className="h-4 w-4" />
             </Button>
           </div>
+          <BulkJobUploadDialog onAddJobs={onAddBulk} existingJobs={jobs} />
           <AddJobDialog onAdd={onAdd} contacts={contacts} />
         </div>
       </div>
