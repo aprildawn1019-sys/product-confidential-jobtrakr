@@ -177,6 +177,10 @@ export default function JobDetailPanel({
               <Label className="text-xs">Notes</Label>
               <Textarea value={jobForm.notes} onChange={e => setJobForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="text-sm" />
             </div>
+            <div className="col-span-2 space-y-1">
+              <Label className="text-xs">Job Description</Label>
+              <Textarea value={jobForm.description} onChange={e => setJobForm(f => ({ ...f, description: e.target.value }))} rows={4} className="text-sm" placeholder="Full job description..." />
+            </div>
           </div>
         ) : (
           <>
