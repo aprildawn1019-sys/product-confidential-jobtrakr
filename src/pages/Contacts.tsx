@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
-import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink } from "lucide-react";
+import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -129,6 +129,7 @@ export default function Contacts({
   const [campaignFilter, setCampaignFilter] = useState<string>("all");
   const [showCampaigns, setShowCampaigns] = useState(false);
   const [recRequestContact, setRecRequestContact] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"first" | "last" | "company" | "recent">("first");
 
   const handleSaveConversation = (contactId: string) => {
     onUpdate(contactId, { conversationLog: conversationDraft });
@@ -136,7 +137,7 @@ export default function Contacts({
   };
 
   const filteredContacts = useMemo(() => {
-    return contacts.filter(c => {
+    const filtered = contacts.filter(c => {
       const q = searchQuery.toLowerCase();
       if (q && !c.name.toLowerCase().includes(q) && !c.company.toLowerCase().includes(q) && !(c.role || "").toLowerCase().includes(q)) return false;
       if (warmthFilter !== "all" && (c.relationshipWarmth || "none") !== warmthFilter) return false;
@@ -154,7 +155,26 @@ export default function Contacts({
       }
       return true;
     });
-  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns]);
+
+    const getLastName = (name: string) => {
+      const parts = name.trim().split(/\s+/);
+      return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : name.toLowerCase();
+    };
+
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "last":
+          return getLastName(a.name).localeCompare(getLastName(b.name));
+        case "company":
+          return a.company.toLowerCase().localeCompare(b.company.toLowerCase());
+        case "recent":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case "first":
+        default:
+          return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+      }
+    });
+  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns, sortBy]);
 
   const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all" || campaignFilter !== "all";
 
@@ -655,6 +675,15 @@ export default function Contacts({
             <SelectItem value="all">All Campaigns</SelectItem>
             <SelectItem value="none">No Campaign</SelectItem>
             {campaigns.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={v => setSortBy(v as any)}>
+          <SelectTrigger className="w-40 h-9"><ArrowUpDown className="h-3.5 w-3.5 mr-1" /><SelectValue placeholder="Sort" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="first">First Name A–Z</SelectItem>
+            <SelectItem value="last">Last Name A–Z</SelectItem>
+            <SelectItem value="company">Company A–Z</SelectItem>
+            <SelectItem value="recent">Recently Added</SelectItem>
           </SelectContent>
         </Select>
         {hasFilters && (
