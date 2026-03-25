@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 
 type LinkItem = { to: string; icon: LucideIcon; label: string };
 
-const groups: { label: string; items: LinkItem[] }[] = [
+const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   {
     label: "Discover",
+    icon: Compass,
     items: [
       { to: "/job-search", icon: Search, label: "AI Job Search" },
       { to: "/job-boards", icon: Globe, label: "Job Boards" },
