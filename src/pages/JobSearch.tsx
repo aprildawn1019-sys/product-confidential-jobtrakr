@@ -392,6 +392,16 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
       {!searching && results.length > 0 && (
         <div className="space-y-3">
+          {/* Result filter */}
+          <div className="relative max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Filter results by title, company..."
+              value={resultFilter}
+              onChange={e => setResultFilter(e.target.value)}
+              className="pl-9 h-9"
+            />
+          </div>
           {/* Gated boards notice */}
           <GatedBoardsNotice boards={gatedBoards} />
 
