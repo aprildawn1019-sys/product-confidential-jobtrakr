@@ -27,6 +27,7 @@ export default function Index() {
               contacts={store.contacts}
               interviews={store.interviews}
               onAdd={store.addJob}
+              onAddBulk={store.addJobsBulk}
               onUpdateStatus={store.updateJobStatus}
               onUpdateJob={store.updateJob}
               onDelete={store.deleteJob}

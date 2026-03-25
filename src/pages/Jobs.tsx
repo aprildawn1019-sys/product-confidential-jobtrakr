@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/StatusBadge";
 import AddJobDialog from "@/components/AddJobDialog";
+import BulkJobUploadDialog from "@/components/BulkJobUploadDialog";
 import JobKanban from "@/components/JobKanban";
 import JobDetailPanel from "@/components/JobDetailPanel";
 import type { Job, Contact, JobStatus, Interview } from "@/types/jobTracker";
@@ -17,6 +18,7 @@ interface JobsProps {
   contacts: Contact[];
   interviews: Interview[];
   onAdd: (job: Omit<Job, "id" | "createdAt">) => void;
+  onAddBulk: (jobs: Omit<Job, "id" | "createdAt">[]) => void;
   onUpdateStatus: (id: string, status: JobStatus) => void;
   onUpdateJob: (id: string, updates: Partial<Job>) => void;
   onDelete: (id: string) => void;
@@ -30,7 +32,7 @@ interface JobsProps {
 }
 
 export default function Jobs({
-  jobs, contacts, interviews, onAdd, onUpdateStatus, onUpdateJob, onDelete,
+  jobs, contacts, interviews, onAdd, onAddBulk, onUpdateStatus, onUpdateJob, onDelete,
   onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
   onAddInterview, onUpdateInterview, onDeleteInterview,
 }: JobsProps) {
@@ -77,6 +79,7 @@ export default function Jobs({
               <Kanban className="h-4 w-4" />
             </Button>
           </div>
+          <BulkJobUploadDialog onAddJobs={onAddBulk} existingJobs={jobs} />
           <AddJobDialog onAdd={onAdd} contacts={contacts} />
         </div>
       </div>
