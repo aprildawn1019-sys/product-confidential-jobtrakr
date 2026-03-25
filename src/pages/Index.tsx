@@ -86,7 +86,7 @@ export default function Index() {
           <Route path="job-search" element={<JobSearch onAddJob={store.addJob} existingJobs={store.jobs} />} />
           <Route path="profile" element={<ProfileEditor />} />
           <Route path="job-boards" element={<JobBoards />} />
-          <Route path="network" element={<NetworkMap contacts={store.contacts} contactConnections={store.contactConnections} />} />
+          
         </Routes>
       </main>
     </div>
