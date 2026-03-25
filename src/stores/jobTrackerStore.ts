@@ -343,7 +343,7 @@ export function useJobTrackerStore() {
 
   return {
     jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, loading,
-    addJob, updateJobStatus, updateJob, deleteJob,
+    addJob, addJobsBulk, updateJobStatus, updateJob, deleteJob,
     addContact, addContactsBulk, updateContact, deleteContact,
     addInterview, updateInterview, deleteInterview,
     linkContactToJob, unlinkContactFromJob, getContactsForJob, getNetworkMatchesForJob, getJobsForContact,
