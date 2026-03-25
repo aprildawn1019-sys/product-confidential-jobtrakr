@@ -105,6 +105,22 @@ export function useJobTrackerStore() {
     if (data) setJobs(prev => [mapJob(data), ...prev]);
   };
 
+  const addJobsBulk = async (jobsList: Omit<Job, "id" | "createdAt">[]) => {
+    const userId = await getUserId();
+    if (!userId || jobsList.length === 0) return;
+    const rows = jobsList.map(job => ({
+      user_id: userId, company: job.company, title: job.title, location: job.location,
+      type: job.type, salary: job.salary || null, url: job.url || null,
+      status: job.status, applied_date: job.appliedDate || null, notes: job.notes || null,
+      description: job.description || null, contact_id: job.contactId || null,
+      poster_name: job.posterName || null, poster_email: job.posterEmail || null,
+      poster_phone: job.posterPhone || null, poster_role: job.posterRole || null,
+      fit_score: job.fitScore || null, urgency: job.urgency || null,
+    }));
+    const { data } = await supabase.from("jobs").insert(rows).select();
+    if (data) setJobs(prev => [...data.map(mapJob), ...prev]);
+  };
+
   const updateJobStatus = async (id: string, status: JobStatus) => {
     const now = new Date().toISOString();
     await supabase.from("jobs").update({ status, status_updated_at: now }).eq("id", id);
