@@ -1,6 +1,10 @@
-import { Briefcase, Users, CalendarCheck, Trophy, Clock, Send } from "lucide-react";
+import { useMemo } from "react";
+import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { formatDistanceToNow, isPast, isToday } from "date-fns";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
+import FitScoreStars from "@/components/FitScoreStars";
 import type { Job, Contact, Interview } from "@/types/jobTracker";
 
 interface DashboardProps {
@@ -9,9 +13,36 @@ interface DashboardProps {
   interviews: Interview[];
 }
 
+const urgencyColors: Record<string, string> = {
+  critical: "bg-destructive/15 text-destructive border-destructive/30",
+  high: "bg-warning/15 text-warning border-warning/30",
+  medium: "bg-info/15 text-info border-info/30",
+  low: "bg-muted text-muted-foreground border-border",
+};
+
 export default function Dashboard({ jobs, contacts, interviews }: DashboardProps) {
   const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn"].includes(j.status)).length;
   const upcoming = interviews.filter(i => i.status === "scheduled");
+
+  const highUrgencyJobs = useMemo(() =>
+    jobs.filter(j => j.urgency === "critical" || j.urgency === "high")
+      .sort((a, b) => (a.urgency === "critical" ? 0 : 1) - (b.urgency === "critical" ? 0 : 1))
+      .slice(0, 5),
+  [jobs]);
+
+  const topFitJobs = useMemo(() =>
+    jobs.filter(j => j.fitScore && j.fitScore >= 4)
+      .sort((a, b) => (b.fitScore || 0) - (a.fitScore || 0))
+      .slice(0, 5),
+  [jobs]);
+
+  const followUpContacts = useMemo(() =>
+    contacts.filter(c => c.followUpDate)
+      .sort((a, b) => new Date(a.followUpDate!).getTime() - new Date(b.followUpDate!).getTime())
+      .slice(0, 6),
+  [contacts]);
+
+  const overdueCount = followUpContacts.filter(c => isPast(new Date(c.followUpDate!)) && !isToday(new Date(c.followUpDate!))).length;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -28,20 +59,88 @@ export default function Dashboard({ jobs, contacts, interviews }: DashboardProps
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Jobs */}
+        {/* High Urgency Jobs */}
         <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="font-display text-lg font-semibold mb-4">Recent Jobs</h2>
-          <div className="space-y-3">
-            {jobs.slice(0, 5).map(job => (
-              <div key={job.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                <div>
-                  <p className="font-medium text-sm">{job.title}</p>
-                  <p className="text-xs text-muted-foreground">{job.company} · {job.location}</p>
+          <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-warning" />High Urgency Jobs
+          </h2>
+          {highUrgencyJobs.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic py-4 text-center">No high-urgency jobs</p>
+          ) : (
+            <div className="space-y-3">
+              {highUrgencyJobs.map(job => (
+                <div key={job.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate">{job.title}</p>
+                    <p className="text-xs text-muted-foreground">{job.company}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge variant="outline" className={`text-xs capitalize ${urgencyColors[job.urgency || ""]}`}>
+                      {job.urgency}
+                    </Badge>
+                    <StatusBadge status={job.status} />
+                  </div>
                 </div>
-                <StatusBadge status={job.status} />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Top Rated Fits */}
+        <div className="rounded-xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
+            <Star className="h-5 w-5 text-primary" />Top Rated Fits
+          </h2>
+          {topFitJobs.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic py-4 text-center">No jobs rated 4+ stars yet</p>
+          ) : (
+            <div className="space-y-3">
+              {topFitJobs.map(job => (
+                <div key={job.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate">{job.title}</p>
+                    <p className="text-xs text-muted-foreground">{job.company}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <FitScoreStars score={job.fitScore} size="sm" />
+                    <StatusBadge status={job.status} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Follow-up Reminders */}
+        <div className="rounded-xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
+            <CalendarDays className="h-5 w-5 text-info" />Follow-up Reminders
+            {overdueCount > 0 && (
+              <Badge variant="destructive" className="text-xs">{overdueCount} overdue</Badge>
+            )}
+          </h2>
+          {followUpContacts.length === 0 ? (
+            <p className="text-sm text-muted-foreground italic py-4 text-center">No follow-ups scheduled</p>
+          ) : (
+            <div className="space-y-3">
+              {followUpContacts.map(contact => {
+                const d = new Date(contact.followUpDate!);
+                const overdue = isPast(d) && !isToday(d);
+                const today = isToday(d);
+                return (
+                  <div key={contact.id} className={`flex items-center justify-between rounded-lg border p-3 ${overdue ? "border-destructive/40 bg-destructive/5" : today ? "border-warning/40 bg-warning/5" : "border-border"}`}>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm">{contact.name}</p>
+                      <p className="text-xs text-muted-foreground">{contact.role} at {contact.company}</p>
+                    </div>
+                    <Badge variant="outline" className={`text-xs shrink-0 ${overdue ? "text-destructive border-destructive/30" : today ? "text-warning border-warning/30" : "text-info border-info/30"}`}>
+                      {overdue ? `Overdue ${formatDistanceToNow(d)}` : today ? "Today" : `In ${formatDistanceToNow(d)}`}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Upcoming Interviews */}
@@ -89,6 +188,3 @@ export default function Dashboard({ jobs, contacts, interviews }: DashboardProps
     </div>
   );
 }
-
-// Need to import Badge
-import { Badge } from "@/components/ui/badge";

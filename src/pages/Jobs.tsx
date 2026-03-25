@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users } from "lucide-react";
+import { useState, useMemo } from "react";
+import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X } from "lucide-react";
 import FitScoreStars from "@/components/FitScoreStars";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/StatusBadge";
@@ -35,6 +36,10 @@ export default function Jobs({
 }: JobsProps) {
   const [view, setView] = useState<"list" | "kanban">("list");
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
 
   const toggleExpand = (id: string) => setExpandedJob(prev => prev === id ? null : id);
 
@@ -43,12 +48,25 @@ export default function Jobs({
     return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
+  const filteredJobs = useMemo(() => {
+    return jobs.filter(job => {
+      const q = searchQuery.toLowerCase();
+      if (q && !job.title.toLowerCase().includes(q) && !job.company.toLowerCase().includes(q) && !job.location.toLowerCase().includes(q)) return false;
+      if (statusFilter !== "all" && job.status !== statusFilter) return false;
+      if (urgencyFilter !== "all" && (job.urgency || "none") !== urgencyFilter) return false;
+      if (typeFilter !== "all" && job.type !== typeFilter) return false;
+      return true;
+    });
+  }, [jobs, searchQuery, statusFilter, urgencyFilter, typeFilter]);
+
+  const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all";
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight">Job Postings</h1>
-          <p className="mt-1 text-muted-foreground">{jobs.length} positions tracked</p>
+          <p className="mt-1 text-muted-foreground">{filteredJobs.length} of {jobs.length} positions</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center rounded-lg border border-border p-0.5">
@@ -63,9 +81,56 @@ export default function Jobs({
         </div>
       </div>
 
+      {/* Search & Filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by title, company, location..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="pl-9 h-9"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn"] as const).map(s => (
+              <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
+          <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Urgency" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Urgency</SelectItem>
+            <SelectItem value="critical">Critical</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
+            <SelectItem value="none">Not Set</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-28 h-9"><SelectValue placeholder="Type" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="remote">Remote</SelectItem>
+            <SelectItem value="hybrid">Hybrid</SelectItem>
+            <SelectItem value="onsite">On-site</SelectItem>
+          </SelectContent>
+        </Select>
+        {hasFilters && (
+          <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setStatusFilter("all"); setUrgencyFilter("all"); setTypeFilter("all"); }}>
+            <X className="h-4 w-4 mr-1" />Clear
+          </Button>
+        )}
+      </div>
+
       {view === "kanban" ? (
         <JobKanban
-          jobs={jobs}
+          jobs={filteredJobs}
           contacts={contacts}
           interviews={interviews}
           onUpdateStatus={onUpdateStatus}
@@ -81,7 +146,14 @@ export default function Jobs({
         />
       ) : (
         <div className="space-y-3">
-          {jobs.map(job => {
+          {filteredJobs.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
+              <Search className="h-10 w-10 mb-4 opacity-40" />
+              <p className="font-medium">No jobs found</p>
+              <p className="text-sm">{hasFilters ? "Try adjusting your filters" : "Add your first job posting"}</p>
+            </div>
+          )}
+          {filteredJobs.map(job => {
             const isExpanded = expandedJob === job.id;
             const linkedContacts = getContactsForJob(job.id);
             const networkMatches = getNetworkMatchesForJob(job);
