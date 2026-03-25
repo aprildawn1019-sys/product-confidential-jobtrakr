@@ -85,7 +85,8 @@ export function useJobTrackerStore() {
       description: job.description || null,
       contact_id: job.contactId || null, poster_name: job.posterName || null,
       poster_email: job.posterEmail || null, poster_phone: job.posterPhone || null,
-      poster_role: job.posterRole || null,
+      poster_role: job.posterRole || null, fit_score: job.fitScore || null,
+      urgency: job.urgency || null,
     }).select().single();
     if (data) setJobs(prev => [mapJob(data), ...prev]);
   };
