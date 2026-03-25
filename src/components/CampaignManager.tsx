@@ -31,7 +31,7 @@ const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   active: "bg-primary/10 text-primary",
   paused: "bg-warning/10 text-warning",
-  completed: "bg-green-500/10 text-green-600",
+  completed: "bg-success/10 text-success",
   archived: "bg-muted text-muted-foreground",
 };
 
