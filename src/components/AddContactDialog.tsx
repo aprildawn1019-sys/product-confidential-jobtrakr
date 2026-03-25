@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import type { Contact } from "@/types/jobTracker";
 
@@ -12,13 +14,20 @@ interface AddContactDialogProps {
 
 export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", company: "", role: "", email: "", phone: "", linkedin: "", notes: "" });
+  const [form, setForm] = useState({
+    name: "", company: "", role: "", email: "", phone: "", linkedin: "", notes: "",
+    relationshipWarmth: "", conversationLog: "",
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.company) return;
-    onAdd(form);
-    setForm({ name: "", company: "", role: "", email: "", phone: "", linkedin: "", notes: "" });
+    onAdd({
+      ...form,
+      relationshipWarmth: form.relationshipWarmth || undefined,
+      conversationLog: form.conversationLog || undefined,
+    });
+    setForm({ name: "", company: "", role: "", email: "", phone: "", linkedin: "", notes: "", relationshipWarmth: "", conversationLog: "" });
     setOpen(false);
   };
 
@@ -52,9 +61,27 @@ export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
               <Input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@company.com" />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>LinkedIn</Label>
+              <Input value={form.linkedin} onChange={e => setForm(f => ({ ...f, linkedin: e.target.value }))} placeholder="linkedin.com/in/..." />
+            </div>
+            <div className="space-y-2">
+              <Label>Warmth</Label>
+              <Select value={form.relationshipWarmth} onValueChange={v => setForm(f => ({ ...f, relationshipWarmth: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cold">❄️ Cold</SelectItem>
+                  <SelectItem value="warm">🌤️ Warm</SelectItem>
+                  <SelectItem value="hot">🔥 Hot</SelectItem>
+                  <SelectItem value="champion">🏆 Champion</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <div className="space-y-2">
-            <Label>LinkedIn</Label>
-            <Input value={form.linkedin} onChange={e => setForm(f => ({ ...f, linkedin: e.target.value }))} placeholder="linkedin.com/in/..." />
+            <Label>Conversation Notes</Label>
+            <Textarea value={form.conversationLog} onChange={e => setForm(f => ({ ...f, conversationLog: e.target.value }))} placeholder="Initial notes about this contact..." rows={3} />
           </div>
           <Button type="submit" className="w-full">Add Contact</Button>
         </form>

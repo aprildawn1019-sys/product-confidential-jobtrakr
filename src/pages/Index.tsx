@@ -42,13 +42,21 @@ export default function Index() {
           <Route path="contacts" element={
             <Contacts
               contacts={store.contacts}
+              jobs={store.jobs}
               onAdd={store.addContact}
               onAddBulk={store.addContactsBulk}
+              onUpdate={store.updateContact}
               onDelete={store.deleteContact}
               getConnectionsForContact={store.getConnectionsForContact}
               getContactsAtSameOrg={store.getContactsAtSameOrg}
               onAddConnection={store.addContactConnection}
               onRemoveConnection={store.removeContactConnection}
+              getActivitiesForContact={store.getActivitiesForContact}
+              onAddActivity={store.addContactActivity}
+              onDeleteActivity={store.deleteContactActivity}
+              getJobsForContact={store.getJobsForContact}
+              onLinkContactToJob={store.linkContactToJob}
+              onUnlinkContactFromJob={store.unlinkContactFromJob}
             />
           } />
           <Route path="applications" element={<Applications jobs={store.jobs} interviews={store.interviews} />} />
