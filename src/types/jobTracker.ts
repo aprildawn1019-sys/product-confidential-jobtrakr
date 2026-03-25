@@ -73,3 +73,20 @@ export interface ContactActivity {
   notes?: string;
   createdAt: string;
 }
+
+export interface Campaign {
+  id: string;
+  name: string;
+  type: string;
+  description?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContactCampaign {
+  id: string;
+  contactId: string;
+  campaignId: string;
+  createdAt: string;
+}
