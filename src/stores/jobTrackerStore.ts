@@ -12,6 +12,7 @@ function mapJob(row: any): Job {
     createdAt: row.created_at, statusUpdatedAt: row.status_updated_at ?? undefined,
     posterName: row.poster_name ?? undefined, posterEmail: row.poster_email ?? undefined,
     posterPhone: row.poster_phone ?? undefined, posterRole: row.poster_role ?? undefined,
+    fitScore: row.fit_score ?? undefined, urgency: row.urgency ?? undefined,
   };
 }
 
