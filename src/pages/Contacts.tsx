@@ -208,6 +208,7 @@ export default function Contacts({
             {sameOrgContacts.length > 0 && <Badge variant="secondary" className="text-xs gap-1"><Building2 className="h-3 w-3" />{sameOrgContacts.length} at {contact.company}</Badge>}
             {linkedJobs.length > 0 && <Badge variant="outline" className="text-xs gap-1"><Briefcase className="h-3 w-3" />{linkedJobs.length} job{linkedJobs.length > 1 ? "s" : ""}</Badge>}
             {connections.length > 0 && <Badge variant="outline" className="text-xs gap-1"><Link2 className="h-3 w-3" />{connections.length} connection{connections.length > 1 ? "s" : ""}</Badge>}
+            {(() => { const recs = getRecommendationRequestsForContact(contact.id); const pending = recs.filter(r => r.status === "pending").length; return pending > 0 ? <Badge variant="warning" className="text-xs gap-1"><Star className="h-3 w-3" />{pending} rec pending</Badge> : recs.some(r => r.status === "received") ? <Badge variant="success" className="text-xs gap-1"><Check className="h-3 w-3" />Rec received</Badge> : null; })()}
           </div>
           <div className="mt-3 flex items-center gap-2">
             {contact.email && <Button variant="outline" size="sm" asChild><a href={`mailto:${contact.email}`}><Mail className="h-3.5 w-3.5 mr-1" />Email</a></Button>}
