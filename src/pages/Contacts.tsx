@@ -129,6 +129,7 @@ export default function Contacts({
   const [campaignFilter, setCampaignFilter] = useState<string>("all");
   const [showCampaigns, setShowCampaigns] = useState(false);
   const [recRequestContact, setRecRequestContact] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"first" | "last" | "company" | "recent">("first");
 
   const handleSaveConversation = (contactId: string) => {
     onUpdate(contactId, { conversationLog: conversationDraft });
