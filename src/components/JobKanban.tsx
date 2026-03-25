@@ -126,7 +126,12 @@ export default function JobKanban({
                             <User className="h-2.5 w-2.5" />{job.posterName}
                           </p>
                         )}
-                      </div>
+
+                        {/* Fit & Urgency */}
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
+                          {job.urgency && <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} mode="badge" />}
+                        </div>
                     </div>
                     <div className="flex items-center justify-between mt-2">
                       <Button
