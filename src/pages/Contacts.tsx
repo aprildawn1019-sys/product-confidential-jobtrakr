@@ -391,6 +391,69 @@ export default function Contacts({
         )}
       </div>
 
+      {/* Recommendation Requests */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3" />Recommendation Requests</p>
+          <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setRecRequestContact(recRequestContact === contact.id ? null : contact.id)}>
+            <Plus className="h-3 w-3 mr-1" />Request
+          </Button>
+        </div>
+        {recRequestContact === contact.id && (
+          <div className="rounded-md border border-border bg-card p-3 space-y-2 mb-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold">New Recommendation Request</span>
+              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setRecRequestContact(null)}><X className="h-3 w-3" /></Button>
+            </div>
+            <Input type="date" defaultValue={format(new Date(), "yyyy-MM-dd")} id={`rec-date-${contact.id}`} className="h-7 text-xs" />
+            <Input placeholder="Notes (optional)" id={`rec-notes-${contact.id}`} className="h-7 text-xs" />
+            <Button size="sm" className="h-7 text-xs w-full" onClick={() => {
+              const dateEl = document.getElementById(`rec-date-${contact.id}`) as HTMLInputElement;
+              const notesEl = document.getElementById(`rec-notes-${contact.id}`) as HTMLInputElement;
+              onAddRecommendationRequest({
+                contactId: contact.id,
+                requestedAt: dateEl?.value || format(new Date(), "yyyy-MM-dd"),
+                status: "pending",
+                notes: notesEl?.value || undefined,
+              });
+              setRecRequestContact(null);
+            }}>Log Request</Button>
+          </div>
+        )}
+        {(() => {
+          const reqs = getRecommendationRequestsForContact(contact.id);
+          return reqs.length > 0 ? (
+            <div className="space-y-1 max-h-32 overflow-y-auto">
+              {reqs.map(r => (
+                <div key={r.id} className="flex items-center justify-between rounded-md bg-muted/50 px-2.5 py-1.5 text-xs">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant={r.status === "received" ? "success" : r.status === "declined" ? "destructive" : "warning"} className="text-[10px] capitalize">{r.status}</Badge>
+                    <span className="text-muted-foreground">Asked: {r.requestedAt}</span>
+                    {r.receivedAt && <span className="text-muted-foreground">Received: {r.receivedAt}</span>}
+                    {r.notes && <span className="text-muted-foreground truncate max-w-[120px]">— {r.notes}</span>}
+                  </div>
+                  <div className="flex items-center gap-0.5">
+                    {r.status === "pending" && (
+                      <>
+                        <Button variant="ghost" size="icon" className="h-5 w-5" title="Mark received" onClick={() => onUpdateRecommendationRequest(r.id, { status: "received", receivedAt: format(new Date(), "yyyy-MM-dd") })}>
+                          <Check className="h-3 w-3 text-green-600" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-5 w-5" title="Mark declined" onClick={() => onUpdateRecommendationRequest(r.id, { status: "declined" })}>
+                          <X className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </>
+                    )}
+                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => onDeleteRecommendationRequest(r.id)}>
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : <p className="text-xs text-muted-foreground italic">No recommendation requests</p>;
+        })()}
+      </div>
+
       {/* Same org */}
       {sameOrgContacts.length > 0 && (
         <div>
