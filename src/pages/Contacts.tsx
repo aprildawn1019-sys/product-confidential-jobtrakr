@@ -202,7 +202,9 @@ export default function Contacts({
               </Button>
             </div>
           </div>
-          <p className="mt-3 text-sm font-medium text-foreground">{contact.company}</p>
+          <button onClick={() => navigate("/network")} className="mt-3 text-sm font-medium text-foreground hover:text-primary flex items-center gap-1 transition-colors">
+            <Building2 className="h-3.5 w-3.5" />{contact.company}<ExternalLink className="h-3 w-3 opacity-50" />
+          </button>
           <div className="mt-2 flex flex-wrap gap-1.5">
             <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
             <FollowUpIndicator date={contact.followUpDate} />
