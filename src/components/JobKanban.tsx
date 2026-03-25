@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/StatusBadge";
 import JobDetailPanel from "@/components/JobDetailPanel";
+import FitScoreStars from "@/components/FitScoreStars";
+import UrgencyBadge from "@/components/UrgencyBadge";
 import type { Job, Contact, JobStatus, Interview } from "@/types/jobTracker";
 
 const columns: { status: JobStatus; label: string }[] = [
