@@ -42,6 +42,11 @@ interface ContactsProps {
   onDeleteCampaign: (id: string) => void;
   onToggleContactCampaign: (contactId: string, campaignId: string) => void;
   getCampaignsForContact: (contactId: string) => Campaign[];
+  recommendationRequests: RecommendationRequest[];
+  onAddRecommendationRequest: (req: Omit<RecommendationRequest, "id" | "createdAt">) => void;
+  onUpdateRecommendationRequest: (id: string, updates: Partial<RecommendationRequest>) => void;
+  onDeleteRecommendationRequest: (id: string) => void;
+  getRecommendationRequestsForContact: (contactId: string) => RecommendationRequest[];
 }
 
 function FollowUpIndicator({ date }: { date?: string }) {
