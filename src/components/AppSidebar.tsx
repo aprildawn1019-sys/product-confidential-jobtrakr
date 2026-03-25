@@ -65,7 +65,8 @@ export default function AppSidebar() {
 
         {groups.map((group) => (
           <div key={group.label}>
-            <div className="px-3 pt-5 pb-1 text-xs font-semibold uppercase tracking-wider text-sidebar-muted">
+            <div className="flex items-center gap-2 px-3 pt-5 pb-1 text-xs font-semibold uppercase tracking-wider text-sidebar-muted">
+              <group.icon className="h-3.5 w-3.5" />
               {group.label}
             </div>
             {group.items.map(({ to, icon: Icon, label }) => (
