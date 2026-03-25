@@ -11,6 +11,8 @@ import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import CoverLetterDialog from "@/components/CoverLetterDialog";
+import FitScoreStars from "@/components/FitScoreStars";
+import UrgencyBadge from "@/components/UrgencyBadge";
 import type { Job, Contact, Interview } from "@/types/jobTracker";
 
 interface JobDetailPanelProps {
