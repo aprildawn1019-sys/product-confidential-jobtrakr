@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
-import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check } from "lucide-react";
+import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -116,11 +117,12 @@ export default function Contacts({
   onAddCampaign, onUpdateCampaign, onDeleteCampaign, onToggleContactCampaign, getCampaignsForContact,
   recommendationRequests, onAddRecommendationRequest, onUpdateRecommendationRequest, onDeleteRecommendationRequest, getRecommendationRequestsForContact,
 }: ContactsProps) {
+  const navigate = useNavigate();
   const [expandedContact, setExpandedContact] = useState<string | null>(null);
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "compact" | "detailed">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
   const [followUpFilter, setFollowUpFilter] = useState<string>("all");
@@ -200,7 +202,9 @@ export default function Contacts({
               </Button>
             </div>
           </div>
-          <p className="mt-3 text-sm font-medium text-foreground">{contact.company}</p>
+          <button onClick={() => navigate("/network")} className="mt-3 text-sm font-medium text-foreground hover:text-primary flex items-center gap-1 transition-colors">
+            <Building2 className="h-3.5 w-3.5" />{contact.company}<ExternalLink className="h-3 w-3 opacity-50" />
+          </button>
           <div className="mt-2 flex flex-wrap gap-1.5">
             <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
             <FollowUpIndicator date={contact.followUpDate} />
@@ -221,7 +225,7 @@ export default function Contacts({
     );
   };
 
-  const renderListRow = (contact: Contact) => {
+  const renderCompactRow = (contact: Contact) => {
     const isExpanded = expandedContact === contact.id;
     const connections = getConnectionsForContact(contact.id);
     const sameOrgContacts = getContactsAtSameOrg(contact.id);
@@ -242,19 +246,18 @@ export default function Contacts({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-semibold text-sm">{contact.name}</span>
-              <span className="text-xs text-muted-foreground">{contact.role} at {contact.company}</span>
+              <span className="text-xs text-muted-foreground">{contact.role} at </span>
+              <button onClick={() => navigate("/network")} className="text-xs text-primary hover:underline">{contact.company}</button>
             </div>
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
               <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
               <FollowUpIndicator date={contact.followUpDate} />
-              {renderCampaignBadges(contact.id)}
               {linkedJobs.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Briefcase className="h-2.5 w-2.5" />{linkedJobs.length}</Badge>}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {contact.email && <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`mailto:${contact.email}`}><Mail className="h-3.5 w-3.5" /></a></Button>}
             {contact.linkedin && <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`https://${contact.linkedin}`} target="_blank" rel="noopener noreferrer"><Linkedin className="h-3.5 w-3.5" /></a></Button>}
-            {contact.lastContactedAt && <span className="text-[10px] text-muted-foreground hidden md:block">{contact.lastContactedAt}</span>}
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpandedContact(isExpanded ? null : contact.id)}>
               {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
@@ -262,6 +265,92 @@ export default function Contacts({
               <Trash2 className="h-3.5 w-3.5 text-destructive" />
             </Button>
           </div>
+        </div>
+        {isExpanded && renderExpandedSection(contact, connections, sameOrgContacts, connectedIds, availableToConnect, activities, linkedJobs, availableJobs, contactCampaignIds)}
+      </div>
+    );
+  };
+
+  const renderDetailedRow = (contact: Contact) => {
+    const isExpanded = expandedContact === contact.id;
+    const connections = getConnectionsForContact(contact.id);
+    const sameOrgContacts = getContactsAtSameOrg(contact.id);
+    const connectedIds = new Set(connections.map(c => c.contactId1 === contact.id ? c.contactId2 : c.contactId1));
+    const availableToConnect = contacts.filter(c => c.id !== contact.id && !connectedIds.has(c.id));
+    const activities = getActivitiesForContact(contact.id);
+    const linkedJobs = getJobsForContact(contact.id);
+    const linkedJobIds = new Set(linkedJobs.map(j => j.id));
+    const availableJobs = jobs.filter(j => !linkedJobIds.has(j.id));
+    const contactCampaignIds = contactCampaigns.filter(cc => cc.contactId === contact.id).map(cc => cc.campaignId);
+    const recs = getRecommendationRequestsForContact(contact.id);
+
+    return (
+      <div key={contact.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
+        <div className="px-5 py-4 space-y-2">
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-display font-bold text-primary-foreground text-xs shrink-0">
+              {contact.name.split(" ").map(n => n[0]).join("")}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold">{contact.name}</span>
+                <span className="text-sm text-muted-foreground">{contact.role}</span>
+              </div>
+              <button onClick={() => navigate("/network")} className="text-sm text-primary hover:underline flex items-center gap-1">
+                <Building2 className="h-3.5 w-3.5" />{contact.company}<ExternalLink className="h-3 w-3 opacity-50" />
+              </button>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpandedContact(isExpanded ? null : contact.id)}>
+                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDelete(contact.id)}>
+                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Contact details row */}
+          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap pl-14">
+            {contact.email && (
+              <a href={`mailto:${contact.email}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                <Mail className="h-3 w-3" />{contact.email}
+              </a>
+            )}
+            {contact.phone && (
+              <span className="flex items-center gap-1">
+                <Phone className="h-3 w-3" />{contact.phone}
+              </span>
+            )}
+            {contact.linkedin && (
+              <a href={`https://${contact.linkedin}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-foreground transition-colors">
+                <Linkedin className="h-3 w-3" />LinkedIn
+              </a>
+            )}
+            {contact.lastContactedAt && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />Last: {contact.lastContactedAt}
+              </span>
+            )}
+          </div>
+
+          {/* Badges row */}
+          <div className="flex items-center gap-1.5 flex-wrap pl-14">
+            <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
+            <FollowUpIndicator date={contact.followUpDate} />
+            {renderCampaignBadges(contact.id)}
+            {sameOrgContacts.length > 0 && <Badge variant="secondary" className="text-[10px] gap-1"><Building2 className="h-2.5 w-2.5" />{sameOrgContacts.length} at org</Badge>}
+            {linkedJobs.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Briefcase className="h-2.5 w-2.5" />{linkedJobs.length} job{linkedJobs.length > 1 ? "s" : ""}</Badge>}
+            {connections.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Link2 className="h-2.5 w-2.5" />{connections.length} conn.</Badge>}
+            {activities.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><MessageSquare className="h-2.5 w-2.5" />{activities.length} activities</Badge>}
+            {recs.filter(r => r.status === "pending").length > 0 && <Badge variant="warning" className="text-[10px] gap-1"><Star className="h-2.5 w-2.5" />Rec pending</Badge>}
+            {recs.some(r => r.status === "received") && <Badge variant="success" className="text-[10px] gap-1"><Check className="h-2.5 w-2.5" />Rec received</Badge>}
+          </div>
+
+          {/* Notes preview */}
+          {contact.notes && (
+            <p className="text-xs text-muted-foreground truncate pl-14 italic">"{contact.notes}"</p>
+          )}
         </div>
         {isExpanded && renderExpandedSection(contact, connections, sameOrgContacts, connectedIds, availableToConnect, activities, linkedJobs, availableJobs, contactCampaignIds)}
       </div>
@@ -501,10 +590,13 @@ export default function Contacts({
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center rounded-lg border border-border p-0.5">
-            <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("grid")}>
+            <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("grid")} title="Grid view">
               <LayoutGrid className="h-4 w-4" />
             </Button>
-            <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("list")}>
+            <Button variant={viewMode === "compact" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("compact")} title="Compact list">
+              <List className="h-4 w-4" />
+            </Button>
+            <Button variant={viewMode === "detailed" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("detailed")} title="Detailed list">
               <LayoutList className="h-4 w-4" />
             </Button>
           </div>
@@ -586,7 +678,7 @@ export default function Contacts({
         </div>
       ) : (
         <div className="space-y-2">
-          {filteredContacts.map(renderListRow)}
+          {filteredContacts.map(viewMode === "compact" ? renderCompactRow : renderDetailedRow)}
         </div>
       )}
     </div>
