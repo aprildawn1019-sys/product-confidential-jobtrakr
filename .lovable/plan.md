@@ -1,60 +1,57 @@
 
 
-## Plan: CRM Features for Contacts + Bidirectional Job Linking
+## Network Map — Visual Cluster Visualization
 
-### What's Changing
+The current Network Map is a flat list of cards grouped by company. The goal is to replace it with an interactive, visual node-graph where organizations appear as clusters and contacts appear as nodes with connection lines between them.
 
-**1. Database: New columns on `contacts` + new `contact_activities` table**
+### Approach
 
-- Add to `contacts`: `relationship_warmth` (text: cold/warm/hot/champion), `follow_up_date` (text), `conversation_log` (text)
-- Create `contact_activities` table to track touch history:
-  - `id`, `user_id`, `contact_id`, `activity_type` (email/call/meeting/linkedin/coffee/other), `activity_date`, `notes`, `created_at`
-  - RLS: users manage own rows
-- On insert to `contact_activities`, use a DB trigger to auto-update `contacts.last_contacted_at` with the latest activity date
+Use an **SVG-based force-directed layout** built with plain React + `useEffect` (no heavy graph library needed for this scale). Each organization becomes a visual cluster with a colored boundary, and contacts are rendered as circular nodes inside. Lines connect nodes that have explicit `contactConnection` records.
 
-**2. Types & Store Updates**
+### Layout
 
-- Add `relationshipWarmth`, `followUpDate`, `conversationLog` to `Contact` type
-- Add `ContactActivity` type
-- Add store functions: `updateContact`, `addContactActivity`, `deleteContactActivity`, `getActivitiesForContact`, `getJobsForContact` (uses `jobContacts` join)
-- `deleteJob` auto-cleans `job_contacts` (already cascades via DB); store should also remove from local state
-- `deleteContact` auto-cleans `job_contacts`; store should also remove from local state
+```text
+┌─────────────────────────────────────────────┐
+│  Network Map        Stats row (unchanged)   │
+├─────────────────────────────────────────────┤
+│                                             │
+│    ┌─ Google ──────────┐                    │
+│    │  (Alice)──(Bob)   │                    │
+│    │     \             │   ┌─ Meta ──┐      │
+│    │    (Carol)        │───│ (Dan)   │      │
+│    └───────────────────┘   └─────────┘      │
+│                                             │
+│  Hover node → tooltip with name/role/links  │
+│  Click node → detail panel (right side)     │
+└─────────────────────────────────────────────┘
+```
 
-**3. Contacts Page: CRM Enhancements**
+### Implementation Details
 
-In the expanded contact card, add:
-- **Warmth badge** (color-coded: cold=blue, warm=yellow, hot=orange, champion=green) with inline dropdown to change
-- **Follow-up reminder** with date picker; show overdue/upcoming indicator on the card
-- **Activity timeline**: list of past touches with type badge + date + notes; button to log new activity (auto-updates last contacted)
-- **Conversation log**: editable textarea for free-form notes
-- **Linked jobs section**: show jobs linked via `job_contacts` with title, company, status badge; dropdown to link a new job; button to unlink
-- **Contact editing**: inline edit for name, company, role, email, phone, linkedin fields
+**File: `src/pages/NetworkMap.tsx`** — rewrite
 
-**4. Job Detail Panel: Show Linked Contacts**
+1. **Force simulation** — A custom `useEffect` runs a simple iterative force layout:
+   - Nodes repel each other (charge force)
+   - Connected nodes attract (spring force)  
+   - Nodes in the same org cluster toward a shared centroid
+   - Runs ~100 iterations on mount, updates positions in state
 
-Already shows linked contacts. No major changes needed -- the existing `linkedContacts` section already displays contacts with unlink capability.
+2. **SVG rendering**:
+   - Org clusters drawn as rounded `<rect>` or `<ellipse>` backgrounds with semi-transparent org color (deterministic color from org name hash)
+   - Contact nodes as `<circle>` with initials `<text>` inside
+   - Connection edges as `<line>` elements between connected nodes
+   - Cross-org connections rendered as dashed lines
 
-**5. Cascading Deletes**
+3. **Interactivity**:
+   - **Hover** a node → tooltip shows name, role, company, LinkedIn link
+   - **Click** a node → side panel or highlighted detail card below the graph
+   - **Zoom/pan** via SVG `viewBox` manipulation with mouse wheel and drag
 
-- When a job is deleted: `job_contacts` rows are cleaned from local state (DB has no FK cascade currently, so add cleanup in `deleteJob` store function)
-- When a contact is deleted: `job_contacts` and `contact_activities` rows are cleaned from local state, and delete from DB
+4. **Stats row** remains above the graph (unchanged)
 
-### Files to Create/Edit
+5. **Empty state** remains unchanged
 
-| File | Action |
-|------|--------|
-| Migration | Add columns to `contacts`, create `contact_activities` table + trigger |
-| `src/types/jobTracker.ts` | Add `ContactActivity` type, update `Contact` type |
-| `src/stores/jobTrackerStore.ts` | Add CRUD for activities, `updateContact`, `getJobsForContact`, cascade cleanup |
-| `src/pages/Contacts.tsx` | CRM UI: warmth, follow-up, activity log, conversation notes, linked jobs |
-| `src/components/AddContactDialog.tsx` | Add warmth and notes fields |
+6. **Responsive**: SVG fills available width, fixed height (~500px), viewBox scales
 
-### Technical Details
-
-- **Warmth indicator**: Small colored badge with dropdown, similar pattern to `UrgencyBadge`
-- **Follow-up date**: Shadcn date picker popover; card shows "Follow up in 3 days" or "Overdue by 2 days" relative text
-- **Activity log**: Compact timeline in expanded card; "Log Touch" button opens inline form with type select + date + notes
-- **DB trigger**: `AFTER INSERT ON contact_activities` updates `contacts.last_contacted_at = NEW.activity_date` when it's the most recent
-- **Linked jobs in contact**: Query `jobContacts` filtered by `contactId`, map to job objects from store; show as clickable badges with status
-- **Cascade on delete**: In store's `deleteContact`, also delete from `job_contacts` and `contact_activities` where `contact_id` matches. In `deleteJob`, also delete from `job_contacts` where `job_id` matches.
+### No database or store changes needed — purely a UI rewrite of the existing component using the same props.
 
