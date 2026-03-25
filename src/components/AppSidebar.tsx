@@ -19,6 +19,7 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   },
   {
     label: "Track & Apply",
+    icon: ClipboardList,
     items: [
       { to: "/jobs", icon: Briefcase, label: "Job Postings" },
       { to: "/applications", icon: CalendarCheck, label: "Applications" },
