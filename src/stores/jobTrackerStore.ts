@@ -65,6 +65,14 @@ function mapContactCampaign(row: any): ContactCampaign {
   return { id: row.id, contactId: row.contact_id, campaignId: row.campaign_id, createdAt: row.created_at };
 }
 
+function mapRecommendationRequest(row: any): RecommendationRequest {
+  return {
+    id: row.id, contactId: row.contact_id, requestedAt: row.requested_at,
+    receivedAt: row.received_at ?? undefined, notes: row.notes ?? undefined,
+    status: row.status, createdAt: row.created_at,
+  };
+}
+
 async function getUserId() {
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id;
