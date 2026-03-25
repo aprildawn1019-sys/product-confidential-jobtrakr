@@ -95,6 +95,7 @@ export default function JobDetailPanel({
   const [jobForm, setJobForm] = useState({
     company: job.company, title: job.title, location: job.location,
     type: job.type, salary: job.salary || "", url: job.url || "", notes: job.notes || "",
+    description: job.description || "",
   });
   const [poster, setPoster] = useState({
     posterName: job.posterName || "", posterEmail: job.posterEmail || "",
@@ -176,6 +177,10 @@ export default function JobDetailPanel({
               <Label className="text-xs">Notes</Label>
               <Textarea value={jobForm.notes} onChange={e => setJobForm(f => ({ ...f, notes: e.target.value }))} rows={2} className="text-sm" />
             </div>
+            <div className="col-span-2 space-y-1">
+              <Label className="text-xs">Job Description</Label>
+              <Textarea value={jobForm.description} onChange={e => setJobForm(f => ({ ...f, description: e.target.value }))} rows={4} className="text-sm" placeholder="Full job description..." />
+            </div>
           </div>
         ) : (
           <>
@@ -203,6 +208,12 @@ export default function JobDetailPanel({
               </a>
             )}
             {job.notes && <p className="text-sm text-muted-foreground">{job.notes}</p>}
+            {job.description && (
+              <div className="space-y-1">
+                <span className="text-xs font-semibold text-muted-foreground">Job Description</span>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap max-h-48 overflow-y-auto">{job.description}</p>
+              </div>
+            )}
           </>
         )}
       </div>

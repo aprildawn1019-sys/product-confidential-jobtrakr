@@ -7,7 +7,8 @@ function mapJob(row: any): Job {
     id: row.id, company: row.company, title: row.title, location: row.location,
     type: row.type, salary: row.salary ?? undefined, url: row.url ?? undefined,
     status: row.status, appliedDate: row.applied_date ?? undefined,
-    notes: row.notes ?? undefined, contactId: row.contact_id ?? undefined,
+    notes: row.notes ?? undefined, description: row.description ?? undefined,
+    contactId: row.contact_id ?? undefined,
     createdAt: row.created_at, statusUpdatedAt: row.status_updated_at ?? undefined,
     posterName: row.poster_name ?? undefined, posterEmail: row.poster_email ?? undefined,
     posterPhone: row.poster_phone ?? undefined, posterRole: row.poster_role ?? undefined,
@@ -80,6 +81,7 @@ export function useJobTrackerStore() {
       user_id: userId, company: job.company, title: job.title, location: job.location,
       type: job.type, salary: job.salary || null, url: job.url || null,
       status: job.status, applied_date: job.appliedDate || null, notes: job.notes || null,
+      description: job.description || null,
       contact_id: job.contactId || null, poster_name: job.posterName || null,
       poster_email: job.posterEmail || null, poster_phone: job.posterPhone || null,
       poster_role: job.posterRole || null,
@@ -102,6 +104,7 @@ export function useJobTrackerStore() {
     if (updates.salary !== undefined) dbUpdates.salary = updates.salary || null;
     if (updates.url !== undefined) dbUpdates.url = updates.url || null;
     if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
+    if (updates.description !== undefined) dbUpdates.description = updates.description || null;
     if (updates.posterName !== undefined) dbUpdates.poster_name = updates.posterName || null;
     if (updates.posterEmail !== undefined) dbUpdates.poster_email = updates.posterEmail || null;
     if (updates.posterPhone !== undefined) dbUpdates.poster_phone = updates.posterPhone || null;

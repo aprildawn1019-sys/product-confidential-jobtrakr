@@ -417,6 +417,7 @@ export type Database = {
           company: string
           contact_id: string | null
           created_at: string
+          description: string | null
           id: string
           location: string
           notes: string | null
@@ -437,6 +438,7 @@ export type Database = {
           company: string
           contact_id?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           location?: string
           notes?: string | null
@@ -457,6 +459,7 @@ export type Database = {
           company?: string
           contact_id?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           location?: string
           notes?: string | null

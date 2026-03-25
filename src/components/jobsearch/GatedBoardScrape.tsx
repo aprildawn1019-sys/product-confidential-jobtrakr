@@ -35,6 +35,7 @@ export function GatedBoardScrape({ onAddJob }: GatedBoardScrapeProps) {
         salary: job.salary || "",
         url: url.trim(),
         status: "saved",
+        description: job.description || "",
         notes: `Scraped from gated board.\n${job.notes || ""}`.trim(),
       });
 

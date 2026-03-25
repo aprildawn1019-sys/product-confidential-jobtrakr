@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Globe, Loader2 } from "lucide-react";
@@ -17,7 +18,7 @@ export default function AddJobDialog({ onAdd }: AddJobDialogProps) {
   const [open, setOpen] = useState(false);
   const [scrapeUrl, setScrapeUrl] = useState("");
   const [scraping, setScraping] = useState(false);
-  const [form, setForm] = useState({ company: "", title: "", location: "", type: "remote" as Job["type"], salary: "", url: "", status: "saved" as JobStatus });
+  const [form, setForm] = useState({ company: "", title: "", location: "", type: "remote" as Job["type"], salary: "", url: "", status: "saved" as JobStatus, description: "" });
 
   const handleScrape = async () => {
     if (!scrapeUrl.trim()) return;
@@ -42,6 +43,7 @@ export default function AddJobDialog({ onAdd }: AddJobDialogProps) {
         type: (["remote", "hybrid", "onsite"].includes(d.type) ? d.type : f.type) as Job["type"],
         salary: d.salary || f.salary,
         url: urlToScrape,
+        description: d.description || f.description,
       }));
       toast({ title: "Job details extracted!", description: "Review and edit the auto-filled fields below." });
     } catch (e: any) {
@@ -56,7 +58,7 @@ export default function AddJobDialog({ onAdd }: AddJobDialogProps) {
     e.preventDefault();
     if (!form.company || !form.title) return;
     onAdd({ ...form, appliedDate: form.status !== "saved" ? new Date().toISOString().split("T")[0] : undefined });
-    setForm({ company: "", title: "", location: "", type: "remote", salary: "", url: "", status: "saved" });
+    setForm({ company: "", title: "", location: "", type: "remote", salary: "", url: "", status: "saved", description: "" });
     setScrapeUrl("");
     setOpen(false);
   };
@@ -132,6 +134,10 @@ export default function AddJobDialog({ onAdd }: AddJobDialogProps) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Job Description</Label>
+            <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Paste or type the job description..." rows={4} />
           </div>
           <Button type="submit" className="w-full">Add Job</Button>
         </form>
