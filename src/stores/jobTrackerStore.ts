@@ -111,6 +111,7 @@ export function useJobTrackerStore() {
     if (activitiesRes.data) setContactActivities(activitiesRes.data.map(mapContactActivity));
     if (campaignsRes.data) setCampaigns(campaignsRes.data.map(mapCampaign));
     if (contactCampaignsRes.data) setContactCampaigns(contactCampaignsRes.data.map(mapContactCampaign));
+    if (recReqRes.data) setRecommendationRequests(recReqRes.data.map(mapRecommendationRequest));
     setLoading(false);
   }, []);
 
