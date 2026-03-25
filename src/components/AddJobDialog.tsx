@@ -135,6 +135,10 @@ export default function AddJobDialog({ onAdd }: AddJobDialogProps) {
               </Select>
             </div>
           </div>
+          <div className="space-y-2">
+            <Label>Job Description</Label>
+            <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Paste or type the job description..." rows={4} />
+          </div>
           <Button type="submit" className="w-full">Add Job</Button>
         </form>
       </DialogContent>
