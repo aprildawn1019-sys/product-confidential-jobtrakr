@@ -436,7 +436,7 @@ export default function Contacts({
                     {r.status === "pending" && (
                       <>
                         <Button variant="ghost" size="icon" className="h-5 w-5" title="Mark received" onClick={() => onUpdateRecommendationRequest(r.id, { status: "received", receivedAt: format(new Date(), "yyyy-MM-dd") })}>
-                          <Check className="h-3 w-3 text-green-600" />
+                          <Check className="h-3 w-3 text-success" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-5 w-5" title="Mark declined" onClick={() => onUpdateRecommendationRequest(r.id, { status: "declined" })}>
                           <X className="h-3 w-3 text-destructive" />
