@@ -59,7 +59,7 @@ export default function Jobs({
               <Kanban className="h-4 w-4" />
             </Button>
           </div>
-          <AddJobDialog onAdd={onAdd} />
+          <AddJobDialog onAdd={onAdd} contacts={contacts} />
         </div>
       </div>
 
