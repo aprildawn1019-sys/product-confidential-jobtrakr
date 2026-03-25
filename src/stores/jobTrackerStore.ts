@@ -111,6 +111,8 @@ export function useJobTrackerStore() {
     if (updates.posterEmail !== undefined) dbUpdates.poster_email = updates.posterEmail || null;
     if (updates.posterPhone !== undefined) dbUpdates.poster_phone = updates.posterPhone || null;
     if (updates.posterRole !== undefined) dbUpdates.poster_role = updates.posterRole || null;
+    if (updates.fitScore !== undefined) dbUpdates.fit_score = updates.fitScore || null;
+    if (updates.urgency !== undefined) dbUpdates.urgency = updates.urgency || null;
     await supabase.from("jobs").update(dbUpdates).eq("id", id);
     setJobs(prev => prev.map(j => j.id === id ? { ...j, ...updates } : j));
   };
