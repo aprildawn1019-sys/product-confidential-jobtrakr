@@ -95,6 +95,7 @@ export default function JobDetailPanel({
   const [jobForm, setJobForm] = useState({
     company: job.company, title: job.title, location: job.location,
     type: job.type, salary: job.salary || "", url: job.url || "", notes: job.notes || "",
+    description: job.description || "",
   });
   const [poster, setPoster] = useState({
     posterName: job.posterName || "", posterEmail: job.posterEmail || "",
