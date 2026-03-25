@@ -120,7 +120,7 @@ export default function Contacts({
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "compact" | "detailed">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
   const [followUpFilter, setFollowUpFilter] = useState<string>("all");
