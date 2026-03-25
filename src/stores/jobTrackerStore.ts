@@ -81,6 +81,7 @@ export function useJobTrackerStore() {
       user_id: userId, company: job.company, title: job.title, location: job.location,
       type: job.type, salary: job.salary || null, url: job.url || null,
       status: job.status, applied_date: job.appliedDate || null, notes: job.notes || null,
+      description: job.description || null,
       contact_id: job.contactId || null, poster_name: job.posterName || null,
       poster_email: job.posterEmail || null, poster_phone: job.posterPhone || null,
       poster_role: job.posterRole || null,
