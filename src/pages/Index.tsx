@@ -44,6 +44,8 @@ export default function Index() {
             <Contacts
               contacts={store.contacts}
               jobs={store.jobs}
+              campaigns={store.campaigns}
+              contactCampaigns={store.contactCampaigns}
               onAdd={store.addContact}
               onAddBulk={store.addContactsBulk}
               onUpdate={store.updateContact}
@@ -58,6 +60,11 @@ export default function Index() {
               getJobsForContact={store.getJobsForContact}
               onLinkContactToJob={store.linkContactToJob}
               onUnlinkContactFromJob={store.unlinkContactFromJob}
+              onAddCampaign={store.addCampaign}
+              onUpdateCampaign={store.updateCampaign}
+              onDeleteCampaign={store.deleteCampaign}
+              onToggleContactCampaign={store.toggleContactCampaign}
+              getCampaignsForContact={store.getCampaignsForContact}
             />
           } />
           <Route path="applications" element={<Applications jobs={store.jobs} interviews={store.interviews} />} />
