@@ -114,6 +114,7 @@ export default function Contacts({
   getActivitiesForContact, onAddActivity, onDeleteActivity,
   getJobsForContact, onLinkContactToJob, onUnlinkContactFromJob,
   onAddCampaign, onUpdateCampaign, onDeleteCampaign, onToggleContactCampaign, getCampaignsForContact,
+  recommendationRequests, onAddRecommendationRequest, onUpdateRecommendationRequest, onDeleteRecommendationRequest, getRecommendationRequestsForContact,
 }: ContactsProps) {
   const [expandedContact, setExpandedContact] = useState<string | null>(null);
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
