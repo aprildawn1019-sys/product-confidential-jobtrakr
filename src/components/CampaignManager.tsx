@@ -141,6 +141,7 @@ export default function CampaignManager({ campaigns, contactCounts, onAdd, onUpd
                       <span className="font-medium text-sm">{c.name}</span>
                       <Badge className={`text-[10px] capitalize ${statusColors[c.status] || ""}`}>{c.status}</Badge>
                       <Badge variant="outline" className="text-[10px] capitalize">{c.type}</Badge>
+                      <Badge variant="outline" className="text-[10px] gap-1">👤 {contactCounts[c.id] || 0}</Badge>
                     </div>
                     {c.description && <p className="text-xs text-muted-foreground mt-1">{c.description}</p>}
                   </div>
