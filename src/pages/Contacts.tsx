@@ -16,7 +16,7 @@ import CampaignManager from "@/components/CampaignManager";
 import ContactCampaignSelect from "@/components/ContactCampaignSelect";
 import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
-import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign } from "@/types/jobTracker";
+import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest } from "@/types/jobTracker";
 
 interface ContactsProps {
   contacts: Contact[];
