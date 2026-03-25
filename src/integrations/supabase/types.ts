@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_activities: {
+        Row: {
+          activity_date: string
+          activity_type: string
+          contact_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_date: string
+          activity_type?: string
+          contact_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          activity_type?: string
+          contact_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_activities_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_connections: {
         Row: {
           connection_type: string
@@ -62,40 +100,49 @@ export type Database = {
       contacts: {
         Row: {
           company: string
+          conversation_log: string | null
           created_at: string
           email: string | null
+          follow_up_date: string | null
           id: string
           last_contacted_at: string | null
           linkedin: string | null
           name: string
           notes: string | null
           phone: string | null
+          relationship_warmth: string | null
           role: string
           user_id: string | null
         }
         Insert: {
           company: string
+          conversation_log?: string | null
           created_at?: string
           email?: string | null
+          follow_up_date?: string | null
           id?: string
           last_contacted_at?: string | null
           linkedin?: string | null
           name: string
           notes?: string | null
           phone?: string | null
+          relationship_warmth?: string | null
           role?: string
           user_id?: string | null
         }
         Update: {
           company?: string
+          conversation_log?: string | null
           created_at?: string
           email?: string | null
+          follow_up_date?: string | null
           id?: string
           last_contacted_at?: string | null
           linkedin?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
+          relationship_warmth?: string | null
           role?: string
           user_id?: string | null
         }
