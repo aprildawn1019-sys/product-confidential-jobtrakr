@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
-import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid } from "lucide-react";
+import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -11,13 +11,18 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import AddContactDialog from "@/components/AddContactDialog";
 import LinkedInImportDialog from "@/components/LinkedInImportDialog";
+import BulkContactUploadDialog from "@/components/BulkContactUploadDialog";
+import CampaignManager from "@/components/CampaignManager";
+import ContactCampaignSelect from "@/components/ContactCampaignSelect";
 import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
-import type { Contact, ContactConnection, ContactActivity, Job } from "@/types/jobTracker";
+import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign } from "@/types/jobTracker";
 
 interface ContactsProps {
   contacts: Contact[];
   jobs: Job[];
+  campaigns: Campaign[];
+  contactCampaigns: ContactCampaign[];
   onAdd: (contact: Omit<Contact, "id" | "createdAt">) => void;
   onAddBulk: (contacts: Omit<Contact, "id" | "createdAt">[]) => void;
   onUpdate: (id: string, updates: Partial<Contact>) => void;
@@ -32,6 +37,11 @@ interface ContactsProps {
   getJobsForContact: (contactId: string) => Job[];
   onLinkContactToJob: (jobId: string, contactId: string) => void;
   onUnlinkContactFromJob: (jobId: string, contactId: string) => void;
+  onAddCampaign: (campaign: Omit<Campaign, "id" | "createdAt" | "updatedAt">) => void;
+  onUpdateCampaign: (id: string, updates: Partial<Campaign>) => void;
+  onDeleteCampaign: (id: string) => void;
+  onToggleContactCampaign: (contactId: string, campaignId: string) => void;
+  getCampaignsForContact: (contactId: string) => Campaign[];
 }
 
 function FollowUpIndicator({ date }: { date?: string }) {
@@ -92,13 +102,13 @@ const activityIcons: Record<string, string> = {
   email: "📧", call: "📞", meeting: "🤝", linkedin: "💼", coffee: "☕", other: "📝",
 };
 
-const warmthLabels: Record<string, string> = { cold: "❄️ Cold", warm: "🌤️ Warm", hot: "🔥 Hot", champion: "🏆 Champion" };
-
 export default function Contacts({
-  contacts, jobs, onAdd, onAddBulk, onUpdate, onDelete,
+  contacts, jobs, campaigns, contactCampaigns,
+  onAdd, onAddBulk, onUpdate, onDelete,
   getConnectionsForContact, getContactsAtSameOrg, onAddConnection, onRemoveConnection,
   getActivitiesForContact, onAddActivity, onDeleteActivity,
   getJobsForContact, onLinkContactToJob, onUnlinkContactFromJob,
+  onAddCampaign, onUpdateCampaign, onDeleteCampaign, onToggleContactCampaign, getCampaignsForContact,
 }: ContactsProps) {
   const [expandedContact, setExpandedContact] = useState<string | null>(null);
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
@@ -108,6 +118,8 @@ export default function Contacts({
   const [searchQuery, setSearchQuery] = useState("");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
   const [followUpFilter, setFollowUpFilter] = useState<string>("all");
+  const [campaignFilter, setCampaignFilter] = useState<string>("all");
+  const [showCampaigns, setShowCampaigns] = useState(false);
 
   const handleSaveConversation = (contactId: string) => {
     onUpdate(contactId, { conversationLog: conversationDraft });
@@ -123,11 +135,29 @@ export default function Contacts({
       if (followUpFilter === "today" && (!c.followUpDate || !isToday(new Date(c.followUpDate)))) return false;
       if (followUpFilter === "upcoming" && (!c.followUpDate || isPast(new Date(c.followUpDate)))) return false;
       if (followUpFilter === "none" && c.followUpDate) return false;
+      if (campaignFilter !== "all") {
+        const contactCampaignIds = contactCampaigns.filter(cc => cc.contactId === c.id).map(cc => cc.campaignId);
+        if (campaignFilter === "none") {
+          if (contactCampaignIds.length > 0) return false;
+        } else {
+          if (!contactCampaignIds.includes(campaignFilter)) return false;
+        }
+      }
       return true;
     });
-  }, [contacts, searchQuery, warmthFilter, followUpFilter]);
+  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns]);
 
-  const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all";
+  const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all" || campaignFilter !== "all";
+
+  const renderCampaignBadges = (contactId: string) => {
+    const cmpgns = getCampaignsForContact(contactId);
+    if (cmpgns.length === 0) return null;
+    return cmpgns.map(c => (
+      <Badge key={c.id} variant="secondary" className="text-[10px] gap-1">
+        <Megaphone className="h-2.5 w-2.5" />{c.name}
+      </Badge>
+    ));
+  };
 
   const renderContactCard = (contact: Contact) => {
     const isExpanded = expandedContact === contact.id;
@@ -139,6 +169,7 @@ export default function Contacts({
     const linkedJobs = getJobsForContact(contact.id);
     const linkedJobIds = new Set(linkedJobs.map(j => j.id));
     const availableJobs = jobs.filter(j => !linkedJobIds.has(j.id));
+    const contactCampaignIds = contactCampaigns.filter(cc => cc.contactId === contact.id).map(cc => cc.campaignId);
 
     return (
       <div key={contact.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
@@ -166,6 +197,7 @@ export default function Contacts({
           <div className="mt-2 flex flex-wrap gap-1.5">
             <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
             <FollowUpIndicator date={contact.followUpDate} />
+            {renderCampaignBadges(contact.id)}
             {sameOrgContacts.length > 0 && <Badge variant="secondary" className="text-xs gap-1"><Building2 className="h-3 w-3" />{sameOrgContacts.length} at {contact.company}</Badge>}
             {linkedJobs.length > 0 && <Badge variant="outline" className="text-xs gap-1"><Briefcase className="h-3 w-3" />{linkedJobs.length} job{linkedJobs.length > 1 ? "s" : ""}</Badge>}
             {connections.length > 0 && <Badge variant="outline" className="text-xs gap-1"><Link2 className="h-3 w-3" />{connections.length} connection{connections.length > 1 ? "s" : ""}</Badge>}
@@ -176,7 +208,7 @@ export default function Contacts({
           </div>
           {contact.lastContactedAt && <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />Last contacted: {contact.lastContactedAt}</p>}
         </div>
-        {isExpanded && renderExpandedSection(contact, connections, sameOrgContacts, connectedIds, availableToConnect, activities, linkedJobs, availableJobs)}
+        {isExpanded && renderExpandedSection(contact, connections, sameOrgContacts, connectedIds, availableToConnect, activities, linkedJobs, availableJobs, contactCampaignIds)}
       </div>
     );
   };
@@ -191,6 +223,7 @@ export default function Contacts({
     const linkedJobs = getJobsForContact(contact.id);
     const linkedJobIds = new Set(linkedJobs.map(j => j.id));
     const availableJobs = jobs.filter(j => !linkedJobIds.has(j.id));
+    const contactCampaignIds = contactCampaigns.filter(cc => cc.contactId === contact.id).map(cc => cc.campaignId);
 
     return (
       <div key={contact.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
@@ -206,6 +239,7 @@ export default function Contacts({
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
               <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
               <FollowUpIndicator date={contact.followUpDate} />
+              {renderCampaignBadges(contact.id)}
               {linkedJobs.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Briefcase className="h-2.5 w-2.5" />{linkedJobs.length}</Badge>}
             </div>
           </div>
@@ -221,7 +255,7 @@ export default function Contacts({
             </Button>
           </div>
         </div>
-        {isExpanded && renderExpandedSection(contact, connections, sameOrgContacts, connectedIds, availableToConnect, activities, linkedJobs, availableJobs)}
+        {isExpanded && renderExpandedSection(contact, connections, sameOrgContacts, connectedIds, availableToConnect, activities, linkedJobs, availableJobs, contactCampaignIds)}
       </div>
     );
   };
@@ -235,8 +269,29 @@ export default function Contacts({
     activities: ContactActivity[],
     linkedJobs: Job[],
     availableJobs: Job[],
+    contactCampaignIds: string[],
   ) => (
     <div className="border-t border-border p-4 space-y-4">
+      {/* Campaigns */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1"><Megaphone className="h-3 w-3" />Campaigns:</span>
+        <ContactCampaignSelect
+          campaigns={campaigns}
+          selectedCampaignIds={contactCampaignIds}
+          onToggle={(campaignId) => onToggleContactCampaign(contact.id, campaignId)}
+        />
+        {contactCampaignIds.length > 0 && (
+          <div className="flex gap-1 flex-wrap">
+            {getCampaignsForContact(contact.id).map(c => (
+              <Badge key={c.id} variant="secondary" className="text-[10px] gap-1">
+                <Megaphone className="h-2.5 w-2.5" />{c.name}
+                <button onClick={() => onToggleContactCampaign(contact.id, c.id)} className="ml-0.5 hover:text-destructive"><X className="h-2.5 w-2.5" /></button>
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Follow-up */}
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold text-muted-foreground">Follow-up:</span>
@@ -382,10 +437,21 @@ export default function Contacts({
               <LayoutList className="h-4 w-4" />
             </Button>
           </div>
+          <Button variant={showCampaigns ? "secondary" : "outline"} size="sm" onClick={() => setShowCampaigns(!showCampaigns)}>
+            <Megaphone className="h-4 w-4 mr-1" />Campaigns
+          </Button>
+          <BulkContactUploadDialog onAddBulk={onAddBulk} existingContacts={contacts} />
           <LinkedInImportDialog onImport={onAddBulk} existingContacts={contacts} />
           <AddContactDialog onAdd={onAdd} />
         </div>
       </div>
+
+      {/* Campaign Manager Panel */}
+      {showCampaigns && (
+        <div className="rounded-xl border border-border bg-card p-4">
+          <CampaignManager campaigns={campaigns} onAdd={onAddCampaign} onUpdate={onUpdateCampaign} onDelete={onDeleteCampaign} />
+        </div>
+      )}
 
       {/* Search & Filters */}
       <div className="flex flex-wrap items-center gap-2">
@@ -414,8 +480,16 @@ export default function Contacts({
             <SelectItem value="none">No Follow-up</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={campaignFilter} onValueChange={setCampaignFilter}>
+          <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Campaign" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Campaigns</SelectItem>
+            <SelectItem value="none">No Campaign</SelectItem>
+            {campaigns.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
         {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setWarmthFilter("all"); setFollowUpFilter("all"); }}>
+          <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setWarmthFilter("all"); setFollowUpFilter("all"); setCampaignFilter("all"); }}>
             <X className="h-4 w-4 mr-1" />Clear
           </Button>
         )}
