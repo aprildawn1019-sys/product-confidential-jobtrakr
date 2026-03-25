@@ -1,4 +1,4 @@
-import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, LogOut, CalendarDays, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, LucideIcon } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 
 type LinkItem = { to: string; icon: LucideIcon; label: string };
 
-const groups: { label: string; items: LinkItem[] }[] = [
+const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   {
     label: "Discover",
+    icon: Compass,
     items: [
       { to: "/job-search", icon: Search, label: "AI Job Search" },
       { to: "/job-boards", icon: Globe, label: "Job Boards" },
@@ -18,6 +19,7 @@ const groups: { label: string; items: LinkItem[] }[] = [
   },
   {
     label: "Track & Apply",
+    icon: ClipboardList,
     items: [
       { to: "/jobs", icon: Briefcase, label: "Job Postings" },
       { to: "/applications", icon: CalendarCheck, label: "Applications" },
@@ -26,6 +28,7 @@ const groups: { label: string; items: LinkItem[] }[] = [
   },
   {
     label: "Networking",
+    icon: Handshake,
     items: [
       { to: "/contacts", icon: Users, label: "Connections" },
     ],
@@ -62,7 +65,8 @@ export default function AppSidebar() {
 
         {groups.map((group) => (
           <div key={group.label}>
-            <div className="px-3 pt-5 pb-1 text-xs font-semibold uppercase tracking-wider text-sidebar-muted">
+            <div className="flex items-center gap-2 px-3 pt-5 pb-1 text-xs font-semibold uppercase tracking-wider text-sidebar-muted">
+              <group.icon className="h-3.5 w-3.5" />
               {group.label}
             </div>
             {group.items.map(({ to, icon: Icon, label }) => (
