@@ -1,9 +1,9 @@
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface FitScoreStarsProps {
+export interface FitScoreStarsProps {
   score?: number;
-  onChange: (score: number) => void;
+  onChange?: (score: number) => void;
   size?: "sm" | "md";
 }
 
