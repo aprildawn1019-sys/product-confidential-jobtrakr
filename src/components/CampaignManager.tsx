@@ -11,6 +11,7 @@ import type { Campaign } from "@/types/jobTracker";
 
 interface CampaignManagerProps {
   campaigns: Campaign[];
+  contactCounts: Record<string, number>;
   onAdd: (campaign: Omit<Campaign, "id" | "createdAt" | "updatedAt">) => void;
   onUpdate: (id: string, updates: Partial<Campaign>) => void;
   onDelete: (id: string) => void;
@@ -30,11 +31,11 @@ const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   active: "bg-primary/10 text-primary",
   paused: "bg-warning/10 text-warning",
-  completed: "bg-green-500/10 text-green-600",
+  completed: "bg-success/10 text-success",
   archived: "bg-muted text-muted-foreground",
 };
 
-export default function CampaignManager({ campaigns, onAdd, onUpdate, onDelete }: CampaignManagerProps) {
+export default function CampaignManager({ campaigns, contactCounts, onAdd, onUpdate, onDelete }: CampaignManagerProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", type: "outreach", description: "", status: "draft" });
@@ -140,6 +141,7 @@ export default function CampaignManager({ campaigns, onAdd, onUpdate, onDelete }
                       <span className="font-medium text-sm">{c.name}</span>
                       <Badge className={`text-[10px] capitalize ${statusColors[c.status] || ""}`}>{c.status}</Badge>
                       <Badge variant="outline" className="text-[10px] capitalize">{c.type}</Badge>
+                      <Badge variant="outline" className="text-[10px] gap-1">👤 {contactCounts[c.id] || 0}</Badge>
                     </div>
                     {c.description && <p className="text-xs text-muted-foreground mt-1">{c.description}</p>}
                   </div>

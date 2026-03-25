@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection, ContactActivity, Campaign, ContactCampaign } from "@/types/jobTracker";
+import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection, ContactActivity, Campaign, ContactCampaign, RecommendationRequest } from "@/types/jobTracker";
 
 function mapJob(row: any): Job {
   return {
@@ -65,6 +65,14 @@ function mapContactCampaign(row: any): ContactCampaign {
   return { id: row.id, contactId: row.contact_id, campaignId: row.campaign_id, createdAt: row.created_at };
 }
 
+function mapRecommendationRequest(row: any): RecommendationRequest {
+  return {
+    id: row.id, contactId: row.contact_id, requestedAt: row.requested_at,
+    receivedAt: row.received_at ?? undefined, notes: row.notes ?? undefined,
+    status: row.status, createdAt: row.created_at,
+  };
+}
+
 async function getUserId() {
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id;
@@ -79,11 +87,12 @@ export function useJobTrackerStore() {
   const [contactActivities, setContactActivities] = useState<ContactActivity[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [contactCampaigns, setContactCampaigns] = useState<ContactCampaign[]>([]);
+  const [recommendationRequests, setRecommendationRequests] = useState<RecommendationRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes, activitiesRes, campaignsRes, contactCampaignsRes] = await Promise.all([
+    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes, activitiesRes, campaignsRes, contactCampaignsRes, recReqRes] = await Promise.all([
       supabase.from("jobs").select("*").order("created_at", { ascending: false }),
       supabase.from("contacts").select("*").order("created_at", { ascending: false }),
       supabase.from("interviews").select("*").order("date", { ascending: true }),
@@ -92,6 +101,7 @@ export function useJobTrackerStore() {
       supabase.from("contact_activities").select("*").order("activity_date", { ascending: false }),
       supabase.from("campaigns").select("*").order("created_at", { ascending: false }),
       supabase.from("contact_campaigns").select("*"),
+      supabase.from("recommendation_requests").select("*").order("requested_at", { ascending: false }),
     ]);
     if (jobsRes.data) setJobs(jobsRes.data.map(mapJob));
     if (contactsRes.data) setContacts(contactsRes.data.map(mapContact));
@@ -101,6 +111,7 @@ export function useJobTrackerStore() {
     if (activitiesRes.data) setContactActivities(activitiesRes.data.map(mapContactActivity));
     if (campaignsRes.data) setCampaigns(campaignsRes.data.map(mapCampaign));
     if (contactCampaignsRes.data) setContactCampaigns(contactCampaignsRes.data.map(mapContactCampaign));
+    if (recReqRes.data) setRecommendationRequests(recReqRes.data.map(mapRecommendationRequest));
     setLoading(false);
   }, []);
 
@@ -405,13 +416,43 @@ export function useJobTrackerStore() {
     return contacts.filter(c => contactIds.includes(c.id));
   };
 
+  // === RECOMMENDATION REQUESTS ===
+  const addRecommendationRequest = async (req: Omit<RecommendationRequest, "id" | "createdAt">) => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const { data } = await supabase.from("recommendation_requests").insert({
+      user_id: userId, contact_id: req.contactId, requested_at: req.requestedAt,
+      received_at: req.receivedAt || null, notes: req.notes || null, status: req.status,
+    }).select().single();
+    if (data) setRecommendationRequests(prev => [mapRecommendationRequest(data), ...prev]);
+  };
+
+  const updateRecommendationRequest = async (id: string, updates: Partial<RecommendationRequest>) => {
+    const dbUpdates: any = {};
+    if (updates.requestedAt !== undefined) dbUpdates.requested_at = updates.requestedAt;
+    if (updates.receivedAt !== undefined) dbUpdates.received_at = updates.receivedAt || null;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    await supabase.from("recommendation_requests").update(dbUpdates).eq("id", id);
+    setRecommendationRequests(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+  };
+
+  const deleteRecommendationRequest = async (id: string) => {
+    await supabase.from("recommendation_requests").delete().eq("id", id);
+    setRecommendationRequests(prev => prev.filter(r => r.id !== id));
+  };
+
+  const getRecommendationRequestsForContact = (contactId: string) => {
+    return recommendationRequests.filter(r => r.contactId === contactId);
+  };
+
   // === HELPERS ===
   const getJobsByStatus = (status: JobStatus) => jobs.filter(j => j.status === status);
   const getContactForJob = (contactId?: string) => contacts.find(c => c.id === contactId);
   const getInterviewsForJob = (jobId: string) => interviews.filter(i => i.jobId === jobId);
 
   return {
-    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, loading,
+    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, loading,
     addJob, addJobsBulk, updateJobStatus, updateJob, deleteJob,
     addContact, addContactsBulk, updateContact, deleteContact,
     addInterview, updateInterview, deleteInterview,
@@ -419,6 +460,7 @@ export function useJobTrackerStore() {
     addContactConnection, removeContactConnection, getConnectionsForContact, getContactsAtSameOrg,
     addContactActivity, deleteContactActivity, getActivitiesForContact,
     addCampaign, updateCampaign, deleteCampaign, toggleContactCampaign, getCampaignsForContact, getContactsForCampaign,
+    addRecommendationRequest, updateRecommendationRequest, deleteRecommendationRequest, getRecommendationRequestsForContact,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
   };
 }

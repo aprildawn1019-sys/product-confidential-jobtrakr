@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
-import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone } from "lucide-react";
+import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import CampaignManager from "@/components/CampaignManager";
 import ContactCampaignSelect from "@/components/ContactCampaignSelect";
 import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
-import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign } from "@/types/jobTracker";
+import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest } from "@/types/jobTracker";
 
 interface ContactsProps {
   contacts: Contact[];
@@ -42,6 +42,11 @@ interface ContactsProps {
   onDeleteCampaign: (id: string) => void;
   onToggleContactCampaign: (contactId: string, campaignId: string) => void;
   getCampaignsForContact: (contactId: string) => Campaign[];
+  recommendationRequests: RecommendationRequest[];
+  onAddRecommendationRequest: (req: Omit<RecommendationRequest, "id" | "createdAt">) => void;
+  onUpdateRecommendationRequest: (id: string, updates: Partial<RecommendationRequest>) => void;
+  onDeleteRecommendationRequest: (id: string) => void;
+  getRecommendationRequestsForContact: (contactId: string) => RecommendationRequest[];
 }
 
 function FollowUpIndicator({ date }: { date?: string }) {
@@ -109,6 +114,7 @@ export default function Contacts({
   getActivitiesForContact, onAddActivity, onDeleteActivity,
   getJobsForContact, onLinkContactToJob, onUnlinkContactFromJob,
   onAddCampaign, onUpdateCampaign, onDeleteCampaign, onToggleContactCampaign, getCampaignsForContact,
+  recommendationRequests, onAddRecommendationRequest, onUpdateRecommendationRequest, onDeleteRecommendationRequest, getRecommendationRequestsForContact,
 }: ContactsProps) {
   const [expandedContact, setExpandedContact] = useState<string | null>(null);
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
@@ -120,6 +126,7 @@ export default function Contacts({
   const [followUpFilter, setFollowUpFilter] = useState<string>("all");
   const [campaignFilter, setCampaignFilter] = useState<string>("all");
   const [showCampaigns, setShowCampaigns] = useState(false);
+  const [recRequestContact, setRecRequestContact] = useState<string | null>(null);
 
   const handleSaveConversation = (contactId: string) => {
     onUpdate(contactId, { conversationLog: conversationDraft });
@@ -201,6 +208,7 @@ export default function Contacts({
             {sameOrgContacts.length > 0 && <Badge variant="secondary" className="text-xs gap-1"><Building2 className="h-3 w-3" />{sameOrgContacts.length} at {contact.company}</Badge>}
             {linkedJobs.length > 0 && <Badge variant="outline" className="text-xs gap-1"><Briefcase className="h-3 w-3" />{linkedJobs.length} job{linkedJobs.length > 1 ? "s" : ""}</Badge>}
             {connections.length > 0 && <Badge variant="outline" className="text-xs gap-1"><Link2 className="h-3 w-3" />{connections.length} connection{connections.length > 1 ? "s" : ""}</Badge>}
+            {(() => { const recs = getRecommendationRequestsForContact(contact.id); const pending = recs.filter(r => r.status === "pending").length; return pending > 0 ? <Badge variant="warning" className="text-xs gap-1"><Star className="h-3 w-3" />{pending} rec pending</Badge> : recs.some(r => r.status === "received") ? <Badge variant="success" className="text-xs gap-1"><Check className="h-3 w-3" />Rec received</Badge> : null; })()}
           </div>
           <div className="mt-3 flex items-center gap-2">
             {contact.email && <Button variant="outline" size="sm" asChild><a href={`mailto:${contact.email}`}><Mail className="h-3.5 w-3.5 mr-1" />Email</a></Button>}
@@ -383,6 +391,69 @@ export default function Contacts({
         )}
       </div>
 
+      {/* Recommendation Requests */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3" />Recommendation Requests</p>
+          <Button variant="outline" size="sm" className="h-6 text-xs" onClick={() => setRecRequestContact(recRequestContact === contact.id ? null : contact.id)}>
+            <Plus className="h-3 w-3 mr-1" />Request
+          </Button>
+        </div>
+        {recRequestContact === contact.id && (
+          <div className="rounded-md border border-border bg-card p-3 space-y-2 mb-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold">New Recommendation Request</span>
+              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setRecRequestContact(null)}><X className="h-3 w-3" /></Button>
+            </div>
+            <Input type="date" defaultValue={format(new Date(), "yyyy-MM-dd")} id={`rec-date-${contact.id}`} className="h-7 text-xs" />
+            <Input placeholder="Notes (optional)" id={`rec-notes-${contact.id}`} className="h-7 text-xs" />
+            <Button size="sm" className="h-7 text-xs w-full" onClick={() => {
+              const dateEl = document.getElementById(`rec-date-${contact.id}`) as HTMLInputElement;
+              const notesEl = document.getElementById(`rec-notes-${contact.id}`) as HTMLInputElement;
+              onAddRecommendationRequest({
+                contactId: contact.id,
+                requestedAt: dateEl?.value || format(new Date(), "yyyy-MM-dd"),
+                status: "pending",
+                notes: notesEl?.value || undefined,
+              });
+              setRecRequestContact(null);
+            }}>Log Request</Button>
+          </div>
+        )}
+        {(() => {
+          const reqs = getRecommendationRequestsForContact(contact.id);
+          return reqs.length > 0 ? (
+            <div className="space-y-1 max-h-32 overflow-y-auto">
+              {reqs.map(r => (
+                <div key={r.id} className="flex items-center justify-between rounded-md bg-muted/50 px-2.5 py-1.5 text-xs">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant={r.status === "received" ? "success" : r.status === "declined" ? "destructive" : "warning"} className="text-[10px] capitalize">{r.status}</Badge>
+                    <span className="text-muted-foreground">Asked: {r.requestedAt}</span>
+                    {r.receivedAt && <span className="text-muted-foreground">Received: {r.receivedAt}</span>}
+                    {r.notes && <span className="text-muted-foreground truncate max-w-[120px]">— {r.notes}</span>}
+                  </div>
+                  <div className="flex items-center gap-0.5">
+                    {r.status === "pending" && (
+                      <>
+                        <Button variant="ghost" size="icon" className="h-5 w-5" title="Mark received" onClick={() => onUpdateRecommendationRequest(r.id, { status: "received", receivedAt: format(new Date(), "yyyy-MM-dd") })}>
+                          <Check className="h-3 w-3 text-success" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-5 w-5" title="Mark declined" onClick={() => onUpdateRecommendationRequest(r.id, { status: "declined" })}>
+                          <X className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </>
+                    )}
+                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => onDeleteRecommendationRequest(r.id)}>
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : <p className="text-xs text-muted-foreground italic">No recommendation requests</p>;
+        })()}
+      </div>
+
       {/* Same org */}
       {sameOrgContacts.length > 0 && (
         <div>
@@ -449,7 +520,13 @@ export default function Contacts({
       {/* Campaign Manager Panel */}
       {showCampaigns && (
         <div className="rounded-xl border border-border bg-card p-4">
-          <CampaignManager campaigns={campaigns} onAdd={onAddCampaign} onUpdate={onUpdateCampaign} onDelete={onDeleteCampaign} />
+          <CampaignManager
+            campaigns={campaigns}
+            contactCounts={Object.fromEntries(campaigns.map(c => [c.id, contactCampaigns.filter(cc => cc.campaignId === c.id).length]))}
+            onAdd={onAddCampaign}
+            onUpdate={onUpdateCampaign}
+            onDelete={onDeleteCampaign}
+          />
         </div>
       )}
 
