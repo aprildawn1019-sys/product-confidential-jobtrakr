@@ -58,7 +58,7 @@ export default function AddJobDialog({ onAdd }: AddJobDialogProps) {
     e.preventDefault();
     if (!form.company || !form.title) return;
     onAdd({ ...form, appliedDate: form.status !== "saved" ? new Date().toISOString().split("T")[0] : undefined });
-    setForm({ company: "", title: "", location: "", type: "remote", salary: "", url: "", status: "saved" });
+    setForm({ company: "", title: "", location: "", type: "remote", salary: "", url: "", status: "saved", description: "" });
     setScrapeUrl("");
     setOpen(false);
   };
