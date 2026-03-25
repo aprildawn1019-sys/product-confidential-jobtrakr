@@ -34,6 +34,9 @@ export interface Contact {
   notes?: string;
   lastContactedAt?: string;
   createdAt: string;
+  relationshipWarmth?: string;
+  followUpDate?: string;
+  conversationLog?: string;
 }
 
 export interface Interview {
@@ -58,6 +61,15 @@ export interface ContactConnection {
   contactId1: string;
   contactId2: string;
   connectionType: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface ContactActivity {
+  id: string;
+  contactId: string;
+  activityType: string;
+  activityDate: string;
   notes?: string;
   createdAt: string;
 }

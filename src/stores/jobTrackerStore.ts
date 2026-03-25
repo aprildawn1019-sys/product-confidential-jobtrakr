@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection } from "@/types/jobTracker";
+import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection, ContactActivity } from "@/types/jobTracker";
 
 function mapJob(row: any): Job {
   return {
@@ -22,6 +22,9 @@ function mapContact(row: any): Contact {
     email: row.email ?? undefined, phone: row.phone ?? undefined,
     linkedin: row.linkedin ?? undefined, notes: row.notes ?? undefined,
     lastContactedAt: row.last_contacted_at ?? undefined, createdAt: row.created_at,
+    relationshipWarmth: row.relationship_warmth ?? undefined,
+    followUpDate: row.follow_up_date ?? undefined,
+    conversationLog: row.conversation_log ?? undefined,
   };
 }
 
@@ -43,6 +46,13 @@ function mapContactConnection(row: any): ContactConnection {
   };
 }
 
+function mapContactActivity(row: any): ContactActivity {
+  return {
+    id: row.id, contactId: row.contact_id, activityType: row.activity_type,
+    activityDate: row.activity_date, notes: row.notes ?? undefined, createdAt: row.created_at,
+  };
+}
+
 async function getUserId() {
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id;
@@ -54,27 +64,31 @@ export function useJobTrackerStore() {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [jobContacts, setJobContacts] = useState<JobContact[]>([]);
   const [contactConnections, setContactConnections] = useState<ContactConnection[]>([]);
+  const [contactActivities, setContactActivities] = useState<ContactActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes] = await Promise.all([
+    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes, activitiesRes] = await Promise.all([
       supabase.from("jobs").select("*").order("created_at", { ascending: false }),
       supabase.from("contacts").select("*").order("created_at", { ascending: false }),
       supabase.from("interviews").select("*").order("date", { ascending: true }),
       supabase.from("job_contacts").select("*"),
       supabase.from("contact_connections").select("*"),
+      supabase.from("contact_activities").select("*").order("activity_date", { ascending: false }),
     ]);
     if (jobsRes.data) setJobs(jobsRes.data.map(mapJob));
     if (contactsRes.data) setContacts(contactsRes.data.map(mapContact));
     if (interviewsRes.data) setInterviews(interviewsRes.data.map(mapInterview));
     if (jobContactsRes.data) setJobContacts(jobContactsRes.data.map(mapJobContact));
     if (connectionsRes.data) setContactConnections(connectionsRes.data.map(mapContactConnection));
+    if (activitiesRes.data) setContactActivities(activitiesRes.data.map(mapContactActivity));
     setLoading(false);
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // === JOBS ===
   const addJob = async (job: Omit<Job, "id" | "createdAt">) => {
     const userId = await getUserId();
     if (!userId) return;
@@ -118,10 +132,14 @@ export function useJobTrackerStore() {
   };
 
   const deleteJob = async (id: string) => {
+    // Clean up job_contacts in DB and local state
+    await supabase.from("job_contacts").delete().eq("job_id", id);
+    setJobContacts(prev => prev.filter(jc => jc.jobId !== id));
     await supabase.from("jobs").delete().eq("id", id);
     setJobs(prev => prev.filter(j => j.id !== id));
   };
 
+  // === CONTACTS ===
   const addContact = async (contact: Omit<Contact, "id" | "createdAt">) => {
     const userId = await getUserId();
     if (!userId) return;
@@ -130,6 +148,9 @@ export function useJobTrackerStore() {
       email: contact.email || null, phone: contact.phone || null,
       linkedin: contact.linkedin || null, notes: contact.notes || null,
       last_contacted_at: contact.lastContactedAt || null,
+      relationship_warmth: contact.relationshipWarmth || null,
+      follow_up_date: contact.followUpDate || null,
+      conversation_log: contact.conversationLog || null,
     }).select().single();
     if (data) setContacts(prev => [mapContact(data), ...prev]);
   };
@@ -147,11 +168,38 @@ export function useJobTrackerStore() {
     if (data) setContacts(prev => [...data.map(mapContact), ...prev]);
   };
 
+  const updateContact = async (id: string, updates: Partial<Contact>) => {
+    const dbUpdates: any = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.company !== undefined) dbUpdates.company = updates.company;
+    if (updates.role !== undefined) dbUpdates.role = updates.role;
+    if (updates.email !== undefined) dbUpdates.email = updates.email || null;
+    if (updates.phone !== undefined) dbUpdates.phone = updates.phone || null;
+    if (updates.linkedin !== undefined) dbUpdates.linkedin = updates.linkedin || null;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
+    if (updates.relationshipWarmth !== undefined) dbUpdates.relationship_warmth = updates.relationshipWarmth || null;
+    if (updates.followUpDate !== undefined) dbUpdates.follow_up_date = updates.followUpDate || null;
+    if (updates.conversationLog !== undefined) dbUpdates.conversation_log = updates.conversationLog || null;
+    if (updates.lastContactedAt !== undefined) dbUpdates.last_contacted_at = updates.lastContactedAt || null;
+    await supabase.from("contacts").update(dbUpdates).eq("id", id);
+    setContacts(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+  };
+
   const deleteContact = async (id: string) => {
+    // Clean up job_contacts and contact_activities in DB and local state
+    await Promise.all([
+      supabase.from("job_contacts").delete().eq("contact_id", id),
+      supabase.from("contact_connections").delete().or(`contact_id_1.eq.${id},contact_id_2.eq.${id}`),
+      // contact_activities cascade via FK
+    ]);
+    setJobContacts(prev => prev.filter(jc => jc.contactId !== id));
+    setContactConnections(prev => prev.filter(cc => cc.contactId1 !== id && cc.contactId2 !== id));
+    setContactActivities(prev => prev.filter(ca => ca.contactId !== id));
     await supabase.from("contacts").delete().eq("id", id);
     setContacts(prev => prev.filter(c => c.id !== id));
   };
 
+  // === INTERVIEWS ===
   const addInterview = async (interview: Omit<Interview, "id">) => {
     const userId = await getUserId();
     if (!userId) return;
@@ -179,6 +227,7 @@ export function useJobTrackerStore() {
     setInterviews(prev => prev.filter(i => i.id !== id));
   };
 
+  // === JOB-CONTACT LINKS ===
   const linkContactToJob = async (jobId: string, contactId: string) => {
     const userId = await getUserId();
     if (!userId) return;
@@ -204,6 +253,12 @@ export function useJobTrackerStore() {
     return contacts.filter(c => c.company.toLowerCase() === companyLower && !linkedIds.includes(c.id));
   };
 
+  const getJobsForContact = (contactId: string) => {
+    const linkedJobIds = jobContacts.filter(jc => jc.contactId === contactId).map(jc => jc.jobId);
+    return jobs.filter(j => linkedJobIds.includes(j.id));
+  };
+
+  // === CONTACT CONNECTIONS ===
   const addContactConnection = async (contactId1: string, contactId2: string, connectionType = "linkedin", notes?: string) => {
     const userId = await getUserId();
     if (!userId) return;
@@ -235,16 +290,49 @@ export function useJobTrackerStore() {
     return contacts.filter(c => c.id !== contactId && c.company.toLowerCase() === contact.company.toLowerCase());
   };
 
+  // === CONTACT ACTIVITIES ===
+  const addContactActivity = async (activity: Omit<ContactActivity, "id" | "createdAt">) => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const { data } = await supabase.from("contact_activities").insert({
+      user_id: userId, contact_id: activity.contactId,
+      activity_type: activity.activityType, activity_date: activity.activityDate,
+      notes: activity.notes || null,
+    }).select().single();
+    if (data) {
+      setContactActivities(prev => [mapContactActivity(data), ...prev]);
+      // Update local contact's lastContactedAt
+      setContacts(prev => prev.map(c => {
+        if (c.id === activity.contactId && (!c.lastContactedAt || c.lastContactedAt < activity.activityDate)) {
+          return { ...c, lastContactedAt: activity.activityDate };
+        }
+        return c;
+      }));
+    }
+  };
+
+  const deleteContactActivity = async (id: string) => {
+    await supabase.from("contact_activities").delete().eq("id", id);
+    setContactActivities(prev => prev.filter(ca => ca.id !== id));
+  };
+
+  const getActivitiesForContact = (contactId: string) => {
+    return contactActivities.filter(ca => ca.contactId === contactId);
+  };
+
+  // === HELPERS ===
   const getJobsByStatus = (status: JobStatus) => jobs.filter(j => j.status === status);
   const getContactForJob = (contactId?: string) => contacts.find(c => c.id === contactId);
   const getInterviewsForJob = (jobId: string) => interviews.filter(i => i.jobId === jobId);
 
   return {
-    jobs, contacts, interviews, jobContacts, contactConnections, loading,
+    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, loading,
     addJob, updateJobStatus, updateJob, deleteJob,
-    addContact, addContactsBulk, deleteContact, addInterview, updateInterview, deleteInterview,
-    linkContactToJob, unlinkContactFromJob, getContactsForJob, getNetworkMatchesForJob,
+    addContact, addContactsBulk, updateContact, deleteContact,
+    addInterview, updateInterview, deleteInterview,
+    linkContactToJob, unlinkContactFromJob, getContactsForJob, getNetworkMatchesForJob, getJobsForContact,
     addContactConnection, removeContactConnection, getConnectionsForContact, getContactsAtSameOrg,
+    addContactActivity, deleteContactActivity, getActivitiesForContact,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
   };
 }
