@@ -104,6 +104,7 @@ export function useJobTrackerStore() {
     if (updates.salary !== undefined) dbUpdates.salary = updates.salary || null;
     if (updates.url !== undefined) dbUpdates.url = updates.url || null;
     if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
+    if (updates.description !== undefined) dbUpdates.description = updates.description || null;
     if (updates.posterName !== undefined) dbUpdates.poster_name = updates.posterName || null;
     if (updates.posterEmail !== undefined) dbUpdates.poster_email = updates.posterEmail || null;
     if (updates.posterPhone !== undefined) dbUpdates.poster_phone = updates.posterPhone || null;

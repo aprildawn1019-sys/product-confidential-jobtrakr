@@ -19,20 +19,47 @@ interface ParsedRow {
 }
 
 function parseCSV(text: string): Record<string, string>[] {
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  // Strip BOM if present
+  const clean = text.replace(/^\uFEFF/, "");
+  const lines = clean.split(/\r?\n/).filter(l => l.trim());
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ""));
-  return lines.slice(1).map(line => {
+  const parseRow = (line: string): string[] => {
     const values: string[] = [];
     let current = "";
     let inQuotes = false;
-    for (const char of line) {
-      if (char === '"') { inQuotes = !inQuotes; continue; }
-      if (char === "," && !inQuotes) { values.push(current.trim()); current = ""; continue; }
-      current += char;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (inQuotes) {
+        if (char === '"') {
+          // Check for escaped quote ""
+          if (i + 1 < line.length && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          current += char;
+        }
+      } else {
+        if (char === '"') {
+          inQuotes = true;
+        } else if (char === ',') {
+          values.push(current.trim());
+          current = "";
+        } else {
+          current += char;
+        }
+      }
     }
     values.push(current.trim());
+    return values;
+  };
+
+  const headers = parseRow(lines[0]).map(h => h.replace(/^"|"$/g, ""));
+  return lines.slice(1).map(line => {
+    const values = parseRow(line);
     const row: Record<string, string> = {};
     headers.forEach((h, i) => { row[h] = values[i] || ""; });
     return row;

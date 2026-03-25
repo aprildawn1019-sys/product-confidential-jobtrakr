@@ -11,6 +11,7 @@ export interface Job {
   status: JobStatus;
   appliedDate?: string;
   notes?: string;
+  description?: string;
   contactId?: string;
   createdAt: string;
   statusUpdatedAt?: string;
