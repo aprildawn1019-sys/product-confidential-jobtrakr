@@ -65,6 +65,11 @@ export default function Index() {
               onDeleteCampaign={store.deleteCampaign}
               onToggleContactCampaign={store.toggleContactCampaign}
               getCampaignsForContact={store.getCampaignsForContact}
+              recommendationRequests={store.recommendationRequests}
+              onAddRecommendationRequest={store.addRecommendationRequest}
+              onUpdateRecommendationRequest={store.updateRecommendationRequest}
+              onDeleteRecommendationRequest={store.deleteRecommendationRequest}
+              getRecommendationRequestsForContact={store.getRecommendationRequestsForContact}
             />
           } />
           <Route path="applications" element={<Applications jobs={store.jobs} interviews={store.interviews} />} />
