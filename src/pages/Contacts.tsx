@@ -678,7 +678,7 @@ export default function Contacts({
         </div>
       ) : (
         <div className="space-y-2">
-          {filteredContacts.map(renderListRow)}
+          {filteredContacts.map(viewMode === "compact" ? renderCompactRow : renderDetailedRow)}
         </div>
       )}
     </div>
