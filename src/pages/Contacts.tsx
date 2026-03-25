@@ -677,6 +677,15 @@ export default function Contacts({
             {campaigns.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={sortBy} onValueChange={v => setSortBy(v as any)}>
+          <SelectTrigger className="w-40 h-9"><ArrowUpDown className="h-3.5 w-3.5 mr-1" /><SelectValue placeholder="Sort" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="first">First Name A–Z</SelectItem>
+            <SelectItem value="last">Last Name A–Z</SelectItem>
+            <SelectItem value="company">Company A–Z</SelectItem>
+            <SelectItem value="recent">Recently Added</SelectItem>
+          </SelectContent>
+        </Select>
         {hasFilters && (
           <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setWarmthFilter("all"); setFollowUpFilter("all"); setCampaignFilter("all"); }}>
             <X className="h-4 w-4 mr-1" />Clear
