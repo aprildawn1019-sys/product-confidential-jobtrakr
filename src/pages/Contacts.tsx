@@ -126,6 +126,7 @@ export default function Contacts({
   const [followUpFilter, setFollowUpFilter] = useState<string>("all");
   const [campaignFilter, setCampaignFilter] = useState<string>("all");
   const [showCampaigns, setShowCampaigns] = useState(false);
+  const [recRequestContact, setRecRequestContact] = useState<string | null>(null);
 
   const handleSaveConversation = (contactId: string) => {
     onUpdate(contactId, { conversationLog: conversationDraft });
