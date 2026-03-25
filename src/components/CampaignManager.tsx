@@ -35,7 +35,7 @@ const statusColors: Record<string, string> = {
   archived: "bg-muted text-muted-foreground",
 };
 
-export default function CampaignManager({ campaigns, onAdd, onUpdate, onDelete }: CampaignManagerProps) {
+export default function CampaignManager({ campaigns, contactCounts, onAdd, onUpdate, onDelete }: CampaignManagerProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", type: "outreach", description: "", status: "draft" });
