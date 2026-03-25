@@ -43,13 +43,11 @@ export default function AppSidebar() {
     await supabase.auth.signOut();
   };
 
-  // Determine which groups should default open based on active route
   const initialOpen = groups.reduce<Record<string, boolean>>((acc, group) => {
     acc[group.label] = group.items.some((item) => location.pathname === item.to);
     return acc;
   }, {});
 
-  // Default all groups to open if no group matches (e.g. on dashboard)
   const anyActive = Object.values(initialOpen).some(Boolean);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
     anyActive ? initialOpen : groups.reduce((acc, g) => ({ ...acc, [g.label]: true }), {} as Record<string, boolean>)
@@ -61,14 +59,18 @@ export default function AppSidebar() {
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+      "flex items-center gap-3 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
       isActive
         ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
         : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
     );
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
+    <aside
+      className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border"
+      role="navigation"
+      aria-label="Main navigation"
+    >
       <div className="flex h-16 items-center gap-2.5 px-6">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
           <Briefcase className="h-4 w-4 text-sidebar-primary-foreground" />
@@ -76,8 +78,15 @@ export default function AppSidebar() {
         <span className="font-display text-lg font-bold tracking-tight">JobTrackr</span>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        <NavLink to="/" end className={navLinkClass}>
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1" aria-label="Primary">
+        <NavLink to="/" end className={({ isActive }) =>
+          cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+            isActive
+              ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+              : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+          )
+        }>
           <LayoutDashboard className="h-4 w-4" />
           Dashboard
         </NavLink>
@@ -93,23 +102,26 @@ export default function AppSidebar() {
               open={isOpen}
               onOpenChange={() => toggleGroup(group.label)}
             >
-              <CollapsibleTrigger className="w-full">
+              <CollapsibleTrigger
+                className="w-full"
+                aria-expanded={isOpen}
+              >
                 <div
                   className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 mt-3 cursor-pointer select-none transition-colors",
+                    "flex items-center gap-2.5 rounded-lg px-3 py-2 mt-3 cursor-pointer select-none transition-colors",
                     "hover:bg-sidebar-accent/30",
                     hasActiveChild
-                      ? "text-sidebar-foreground"
-                      : "text-sidebar-muted"
+                      ? "text-sidebar-group-foreground"
+                      : "text-sidebar-group-foreground/70"
                   )}
                 >
                   <GroupIcon className="h-4 w-4 shrink-0" />
-                  <span className="flex-1 text-left text-xs font-semibold uppercase tracking-wider">
+                  <span className="flex-1 text-left text-[11px] font-bold uppercase tracking-widest">
                     {group.label}
                   </span>
                   <ChevronDown
                     className={cn(
-                      "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
+                      "h-3.5 w-3.5 shrink-0 opacity-60 transition-transform duration-200",
                       isOpen ? "rotate-0" : "-rotate-90"
                     )}
                   />
@@ -119,7 +131,7 @@ export default function AppSidebar() {
               <CollapsibleContent className="space-y-0.5 pt-0.5">
                 {group.items.map(({ to, icon: Icon, label }) => (
                   <NavLink key={to} to={to} className={navLinkClass}>
-                    <Icon className="h-4 w-4 ml-1" />
+                    <Icon className="h-4 w-4" />
                     {label}
                   </NavLink>
                 ))}
