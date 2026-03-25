@@ -43,6 +43,7 @@ export default function AddJobDialog({ onAdd }: AddJobDialogProps) {
         type: (["remote", "hybrid", "onsite"].includes(d.type) ? d.type : f.type) as Job["type"],
         salary: d.salary || f.salary,
         url: urlToScrape,
+        description: d.description || f.description,
       }));
       toast({ title: "Job details extracted!", description: "Review and edit the auto-filled fields below." });
     } catch (e: any) {
