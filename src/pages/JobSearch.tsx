@@ -55,6 +55,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [dismissedJobs, setDismissedJobs] = useState<DismissedJob[]>([]);
   const [showDismissed, setShowDismissed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [resultFilter, setResultFilter] = useState("");
   const [gatedBoards, setGatedBoards] = useState<{ name: string; url: string | null }[]>([]);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     resultCount: 10,
@@ -392,6 +393,16 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
       {!searching && results.length > 0 && (
         <div className="space-y-3">
+          {/* Result filter */}
+          <div className="relative max-w-sm">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Filter results by title, company..."
+              value={resultFilter}
+              onChange={e => setResultFilter(e.target.value)}
+              className="pl-9 h-9"
+            />
+          </div>
           {/* Gated boards notice */}
           <GatedBoardsNotice boards={gatedBoards} />
 
@@ -400,7 +411,10 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
             <GatedBoardScrape onAddJob={onAddJob} />
           )}
 
-          {results.map((result, i) => {
+          {results.filter(r => {
+            const q = resultFilter.toLowerCase();
+            return !q || r.title.toLowerCase().includes(q) || r.company.toLowerCase().includes(q) || r.location.toLowerCase().includes(q);
+          }).map((result, i) => {
             const key = `${result.company}-${result.title}`;
             const added = addedJobs.has(key);
             const tracked = isAlreadyTracked(result);
