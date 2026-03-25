@@ -92,7 +92,7 @@ export function useJobTrackerStore() {
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes, activitiesRes, campaignsRes, contactCampaignsRes] = await Promise.all([
+    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes, activitiesRes, campaignsRes, contactCampaignsRes, recReqRes] = await Promise.all([
       supabase.from("jobs").select("*").order("created_at", { ascending: false }),
       supabase.from("contacts").select("*").order("created_at", { ascending: false }),
       supabase.from("interviews").select("*").order("date", { ascending: true }),
@@ -101,6 +101,7 @@ export function useJobTrackerStore() {
       supabase.from("contact_activities").select("*").order("activity_date", { ascending: false }),
       supabase.from("campaigns").select("*").order("created_at", { ascending: false }),
       supabase.from("contact_campaigns").select("*"),
+      supabase.from("recommendation_requests").select("*").order("requested_at", { ascending: false }),
     ]);
     if (jobsRes.data) setJobs(jobsRes.data.map(mapJob));
     if (contactsRes.data) setContacts(contactsRes.data.map(mapContact));
