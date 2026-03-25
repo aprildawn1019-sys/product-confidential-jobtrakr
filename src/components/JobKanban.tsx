@@ -132,6 +132,7 @@ export default function JobKanban({
                           <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
                           {job.urgency && <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} mode="badge" />}
                         </div>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between mt-2">
                       <Button
