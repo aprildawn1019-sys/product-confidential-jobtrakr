@@ -137,7 +137,7 @@ export default function Contacts({
   };
 
   const filteredContacts = useMemo(() => {
-    return contacts.filter(c => {
+    const filtered = contacts.filter(c => {
       const q = searchQuery.toLowerCase();
       if (q && !c.name.toLowerCase().includes(q) && !c.company.toLowerCase().includes(q) && !(c.role || "").toLowerCase().includes(q)) return false;
       if (warmthFilter !== "all" && (c.relationshipWarmth || "none") !== warmthFilter) return false;
@@ -155,7 +155,26 @@ export default function Contacts({
       }
       return true;
     });
-  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns]);
+
+    const getLastName = (name: string) => {
+      const parts = name.trim().split(/\s+/);
+      return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : name.toLowerCase();
+    };
+
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "last":
+          return getLastName(a.name).localeCompare(getLastName(b.name));
+        case "company":
+          return a.company.toLowerCase().localeCompare(b.company.toLowerCase());
+        case "recent":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case "first":
+        default:
+          return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+      }
+    });
+  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns, sortBy]);
 
   const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all" || campaignFilter !== "all";
 
