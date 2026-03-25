@@ -101,6 +101,10 @@ export default function Jobs({
                           </Badge>
                         )}
                       </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
+                        <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} />
+                      </div>
                       <p className="text-muted-foreground mt-1">{job.company}</p>
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
                         <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{job.location}</span>
