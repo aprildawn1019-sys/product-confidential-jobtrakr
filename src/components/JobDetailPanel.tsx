@@ -208,6 +208,12 @@ export default function JobDetailPanel({
               </a>
             )}
             {job.notes && <p className="text-sm text-muted-foreground">{job.notes}</p>}
+            {job.description && (
+              <div className="space-y-1">
+                <span className="text-xs font-semibold text-muted-foreground">Job Description</span>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap max-h-48 overflow-y-auto">{job.description}</p>
+              </div>
+            )}
           </>
         )}
       </div>
