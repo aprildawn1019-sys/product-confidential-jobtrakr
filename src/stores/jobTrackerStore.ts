@@ -87,6 +87,7 @@ export function useJobTrackerStore() {
   const [contactActivities, setContactActivities] = useState<ContactActivity[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [contactCampaigns, setContactCampaigns] = useState<ContactCampaign[]>([]);
+  const [recommendationRequests, setRecommendationRequests] = useState<RecommendationRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
