@@ -18,7 +18,7 @@ export default function AddJobDialog({ onAdd }: AddJobDialogProps) {
   const [open, setOpen] = useState(false);
   const [scrapeUrl, setScrapeUrl] = useState("");
   const [scraping, setScraping] = useState(false);
-  const [form, setForm] = useState({ company: "", title: "", location: "", type: "remote" as Job["type"], salary: "", url: "", status: "saved" as JobStatus });
+  const [form, setForm] = useState({ company: "", title: "", location: "", type: "remote" as Job["type"], salary: "", url: "", status: "saved" as JobStatus, description: "" });
 
   const handleScrape = async () => {
     if (!scrapeUrl.trim()) return;
