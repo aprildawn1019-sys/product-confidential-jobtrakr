@@ -416,13 +416,43 @@ export function useJobTrackerStore() {
     return contacts.filter(c => contactIds.includes(c.id));
   };
 
+  // === RECOMMENDATION REQUESTS ===
+  const addRecommendationRequest = async (req: Omit<RecommendationRequest, "id" | "createdAt">) => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const { data } = await supabase.from("recommendation_requests").insert({
+      user_id: userId, contact_id: req.contactId, requested_at: req.requestedAt,
+      received_at: req.receivedAt || null, notes: req.notes || null, status: req.status,
+    }).select().single();
+    if (data) setRecommendationRequests(prev => [mapRecommendationRequest(data), ...prev]);
+  };
+
+  const updateRecommendationRequest = async (id: string, updates: Partial<RecommendationRequest>) => {
+    const dbUpdates: any = {};
+    if (updates.requestedAt !== undefined) dbUpdates.requested_at = updates.requestedAt;
+    if (updates.receivedAt !== undefined) dbUpdates.received_at = updates.receivedAt || null;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    await supabase.from("recommendation_requests").update(dbUpdates).eq("id", id);
+    setRecommendationRequests(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r));
+  };
+
+  const deleteRecommendationRequest = async (id: string) => {
+    await supabase.from("recommendation_requests").delete().eq("id", id);
+    setRecommendationRequests(prev => prev.filter(r => r.id !== id));
+  };
+
+  const getRecommendationRequestsForContact = (contactId: string) => {
+    return recommendationRequests.filter(r => r.contactId === contactId);
+  };
+
   // === HELPERS ===
   const getJobsByStatus = (status: JobStatus) => jobs.filter(j => j.status === status);
   const getContactForJob = (contactId?: string) => contacts.find(c => c.id === contactId);
   const getInterviewsForJob = (jobId: string) => interviews.filter(i => i.jobId === jobId);
 
   return {
-    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, loading,
+    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, loading,
     addJob, addJobsBulk, updateJobStatus, updateJob, deleteJob,
     addContact, addContactsBulk, updateContact, deleteContact,
     addInterview, updateInterview, deleteInterview,
@@ -430,6 +460,7 @@ export function useJobTrackerStore() {
     addContactConnection, removeContactConnection, getConnectionsForContact, getContactsAtSameOrg,
     addContactActivity, deleteContactActivity, getActivitiesForContact,
     addCampaign, updateCampaign, deleteCampaign, toggleContactCampaign, getCampaignsForContact, getContactsForCampaign,
+    addRecommendationRequest, updateRecommendationRequest, deleteRecommendationRequest, getRecommendationRequestsForContact,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
   };
 }
