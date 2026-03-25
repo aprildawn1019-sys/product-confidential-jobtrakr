@@ -449,7 +449,13 @@ export default function Contacts({
       {/* Campaign Manager Panel */}
       {showCampaigns && (
         <div className="rounded-xl border border-border bg-card p-4">
-          <CampaignManager campaigns={campaigns} onAdd={onAddCampaign} onUpdate={onUpdateCampaign} onDelete={onDeleteCampaign} />
+          <CampaignManager
+            campaigns={campaigns}
+            contactCounts={Object.fromEntries(campaigns.map(c => [c.id, contactCampaigns.filter(cc => cc.campaignId === c.id).length]))}
+            onAdd={onAddCampaign}
+            onUpdate={onUpdateCampaign}
+            onDelete={onDeleteCampaign}
+          />
         </div>
       )}
 
