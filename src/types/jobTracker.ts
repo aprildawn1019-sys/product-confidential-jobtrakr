@@ -19,6 +19,8 @@ export interface Job {
   posterEmail?: string;
   posterPhone?: string;
   posterRole?: string;
+  fitScore?: number;
+  urgency?: string;
 }
 
 export interface Contact {

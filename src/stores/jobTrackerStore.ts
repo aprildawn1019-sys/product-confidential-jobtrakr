@@ -12,6 +12,7 @@ function mapJob(row: any): Job {
     createdAt: row.created_at, statusUpdatedAt: row.status_updated_at ?? undefined,
     posterName: row.poster_name ?? undefined, posterEmail: row.poster_email ?? undefined,
     posterPhone: row.poster_phone ?? undefined, posterRole: row.poster_role ?? undefined,
+    fitScore: row.fit_score ?? undefined, urgency: row.urgency ?? undefined,
   };
 }
 
@@ -84,7 +85,8 @@ export function useJobTrackerStore() {
       description: job.description || null,
       contact_id: job.contactId || null, poster_name: job.posterName || null,
       poster_email: job.posterEmail || null, poster_phone: job.posterPhone || null,
-      poster_role: job.posterRole || null,
+      poster_role: job.posterRole || null, fit_score: job.fitScore || null,
+      urgency: job.urgency || null,
     }).select().single();
     if (data) setJobs(prev => [mapJob(data), ...prev]);
   };
@@ -109,6 +111,8 @@ export function useJobTrackerStore() {
     if (updates.posterEmail !== undefined) dbUpdates.poster_email = updates.posterEmail || null;
     if (updates.posterPhone !== undefined) dbUpdates.poster_phone = updates.posterPhone || null;
     if (updates.posterRole !== undefined) dbUpdates.poster_role = updates.posterRole || null;
+    if (updates.fitScore !== undefined) dbUpdates.fit_score = updates.fitScore || null;
+    if (updates.urgency !== undefined) dbUpdates.urgency = updates.urgency || null;
     await supabase.from("jobs").update(dbUpdates).eq("id", id);
     setJobs(prev => prev.map(j => j.id === id ? { ...j, ...updates } : j));
   };

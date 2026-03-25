@@ -418,6 +418,7 @@ export type Database = {
           contact_id: string | null
           created_at: string
           description: string | null
+          fit_score: number | null
           id: string
           location: string
           notes: string | null
@@ -430,6 +431,7 @@ export type Database = {
           status_updated_at: string | null
           title: string
           type: string
+          urgency: string | null
           url: string | null
           user_id: string | null
         }
@@ -439,6 +441,7 @@ export type Database = {
           contact_id?: string | null
           created_at?: string
           description?: string | null
+          fit_score?: number | null
           id?: string
           location?: string
           notes?: string | null
@@ -451,6 +454,7 @@ export type Database = {
           status_updated_at?: string | null
           title: string
           type?: string
+          urgency?: string | null
           url?: string | null
           user_id?: string | null
         }
@@ -460,6 +464,7 @@ export type Database = {
           contact_id?: string | null
           created_at?: string
           description?: string | null
+          fit_score?: number | null
           id?: string
           location?: string
           notes?: string | null
@@ -472,6 +477,7 @@ export type Database = {
           status_updated_at?: string | null
           title?: string
           type?: string
+          urgency?: string | null
           url?: string | null
           user_id?: string | null
         }

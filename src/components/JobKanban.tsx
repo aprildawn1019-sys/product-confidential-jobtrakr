@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/StatusBadge";
 import JobDetailPanel from "@/components/JobDetailPanel";
+import FitScoreStars from "@/components/FitScoreStars";
+import UrgencyBadge from "@/components/UrgencyBadge";
 import type { Job, Contact, JobStatus, Interview } from "@/types/jobTracker";
 
 const columns: { status: JobStatus; label: string }[] = [
@@ -124,6 +126,12 @@ export default function JobKanban({
                             <User className="h-2.5 w-2.5" />{job.posterName}
                           </p>
                         )}
+
+                        {/* Fit & Urgency */}
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
+                          {job.urgency && <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} mode="badge" />}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mt-2">

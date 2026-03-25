@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users } from "lucide-react";
+import FitScoreStars from "@/components/FitScoreStars";
+import UrgencyBadge from "@/components/UrgencyBadge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -57,7 +59,7 @@ export default function Jobs({
               <Kanban className="h-4 w-4" />
             </Button>
           </div>
-          <AddJobDialog onAdd={onAdd} />
+          <AddJobDialog onAdd={onAdd} contacts={contacts} />
         </div>
       </div>
 
@@ -98,6 +100,10 @@ export default function Jobs({
                             <Users className="h-3 w-3" />{linkedContacts.length + networkMatches.length}
                           </Badge>
                         )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
+                        <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} />
                       </div>
                       <p className="text-muted-foreground mt-1">{job.company}</p>
                       <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">

@@ -1,0 +1,1 @@
+ALTER TABLE public.jobs ADD COLUMN fit_score integer, ADD COLUMN urgency text;
