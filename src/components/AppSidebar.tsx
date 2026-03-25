@@ -28,6 +28,7 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   },
   {
     label: "Networking",
+    icon: Handshake,
     items: [
       { to: "/contacts", icon: Users, label: "Connections" },
     ],
