@@ -11,6 +11,7 @@ import type { Campaign } from "@/types/jobTracker";
 
 interface CampaignManagerProps {
   campaigns: Campaign[];
+  contactCounts: Record<string, number>;
   onAdd: (campaign: Omit<Campaign, "id" | "createdAt" | "updatedAt">) => void;
   onUpdate: (id: string, updates: Partial<Campaign>) => void;
   onDelete: (id: string) => void;

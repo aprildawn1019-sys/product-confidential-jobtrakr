@@ -90,3 +90,13 @@ export interface ContactCampaign {
   campaignId: string;
   createdAt: string;
 }
+
+export interface RecommendationRequest {
+  id: string;
+  contactId: string;
+  requestedAt: string;
+  receivedAt?: string;
+  notes?: string;
+  status: "pending" | "received" | "declined";
+  createdAt: string;
+}
