@@ -411,7 +411,10 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
             <GatedBoardScrape onAddJob={onAddJob} />
           )}
 
-          {results.map((result, i) => {
+          {results.filter(r => {
+            const q = resultFilter.toLowerCase();
+            return !q || r.title.toLowerCase().includes(q) || r.company.toLowerCase().includes(q) || r.location.toLowerCase().includes(q);
+          }).map((result, i) => {
             const key = `${result.company}-${result.title}`;
             const added = addedJobs.has(key);
             const tracked = isAlreadyTracked(result);
