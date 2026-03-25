@@ -32,7 +32,7 @@ interface JobsProps {
 }
 
 export default function Jobs({
-  jobs, contacts, interviews, onAdd, onUpdateStatus, onUpdateJob, onDelete,
+  jobs, contacts, interviews, onAdd, onAddBulk, onUpdateStatus, onUpdateJob, onDelete,
   onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
   onAddInterview, onUpdateInterview, onDeleteInterview,
 }: JobsProps) {
