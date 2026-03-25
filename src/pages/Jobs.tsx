@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users } from "lucide-react";
+import FitScoreStars from "@/components/FitScoreStars";
+import UrgencyBadge from "@/components/UrgencyBadge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
