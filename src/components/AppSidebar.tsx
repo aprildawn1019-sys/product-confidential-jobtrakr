@@ -1,8 +1,10 @@
-import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, LucideIcon } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { useState } from "react";
+import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, LucideIcon } from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type LinkItem = { to: string; icon: LucideIcon; label: string };
 
@@ -36,15 +38,32 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
 ];
 
 export default function AppSidebar() {
+  const location = useLocation();
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
 
+  // Determine which groups should default open based on active route
+  const initialOpen = groups.reduce<Record<string, boolean>>((acc, group) => {
+    acc[group.label] = group.items.some((item) => location.pathname === item.to);
+    return acc;
+  }, {});
+
+  // Default all groups to open if no group matches (e.g. on dashboard)
+  const anyActive = Object.values(initialOpen).some(Boolean);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
+    anyActive ? initialOpen : groups.reduce((acc, g) => ({ ...acc, [g.label]: true }), {} as Record<string, boolean>)
+  );
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
+
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
       isActive
-        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+        ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
         : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
     );
 
@@ -57,26 +76,57 @@ export default function AppSidebar() {
         <span className="font-display text-lg font-bold tracking-tight">JobTrackr</span>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         <NavLink to="/" end className={navLinkClass}>
           <LayoutDashboard className="h-4 w-4" />
           Dashboard
         </NavLink>
 
-        {groups.map((group) => (
-          <div key={group.label}>
-            <div className="flex items-center gap-2 px-3 pt-5 pb-1 text-xs font-semibold uppercase tracking-wider text-sidebar-muted">
-              <group.icon className="h-3.5 w-3.5" />
-              {group.label}
-            </div>
-            {group.items.map(({ to, icon: Icon, label }) => (
-              <NavLink key={to} to={to} className={navLinkClass}>
-                <Icon className="h-4 w-4" />
-                {label}
-              </NavLink>
-            ))}
-          </div>
-        ))}
+        {groups.map((group) => {
+          const GroupIcon = group.icon;
+          const isOpen = openGroups[group.label] ?? true;
+          const hasActiveChild = group.items.some((item) => location.pathname === item.to);
+
+          return (
+            <Collapsible
+              key={group.label}
+              open={isOpen}
+              onOpenChange={() => toggleGroup(group.label)}
+            >
+              <CollapsibleTrigger className="w-full">
+                <div
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg px-3 py-2 mt-3 cursor-pointer select-none transition-colors",
+                    "hover:bg-sidebar-accent/30",
+                    hasActiveChild
+                      ? "text-sidebar-foreground"
+                      : "text-sidebar-muted"
+                  )}
+                >
+                  <GroupIcon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1 text-left text-xs font-semibold uppercase tracking-wider">
+                    {group.label}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
+                      isOpen ? "rotate-0" : "-rotate-90"
+                    )}
+                  />
+                </div>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent className="space-y-0.5 pt-0.5">
+                {group.items.map(({ to, icon: Icon, label }) => (
+                  <NavLink key={to} to={to} className={navLinkClass}>
+                    <Icon className="h-4 w-4 ml-1" />
+                    {label}
+                  </NavLink>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
       </nav>
 
       <div className="border-t border-sidebar-border p-4">
