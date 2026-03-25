@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Upload, AlertTriangle, Trash2, FileSpreadsheet, CheckCircle2 } from "lucide-react";
+import { Upload, AlertTriangle, Trash2, FileSpreadsheet, CheckCircle2, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import * as XLSX from "xlsx";
+import { supabase } from "@/integrations/supabase/client";
 import type { Job } from "@/types/jobTracker";
 
 interface BulkJobUploadDialogProps {
@@ -66,19 +67,75 @@ function normalizeHeaders(headers: string[]): Record<string, number> {
   return map;
 }
 
+async function aiMapColumns(headers: string[], sampleRows: string[][]): Promise<Record<string, number>> {
+  const { data, error } = await supabase.functions.invoke("map-bulk-columns", {
+    body: { headers, sampleRows },
+  });
+  if (error) throw error;
+  // data is the mapping object { company: 0, title: 2, ... }
+  const mapping: Record<string, number> = {};
+  for (const [field, idx] of Object.entries(data)) {
+    if (typeof idx === "number" && idx >= 0 && idx < headers.length) {
+      mapping[field] = idx;
+    }
+  }
+  return mapping;
+}
+
 export default function BulkJobUploadDialog({ onAddJobs, existingJobs }: BulkJobUploadDialogProps) {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [fileName, setFileName] = useState("");
+  const [isParsing, setIsParsing] = useState(false);
+  const [usedAi, setUsedAi] = useState(false);
 
   const existingKeys = useMemo(() => {
     return new Set(existingJobs.map(j => `${j.company.toLowerCase().trim()}|${j.title.toLowerCase().trim()}`));
   }, [existingJobs]);
 
+  const buildRows = useCallback((jsonData: string[][], colMap: Record<string, number>) => {
+    const parsed: ParsedRow[] = jsonData.slice(1)
+      .filter(row => row.some(cell => String(cell).trim()))
+      .map(row => {
+        const get = (field: string) => field in colMap ? String(row[colMap[field]] || "").trim() : "";
+        const company = get("company");
+        const title = get("title");
+        const key = `${company.toLowerCase()}|${title.toLowerCase()}`;
+        return {
+          company,
+          title,
+          location: get("location"),
+          type: normalizeType(get("type")),
+          salary: get("salary") || undefined,
+          url: get("url") || undefined,
+          status: normalizeStatus(get("status")),
+          notes: get("notes") || undefined,
+          description: get("description") || undefined,
+          isDuplicate: existingKeys.has(key),
+          selected: !existingKeys.has(key),
+        };
+      })
+      .filter(r => r.company && r.title);
+
+    const seen = new Set<string>();
+    parsed.forEach(r => {
+      const key = `${r.company.toLowerCase()}|${r.title.toLowerCase()}`;
+      if (seen.has(key) && !r.isDuplicate) {
+        r.isDuplicate = true;
+        r.selected = false;
+      }
+      seen.add(key);
+    });
+
+    return parsed;
+  }, [existingKeys]);
+
   const handleFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setFileName(file.name);
+    setIsParsing(true);
+    setUsedAi(false);
 
     try {
       const data = await file.arrayBuffer();
@@ -88,62 +145,71 @@ export default function BulkJobUploadDialog({ onAddJobs, existingJobs }: BulkJob
 
       if (jsonData.length < 2) {
         toast({ title: "Empty file", description: "No data rows found.", variant: "destructive" });
+        setIsParsing(false);
         return;
       }
 
       const headers = jsonData[0].map(String);
-      const colMap = normalizeHeaders(headers);
+      let colMap = normalizeHeaders(headers);
 
-      if (!("company" in colMap) || !("title" in colMap)) {
-        toast({
-          title: "Missing required columns",
-          description: "File must have at least 'Company' and 'Title' columns.",
-          variant: "destructive",
-        });
-        return;
+      // If static mapping missed required columns, use AI
+      const needsAi = !("company" in colMap) || !("title" in colMap);
+      if (needsAi) {
+        try {
+          const sampleRows = jsonData.slice(1, 4).map(r => r.map(String));
+          colMap = await aiMapColumns(headers, sampleRows);
+          setUsedAi(true);
+
+          if (!("company" in colMap) || !("title" in colMap)) {
+            toast({
+              title: "Could not identify required columns",
+              description: "AI couldn't find Company and Title columns. Please check your file.",
+              variant: "destructive",
+            });
+            setIsParsing(false);
+            return;
+          }
+        } catch (err: any) {
+          toast({
+            title: "AI mapping failed",
+            description: err.message || "Could not auto-detect columns. Ensure 'Company' and 'Title' headers exist.",
+            variant: "destructive",
+          });
+          setIsParsing(false);
+          return;
+        }
+      } else {
+        // Even if we matched required fields, try AI for better optional field coverage
+        const staticFieldCount = Object.keys(colMap).length;
+        if (staticFieldCount < headers.length && staticFieldCount < 5) {
+          try {
+            const sampleRows = jsonData.slice(1, 4).map(r => r.map(String));
+            const aiMap = await aiMapColumns(headers, sampleRows);
+            // Merge: keep static matches, add AI-discovered optional fields
+            for (const [field, idx] of Object.entries(aiMap)) {
+              if (!(field in colMap)) {
+                colMap[field] = idx;
+              }
+            }
+            if (Object.keys(aiMap).length > staticFieldCount) setUsedAi(true);
+          } catch {
+            // AI enhancement failed, proceed with static mapping
+          }
+        }
       }
 
-      const parsed: ParsedRow[] = jsonData.slice(1)
-        .filter(row => row.some(cell => String(cell).trim()))
-        .map(row => {
-          const get = (field: string) => field in colMap ? String(row[colMap[field]] || "").trim() : "";
-          const company = get("company");
-          const title = get("title");
-          const key = `${company.toLowerCase()}|${title.toLowerCase()}`;
-          return {
-            company,
-            title,
-            location: get("location"),
-            type: normalizeType(get("type")),
-            salary: get("salary") || undefined,
-            url: get("url") || undefined,
-            status: normalizeStatus(get("status")),
-            notes: get("notes") || undefined,
-            description: get("description") || undefined,
-            isDuplicate: existingKeys.has(key),
-            selected: !existingKeys.has(key),
-          };
-        })
-        .filter(r => r.company && r.title);
-
-      // Also check for in-file duplicates
-      const seen = new Set<string>();
-      parsed.forEach(r => {
-        const key = `${r.company.toLowerCase()}|${r.title.toLowerCase()}`;
-        if (seen.has(key) && !r.isDuplicate) {
-          r.isDuplicate = true;
-          r.selected = false;
-        }
-        seen.add(key);
-      });
-
+      const parsed = buildRows(jsonData, colMap);
       setRows(parsed);
-      toast({ title: `Parsed ${parsed.length} rows`, description: `${parsed.filter(r => r.isDuplicate).length} duplicates found.` });
+      toast({
+        title: `Parsed ${parsed.length} rows`,
+        description: `${parsed.filter(r => r.isDuplicate).length} duplicates found.${usedAi ? " AI-assisted column mapping used." : ""}`,
+      });
     } catch (err: any) {
       toast({ title: "Parse error", description: err.message || "Could not parse file.", variant: "destructive" });
     }
+    setIsParsing(false);
     e.target.value = "";
-  }, [existingKeys]);
+  }, [existingKeys, buildRows]);
 
   const toggleRow = (index: number) => {
     setRows(prev => prev.map((r, i) => i === index ? { ...r, selected: !r.selected } : r));
@@ -177,7 +243,7 @@ export default function BulkJobUploadDialog({ onAddJobs, existingJobs }: BulkJob
   const selectedCount = rows.filter(r => r.selected).length;
 
   return (
-    <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) { setRows([]); setFileName(""); } }}>
+    <Dialog open={open} onOpenChange={o => { setOpen(o); if (!o) { setRows([]); setFileName(""); setUsedAi(false); } }}>
       <DialogTrigger asChild>
         <Button variant="outline"><Upload className="h-4 w-4 mr-1" />Bulk Upload</Button>
       </DialogTrigger>
@@ -188,16 +254,21 @@ export default function BulkJobUploadDialog({ onAddJobs, existingJobs }: BulkJob
           </DialogTitle>
         </DialogHeader>
 
-        {rows.length === 0 ? (
+        {isParsing ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Parsing file & mapping columns with AI…</p>
+          </div>
+        ) : rows.length === 0 ? (
           <div className="space-y-4">
             <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
               <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
               <p className="font-medium">Upload CSV or XLSX file</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Required columns: <strong>Company</strong>, <strong>Title</strong>
+                AI will automatically map your columns — no specific headers needed
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Optional: Location, Type, Salary, URL, Status, Notes, Description
+              <p className="text-xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
+                <Sparkles className="h-3 w-3" />Powered by AI column detection
               </p>
               <label className="mt-4 inline-block">
                 <input type="file" accept=".csv,.xlsx,.xls" onChange={handleFile} className="hidden" />
@@ -207,16 +278,20 @@ export default function BulkJobUploadDialog({ onAddJobs, existingJobs }: BulkJob
               </label>
             </div>
             <div className="rounded-lg border border-border bg-muted/30 p-4">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">Expected CSV format:</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">Any format works — AI maps columns automatically. Example:</p>
               <code className="text-xs text-muted-foreground block whitespace-pre">Company,Title,Location,Type,Salary,URL,Status,Notes{"\n"}Acme Inc,Software Engineer,Remote,remote,$150k,https://...,saved,Great fit</code>
             </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col min-h-0 space-y-3">
-            {/* Summary bar */}
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">{rows.length} rows from {fileName}</span>
+                {usedAi && (
+                  <Badge variant="secondary" className="text-xs gap-1">
+                    <Sparkles className="h-3 w-3" />AI-mapped
+                  </Badge>
+                )}
                 {duplicateCount > 0 && (
                   <Badge variant="outline" className="text-xs gap-1 border-warning/50 text-warning bg-warning/10">
                     <AlertTriangle className="h-3 w-3" />{duplicateCount} duplicate{duplicateCount > 1 ? "s" : ""}
@@ -234,7 +309,6 @@ export default function BulkJobUploadDialog({ onAddJobs, existingJobs }: BulkJob
               </div>
             </div>
 
-            {/* Table */}
             <ScrollArea className="flex-1 border border-border rounded-lg">
               <div className="min-w-[600px]">
                 <div className="grid grid-cols-[32px_1fr_1fr_100px_80px_70px] gap-2 px-3 py-2 bg-muted/50 text-xs font-semibold text-muted-foreground border-b border-border sticky top-0">
@@ -266,9 +340,8 @@ export default function BulkJobUploadDialog({ onAddJobs, existingJobs }: BulkJob
               </div>
             </ScrollArea>
 
-            {/* Import button */}
             <div className="flex items-center justify-between pt-2">
-              <Button variant="ghost" size="sm" onClick={() => { setRows([]); setFileName(""); }}>
+              <Button variant="ghost" size="sm" onClick={() => { setRows([]); setFileName(""); setUsedAi(false); }}>
                 Upload Different File
               </Button>
               <Button onClick={handleImport} disabled={selectedCount === 0}>
