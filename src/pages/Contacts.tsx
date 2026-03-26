@@ -655,6 +655,17 @@ export default function Contacts({
         </div>
       )}
 
+      {/* Job filter banner */}
+      {jobIdFilter && jobFilterLabel && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-sm">
+          <Briefcase className="h-4 w-4 text-primary shrink-0" />
+          <span>Showing contacts linked to <strong>{jobFilterLabel}</strong></span>
+          <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={() => setSearchParams({})}>
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
+
       {/* Search & Filters */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
