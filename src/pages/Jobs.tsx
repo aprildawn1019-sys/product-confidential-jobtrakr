@@ -381,9 +381,37 @@ export default function Jobs({
                               </Badge>
                             )}
                             {hasNetwork && (
-                              <Badge variant="outline" className="text-xs gap-1">
-                                <Users className="h-3 w-3" />{linkedContacts.length + networkMatches.length}
-                              </Badge>
+                              <HoverCard>
+                                <HoverCardTrigger asChild>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs gap-1 cursor-pointer hover:bg-accent transition-colors"
+                                    onClick={(e) => { e.stopPropagation(); navigate(`/contacts?jobId=${job.id}`); }}
+                                  >
+                                    <Users className="h-3 w-3" />{linkedContacts.length + networkMatches.length}
+                                  </Badge>
+                                </HoverCardTrigger>
+                                <HoverCardContent className="w-56 p-3" align="start">
+                                  <p className="text-xs font-semibold text-muted-foreground mb-2">Linked Contacts</p>
+                                  <div className="space-y-1.5">
+                                    {linkedContacts.map(c => (
+                                      <div key={c.id} className="flex items-center gap-2 text-sm">
+                                        <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                        <span className="truncate">{c.name}</span>
+                                        <span className="text-xs text-muted-foreground truncate ml-auto">{c.company}</span>
+                                      </div>
+                                    ))}
+                                    {networkMatches.map(c => (
+                                      <div key={c.id} className="flex items-center gap-2 text-sm opacity-70">
+                                        <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                        <span className="truncate">{c.name}</span>
+                                        <span className="text-xs text-muted-foreground truncate ml-auto">{c.company}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <p className="text-[10px] text-muted-foreground mt-2">Click to view in Contacts</p>
+                                </HoverCardContent>
+                              </HoverCard>
                             )}
                           </div>
                           <div className="flex items-center gap-2 mt-1">
