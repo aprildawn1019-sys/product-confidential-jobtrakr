@@ -21,6 +21,14 @@ export interface Job {
   posterRole?: string;
   fitScore?: number;
   urgency?: string;
+  source?: string;
+}
+
+export interface SkillsSnapshot {
+  id: string;
+  jobId?: string;
+  skills: string[];
+  capturedAt: string;
 }
 
 export interface Contact {
