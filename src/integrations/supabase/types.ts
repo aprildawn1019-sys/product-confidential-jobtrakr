@@ -515,6 +515,38 @@ export type Database = {
         }
         Relationships: []
       }
+      job_skills_snapshots: {
+        Row: {
+          captured_at: string
+          id: string
+          job_id: string | null
+          skills: string[]
+          user_id: string
+        }
+        Insert: {
+          captured_at?: string
+          id?: string
+          job_id?: string | null
+          skills?: string[]
+          user_id: string
+        }
+        Update: {
+          captured_at?: string
+          id?: string
+          job_id?: string | null
+          skills?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_skills_snapshots_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           applied_date: string | null
@@ -531,6 +563,7 @@ export type Database = {
           poster_phone: string | null
           poster_role: string | null
           salary: string | null
+          source: string
           status: string
           status_updated_at: string | null
           title: string
@@ -554,6 +587,7 @@ export type Database = {
           poster_phone?: string | null
           poster_role?: string | null
           salary?: string | null
+          source?: string
           status?: string
           status_updated_at?: string | null
           title: string
@@ -577,6 +611,7 @@ export type Database = {
           poster_phone?: string | null
           poster_role?: string | null
           salary?: string | null
+          source?: string
           status?: string
           status_updated_at?: string | null
           title?: string
