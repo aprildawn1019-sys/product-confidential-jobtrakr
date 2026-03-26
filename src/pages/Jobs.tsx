@@ -198,6 +198,7 @@ export default function Jobs({
       toast({ title: "Error", description: e.message || "Failed to fetch AI PM roles", variant: "destructive" });
     } finally {
       setFeedLoading(false);
+      setFeedProgress({ step: 0, label: "" });
     }
   };
 
