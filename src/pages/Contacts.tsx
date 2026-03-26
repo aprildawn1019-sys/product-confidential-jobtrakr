@@ -187,9 +187,9 @@ export default function Contacts({
           return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
       }
     });
-  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns, sortBy]);
+  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns, sortBy, jobIdFilter, getJobsForContact]);
 
-  const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all" || campaignFilter !== "all";
+  const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all" || campaignFilter !== "all" || !!jobIdFilter;
 
   const renderCampaignBadges = (contactId: string) => {
     const cmpgns = getCampaignsForContact(contactId);
