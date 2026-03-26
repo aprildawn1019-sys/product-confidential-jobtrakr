@@ -700,7 +700,7 @@ export default function Contacts({
           </SelectContent>
         </Select>
         {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setWarmthFilter("all"); setFollowUpFilter("all"); setCampaignFilter("all"); }}>
+          <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setWarmthFilter("all"); setFollowUpFilter("all"); setCampaignFilter("all"); if (jobIdFilter) setSearchParams({}); }}>
             <X className="h-4 w-4 mr-1" />Clear
           </Button>
         )}
