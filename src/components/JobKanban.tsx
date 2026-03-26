@@ -41,6 +41,7 @@ export default function JobKanban({
   onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
   onAddInterview, onUpdateInterview, onDeleteInterview,
 }: JobKanbanProps) {
+  const navigate = useNavigate();
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
 
   const handleDragStart = (e: React.DragEvent, jobId: string) => {
