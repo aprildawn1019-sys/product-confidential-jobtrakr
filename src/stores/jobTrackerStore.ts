@@ -13,6 +13,7 @@ function mapJob(row: any): Job {
     posterName: row.poster_name ?? undefined, posterEmail: row.poster_email ?? undefined,
     posterPhone: row.poster_phone ?? undefined, posterRole: row.poster_role ?? undefined,
     fitScore: row.fit_score ?? undefined, urgency: row.urgency ?? undefined,
+    source: row.source ?? "manual",
   };
 }
 
