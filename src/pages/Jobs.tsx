@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database } from "lucide-react";
+import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert } from "lucide-react";
 import FitScoreStars from "@/components/FitScoreStars";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,7 @@ export default function Jobs({
   const [feedInitialLoading, setFeedInitialLoading] = useState(true);
   const [feedProgress, setFeedProgress] = useState({ step: 0, label: "" });
   const [addingFeedJob, setAddingFeedJob] = useState<string | null>(null);
+  const [rateLimited, setRateLimited] = useState(false);
   const { toast } = useToast();
 
   // Load persisted feed on mount
@@ -131,9 +132,14 @@ export default function Jobs({
 
       if (error) throw error;
       if (data?.error) {
+        if (data.error.includes("Rate limit")) {
+          setRateLimited(true);
+          return;
+        }
         toast({ title: "Error", description: data.error, variant: "destructive" });
         return;
       }
+      setRateLimited(false);
 
       const newJobs: any[] = data?.jobs || [];
       if (!newJobs.length) {
@@ -463,7 +469,18 @@ export default function Jobs({
               </div>
             )}
 
-            {feedResults.length === 0 && !feedLoading && !feedInitialLoading && (
+            {rateLimited && !feedLoading && (
+              <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed border-destructive/30 rounded-xl bg-destructive/5">
+                <ShieldAlert className="h-10 w-10 mb-4 text-destructive/60" />
+                <p className="font-semibold text-destructive">Rate limit reached</p>
+                <p className="text-sm text-muted-foreground mt-1 max-w-md">
+                  You've reached the maximum of 3 searches per hour. Please wait a bit and try again later.
+                </p>
+                <p className="text-xs text-muted-foreground mt-3">Your previously saved results are still shown below.</p>
+              </div>
+            )}
+
+            {feedResults.length === 0 && !feedLoading && !feedInitialLoading && !rateLimited && (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
                 <Sparkles className="h-10 w-10 mb-4 opacity-40" />
                 <p className="font-medium">AI PM Role Feed</p>
