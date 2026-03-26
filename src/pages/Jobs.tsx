@@ -105,15 +105,30 @@ export default function Jobs({
 
   const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all";
 
+  const feedSteps = [
+    { label: "Searching job boards…", icon: SearchCheck },
+    { label: "Analyzing results with AI…", icon: BrainCircuit },
+    { label: "Saving to your feed…", icon: Database },
+  ];
+
   const handleFetchAIPMFeed = async () => {
     setFeedLoading(true);
+    setFeedProgress({ step: 1, label: feedSteps[0].label });
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Step 1 → 2 transition after a delay (the edge function does search + AI in one call)
+      const progressTimer = setTimeout(() => {
+        setFeedProgress({ step: 2, label: feedSteps[1].label });
+      }, 15000);
+
       const { data, error } = await supabase.functions.invoke("ai-pm-role-feed", {
         body: { keywords: [], locations: [] },
       });
+      clearTimeout(progressTimer);
+      setFeedProgress({ step: 3, label: feedSteps[2].label });
+
       if (error) throw error;
       if (data?.error) {
         toast({ title: "Error", description: data.error, variant: "destructive" });
