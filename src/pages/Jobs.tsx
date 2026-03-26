@@ -421,11 +421,18 @@ export default function Jobs({
               </Button>
             </div>
 
-            {feedResults.length === 0 && !feedLoading && (
+            {feedResults.length === 0 && !feedLoading && !feedInitialLoading && (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
                 <Sparkles className="h-10 w-10 mb-4 opacity-40" />
                 <p className="font-medium">AI PM Role Feed</p>
                 <p className="text-sm">Click "Search AI PM Roles" to discover AI Product Management positions</p>
+              </div>
+            )}
+
+            {feedInitialLoading && (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <Loader2 className="h-8 w-8 animate-spin mb-4 opacity-40" />
+                <p className="text-sm">Loading saved feed…</p>
               </div>
             )}
 
