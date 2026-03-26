@@ -51,6 +51,7 @@ export default function Jobs({
   const [feedInitialLoading, setFeedInitialLoading] = useState(true);
   const [feedProgress, setFeedProgress] = useState({ step: 0, label: "" });
   const [addingFeedJob, setAddingFeedJob] = useState<string | null>(null);
+  const [rateLimited, setRateLimited] = useState(false);
   const { toast } = useToast();
 
   // Load persisted feed on mount
