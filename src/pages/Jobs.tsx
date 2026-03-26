@@ -49,6 +49,7 @@ export default function Jobs({
   const [feedResults, setFeedResults] = useState<any[]>([]);
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedInitialLoading, setFeedInitialLoading] = useState(true);
+  const [feedProgress, setFeedProgress] = useState({ step: 0, label: "" });
   const [addingFeedJob, setAddingFeedJob] = useState<string | null>(null);
   const { toast } = useToast();
 
