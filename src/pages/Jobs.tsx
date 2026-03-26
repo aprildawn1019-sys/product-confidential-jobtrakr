@@ -438,6 +438,31 @@ export default function Jobs({
               </Button>
             </div>
 
+            {feedLoading && (
+              <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span className="text-sm font-medium">{feedProgress.label}</span>
+                </div>
+                <div className="flex gap-1">
+                  {feedSteps.map((step, i) => {
+                    const StepIcon = step.icon;
+                    const isActive = feedProgress.step === i + 1;
+                    const isDone = feedProgress.step > i + 1;
+                    return (
+                      <div key={i} className="flex-1 space-y-1.5">
+                        <div className={`h-1.5 rounded-full transition-all duration-500 ${isDone ? "bg-primary" : isActive ? "bg-primary/60 animate-pulse" : "bg-muted"}`} />
+                        <div className="flex items-center gap-1.5">
+                          <StepIcon className={`h-3.5 w-3.5 ${isDone ? "text-primary" : isActive ? "text-primary/70" : "text-muted-foreground/40"}`} />
+                          <span className={`text-xs ${isDone ? "text-primary" : isActive ? "text-foreground" : "text-muted-foreground/40"}`}>{step.label.replace("…", "")}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {feedResults.length === 0 && !feedLoading && !feedInitialLoading && (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
                 <Sparkles className="h-10 w-10 mb-4 opacity-40" />
