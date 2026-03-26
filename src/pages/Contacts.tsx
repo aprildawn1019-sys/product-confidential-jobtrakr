@@ -118,6 +118,8 @@ export default function Contacts({
   recommendationRequests, onAddRecommendationRequest, onUpdateRecommendationRequest, onDeleteRecommendationRequest, getRecommendationRequestsForContact,
 }: ContactsProps) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const jobIdFilter = searchParams.get("jobId");
   const [expandedContact, setExpandedContact] = useState<string | null>(null);
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
@@ -130,6 +132,12 @@ export default function Contacts({
   const [showCampaigns, setShowCampaigns] = useState(false);
   const [recRequestContact, setRecRequestContact] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"first" | "last" | "company" | "recent">("first");
+
+  const jobFilterLabel = useMemo(() => {
+    if (!jobIdFilter) return null;
+    const job = jobs.find(j => j.id === jobIdFilter);
+    return job ? `${job.title} at ${job.company}` : null;
+  }, [jobIdFilter, jobs]);
 
   const handleSaveConversation = (contactId: string) => {
     onUpdate(contactId, { conversationLog: conversationDraft });
