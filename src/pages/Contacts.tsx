@@ -146,6 +146,11 @@ export default function Contacts({
 
   const filteredContacts = useMemo(() => {
     const filtered = contacts.filter(c => {
+      // Job-linked filter
+      if (jobIdFilter) {
+        const linkedJobs = getJobsForContact(c.id);
+        if (!linkedJobs.some(j => j.id === jobIdFilter)) return false;
+      }
       const q = searchQuery.toLowerCase();
       if (q && !c.name.toLowerCase().includes(q) && !c.company.toLowerCase().includes(q) && !(c.role || "").toLowerCase().includes(q)) return false;
       if (warmthFilter !== "all" && (c.relationshipWarmth || "none") !== warmthFilter) return false;
