@@ -301,11 +301,11 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
                   value={[searchParams.resultCount]}
                   onValueChange={([v]) => setSearchParams(p => ({ ...p, resultCount: v }))}
                   min={4}
-                  max={20}
+                  max={50}
                   step={2}
                   className="flex-1"
                 />
-                <span className="text-sm font-mono text-muted-foreground w-6 text-right">{searchParams.resultCount}</span>
+                <span className="text-sm font-mono text-muted-foreground w-8 text-right">{searchParams.resultCount}</span>
               </div>
             </div>
 
