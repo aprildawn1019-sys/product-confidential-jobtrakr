@@ -201,19 +201,19 @@ export default function Contacts({
     const contactCampaignIds = contactCampaigns.filter(cc => cc.contactId === contact.id).map(cc => cc.campaignId);
 
     return (
-      <div key={contact.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
-        <div className="p-5">
+      <div key={contact.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md flex flex-col">
+        <div className="p-5 flex flex-col flex-1">
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-display font-bold text-primary-foreground text-sm">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-display font-bold text-primary-foreground text-sm shrink-0">
                 {contact.name.split(" ").map(n => n[0]).join("")}
               </div>
-              <div>
-                <h3 className="font-semibold">{contact.name}</h3>
-                <p className="text-sm text-muted-foreground">{contact.role}</p>
+              <div className="min-w-0">
+                <h3 className="font-semibold truncate">{contact.name}</h3>
+                <p className="text-sm text-muted-foreground truncate">{contact.role}</p>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setExpandedContact(isExpanded ? null : contact.id)}>
                 {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </Button>
@@ -222,10 +222,10 @@ export default function Contacts({
               </Button>
             </div>
           </div>
-          <button onClick={() => navigate("/network")} className="mt-3 text-sm font-medium text-foreground hover:text-primary flex items-center gap-1 transition-colors">
-            <Building2 className="h-3.5 w-3.5" />{contact.company}<ExternalLink className="h-3 w-3 opacity-50" />
+          <button onClick={() => navigate("/network")} className="mt-3 text-sm font-medium text-foreground hover:text-primary flex items-center gap-1 transition-colors truncate">
+            <Building2 className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{contact.company}</span><ExternalLink className="h-3 w-3 opacity-50 shrink-0" />
           </button>
-          <div className="mt-2 flex flex-wrap gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-1.5 min-h-[1.5rem]">
             <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
             <FollowUpIndicator date={contact.followUpDate} />
             {renderCampaignBadges(contact.id)}
@@ -234,11 +234,11 @@ export default function Contacts({
             {connections.length > 0 && <Badge variant="outline" className="text-xs gap-1"><Link2 className="h-3 w-3" />{connections.length} connection{connections.length > 1 ? "s" : ""}</Badge>}
             {(() => { const recs = getRecommendationRequestsForContact(contact.id); const pending = recs.filter(r => r.status === "pending").length; return pending > 0 ? <Badge variant="warning" className="text-xs gap-1"><Star className="h-3 w-3" />{pending} rec pending</Badge> : recs.some(r => r.status === "received") ? <Badge variant="success" className="text-xs gap-1"><Check className="h-3 w-3" />Rec received</Badge> : null; })()}
           </div>
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-auto pt-3 flex items-center gap-2">
             {contact.email && <Button variant="outline" size="sm" asChild><a href={`mailto:${contact.email}`}><Mail className="h-3.5 w-3.5 mr-1" />Email</a></Button>}
             {contact.linkedin && <Button variant="outline" size="sm" asChild><a href={`https://${contact.linkedin}`} target="_blank" rel="noopener noreferrer"><Linkedin className="h-3.5 w-3.5 mr-1" />LinkedIn</a></Button>}
           </div>
-          {contact.lastContactedAt && <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />Last contacted: {contact.lastContactedAt}</p>}
+          {contact.lastContactedAt && <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />Last contacted: {contact.lastContactedAt}</p>}
         </div>
         {isExpanded && renderExpandedSection(contact, connections, sameOrgContacts, connectedIds, availableToConnect, activities, linkedJobs, availableJobs, contactCampaignIds)}
       </div>
