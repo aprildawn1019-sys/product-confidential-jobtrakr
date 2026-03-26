@@ -71,6 +71,51 @@ export default function Jobs({
 
   const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all";
 
+  const handleFetchAIPMFeed = async () => {
+    setFeedLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-pm-role-feed", {
+        body: { keywords: [], locations: [] },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        toast({ title: "Error", description: data.error, variant: "destructive" });
+      } else {
+        setFeedResults(data?.jobs || []);
+        if (!data?.jobs?.length) {
+          toast({ title: "No results", description: "No AI PM roles found. Try again later." });
+        }
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to fetch AI PM roles", variant: "destructive" });
+    } finally {
+      setFeedLoading(false);
+    }
+  };
+
+  const handleAddFeedJob = async (feedJob: any) => {
+    setAddingFeedJob(feedJob.url || feedJob.title);
+    try {
+      await onAdd({
+        company: feedJob.company || "Unknown",
+        title: feedJob.title,
+        location: feedJob.location || "",
+        type: feedJob.type || "remote",
+        salary: feedJob.salary || undefined,
+        url: feedJob.url || undefined,
+        status: "saved",
+        description: feedJob.description || undefined,
+        source: "ai-feed",
+      });
+      toast({ title: "Added!", description: `${feedJob.title} at ${feedJob.company} added to tracker` });
+      setFeedResults(prev => prev.filter(j => j !== feedJob));
+    } catch {
+      toast({ title: "Error", description: "Failed to add job", variant: "destructive" });
+    } finally {
+      setAddingFeedJob(null);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
