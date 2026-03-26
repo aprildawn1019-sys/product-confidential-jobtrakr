@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2 } from "lucide-react";
+import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database } from "lucide-react";
 import FitScoreStars from "@/components/FitScoreStars";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,7 @@ export default function Jobs({
   const [feedResults, setFeedResults] = useState<any[]>([]);
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedInitialLoading, setFeedInitialLoading] = useState(true);
+  const [feedProgress, setFeedProgress] = useState({ step: 0, label: "" });
   const [addingFeedJob, setAddingFeedJob] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -104,15 +105,30 @@ export default function Jobs({
 
   const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all";
 
+  const feedSteps = [
+    { label: "Searching job boards…", icon: SearchCheck },
+    { label: "Analyzing results with AI…", icon: BrainCircuit },
+    { label: "Saving to your feed…", icon: Database },
+  ];
+
   const handleFetchAIPMFeed = async () => {
     setFeedLoading(true);
+    setFeedProgress({ step: 1, label: feedSteps[0].label });
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Step 1 → 2 transition after a delay (the edge function does search + AI in one call)
+      const progressTimer = setTimeout(() => {
+        setFeedProgress({ step: 2, label: feedSteps[1].label });
+      }, 15000);
+
       const { data, error } = await supabase.functions.invoke("ai-pm-role-feed", {
         body: { keywords: [], locations: [] },
       });
+      clearTimeout(progressTimer);
+      setFeedProgress({ step: 3, label: feedSteps[2].label });
+
       if (error) throw error;
       if (data?.error) {
         toast({ title: "Error", description: data.error, variant: "destructive" });
@@ -182,6 +198,7 @@ export default function Jobs({
       toast({ title: "Error", description: e.message || "Failed to fetch AI PM roles", variant: "destructive" });
     } finally {
       setFeedLoading(false);
+      setFeedProgress({ step: 0, label: "" });
     }
   };
 
@@ -420,6 +437,31 @@ export default function Jobs({
                 {feedLoading ? "Searching..." : "Search AI PM Roles"}
               </Button>
             </div>
+
+            {feedLoading && (
+              <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span className="text-sm font-medium">{feedProgress.label}</span>
+                </div>
+                <div className="flex gap-1">
+                  {feedSteps.map((step, i) => {
+                    const StepIcon = step.icon;
+                    const isActive = feedProgress.step === i + 1;
+                    const isDone = feedProgress.step > i + 1;
+                    return (
+                      <div key={i} className="flex-1 space-y-1.5">
+                        <div className={`h-1.5 rounded-full transition-all duration-500 ${isDone ? "bg-primary" : isActive ? "bg-primary/60 animate-pulse" : "bg-muted"}`} />
+                        <div className="flex items-center gap-1.5">
+                          <StepIcon className={`h-3.5 w-3.5 ${isDone ? "text-primary" : isActive ? "text-primary/70" : "text-muted-foreground/40"}`} />
+                          <span className={`text-xs ${isDone ? "text-primary" : isActive ? "text-foreground" : "text-muted-foreground/40"}`}>{step.label.replace("…", "")}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {feedResults.length === 0 && !feedLoading && !feedInitialLoading && (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
