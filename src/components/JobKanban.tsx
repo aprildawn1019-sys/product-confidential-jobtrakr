@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, ExternalLink, Trash2, GripVertical, Calendar, Clock, User, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import StatusBadge from "@/components/StatusBadge";
 import JobDetailPanel from "@/components/JobDetailPanel";
 import FitScoreStars from "@/components/FitScoreStars";
