@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
 import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -118,6 +118,8 @@ export default function Contacts({
   recommendationRequests, onAddRecommendationRequest, onUpdateRecommendationRequest, onDeleteRecommendationRequest, getRecommendationRequestsForContact,
 }: ContactsProps) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const jobIdFilter = searchParams.get("jobId");
   const [expandedContact, setExpandedContact] = useState<string | null>(null);
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
@@ -131,6 +133,12 @@ export default function Contacts({
   const [recRequestContact, setRecRequestContact] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"first" | "last" | "company" | "recent">("first");
 
+  const jobFilterLabel = useMemo(() => {
+    if (!jobIdFilter) return null;
+    const job = jobs.find(j => j.id === jobIdFilter);
+    return job ? `${job.title} at ${job.company}` : null;
+  }, [jobIdFilter, jobs]);
+
   const handleSaveConversation = (contactId: string) => {
     onUpdate(contactId, { conversationLog: conversationDraft });
     setEditingConversation(null);
@@ -138,6 +146,11 @@ export default function Contacts({
 
   const filteredContacts = useMemo(() => {
     const filtered = contacts.filter(c => {
+      // Job-linked filter
+      if (jobIdFilter) {
+        const linkedJobs = getJobsForContact(c.id);
+        if (!linkedJobs.some(j => j.id === jobIdFilter)) return false;
+      }
       const q = searchQuery.toLowerCase();
       if (q && !c.name.toLowerCase().includes(q) && !c.company.toLowerCase().includes(q) && !(c.role || "").toLowerCase().includes(q)) return false;
       if (warmthFilter !== "all" && (c.relationshipWarmth || "none") !== warmthFilter) return false;
@@ -174,9 +187,9 @@ export default function Contacts({
           return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
       }
     });
-  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns, sortBy]);
+  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns, sortBy, jobIdFilter, getJobsForContact]);
 
-  const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all" || campaignFilter !== "all";
+  const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all" || campaignFilter !== "all" || !!jobIdFilter;
 
   const renderCampaignBadges = (contactId: string) => {
     const cmpgns = getCampaignsForContact(contactId);
@@ -642,6 +655,17 @@ export default function Contacts({
         </div>
       )}
 
+      {/* Job filter banner */}
+      {jobIdFilter && jobFilterLabel && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-sm">
+          <Briefcase className="h-4 w-4 text-primary shrink-0" />
+          <span>Showing contacts linked to <strong>{jobFilterLabel}</strong></span>
+          <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={() => setSearchParams({})}>
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
+
       {/* Search & Filters */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -687,7 +711,7 @@ export default function Contacts({
           </SelectContent>
         </Select>
         {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setWarmthFilter("all"); setFollowUpFilter("all"); setCampaignFilter("all"); }}>
+          <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setWarmthFilter("all"); setFollowUpFilter("all"); setCampaignFilter("all"); if (jobIdFilter) setSearchParams({}); }}>
             <X className="h-4 w-4 mr-1" />Clear
           </Button>
         )}
