@@ -132,9 +132,14 @@ export default function Jobs({
 
       if (error) throw error;
       if (data?.error) {
+        if (data.error.includes("Rate limit")) {
+          setRateLimited(true);
+          return;
+        }
         toast({ title: "Error", description: data.error, variant: "destructive" });
         return;
       }
+      setRateLimited(false);
 
       const newJobs: any[] = data?.jobs || [];
       if (!newJobs.length) {
