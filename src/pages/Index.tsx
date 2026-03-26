@@ -8,6 +8,7 @@ import Recommendations from "@/pages/Recommendations";
 import JobSearch from "@/pages/JobSearch";
 import ProfileEditor from "@/pages/ProfileEditor";
 import JobBoards from "@/pages/JobBoards";
+import SkillsInsights from "@/pages/SkillsInsights";
 
 import InterviewsPage from "@/pages/Interviews";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
