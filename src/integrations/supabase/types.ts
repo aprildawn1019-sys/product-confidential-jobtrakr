@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_feed_jobs: {
+        Row: {
+          company: string
+          created_at: string
+          description: string | null
+          id: string
+          location: string
+          salary: string | null
+          skills: string[]
+          title: string
+          type: string
+          updated_at: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string
+          salary?: string | null
+          skills?: string[]
+          title: string
+          type?: string
+          updated_at?: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string
+          salary?: string | null
+          skills?: string[]
+          title?: string
+          type?: string
+          updated_at?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       campaigns: {
         Row: {
           created_at: string
