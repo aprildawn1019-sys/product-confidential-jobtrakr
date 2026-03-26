@@ -17,6 +17,7 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
       { to: "/job-boards", icon: Globe, label: "Job Boards" },
       { to: "/profile", icon: UserCog, label: "Search Profile" },
       { to: "/recommendations", icon: Sparkles, label: "Recommendations" },
+      { to: "/skills-insights", icon: TrendingUp, label: "Skills Insights" },
     ],
   },
   {

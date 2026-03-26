@@ -130,9 +130,27 @@ export function useJobTrackerStore() {
       contact_id: job.contactId || null, poster_name: job.posterName || null,
       poster_email: job.posterEmail || null, poster_phone: job.posterPhone || null,
       poster_role: job.posterRole || null, fit_score: job.fitScore || null,
-      urgency: job.urgency || null,
+      urgency: job.urgency || null, source: job.source || "manual",
     }).select().single();
-    if (data) setJobs(prev => [mapJob(data), ...prev]);
+    if (data) {
+      const newJob = mapJob(data);
+      setJobs(prev => [newJob, ...prev]);
+      // Auto-extract skills if description is present
+      if (job.description && job.description.length >= 20) {
+        try {
+          const { data: skillsData } = await supabase.functions.invoke("extract-job-skills", {
+            body: { description: job.description },
+          });
+          if (skillsData?.skills?.length) {
+            await supabase.from("job_skills_snapshots").insert({
+              user_id: userId, job_id: newJob.id, skills: skillsData.skills,
+            });
+          }
+        } catch (e) {
+          console.error("Skills extraction failed:", e);
+        }
+      }
+    }
   };
 
   const addJobsBulk = async (jobsList: Omit<Job, "id" | "createdAt">[]) => {
