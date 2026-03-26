@@ -48,8 +48,41 @@ export default function Jobs({
   const [activeTab, setActiveTab] = useState("all");
   const [feedResults, setFeedResults] = useState<any[]>([]);
   const [feedLoading, setFeedLoading] = useState(false);
+  const [feedInitialLoading, setFeedInitialLoading] = useState(true);
   const [addingFeedJob, setAddingFeedJob] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Load persisted feed on mount
+  const loadPersistedFeed = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setFeedInitialLoading(false); return; }
+      const { data, error } = await supabase
+        .from("ai_feed_jobs" as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (!error && data) {
+        setFeedResults((data as any[]).map((r: any) => ({
+          title: r.title,
+          company: r.company,
+          location: r.location,
+          type: r.type,
+          salary: r.salary,
+          url: r.url,
+          description: r.description,
+          skills: r.skills || [],
+          _persistedId: r.id,
+        })));
+      }
+    } catch (e) {
+      console.error("Failed to load persisted feed:", e);
+    } finally {
+      setFeedInitialLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadPersistedFeed(); }, [loadPersistedFeed]);
 
   const toggleExpand = (id: string) => setExpandedJob(prev => prev === id ? null : id);
 
@@ -74,17 +107,76 @@ export default function Jobs({
   const handleFetchAIPMFeed = async () => {
     setFeedLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       const { data, error } = await supabase.functions.invoke("ai-pm-role-feed", {
         body: { keywords: [], locations: [] },
       });
       if (error) throw error;
       if (data?.error) {
         toast({ title: "Error", description: data.error, variant: "destructive" });
+        return;
+      }
+
+      const newJobs: any[] = data?.jobs || [];
+      if (!newJobs.length) {
+        toast({ title: "No results", description: "No AI PM roles found. Try again later." });
+        return;
+      }
+
+      // Build a key for dedup
+      const jobKey = (j: any) => `${(j.title || "").toLowerCase().trim()}|||${(j.company || "").toLowerCase().trim()}`;
+
+      // Already-tracked jobs in main tracker
+      const trackedKeys = new Set(jobs.map(j => jobKey(j)));
+
+      // Filter out already-tracked
+      const candidateJobs = newJobs.filter(j => !trackedKeys.has(jobKey(j)));
+
+      // Merge with existing persisted feed: keep jobs that appear in new results, add new ones, drop stale
+      const newKeySet = new Set(candidateJobs.map(j => jobKey(j)));
+
+      // Delete all existing persisted feed for this user and replace
+      await supabase.from("ai_feed_jobs" as any).delete().eq("user_id", user.id);
+
+      if (candidateJobs.length > 0) {
+        const rows = candidateJobs.map((j: any) => ({
+          user_id: user.id,
+          title: j.title || "Untitled",
+          company: j.company || "Unknown",
+          location: j.location || "",
+          type: j.type || "remote",
+          salary: j.salary || null,
+          url: j.url || null,
+          description: j.description || null,
+          skills: j.skills || [],
+        }));
+
+        const { data: inserted, error: insertErr } = await supabase
+          .from("ai_feed_jobs" as any)
+          .insert(rows)
+          .select();
+
+        if (insertErr) console.error("Failed to persist feed:", insertErr);
+
+        const persistedResults = (inserted as any[] || []).map((r: any) => ({
+          title: r.title,
+          company: r.company,
+          location: r.location,
+          type: r.type,
+          salary: r.salary,
+          url: r.url,
+          description: r.description,
+          skills: r.skills || [],
+          _persistedId: r.id,
+        }));
+
+        setFeedResults(persistedResults);
+        toast({ title: "Feed updated", description: `${persistedResults.length} AI PM roles found` });
       } else {
-        setFeedResults(data?.jobs || []);
-        if (!data?.jobs?.length) {
-          toast({ title: "No results", description: "No AI PM roles found. Try again later." });
-        }
+        setFeedResults([]);
+        toast({ title: "No new results", description: "All found roles are already in your tracker." });
       }
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Failed to fetch AI PM roles", variant: "destructive" });
@@ -108,6 +200,11 @@ export default function Jobs({
         source: "ai-feed",
       });
       toast({ title: "Added!", description: `${feedJob.title} at ${feedJob.company} added to tracker` });
+
+      // Remove from persisted feed
+      if (feedJob._persistedId) {
+        await supabase.from("ai_feed_jobs" as any).delete().eq("id", feedJob._persistedId);
+      }
       setFeedResults(prev => prev.filter(j => j !== feedJob));
     } catch {
       toast({ title: "Error", description: "Failed to add job", variant: "destructive" });
