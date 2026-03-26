@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X } from "lucide-react";
+import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2 } from "lucide-react";
 import FitScoreStars from "@/components/FitScoreStars";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,9 @@ import AddJobDialog from "@/components/AddJobDialog";
 import BulkJobUploadDialog from "@/components/BulkJobUploadDialog";
 import JobKanban from "@/components/JobKanban";
 import JobDetailPanel from "@/components/JobDetailPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import type { Job, Contact, JobStatus, Interview } from "@/types/jobTracker";
 
 interface JobsProps {
