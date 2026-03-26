@@ -102,9 +102,35 @@ export default function JobKanban({
                         <div className="flex items-center gap-1">
                           <h4 className="font-semibold text-sm truncate flex-1">{job.title}</h4>
                           {hasNetwork && (
-                            <Badge variant="outline" className="text-[10px] h-4 px-1 shrink-0">
-                              <Users className="h-2.5 w-2.5" />
-                            </Badge>
+                            <HoverCard>
+                              <HoverCardTrigger asChild>
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] h-4 px-1 shrink-0 cursor-pointer hover:bg-accent transition-colors"
+                                  onClick={(e) => { e.stopPropagation(); navigate(`/contacts?jobId=${job.id}`); }}
+                                >
+                                  <Users className="h-2.5 w-2.5" />
+                                </Badge>
+                              </HoverCardTrigger>
+                              <HoverCardContent className="w-52 p-3" align="start">
+                                <p className="text-xs font-semibold text-muted-foreground mb-2">Linked Contacts</p>
+                                <div className="space-y-1.5">
+                                  {linkedContacts.map(c => (
+                                    <div key={c.id} className="flex items-center gap-2 text-xs">
+                                      <User className="h-3 w-3 text-muted-foreground shrink-0" />
+                                      <span className="truncate">{c.name}</span>
+                                    </div>
+                                  ))}
+                                  {networkMatches.map(c => (
+                                    <div key={c.id} className="flex items-center gap-2 text-xs opacity-70">
+                                      <User className="h-3 w-3 text-muted-foreground shrink-0" />
+                                      <span className="truncate">{c.name}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-2">Click to view in Contacts</p>
+                              </HoverCardContent>
+                            </HoverCard>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{job.company}</p>
