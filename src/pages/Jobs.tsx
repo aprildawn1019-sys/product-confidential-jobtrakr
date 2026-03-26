@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X } from "lucide-react";
+import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2 } from "lucide-react";
 import FitScoreStars from "@/components/FitScoreStars";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,9 @@ import AddJobDialog from "@/components/AddJobDialog";
 import BulkJobUploadDialog from "@/components/BulkJobUploadDialog";
 import JobKanban from "@/components/JobKanban";
 import JobDetailPanel from "@/components/JobDetailPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import type { Job, Contact, JobStatus, Interview } from "@/types/jobTracker";
 
 interface JobsProps {
@@ -42,6 +45,11 @@ export default function Jobs({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState("all");
+  const [feedResults, setFeedResults] = useState<any[]>([]);
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [addingFeedJob, setAddingFeedJob] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const toggleExpand = (id: string) => setExpandedJob(prev => prev === id ? null : id);
 
@@ -62,6 +70,51 @@ export default function Jobs({
   }, [jobs, searchQuery, statusFilter, urgencyFilter, typeFilter]);
 
   const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all";
+
+  const handleFetchAIPMFeed = async () => {
+    setFeedLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-pm-role-feed", {
+        body: { keywords: [], locations: [] },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        toast({ title: "Error", description: data.error, variant: "destructive" });
+      } else {
+        setFeedResults(data?.jobs || []);
+        if (!data?.jobs?.length) {
+          toast({ title: "No results", description: "No AI PM roles found. Try again later." });
+        }
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to fetch AI PM roles", variant: "destructive" });
+    } finally {
+      setFeedLoading(false);
+    }
+  };
+
+  const handleAddFeedJob = async (feedJob: any) => {
+    setAddingFeedJob(feedJob.url || feedJob.title);
+    try {
+      await onAdd({
+        company: feedJob.company || "Unknown",
+        title: feedJob.title,
+        location: feedJob.location || "",
+        type: feedJob.type || "remote",
+        salary: feedJob.salary || undefined,
+        url: feedJob.url || undefined,
+        status: "saved",
+        description: feedJob.description || undefined,
+        source: "ai-feed",
+      });
+      toast({ title: "Added!", description: `${feedJob.title} at ${feedJob.company} added to tracker` });
+      setFeedResults(prev => prev.filter(j => j !== feedJob));
+    } catch {
+      toast({ title: "Error", description: "Failed to add job", variant: "destructive" });
+    } finally {
+      setAddingFeedJob(null);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -84,165 +137,257 @@ export default function Jobs({
         </div>
       </div>
 
-      {/* Search & Filters */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by title, company, location..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="pl-9 h-9"
-          />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn"] as const).map(s => (
-              <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
-          <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Urgency" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Urgency</SelectItem>
-            <SelectItem value="critical">Critical</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-            <SelectItem value="none">Not Set</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-28 h-9"><SelectValue placeholder="Type" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="remote">Remote</SelectItem>
-            <SelectItem value="hybrid">Hybrid</SelectItem>
-            <SelectItem value="onsite">On-site</SelectItem>
-          </SelectContent>
-        </Select>
-        {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setStatusFilter("all"); setUrgencyFilter("all"); setTypeFilter("all"); }}>
-            <X className="h-4 w-4 mr-1" />Clear
-          </Button>
-        )}
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="all">All Jobs</TabsTrigger>
+          <TabsTrigger value="ai-feed" className="gap-1.5">
+            <Sparkles className="h-3.5 w-3.5" />AI PM Feed
+          </TabsTrigger>
+        </TabsList>
 
-      {view === "kanban" ? (
-        <JobKanban
-          jobs={filteredJobs}
-          contacts={contacts}
-          interviews={interviews}
-          onUpdateStatus={onUpdateStatus}
-          onUpdateJob={onUpdateJob}
-          onDelete={onDelete}
-          onLinkContact={onLinkContact}
-          onUnlinkContact={onUnlinkContact}
-          getContactsForJob={getContactsForJob}
-          getNetworkMatchesForJob={getNetworkMatchesForJob}
-          onAddInterview={onAddInterview}
-          onUpdateInterview={onUpdateInterview}
-          onDeleteInterview={onDeleteInterview}
-        />
-      ) : (
-        <div className="space-y-3">
-          {filteredJobs.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
-              <Search className="h-10 w-10 mb-4 opacity-40" />
-              <p className="font-medium">No jobs found</p>
-              <p className="text-sm">{hasFilters ? "Try adjusting your filters" : "Add your first job posting"}</p>
+        <TabsContent value="all">
+          {/* Search & Filters */}
+          <div className="flex flex-wrap items-center gap-2 mt-4">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by title, company, location..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn"] as const).map(s => (
+                  <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
+              <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Urgency" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Urgency</SelectItem>
+                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="none">Not Set</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-28 h-9"><SelectValue placeholder="Type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="remote">Remote</SelectItem>
+                <SelectItem value="hybrid">Hybrid</SelectItem>
+                <SelectItem value="onsite">On-site</SelectItem>
+              </SelectContent>
+            </Select>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setStatusFilter("all"); setUrgencyFilter("all"); setTypeFilter("all"); }}>
+                <X className="h-4 w-4 mr-1" />Clear
+              </Button>
+            )}
+          </div>
+
+          {view === "kanban" ? (
+            <JobKanban
+              jobs={filteredJobs}
+              contacts={contacts}
+              interviews={interviews}
+              onUpdateStatus={onUpdateStatus}
+              onUpdateJob={onUpdateJob}
+              onDelete={onDelete}
+              onLinkContact={onLinkContact}
+              onUnlinkContact={onUnlinkContact}
+              getContactsForJob={getContactsForJob}
+              getNetworkMatchesForJob={getNetworkMatchesForJob}
+              onAddInterview={onAddInterview}
+              onUpdateInterview={onUpdateInterview}
+              onDeleteInterview={onDeleteInterview}
+            />
+          ) : (
+            <div className="space-y-3 mt-4">
+              {filteredJobs.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
+                  <Search className="h-10 w-10 mb-4 opacity-40" />
+                  <p className="font-medium">No jobs found</p>
+                  <p className="text-sm">{hasFilters ? "Try adjusting your filters" : "Add your first job posting"}</p>
+                </div>
+              )}
+              {filteredJobs.map(job => {
+                const isExpanded = expandedJob === job.id;
+                const linkedContacts = getContactsForJob(job.id);
+                const networkMatches = getNetworkMatchesForJob(job);
+                const hasNetwork = linkedContacts.length > 0 || networkMatches.length > 0;
+
+                return (
+                  <div key={job.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
+                    <div className="p-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <h3 className="font-display font-semibold text-lg">{job.title}</h3>
+                            <StatusBadge status={job.status} />
+                            {job.source === "ai-feed" && (
+                              <Badge className="text-xs gap-1 bg-primary/10 text-primary border-primary/20">
+                                <Sparkles className="h-3 w-3" />AI Feed
+                              </Badge>
+                            )}
+                            {hasNetwork && (
+                              <Badge variant="outline" className="text-xs gap-1">
+                                <Users className="h-3 w-3" />{linkedContacts.length + networkMatches.length}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
+                            <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} />
+                          </div>
+                          <p className="text-muted-foreground mt-1">{job.company}</p>
+                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
+                            <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{job.location}</span>
+                            <span className="capitalize">{job.type}</span>
+                            {job.salary && <span>{job.salary}</span>}
+                            {job.appliedDate && (
+                              <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />Applied {formatDate(job.appliedDate)}</span>
+                            )}
+                            {job.statusUpdatedAt && (
+                              <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />Updated {formatDate(job.statusUpdatedAt)}</span>
+                            )}
+                            {job.posterName && (
+                              <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{job.posterName}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Select value={job.status} onValueChange={v => onUpdateStatus(job.id, v as JobStatus)}>
+                            <SelectTrigger className="w-36 h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn"] as const).map(s => (
+                                <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {job.url && (
+                            <Button variant="ghost" size="icon" asChild>
+                              <a href={job.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
+                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => onDelete(job.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <div className="px-5 pb-5">
+                        <JobDetailPanel
+                          job={job}
+                          linkedContacts={linkedContacts}
+                          networkMatches={networkMatches}
+                          allContacts={contacts}
+                          interviews={interviews.filter(i => i.jobId === job.id)}
+                          onUpdateJob={onUpdateJob}
+                          onLinkContact={onLinkContact}
+                          onUnlinkContact={onUnlinkContact}
+                          onAddInterview={onAddInterview}
+                          onUpdateInterview={onUpdateInterview}
+                          onDeleteInterview={onDeleteInterview}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
-          {filteredJobs.map(job => {
-            const isExpanded = expandedJob === job.id;
-            const linkedContacts = getContactsForJob(job.id);
-            const networkMatches = getNetworkMatchesForJob(job);
-            const hasNetwork = linkedContacts.length > 0 || networkMatches.length > 0;
+        </TabsContent>
 
-            return (
-              <div key={job.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <h3 className="font-display font-semibold text-lg">{job.title}</h3>
-                        <StatusBadge status={job.status} />
-                        {hasNetwork && (
-                          <Badge variant="outline" className="text-xs gap-1">
-                            <Users className="h-3 w-3" />{linkedContacts.length + networkMatches.length}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
-                        <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} />
-                      </div>
-                      <p className="text-muted-foreground mt-1">{job.company}</p>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
-                        <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{job.location}</span>
-                        <span className="capitalize">{job.type}</span>
-                        {job.salary && <span>{job.salary}</span>}
-                        {job.appliedDate && (
-                          <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />Applied {formatDate(job.appliedDate)}</span>
-                        )}
-                        {job.statusUpdatedAt && (
-                          <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />Updated {formatDate(job.statusUpdatedAt)}</span>
-                        )}
-                        {job.posterName && (
-                          <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{job.posterName}</span>
-                        )}
-                      </div>
+        <TabsContent value="ai-feed">
+          <div className="mt-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Discover AI Product Management roles from across the web
+              </p>
+              <Button onClick={handleFetchAIPMFeed} disabled={feedLoading} className="gap-2">
+                {feedLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                {feedLoading ? "Searching..." : "Search AI PM Roles"}
+              </Button>
+            </div>
+
+            {feedResults.length === 0 && !feedLoading && (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
+                <Sparkles className="h-10 w-10 mb-4 opacity-40" />
+                <p className="font-medium">AI PM Role Feed</p>
+                <p className="text-sm">Click "Search AI PM Roles" to discover AI Product Management positions</p>
+              </div>
+            )}
+
+            {feedResults.map((feedJob, idx) => (
+              <div key={idx} className="rounded-xl border border-border bg-card p-5 transition-shadow hover:shadow-md">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h3 className="font-display font-semibold text-lg">{feedJob.title}</h3>
+                      <Badge className="text-xs gap-1 bg-primary/10 text-primary border-primary/20">
+                        <Sparkles className="h-3 w-3" />AI Feed
+                      </Badge>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Select value={job.status} onValueChange={v => onUpdateStatus(job.id, v as JobStatus)}>
-                        <SelectTrigger className="w-36 h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn"] as const).map(s => (
-                            <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {job.url && (
-                        <Button variant="ghost" size="icon" asChild>
-                          <a href={job.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
-                        </Button>
+                    <p className="text-muted-foreground mt-1">{feedJob.company}</p>
+                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
+                      {feedJob.location && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{feedJob.location}</span>}
+                      {feedJob.type && <span className="capitalize">{feedJob.type}</span>}
+                      {feedJob.salary && <span>{feedJob.salary}</span>}
+                    </div>
+                    {feedJob.skills?.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {feedJob.skills.slice(0, 8).map((skill: string, si: number) => (
+                          <Badge key={si} variant="secondary" className="text-xs">{skill}</Badge>
+                        ))}
+                        {feedJob.skills.length > 8 && (
+                          <Badge variant="outline" className="text-xs">+{feedJob.skills.length - 8}</Badge>
+                        )}
+                      </div>
+                    )}
+                    {feedJob.description && (
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{feedJob.description}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {feedJob.url && (
+                      <Button variant="ghost" size="icon" asChild>
+                        <a href={feedJob.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => handleAddFeedJob(feedJob)}
+                      disabled={addingFeedJob === (feedJob.url || feedJob.title)}
+                    >
+                      {addingFeedJob === (feedJob.url || feedJob.title) ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Plus className="h-3.5 w-3.5" />
                       )}
-                      <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
-                        {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => onDelete(job.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+                      Add to Tracker
+                    </Button>
                   </div>
                 </div>
-                {isExpanded && (
-                  <div className="px-5 pb-5">
-                    <JobDetailPanel
-                      job={job}
-                      linkedContacts={linkedContacts}
-                      networkMatches={networkMatches}
-                      allContacts={contacts}
-                      interviews={interviews.filter(i => i.jobId === job.id)}
-                      onUpdateJob={onUpdateJob}
-                      onLinkContact={onLinkContact}
-                      onUnlinkContact={onUnlinkContact}
-                      onAddInterview={onAddInterview}
-                      onUpdateInterview={onUpdateInterview}
-                      onDeleteInterview={onDeleteInterview}
-                    />
-                  </div>
-                )}
               </div>
-            );
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
