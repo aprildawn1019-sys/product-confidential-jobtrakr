@@ -41,6 +41,7 @@ export default function Jobs({
   onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
   onAddInterview, onUpdateInterview, onDeleteInterview,
 }: JobsProps) {
+  const navigate = useNavigate();
   const [view, setView] = useState<"list" | "kanban">("list");
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
