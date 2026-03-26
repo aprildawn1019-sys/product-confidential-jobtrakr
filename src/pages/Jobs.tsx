@@ -196,6 +196,26 @@ export default function Jobs({
 
         setFeedResults(persistedResults);
         toast({ title: "Feed updated", description: `${persistedResults.length} AI PM roles found` });
+
+        // Extract skills from feed jobs in background
+        const user2 = (await supabase.auth.getUser()).data.user;
+        if (user2) {
+          for (const r of (inserted as any[] || [])) {
+            if (r.description && r.description.length >= 20) {
+              supabase.functions.invoke("extract-job-skills", {
+                body: { description: r.description },
+              }).then(({ data: skillsData }) => {
+                if (skillsData?.skills?.length) {
+                  supabase.from("job_skills_snapshots").insert({
+                    user_id: user2.id,
+                    job_id: r.id,
+                    skills: skillsData.skills,
+                  });
+                }
+              }).catch(e => console.error("Feed skills extraction failed:", e));
+            }
+          }
+        }
       } else {
         setFeedResults([]);
         toast({ title: "No new results", description: "All found roles are already in your tracker." });
