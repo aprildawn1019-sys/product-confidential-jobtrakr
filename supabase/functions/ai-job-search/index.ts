@@ -128,7 +128,7 @@ serve(async (req) => {
 
     const profileContext = `
 TARGET ROLES: ${profile.target_roles?.join(", ")}
-LOCATIONS: ${profile.locations?.join(", ")} (also open to remote US positions)
+LOCATIONS: ${anyLocation ? "Any Location (no location preference)" : profile.locations?.join(", ")} (also open to remote US positions)
 REMOTE PREFERENCE: ${profile.remote_preference}
 MIN BASE SALARY: $${profile.min_base_salary?.toLocaleString() || "Not specified"}
 COMPENSATION NOTES: ${profile.compensation_notes || "None"}
