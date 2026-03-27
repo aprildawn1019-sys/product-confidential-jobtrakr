@@ -115,7 +115,7 @@ export default function Contacts({
   onAdd, onAddBulk, onUpdate, onDelete,
   getConnectionsForContact, getContactsAtSameOrg, onAddConnection, onRemoveConnection,
   getActivitiesForContact, onAddActivity, onDeleteActivity,
-  getJobsForContact, onLinkContactToJob, onUnlinkContactFromJob,
+  getJobsForContact, getContactsForJob, getNetworkMatchesForJob, onLinkContactToJob, onUnlinkContactFromJob,
   onAddCampaign, onUpdateCampaign, onDeleteCampaign, onToggleContactCampaign, getCampaignsForContact,
   recommendationRequests, onAddRecommendationRequest, onUpdateRecommendationRequest, onDeleteRecommendationRequest, getRecommendationRequestsForContact,
 }: ContactsProps) {
