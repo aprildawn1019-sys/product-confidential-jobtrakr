@@ -18,7 +18,7 @@ import ContactCampaignSelect from "@/components/ContactCampaignSelect";
 import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
 import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact } from "@/types/jobTracker";
-import InferredNetwork from "@/components/InferredNetwork";
+
 import { useToast } from "@/hooks/use-toast";
 
 interface ContactsProps {
@@ -772,13 +772,6 @@ export default function Contacts({
         )}
       </div>
 
-      <InferredNetwork
-        contacts={contacts}
-        jobs={jobs}
-        jobContacts={jobContacts}
-        contactConnections={contactConnections}
-        onAddConnection={onAddConnection}
-      />
 
       {filteredContacts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
