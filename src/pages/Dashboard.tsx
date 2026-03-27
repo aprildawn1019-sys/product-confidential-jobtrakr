@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDistanceToNow, isPast, isToday } from "date-fns";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
@@ -12,6 +13,8 @@ interface DashboardProps {
   jobs: Job[];
   contacts: Contact[];
   interviews: Interview[];
+  onUpdateStatus?: (id: string, status: string) => void;
+  onUpdateJob?: (id: string, updates: Partial<Job>) => void;
 }
 
 const urgencyColors: Record<string, string> = {
@@ -21,7 +24,10 @@ const urgencyColors: Record<string, string> = {
   low: "bg-muted text-muted-foreground border-border",
 };
 
-export default function Dashboard({ jobs, contacts, interviews }: DashboardProps) {
+const allStatuses = ["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"];
+const allUrgencies = ["low", "medium", "high", "critical"];
+
+export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, onUpdateJob }: DashboardProps) {
   const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
   const upcoming = interviews.filter(i => i.status === "scheduled");
 
@@ -70,21 +76,32 @@ export default function Dashboard({ jobs, contacts, interviews }: DashboardProps
           ) : (
             <div className="space-y-3">
               {highUrgencyJobs.map(job => (
-                <div key={job.id} className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
-                  <Link to="/jobs" className="min-w-0 flex-1">
-                    <p className="font-medium text-sm truncate">{job.title}</p>
-                    <p className="text-xs text-muted-foreground">{job.company}</p>
-                  </Link>
-                  <div className="flex items-center gap-2 shrink-0">
+                <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Link to="/jobs" className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{job.title}</p>
+                      <p className="text-xs text-muted-foreground">{job.company}</p>
+                    </Link>
                     {job.url && (
-                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary" onClick={e => e.stopPropagation()}>
+                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary shrink-0 ml-2">
                         <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     )}
-                    <Badge variant="outline" className={`text-xs capitalize ${urgencyColors[job.urgency || ""]}`}>
-                      {job.urgency}
-                    </Badge>
-                    <StatusBadge status={job.status} />
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)}>
+                      <SelectTrigger className="h-7 text-xs w-[110px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {allStatuses.map(s => <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={job.urgency || ""} onValueChange={v => onUpdateJob?.(job.id, { urgency: v })}>
+                      <SelectTrigger className="h-7 text-xs w-[100px]"><SelectValue placeholder="Urgency" /></SelectTrigger>
+                      <SelectContent>
+                        {allUrgencies.map(u => <SelectItem key={u} value={u} className="text-xs capitalize">{u}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
                   </div>
                 </div>
               ))}
@@ -102,19 +119,26 @@ export default function Dashboard({ jobs, contacts, interviews }: DashboardProps
           ) : (
             <div className="space-y-3">
               {topFitJobs.map(job => (
-                <div key={job.id} className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
-                  <Link to="/jobs" className="min-w-0 flex-1">
-                    <p className="font-medium text-sm truncate">{job.title}</p>
-                    <p className="text-xs text-muted-foreground">{job.company}</p>
-                  </Link>
-                  <div className="flex items-center gap-2 shrink-0">
+                <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Link to="/jobs" className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{job.title}</p>
+                      <p className="text-xs text-muted-foreground">{job.company}</p>
+                    </Link>
                     {job.url && (
-                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary" onClick={e => e.stopPropagation()}>
+                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary shrink-0 ml-2">
                         <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     )}
-                    <FitScoreStars score={job.fitScore} size="sm" />
-                    <StatusBadge status={job.status} />
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Select value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)}>
+                      <SelectTrigger className="h-7 text-xs w-[110px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {allStatuses.map(s => <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
                   </div>
                 </div>
               ))}
