@@ -2,6 +2,29 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection, ContactActivity, Campaign, ContactCampaign, RecommendationRequest, SkillsSnapshot } from "@/types/jobTracker";
 
+/** Normalize a company name for fuzzy matching */
+function normalizeCompany(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[,.]/g, "")
+    .replace(/\b(inc|llc|ltd|corp|corporation|co|company|group|plc|lp|gmbh|ag|sa|srl|pty)\b/gi, "")
+    .replace(/\(.*?\)/g, "")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+/** Check if two company names likely refer to the same organization */
+function companiesMatch(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  const na = normalizeCompany(a);
+  const nb = normalizeCompany(b);
+  if (na === nb) return true;
+  if (na.length >= 3 && nb.length >= 3) {
+    if (na.includes(nb) || nb.includes(na)) return true;
+  }
+  return false;
+}
+
 function mapJob(row: any): Job {
   return {
     id: row.id, company: row.company, title: row.title, location: row.location,
