@@ -36,6 +36,8 @@ interface ContactsProps {
   onAddActivity: (activity: Omit<ContactActivity, "id" | "createdAt">) => void;
   onDeleteActivity: (id: string) => void;
   getJobsForContact: (contactId: string) => Job[];
+  getContactsForJob: (jobId: string) => Contact[];
+  getNetworkMatchesForJob: (job: Job) => Contact[];
   onLinkContactToJob: (jobId: string, contactId: string) => void;
   onUnlinkContactFromJob: (jobId: string, contactId: string) => void;
   onAddCampaign: (campaign: Omit<Campaign, "id" | "createdAt" | "updatedAt">) => void;
@@ -113,7 +115,7 @@ export default function Contacts({
   onAdd, onAddBulk, onUpdate, onDelete,
   getConnectionsForContact, getContactsAtSameOrg, onAddConnection, onRemoveConnection,
   getActivitiesForContact, onAddActivity, onDeleteActivity,
-  getJobsForContact, onLinkContactToJob, onUnlinkContactFromJob,
+  getJobsForContact, getContactsForJob, getNetworkMatchesForJob, onLinkContactToJob, onUnlinkContactFromJob,
   onAddCampaign, onUpdateCampaign, onDeleteCampaign, onToggleContactCampaign, getCampaignsForContact,
   recommendationRequests, onAddRecommendationRequest, onUpdateRecommendationRequest, onDeleteRecommendationRequest, getRecommendationRequestsForContact,
 }: ContactsProps) {
@@ -146,10 +148,13 @@ export default function Contacts({
 
   const filteredContacts = useMemo(() => {
     const filtered = contacts.filter(c => {
-      // Job-linked filter
+      // Job-linked filter: include both directly linked contacts and network matches (same company)
       if (jobIdFilter) {
-        const linkedJobs = getJobsForContact(c.id);
-        if (!linkedJobs.some(j => j.id === jobIdFilter)) return false;
+        const linkedContacts = getContactsForJob(jobIdFilter);
+        const job = jobs.find(j => j.id === jobIdFilter);
+        const networkMatches = job ? getNetworkMatchesForJob(job) : [];
+        const allMatchIds = new Set([...linkedContacts.map(lc => lc.id), ...networkMatches.map(nm => nm.id)]);
+        if (!allMatchIds.has(c.id)) return false;
       }
       const q = searchQuery.toLowerCase();
       if (q && !c.name.toLowerCase().includes(q) && !c.company.toLowerCase().includes(q) && !(c.role || "").toLowerCase().includes(q)) return false;
@@ -187,7 +192,7 @@ export default function Contacts({
           return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
       }
     });
-  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns, sortBy, jobIdFilter, getJobsForContact]);
+  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns, sortBy, jobIdFilter, jobs, getContactsForJob, getNetworkMatchesForJob]);
 
   const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all" || campaignFilter !== "all" || !!jobIdFilter;
 
