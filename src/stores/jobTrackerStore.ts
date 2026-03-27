@@ -225,6 +225,11 @@ export function useJobTrackerStore() {
     if (updates.posterRole !== undefined) dbUpdates.poster_role = updates.posterRole || null;
     if (updates.fitScore !== undefined) dbUpdates.fit_score = updates.fitScore || null;
     if (updates.urgency !== undefined) dbUpdates.urgency = updates.urgency || null;
+    if (updates.status !== undefined) {
+      dbUpdates.status = updates.status;
+      dbUpdates.status_updated_at = new Date().toISOString();
+    }
+    if (updates.appliedDate !== undefined) dbUpdates.applied_date = updates.appliedDate || null;
     await supabase.from("jobs").update(dbUpdates).eq("id", id);
     setJobs(prev => prev.map(j => j.id === id ? { ...j, ...updates } : j));
   };
