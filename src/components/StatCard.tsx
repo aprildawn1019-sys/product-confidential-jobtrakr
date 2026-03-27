@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 import { LucideIcon } from "lucide-react";
 
 interface StatCardProps {
@@ -6,6 +7,7 @@ interface StatCardProps {
   value: string | number;
   icon: LucideIcon;
   accent?: "default" | "success" | "warning" | "info";
+  href?: string;
 }
 
 const accentMap = {
@@ -15,9 +17,9 @@ const accentMap = {
   info: "bg-info/10 text-info",
 };
 
-export default function StatCard({ label, value, icon: Icon, accent = "default" }: StatCardProps) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-5 animate-fade-in">
+export default function StatCard({ label, value, icon: Icon, accent = "default", href }: StatCardProps) {
+  const content = (
+    <div className={cn("rounded-xl border border-border bg-card p-5 animate-fade-in", href && "hover:bg-muted/50 transition-colors cursor-pointer")}>
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <div className={cn("flex h-9 w-9 items-center justify-center rounded-lg", accentMap[accent])}>
@@ -27,4 +29,6 @@ export default function StatCard({ label, value, icon: Icon, accent = "default" 
       <p className="mt-2 font-display text-3xl font-bold tracking-tight text-card-foreground">{value}</p>
     </div>
   );
+
+  return href ? <Link to={href}>{content}</Link> : content;
 }
