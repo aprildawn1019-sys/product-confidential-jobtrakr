@@ -91,7 +91,12 @@ export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>LinkedIn</Label>
-              <Input value={form.linkedin} onChange={e => setForm(f => ({ ...f, linkedin: e.target.value }))} placeholder="linkedin.com/in/..." />
+              <div className="flex gap-2">
+                <Input value={form.linkedin} onChange={e => setForm(f => ({ ...f, linkedin: e.target.value }))} placeholder="linkedin.com/in/..." className="flex-1" />
+                <Button type="button" variant="outline" size="sm" onClick={handleLinkedinFetch} disabled={!form.linkedin.trim() || fetchingLinkedin} className="shrink-0">
+                  {fetchingLinkedin ? <Loader2 className="h-4 w-4 animate-spin" /> : "Fetch"}
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Warmth</Label>
