@@ -17,7 +17,8 @@ import CampaignManager from "@/components/CampaignManager";
 import ContactCampaignSelect from "@/components/ContactCampaignSelect";
 import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
-import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest } from "@/types/jobTracker";
+import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact } from "@/types/jobTracker";
+import InferredNetwork from "@/components/InferredNetwork";
 import { useToast } from "@/hooks/use-toast";
 
 interface ContactsProps {
@@ -25,6 +26,8 @@ interface ContactsProps {
   jobs: Job[];
   campaigns: Campaign[];
   contactCampaigns: ContactCampaign[];
+  jobContacts: JobContact[];
+  contactConnections: ContactConnection[];
   onAdd: (contact: Omit<Contact, "id" | "createdAt">) => void;
   onAddBulk: (contacts: Omit<Contact, "id" | "createdAt">[]) => void;
   onUpdate: (id: string, updates: Partial<Contact>) => void;
@@ -112,7 +115,7 @@ const activityIcons: Record<string, string> = {
 };
 
 export default function Contacts({
-  contacts, jobs, campaigns, contactCampaigns,
+  contacts, jobs, campaigns, contactCampaigns, jobContacts, contactConnections,
   onAdd, onAddBulk, onUpdate, onDelete,
   getConnectionsForContact, getContactsAtSameOrg, onAddConnection, onRemoveConnection,
   getActivitiesForContact, onAddActivity, onDeleteActivity,
@@ -768,6 +771,14 @@ export default function Contacts({
           </Button>
         )}
       </div>
+
+      <InferredNetwork
+        contacts={contacts}
+        jobs={jobs}
+        jobContacts={jobContacts}
+        contactConnections={contactConnections}
+        onAddConnection={onAddConnection}
+      />
 
       {filteredContacts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
