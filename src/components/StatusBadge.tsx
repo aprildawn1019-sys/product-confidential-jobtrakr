@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { JobStatus } from "@/types/jobTracker";
 
-const statusStyles: Record<JobStatus, { label: string; className: string }> = {
+export const statusStyles: Record<JobStatus, { label: string; className: string }> = {
   saved: {
     label: "Saved",
     className: "bg-secondary text-secondary-foreground border-border",
