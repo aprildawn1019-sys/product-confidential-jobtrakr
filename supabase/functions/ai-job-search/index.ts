@@ -19,7 +19,8 @@ async function searchRealJobs(
   }
 
   const roles = profile.target_roles?.slice(0, 3) || [];
-  const locations = profile.locations?.slice(0, 2) || [];
+  const anyLocation = profile.locations?.includes("Any Location");
+  const locations = anyLocation ? [] : (profile.locations?.slice(0, 2) || []);
   const remoteOnly = searchParams?.remoteOnly || false;
   const focusKeywords = searchParams?.focusKeywords || "";
   const recencyFilter = searchParams?.recencyFilter || "any";
