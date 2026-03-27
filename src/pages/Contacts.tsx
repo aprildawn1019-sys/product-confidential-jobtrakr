@@ -142,6 +142,18 @@ export default function Contacts({
     return job ? `${job.title} at ${job.company}` : null;
   }, [jobIdFilter, jobs]);
 
+  const { toast } = useToast();
+
+  const handleLinkToJob = useCallback((contactId: string, contactName: string) => {
+    if (!jobIdFilter) return;
+    onLinkContactToJob(jobIdFilter, contactId);
+    const job = jobs.find(j => j.id === jobIdFilter);
+    toast({
+      title: "Contact linked",
+      description: `${contactName} has been linked to ${job?.title || "the job"}.`,
+    });
+  }, [jobIdFilter, onLinkContactToJob, jobs, toast]);
+
   const handleSaveConversation = (contactId: string) => {
     onUpdate(contactId, { conversationLog: conversationDraft });
     setEditingConversation(null);
