@@ -21,7 +21,7 @@ const urgencyColors: Record<string, string> = {
 };
 
 export default function Dashboard({ jobs, contacts, interviews }: DashboardProps) {
-  const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn"].includes(j.status)).length;
+  const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
   const upcoming = interviews.filter(i => i.status === "scheduled");
 
   const highUrgencyJobs = useMemo(() =>
