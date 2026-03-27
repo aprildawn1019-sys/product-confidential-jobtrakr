@@ -28,10 +28,11 @@ export default function WarmthBadge({ warmth, onChange }: WarmthBadgeProps) {
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="cold">❄️ Cold</SelectItem>
-        <SelectItem value="warm">🌤️ Warm</SelectItem>
-        <SelectItem value="hot">🔥 Hot</SelectItem>
-        <SelectItem value="champion">🏆 Champion</SelectItem>
+        <p className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground">Relationship Warmth</p>
+        <SelectItem value="cold">❄️ Cold — No recent contact</SelectItem>
+        <SelectItem value="warm">🌤️ Warm — Occasional contact</SelectItem>
+        <SelectItem value="hot">🔥 Hot — Active relationship</SelectItem>
+        <SelectItem value="champion">🏆 Champion — Strong advocate</SelectItem>
       </SelectContent>
     </Select>
   );
