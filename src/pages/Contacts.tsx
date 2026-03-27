@@ -251,6 +251,20 @@ export default function Contacts({
             {linkedJobs.length > 0 && <Badge variant="outline" className="text-xs gap-1"><Briefcase className="h-3 w-3" />{linkedJobs.length} job{linkedJobs.length > 1 ? "s" : ""}</Badge>}
             {connections.length > 0 && <Badge variant="outline" className="text-xs gap-1"><Link2 className="h-3 w-3" />{connections.length} connection{connections.length > 1 ? "s" : ""}</Badge>}
             {(() => { const recs = getRecommendationRequestsForContact(contact.id); const pending = recs.filter(r => r.status === "pending").length; return pending > 0 ? <Badge variant="warning" className="text-xs gap-1"><Star className="h-3 w-3" />{pending} rec pending</Badge> : recs.some(r => r.status === "received") ? <Badge variant="success" className="text-xs gap-1"><Check className="h-3 w-3" />Rec received</Badge> : null; })()}
+            {jobIdFilter && !linkedJobIds.has(jobIdFilter) && (
+              <Badge
+                variant="outline"
+                className="text-xs gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary"
+                onClick={() => onLinkContactToJob(jobIdFilter, contact.id)}
+              >
+                <Link2 className="h-3 w-3" />Link to Job
+              </Badge>
+            )}
+            {jobIdFilter && linkedJobIds.has(jobIdFilter) && (
+              <Badge variant="default" className="text-xs gap-1 bg-primary/15 text-primary border-primary/20">
+                <Check className="h-3 w-3" />Linked
+              </Badge>
+            )}
           </div>
           <div className="mt-auto pt-3 flex items-center gap-2">
             {contact.email && <Button variant="outline" size="sm" asChild><a href={`mailto:${contact.email}`}><Mail className="h-3.5 w-3.5 mr-1" />Email</a></Button>}
