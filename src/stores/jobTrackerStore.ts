@@ -14,7 +14,7 @@ function normalizeCompany(name: string): string {
 }
 
 /** Check if two company names likely refer to the same organization */
-function companiesMatch(a: string, b: string): boolean {
+export function companiesMatch(a: string, b: string): boolean {
   if (!a || !b) return false;
   const na = normalizeCompany(a);
   const nb = normalizeCompany(b);
