@@ -56,7 +56,7 @@ function QuickScheduleInterview({ jobId, onAdd }: { jobId: string; onAdd: (i: Om
 
   return (
     <div className="rounded-md border border-border bg-card p-3 space-y-2">
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <Select value={type} onValueChange={v => setType(v as Interview["type"])}>
           <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>
