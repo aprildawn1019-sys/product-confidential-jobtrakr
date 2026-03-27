@@ -28,7 +28,7 @@ async function searchRealJobs(
   // Build search queries from profile
   const queries: string[] = [];
   for (const role of roles) {
-    const locationPart = remoteOnly ? "remote" : locations.join(" OR ");
+    const locationPart = remoteOnly ? "remote" : anyLocation ? "" : locations.join(" OR ");
     const keywordPart = focusKeywords ? ` ${focusKeywords}` : "";
     queries.push(`${role} job ${locationPart}${keywordPart}`);
   }
