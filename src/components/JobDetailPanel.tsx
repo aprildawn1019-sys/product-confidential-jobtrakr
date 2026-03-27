@@ -27,6 +27,7 @@ interface JobDetailPanelProps {
   onAddInterview: (interview: Omit<Interview, "id">) => void;
   onUpdateInterview: (id: string, updates: Partial<Interview>) => void;
   onDeleteInterview: (id: string) => void;
+  compact?: boolean;
 }
 
 function QuickScheduleInterview({ jobId, onAdd }: { jobId: string; onAdd: (i: Omit<Interview, "id">) => void }) {
