@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
 import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -18,6 +18,7 @@ import ContactCampaignSelect from "@/components/ContactCampaignSelect";
 import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
 import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest } from "@/types/jobTracker";
+import { useToast } from "@/hooks/use-toast";
 
 interface ContactsProps {
   contacts: Contact[];
@@ -141,6 +142,18 @@ export default function Contacts({
     return job ? `${job.title} at ${job.company}` : null;
   }, [jobIdFilter, jobs]);
 
+  const { toast } = useToast();
+
+  const handleLinkToJob = useCallback((contactId: string, contactName: string) => {
+    if (!jobIdFilter) return;
+    onLinkContactToJob(jobIdFilter, contactId);
+    const job = jobs.find(j => j.id === jobIdFilter);
+    toast({
+      title: "Contact linked",
+      description: `${contactName} has been linked to ${job?.title || "the job"}.`,
+    });
+  }, [jobIdFilter, onLinkContactToJob, jobs, toast]);
+
   const handleSaveConversation = (contactId: string) => {
     onUpdate(contactId, { conversationLog: conversationDraft });
     setEditingConversation(null);
@@ -255,7 +268,7 @@ export default function Contacts({
               <Badge
                 variant="outline"
                 className="text-xs gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary"
-                onClick={() => onLinkContactToJob(jobIdFilter, contact.id)}
+                onClick={() => handleLinkToJob(contact.id, contact.name)}
               >
                 <Link2 className="h-3 w-3" />Link to Job
               </Badge>
@@ -306,7 +319,7 @@ export default function Contacts({
               <FollowUpIndicator date={contact.followUpDate} />
               {linkedJobs.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Briefcase className="h-2.5 w-2.5" />{linkedJobs.length}</Badge>}
               {jobIdFilter && !linkedJobIds.has(jobIdFilter) && (
-                <Badge variant="outline" className="text-[10px] gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary" onClick={() => onLinkContactToJob(jobIdFilter, contact.id)}>
+                <Badge variant="outline" className="text-[10px] gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary" onClick={() => handleLinkToJob(contact.id, contact.name)}>
                   <Link2 className="h-2.5 w-2.5" />Link to Job
                 </Badge>
               )}
@@ -408,7 +421,7 @@ export default function Contacts({
             {recs.filter(r => r.status === "pending").length > 0 && <Badge variant="warning" className="text-[10px] gap-1"><Star className="h-2.5 w-2.5" />Rec pending</Badge>}
             {recs.some(r => r.status === "received") && <Badge variant="success" className="text-[10px] gap-1"><Check className="h-2.5 w-2.5" />Rec received</Badge>}
             {jobIdFilter && !linkedJobIds.has(jobIdFilter) && (
-              <Badge variant="outline" className="text-[10px] gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary" onClick={() => onLinkContactToJob(jobIdFilter, contact.id)}>
+              <Badge variant="outline" className="text-[10px] gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary" onClick={() => handleLinkToJob(contact.id, contact.name)}>
                 <Link2 className="h-2.5 w-2.5" />Link to Job
               </Badge>
             )}
