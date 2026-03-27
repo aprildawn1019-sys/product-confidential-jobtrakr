@@ -192,7 +192,7 @@ export default function Contacts({
           return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
       }
     });
-  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns, sortBy, jobIdFilter, getJobsForContact]);
+  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns, sortBy, jobIdFilter, jobs, getContactsForJob, getNetworkMatchesForJob]);
 
   const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all" || campaignFilter !== "all" || !!jobIdFilter;
 
