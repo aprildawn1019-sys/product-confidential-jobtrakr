@@ -18,12 +18,12 @@ export default function WarmthBadge({ warmth, onChange }: WarmthBadgeProps) {
 
   return (
     <Select value={warmth || ""} onValueChange={onChange}>
-      <SelectTrigger className="h-7 w-auto min-w-[90px] border-none bg-transparent p-0 shadow-none [&>svg]:h-3 [&>svg]:w-3">
+      <SelectTrigger className="h-7 w-auto min-w-[90px] border-dashed border-border/60 bg-transparent px-2 shadow-none [&>svg]:h-3 [&>svg]:w-3 rounded-full">
         <SelectValue>
           {config ? (
             <Badge variant="outline" className={`text-xs ${config.className}`}>{config.label}</Badge>
           ) : (
-            <span className="text-xs text-muted-foreground">Set warmth</span>
+            <span className="text-[11px] text-muted-foreground">🌡️ Warmth</span>
           )}
         </SelectValue>
       </SelectTrigger>
