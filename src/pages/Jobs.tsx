@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert } from "lucide-react";
 import FitScoreStars from "@/components/FitScoreStars";
 import UrgencyBadge from "@/components/UrgencyBadge";
@@ -42,10 +42,11 @@ export default function Jobs({
   onAddInterview, onUpdateInterview, onDeleteInterview,
 }: JobsProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [view, setView] = useState<"list" | "kanban">("list");
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>(() => searchParams.get("status") || "all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("all");
@@ -100,7 +101,9 @@ export default function Jobs({
     return jobs.filter(job => {
       const q = searchQuery.toLowerCase();
       if (q && !job.title.toLowerCase().includes(q) && !job.company.toLowerCase().includes(q) && !job.location.toLowerCase().includes(q)) return false;
-      if (statusFilter !== "all" && job.status !== statusFilter) return false;
+      if (statusFilter === "active") {
+        if (["saved", "rejected", "withdrawn", "closed"].includes(job.status)) return false;
+      } else if (statusFilter !== "all" && job.status !== statusFilter) return false;
       if (urgencyFilter !== "all" && (job.urgency || "none") !== urgencyFilter) return false;
       if (typeFilter !== "all" && job.type !== typeFilter) return false;
       return true;
@@ -304,6 +307,7 @@ export default function Jobs({
               <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="active">Active Apps</SelectItem>
                 {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"] as const).map(s => (
                   <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
                 ))}

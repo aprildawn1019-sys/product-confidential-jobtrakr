@@ -60,7 +60,7 @@ export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, 
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total Jobs" value={jobs.length} icon={Briefcase} href="/jobs" />
-        <StatCard label="Active Applications" value={activeApps} icon={Send} accent="info" href="/applications" />
+        <StatCard label="Active Applications" value={activeApps} icon={Send} accent="info" href="/jobs?status=active" />
         <StatCard label="Interviews Scheduled" value={upcoming.length} icon={CalendarCheck} accent="warning" href="/interviews" />
         <StatCard label="Connections" value={contacts.length} icon={Users} accent="success" href="/contacts" />
       </div>
