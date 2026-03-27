@@ -91,7 +91,7 @@ function QuickScheduleInterview({ jobId, onAdd }: { jobId: string; onAdd: (i: Om
 }
 
 export default function JobDetailPanel({
-  job, linkedContacts, networkMatches, allContacts, interviews, onUpdateJob, onLinkContact, onUnlinkContact, onAddInterview, onUpdateInterview, onDeleteInterview,
+  job, linkedContacts, networkMatches, allContacts, interviews, onUpdateJob, onLinkContact, onUnlinkContact, onAddInterview, onUpdateInterview, onDeleteInterview, compact = false,
 }: JobDetailPanelProps) {
   const [editingJob, setEditingJob] = useState(false);
   const [editingPoster, setEditingPoster] = useState(false);
