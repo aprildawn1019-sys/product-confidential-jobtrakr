@@ -156,24 +156,27 @@ export default function Dashboard({ jobs, contacts, interviews }: DashboardProps
 
         {/* Upcoming Interviews */}
         <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="font-display text-lg font-semibold mb-4">Upcoming Interviews</h2>
+          <h2 className="font-display text-lg font-semibold mb-4 flex items-center justify-between">
+            <span>Upcoming Interviews</span>
+            <Link to="/interviews" className="text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View calendar →</Link>
+          </h2>
           {upcoming.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+            <Link to="/interviews" className="flex flex-col items-center justify-center py-8 text-muted-foreground hover:text-primary transition-colors">
               <Clock className="h-8 w-8 mb-2" />
               <p className="text-sm">No upcoming interviews</p>
-            </div>
+            </Link>
           ) : (
             <div className="space-y-3">
               {upcoming.map(interview => {
                 const job = jobs.find(j => j.id === interview.jobId);
                 return (
-                  <div key={interview.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <Link to="/interviews" key={interview.id} className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
                     <div>
                       <p className="font-medium text-sm">{job?.company} — {interview.type}</p>
                       <p className="text-xs text-muted-foreground">{interview.date} {interview.time && `at ${interview.time}`}</p>
                     </div>
                     <Badge variant="warning">{interview.type}</Badge>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
