@@ -319,7 +319,7 @@ export default function Contacts({
               <FollowUpIndicator date={contact.followUpDate} />
               {linkedJobs.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Briefcase className="h-2.5 w-2.5" />{linkedJobs.length}</Badge>}
               {jobIdFilter && !linkedJobIds.has(jobIdFilter) && (
-                <Badge variant="outline" className="text-[10px] gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary" onClick={() => onLinkContactToJob(jobIdFilter, contact.id)}>
+                <Badge variant="outline" className="text-[10px] gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary" onClick={() => handleLinkToJob(contact.id, contact.name)}>
                   <Link2 className="h-2.5 w-2.5" />Link to Job
                 </Badge>
               )}
