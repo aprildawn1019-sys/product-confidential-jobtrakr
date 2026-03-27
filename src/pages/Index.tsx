@@ -47,6 +47,8 @@ export default function Index() {
               jobs={store.jobs}
               campaigns={store.campaigns}
               contactCampaigns={store.contactCampaigns}
+              jobContacts={store.jobContacts}
+              contactConnections={store.contactConnections}
               onAdd={store.addContact}
               onAddBulk={store.addContactsBulk}
               onUpdate={store.updateContact}
