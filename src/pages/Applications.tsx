@@ -1,10 +1,18 @@
+import { useState } from "react";
+import { format, parseISO } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import type { Job, Interview } from "@/types/jobTracker";
 
 interface ApplicationsProps {
   jobs: Job[];
   interviews: Interview[];
+  onUpdateJob: (id: string, updates: Partial<Job>) => void;
 }
 
 const interviewTypeLabel: Record<Interview["type"], string> = {
@@ -15,8 +23,16 @@ const interviewTypeLabel: Record<Interview["type"], string> = {
   final: "🎯 Final Round",
 };
 
-export default function Applications({ jobs, interviews }: ApplicationsProps) {
+export default function Applications({ jobs, interviews, onUpdateJob }: ApplicationsProps) {
   const appliedJobs = jobs.filter(j => j.status !== "saved");
+  const [openDatePicker, setOpenDatePicker] = useState<string | null>(null);
+
+  const handleDateChange = (jobId: string, date: Date | undefined) => {
+    if (date) {
+      onUpdateJob(jobId, { appliedDate: format(date, "yyyy-MM-dd") });
+    }
+    setOpenDatePicker(null);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -28,6 +44,8 @@ export default function Applications({ jobs, interviews }: ApplicationsProps) {
       <div className="space-y-4">
         {appliedJobs.map(job => {
           const jobInterviews = interviews.filter(i => i.jobId === job.id);
+          const appliedDate = job.appliedDate ? parseISO(job.appliedDate) : undefined;
+
           return (
             <div key={job.id} className="rounded-xl border border-border bg-card p-5">
               <div className="flex items-center justify-between">
@@ -36,7 +54,33 @@ export default function Applications({ jobs, interviews }: ApplicationsProps) {
                     <h3 className="font-display font-semibold">{job.title}</h3>
                     <StatusBadge status={job.status} />
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">{job.company} · Applied {job.appliedDate}</p>
+                  <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                    <span>{job.company} ·</span>
+                    <Popover open={openDatePicker === job.id} onOpenChange={(open) => setOpenDatePicker(open ? job.id : null)}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={cn(
+                            "h-auto py-0 px-1 text-sm font-normal hover:text-primary",
+                            !appliedDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                          {appliedDate ? `Applied ${format(appliedDate, "MMM d, yyyy")}` : "Set applied date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={appliedDate}
+                          onSelect={(d) => handleDateChange(job.id, d)}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
               </div>
 
