@@ -311,9 +311,8 @@ export function useJobTrackerStore() {
   };
 
   const getNetworkMatchesForJob = (job: Job) => {
-    const companyLower = job.company.toLowerCase();
     const linkedIds = jobContacts.filter(jc => jc.jobId === job.id).map(jc => jc.contactId);
-    return contacts.filter(c => c.company.toLowerCase() === companyLower && !linkedIds.includes(c.id));
+    return contacts.filter(c => companiesMatch(job.company, c.company) && !linkedIds.includes(c.id));
   };
 
   const getJobsForContact = (contactId: string) => {
