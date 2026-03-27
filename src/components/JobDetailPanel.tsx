@@ -56,7 +56,7 @@ function QuickScheduleInterview({ jobId, onAdd }: { jobId: string; onAdd: (i: Om
 
   return (
     <div className="rounded-md border border-border bg-card p-3 space-y-2">
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <Select value={type} onValueChange={v => setType(v as Interview["type"])}>
           <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -143,7 +143,7 @@ export default function JobDetailPanel({
         </div>
 
         {editingJob ? (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label className="text-xs">Company</Label>
               <Input value={jobForm.company} onChange={e => setJobForm(f => ({ ...f, company: e.target.value }))} className="h-8 text-sm" />
@@ -186,7 +186,7 @@ export default function JobDetailPanel({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div>
                 <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />Location</span>
                 <p className="font-medium">{job.location || "—"}</p>
@@ -236,7 +236,7 @@ export default function JobDetailPanel({
           </Button>
         </div>
         {editingPoster ? (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Input placeholder="Name" value={poster.posterName} onChange={e => setPoster(p => ({ ...p, posterName: e.target.value }))} className="h-8 text-sm" />
             <Input placeholder="Role" value={poster.posterRole} onChange={e => setPoster(p => ({ ...p, posterRole: e.target.value }))} className="h-8 text-sm" />
             <Input placeholder="Email" value={poster.posterEmail} onChange={e => setPoster(p => ({ ...p, posterEmail: e.target.value }))} className="h-8 text-sm" />
