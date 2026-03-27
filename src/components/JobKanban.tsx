@@ -201,6 +201,7 @@ export default function JobKanban({
                         onAddInterview={onAddInterview}
                         onUpdateInterview={onUpdateInterview}
                         onDeleteInterview={onDeleteInterview}
+                        compact
                       />
                     )}
                   </div>

@@ -27,6 +27,7 @@ interface JobDetailPanelProps {
   onAddInterview: (interview: Omit<Interview, "id">) => void;
   onUpdateInterview: (id: string, updates: Partial<Interview>) => void;
   onDeleteInterview: (id: string) => void;
+  compact?: boolean;
 }
 
 function QuickScheduleInterview({ jobId, onAdd }: { jobId: string; onAdd: (i: Omit<Interview, "id">) => void }) {
@@ -56,7 +57,7 @@ function QuickScheduleInterview({ jobId, onAdd }: { jobId: string; onAdd: (i: Om
 
   return (
     <div className="rounded-md border border-border bg-card p-3 space-y-2">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 gap-2">
         <Select value={type} onValueChange={v => setType(v as Interview["type"])}>
           <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -90,7 +91,7 @@ function QuickScheduleInterview({ jobId, onAdd }: { jobId: string; onAdd: (i: Om
 }
 
 export default function JobDetailPanel({
-  job, linkedContacts, networkMatches, allContacts, interviews, onUpdateJob, onLinkContact, onUnlinkContact, onAddInterview, onUpdateInterview, onDeleteInterview,
+  job, linkedContacts, networkMatches, allContacts, interviews, onUpdateJob, onLinkContact, onUnlinkContact, onAddInterview, onUpdateInterview, onDeleteInterview, compact = false,
 }: JobDetailPanelProps) {
   const [editingJob, setEditingJob] = useState(false);
   const [editingPoster, setEditingPoster] = useState(false);
@@ -143,7 +144,7 @@ export default function JobDetailPanel({
         </div>
 
         {editingJob ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className={cn("grid gap-2", compact ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2")}>
             <div className="space-y-1">
               <Label className="text-xs">Company</Label>
               <Input value={jobForm.company} onChange={e => setJobForm(f => ({ ...f, company: e.target.value }))} className="h-8 text-sm" />
@@ -186,7 +187,7 @@ export default function JobDetailPanel({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div className={cn("grid gap-3 text-sm", compact ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2")}>
               <div>
                 <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />Location</span>
                 <p className="font-medium">{job.location || "—"}</p>
@@ -203,7 +204,7 @@ export default function JobDetailPanel({
                 <span className="text-muted-foreground">Type / Salary</span>
                 <p className="font-medium capitalize">{job.type}{job.salary ? ` · ${job.salary}` : ""}</p>
               </div>
-              <div className="col-span-2 md:col-span-4">
+              <div className={compact ? "" : "col-span-2"}>
                 <span className="text-muted-foreground text-sm">Fit & Urgency</span>
                 <div className="flex items-center gap-3 mt-1">
                   <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} />
@@ -236,7 +237,7 @@ export default function JobDetailPanel({
           </Button>
         </div>
         {editingPoster ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className={cn("grid gap-2", compact ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2")}>
             <Input placeholder="Name" value={poster.posterName} onChange={e => setPoster(p => ({ ...p, posterName: e.target.value }))} className="h-8 text-sm" />
             <Input placeholder="Role" value={poster.posterRole} onChange={e => setPoster(p => ({ ...p, posterRole: e.target.value }))} className="h-8 text-sm" />
             <Input placeholder="Email" value={poster.posterEmail} onChange={e => setPoster(p => ({ ...p, posterEmail: e.target.value }))} className="h-8 text-sm" />
