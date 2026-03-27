@@ -349,7 +349,7 @@ export function useJobTrackerStore() {
   const getContactsAtSameOrg = (contactId: string) => {
     const contact = contacts.find(c => c.id === contactId);
     if (!contact) return [];
-    return contacts.filter(c => c.id !== contactId && c.company.toLowerCase() === contact.company.toLowerCase());
+    return contacts.filter(c => c.id !== contactId && companiesMatch(contact.company, c.company));
   };
 
   // === CONTACT ACTIVITIES ===
