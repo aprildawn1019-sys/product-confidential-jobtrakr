@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import type { Contact } from "@/types/jobTracker";
 
 interface AddContactDialogProps {
@@ -14,10 +16,35 @@ interface AddContactDialogProps {
 
 export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
   const [open, setOpen] = useState(false);
+  const [fetchingLinkedin, setFetchingLinkedin] = useState(false);
   const [form, setForm] = useState({
     name: "", company: "", role: "", email: "", phone: "", linkedin: "", notes: "",
     relationshipWarmth: "", conversationLog: "",
   });
+
+  const handleLinkedinFetch = async () => {
+    const url = form.linkedin.trim();
+    if (!url || fetchingLinkedin) return;
+    const fullUrl = url.startsWith("http") ? url : `https://${url}`;
+    setFetchingLinkedin(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
+      if (error || !data?.success) throw new Error(data?.error || error?.message || "Failed");
+      const d = data.data;
+      setForm(f => ({
+        ...f,
+        name: d.name || f.name,
+        role: d.role || f.role,
+        company: d.company || f.company,
+        linkedin: d.linkedin || f.linkedin,
+      }));
+      toast({ title: "Contact info extracted!", description: `Found: ${d.name || "Unknown"}` });
+    } catch (e: any) {
+      toast({ title: "LinkedIn fetch failed", description: e.message, variant: "destructive" });
+    } finally {
+      setFetchingLinkedin(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +91,12 @@ export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>LinkedIn</Label>
-              <Input value={form.linkedin} onChange={e => setForm(f => ({ ...f, linkedin: e.target.value }))} placeholder="linkedin.com/in/..." />
+              <div className="flex gap-2">
+                <Input value={form.linkedin} onChange={e => setForm(f => ({ ...f, linkedin: e.target.value }))} placeholder="linkedin.com/in/..." className="flex-1" />
+                <Button type="button" variant="outline" size="sm" onClick={handleLinkedinFetch} disabled={!form.linkedin.trim() || fetchingLinkedin} className="shrink-0">
+                  {fetchingLinkedin ? <Loader2 className="h-4 w-4 animate-spin" /> : "Fetch"}
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Warmth</Label>
