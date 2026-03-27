@@ -19,7 +19,8 @@ async function searchRealJobs(
   }
 
   const roles = profile.target_roles?.slice(0, 3) || [];
-  const locations = profile.locations?.slice(0, 2) || [];
+  const anyLocation = profile.locations?.includes("Any Location");
+  const locations = anyLocation ? [] : (profile.locations?.slice(0, 2) || []);
   const remoteOnly = searchParams?.remoteOnly || false;
   const focusKeywords = searchParams?.focusKeywords || "";
   const recencyFilter = searchParams?.recencyFilter || "any";
@@ -27,7 +28,7 @@ async function searchRealJobs(
   // Build search queries from profile
   const queries: string[] = [];
   for (const role of roles) {
-    const locationPart = remoteOnly ? "remote" : locations.join(" OR ");
+    const locationPart = remoteOnly ? "remote" : anyLocation ? "" : locations.join(" OR ");
     const keywordPart = focusKeywords ? ` ${focusKeywords}` : "";
     queries.push(`${role} job ${locationPart}${keywordPart}`);
   }
@@ -127,7 +128,7 @@ serve(async (req) => {
 
     const profileContext = `
 TARGET ROLES: ${profile.target_roles?.join(", ")}
-LOCATIONS: ${profile.locations?.join(", ")} (also open to remote US positions)
+LOCATIONS: ${anyLocation ? "Any Location (no location preference)" : profile.locations?.join(", ")} (also open to remote US positions)
 REMOTE PREFERENCE: ${profile.remote_preference}
 MIN BASE SALARY: $${profile.min_base_salary?.toLocaleString() || "Not specified"}
 COMPENSATION NOTES: ${profile.compensation_notes || "None"}

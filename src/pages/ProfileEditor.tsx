@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -350,7 +351,23 @@ export default function ProfileEditor() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Preferred Locations</Label>
-              <TagInput value={form.locations} onChange={v => setForm(f => ({ ...f, locations: v }))} placeholder="e.g. Ann Arbor, MI" />
+              <div className="flex items-center gap-2 mb-2">
+                <Checkbox
+                  id="any-location"
+                  checked={form.locations.length === 1 && form.locations[0] === "Any Location"}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setForm(f => ({ ...f, locations: ["Any Location"] }));
+                    } else {
+                      setForm(f => ({ ...f, locations: [] }));
+                    }
+                  }}
+                />
+                <label htmlFor="any-location" className="text-sm text-muted-foreground cursor-pointer">Any Location — ignore location in search</label>
+              </div>
+              {!(form.locations.length === 1 && form.locations[0] === "Any Location") && (
+                <TagInput value={form.locations} onChange={v => setForm(f => ({ ...f, locations: v }))} placeholder="e.g. Ann Arbor, MI" />
+              )}
             </div>
             <div className="space-y-2">
               <Label>Remote Preference</Label>
