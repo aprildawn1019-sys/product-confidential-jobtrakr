@@ -421,7 +421,7 @@ export default function Contacts({
             {recs.filter(r => r.status === "pending").length > 0 && <Badge variant="warning" className="text-[10px] gap-1"><Star className="h-2.5 w-2.5" />Rec pending</Badge>}
             {recs.some(r => r.status === "received") && <Badge variant="success" className="text-[10px] gap-1"><Check className="h-2.5 w-2.5" />Rec received</Badge>}
             {jobIdFilter && !linkedJobIds.has(jobIdFilter) && (
-              <Badge variant="outline" className="text-[10px] gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary" onClick={() => onLinkContactToJob(jobIdFilter, contact.id)}>
+              <Badge variant="outline" className="text-[10px] gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary" onClick={() => handleLinkToJob(contact.id, contact.name)}>
                 <Link2 className="h-2.5 w-2.5" />Link to Job
               </Badge>
             )}
