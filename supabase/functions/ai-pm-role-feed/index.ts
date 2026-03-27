@@ -65,7 +65,8 @@ serve(async (req) => {
       ? keywords.map((k: string) => `"AI Product Manager" ${k}`)
       : ['"AI Product Manager"', '"AI Product Management" hiring', '"ML Product Manager"'];
 
-    const locationStr = locations?.length ? ` ${locations.join(" OR ")}` : "";
+    const anyLocation = locations?.includes("Any Location");
+    const locationStr = anyLocation ? "" : (locations?.length ? ` ${locations.join(" OR ")}` : "");
 
     // Search via Firecrawl
     const allResults: any[] = [];
