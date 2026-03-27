@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow, isPast, isToday } from "date-fns";
 import StatCard from "@/components/StatCard";
