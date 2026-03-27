@@ -101,7 +101,9 @@ export default function Jobs({
     return jobs.filter(job => {
       const q = searchQuery.toLowerCase();
       if (q && !job.title.toLowerCase().includes(q) && !job.company.toLowerCase().includes(q) && !job.location.toLowerCase().includes(q)) return false;
-      if (statusFilter !== "all" && job.status !== statusFilter) return false;
+      if (statusFilter === "active") {
+        if (["saved", "rejected", "withdrawn", "closed"].includes(job.status)) return false;
+      } else if (statusFilter !== "all" && job.status !== statusFilter) return false;
       if (urgencyFilter !== "all" && (job.urgency || "none") !== urgencyFilter) return false;
       if (typeFilter !== "all" && job.type !== typeFilter) return false;
       return true;
