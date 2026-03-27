@@ -143,7 +143,7 @@ export default function JobDetailPanel({
         </div>
 
         {editingJob ? (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label className="text-xs">Company</Label>
               <Input value={jobForm.company} onChange={e => setJobForm(f => ({ ...f, company: e.target.value }))} className="h-8 text-sm" />
