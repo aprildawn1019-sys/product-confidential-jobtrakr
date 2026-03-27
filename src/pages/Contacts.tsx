@@ -305,6 +305,16 @@ export default function Contacts({
               <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
               <FollowUpIndicator date={contact.followUpDate} />
               {linkedJobs.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Briefcase className="h-2.5 w-2.5" />{linkedJobs.length}</Badge>}
+              {jobIdFilter && !linkedJobIds.has(jobIdFilter) && (
+                <Badge variant="outline" className="text-[10px] gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary" onClick={() => onLinkContactToJob(jobIdFilter, contact.id)}>
+                  <Link2 className="h-2.5 w-2.5" />Link to Job
+                </Badge>
+              )}
+              {jobIdFilter && linkedJobIds.has(jobIdFilter) && (
+                <Badge variant="default" className="text-[10px] gap-1 bg-primary/15 text-primary border-primary/20">
+                  <Check className="h-2.5 w-2.5" />Linked
+                </Badge>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
