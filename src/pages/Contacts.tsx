@@ -772,13 +772,6 @@ export default function Contacts({
         )}
       </div>
 
-      <InferredNetwork
-        contacts={contacts}
-        jobs={jobs}
-        jobContacts={jobContacts}
-        contactConnections={contactConnections}
-        onAddConnection={onAddConnection}
-      />
 
       {filteredContacts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
