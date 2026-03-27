@@ -268,7 +268,7 @@ export default function Contacts({
               <Badge
                 variant="outline"
                 className="text-xs gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary"
-                onClick={() => onLinkContactToJob(jobIdFilter, contact.id)}
+                onClick={() => handleLinkToJob(contact.id, contact.name)}
               >
                 <Link2 className="h-3 w-3" />Link to Job
               </Badge>
