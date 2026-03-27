@@ -88,12 +88,7 @@ export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, 
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Select value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)}>
-                      <SelectTrigger className="h-7 text-xs w-[110px]"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {allStatuses.map(s => <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <StatusSelect value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)} />
                     <Select value={job.urgency || ""} onValueChange={v => onUpdateJob?.(job.id, { urgency: v })}>
                       <SelectTrigger className="h-7 text-xs w-[100px]"><SelectValue placeholder="Urgency" /></SelectTrigger>
                       <SelectContent>
