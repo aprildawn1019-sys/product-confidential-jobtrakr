@@ -194,8 +194,19 @@ export function useJobTrackerStore() {
 
   const updateJobStatus = async (id: string, status: JobStatus) => {
     const now = new Date().toISOString();
-    await supabase.from("jobs").update({ status, status_updated_at: now }).eq("id", id);
-    setJobs(prev => prev.map(j => j.id === id ? { ...j, status, statusUpdatedAt: now } : j));
+    const updates: Record<string, unknown> = { status, status_updated_at: now };
+    const stateUpdates: Partial<Job> = { status, statusUpdatedAt: now };
+    // Auto-set applied date when moving to "applied"
+    if (status === "applied") {
+      const job = jobs.find(j => j.id === id);
+      if (job && !job.appliedDate) {
+        const today = now.split("T")[0];
+        updates.applied_date = today;
+        stateUpdates.appliedDate = today;
+      }
+    }
+    await supabase.from("jobs").update(updates).eq("id", id);
+    setJobs(prev => prev.map(j => j.id === id ? { ...j, ...stateUpdates } : j));
   };
 
   const updateJob = async (id: string, updates: Partial<Job>) => {
@@ -214,6 +225,11 @@ export function useJobTrackerStore() {
     if (updates.posterRole !== undefined) dbUpdates.poster_role = updates.posterRole || null;
     if (updates.fitScore !== undefined) dbUpdates.fit_score = updates.fitScore || null;
     if (updates.urgency !== undefined) dbUpdates.urgency = updates.urgency || null;
+    if (updates.status !== undefined) {
+      dbUpdates.status = updates.status;
+      dbUpdates.status_updated_at = new Date().toISOString();
+    }
+    if (updates.appliedDate !== undefined) dbUpdates.applied_date = updates.appliedDate || null;
     await supabase.from("jobs").update(dbUpdates).eq("id", id);
     setJobs(prev => prev.map(j => j.id === id ? { ...j, ...updates } : j));
   };
