@@ -304,7 +304,7 @@ export default function Jobs({
               <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn"] as const).map(s => (
+                {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"] as const).map(s => (
                   <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
                 ))}
               </SelectContent>
