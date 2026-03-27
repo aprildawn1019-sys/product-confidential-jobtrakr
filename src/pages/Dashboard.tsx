@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow, isPast, isToday } from "date-fns";
 import StatCard from "@/components/StatCard";
@@ -69,12 +70,17 @@ export default function Dashboard({ jobs, contacts, interviews }: DashboardProps
           ) : (
             <div className="space-y-3">
               {highUrgencyJobs.map(job => (
-                <div key={job.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                  <div className="min-w-0 flex-1">
+                <div key={job.id} className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
+                  <Link to="/jobs" className="min-w-0 flex-1">
                     <p className="font-medium text-sm truncate">{job.title}</p>
                     <p className="text-xs text-muted-foreground">{job.company}</p>
-                  </div>
+                  </Link>
                   <div className="flex items-center gap-2 shrink-0">
+                    {job.url && (
+                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary" onClick={e => e.stopPropagation()}>
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    )}
                     <Badge variant="outline" className={`text-xs capitalize ${urgencyColors[job.urgency || ""]}`}>
                       {job.urgency}
                     </Badge>
@@ -96,12 +102,17 @@ export default function Dashboard({ jobs, contacts, interviews }: DashboardProps
           ) : (
             <div className="space-y-3">
               {topFitJobs.map(job => (
-                <div key={job.id} className="flex items-center justify-between rounded-lg border border-border p-3">
-                  <div className="min-w-0 flex-1">
+                <div key={job.id} className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
+                  <Link to="/jobs" className="min-w-0 flex-1">
                     <p className="font-medium text-sm truncate">{job.title}</p>
                     <p className="text-xs text-muted-foreground">{job.company}</p>
-                  </div>
+                  </Link>
                   <div className="flex items-center gap-2 shrink-0">
+                    {job.url && (
+                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary" onClick={e => e.stopPropagation()}>
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    )}
                     <FitScoreStars score={job.fitScore} size="sm" />
                     <StatusBadge status={job.status} />
                   </div>
