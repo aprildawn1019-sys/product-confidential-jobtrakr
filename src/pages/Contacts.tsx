@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
 import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
