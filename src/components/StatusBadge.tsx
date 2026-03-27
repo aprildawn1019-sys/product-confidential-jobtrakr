@@ -9,6 +9,7 @@ const statusConfig: Record<JobStatus, { label: string; variant: "default" | "sec
   offer: { label: "Offer", variant: "success" },
   rejected: { label: "Rejected", variant: "destructive" },
   withdrawn: { label: "Withdrawn", variant: "secondary" },
+  closed: { label: "Closed", variant: "destructive" },
 };
 
 export default function StatusBadge({ status }: { status: JobStatus }) {

@@ -18,6 +18,7 @@ const columns: { status: JobStatus; label: string }[] = [
   { status: "offer", label: "Offer" },
   { status: "rejected", label: "Rejected" },
   { status: "withdrawn", label: "Withdrawn" },
+  { status: "closed", label: "Closed" },
 ];
 
 interface JobKanbanProps {

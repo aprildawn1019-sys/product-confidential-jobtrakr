@@ -108,8 +108,14 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     setGatedBoards(gated.map((b: any) => ({ name: b.name, url: b.url })));
 
     try {
+      // Include closed jobs in the dismissed list to prevent re-adding
+      const closedJobs = existingJobs
+        .filter(j => j.status === "closed")
+        .map(j => ({ company: j.company, title: j.title }));
+      const allExcluded = [...dismissedJobs, ...closedJobs];
+
       const { data, error } = await supabase.functions.invoke("ai-job-search", {
-        body: { profile, dismissed: dismissedJobs, activeBoards: searchableBoards, searchParams },
+        body: { profile, dismissed: allExcluded, activeBoards: searchableBoards, searchParams },
       });
 
       if (error) throw error;
@@ -216,7 +222,11 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   };
 
   const isAlreadyTracked = (result: SearchResult) => {
-    return existingJobs.some(j => j.company === result.company && j.title === result.title);
+    return existingJobs.some(j => j.company === result.company && j.title === result.title && j.status !== "closed");
+  };
+
+  const isClosedJob = (result: SearchResult) => {
+    return existingJobs.some(j => j.company === result.company && j.title === result.title && j.status === "closed");
   };
 
   const getScoreColor = (score: number) => {
@@ -413,7 +423,8 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
           {results.filter(r => {
             const q = resultFilter.toLowerCase();
-            return !q || r.title.toLowerCase().includes(q) || r.company.toLowerCase().includes(q) || r.location.toLowerCase().includes(q);
+            const matchesFilter = !q || r.title.toLowerCase().includes(q) || r.company.toLowerCase().includes(q) || r.location.toLowerCase().includes(q);
+            return matchesFilter && !isClosedJob(r);
           }).map((result, i) => {
             const key = `${result.company}-${result.title}`;
             const added = addedJobs.has(key);
