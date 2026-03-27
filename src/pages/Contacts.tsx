@@ -26,6 +26,8 @@ interface ContactsProps {
   jobs: Job[];
   campaigns: Campaign[];
   contactCampaigns: ContactCampaign[];
+  jobContacts: JobContact[];
+  contactConnections: ContactConnection[];
   onAdd: (contact: Omit<Contact, "id" | "createdAt">) => void;
   onAddBulk: (contacts: Omit<Contact, "id" | "createdAt">[]) => void;
   onUpdate: (id: string, updates: Partial<Contact>) => void;
