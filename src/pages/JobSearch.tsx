@@ -222,7 +222,11 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   };
 
   const isAlreadyTracked = (result: SearchResult) => {
-    return existingJobs.some(j => j.company === result.company && j.title === result.title);
+    return existingJobs.some(j => j.company === result.company && j.title === result.title && j.status !== "closed");
+  };
+
+  const isClosedJob = (result: SearchResult) => {
+    return existingJobs.some(j => j.company === result.company && j.title === result.title && j.status === "closed");
   };
 
   const getScoreColor = (score: number) => {
