@@ -115,7 +115,7 @@ const activityIcons: Record<string, string> = {
 };
 
 export default function Contacts({
-  contacts, jobs, campaigns, contactCampaigns,
+  contacts, jobs, campaigns, contactCampaigns, jobContacts, contactConnections,
   onAdd, onAddBulk, onUpdate, onDelete,
   getConnectionsForContact, getContactsAtSameOrg, onAddConnection, onRemoveConnection,
   getActivitiesForContact, onAddActivity, onDeleteActivity,
