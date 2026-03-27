@@ -59,6 +59,8 @@ export default function Index() {
               onAddActivity={store.addContactActivity}
               onDeleteActivity={store.deleteContactActivity}
               getJobsForContact={store.getJobsForContact}
+              getContactsForJob={store.getContactsForJob}
+              getNetworkMatchesForJob={store.getNetworkMatchesForJob}
               onLinkContactToJob={store.linkContactToJob}
               onUnlinkContactFromJob={store.unlinkContactFromJob}
               onAddCampaign={store.addCampaign}

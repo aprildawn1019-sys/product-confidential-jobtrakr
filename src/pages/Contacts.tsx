@@ -148,10 +148,13 @@ export default function Contacts({
 
   const filteredContacts = useMemo(() => {
     const filtered = contacts.filter(c => {
-      // Job-linked filter
+      // Job-linked filter: include both directly linked contacts and network matches (same company)
       if (jobIdFilter) {
-        const linkedJobs = getJobsForContact(c.id);
-        if (!linkedJobs.some(j => j.id === jobIdFilter)) return false;
+        const linkedContacts = getContactsForJob(jobIdFilter);
+        const job = jobs.find(j => j.id === jobIdFilter);
+        const networkMatches = job ? getNetworkMatchesForJob(job) : [];
+        const allMatchIds = new Set([...linkedContacts.map(lc => lc.id), ...networkMatches.map(nm => nm.id)]);
+        if (!allMatchIds.has(c.id)) return false;
       }
       const q = searchQuery.toLowerCase();
       if (q && !c.name.toLowerCase().includes(q) && !c.company.toLowerCase().includes(q) && !(c.role || "").toLowerCase().includes(q)) return false;
