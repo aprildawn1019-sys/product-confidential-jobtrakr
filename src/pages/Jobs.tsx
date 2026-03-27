@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import StatusBadge from "@/components/StatusBadge";
+import StatusSelect from "@/components/StatusSelect";
 import AddJobDialog from "@/components/AddJobDialog";
 import BulkJobUploadDialog from "@/components/BulkJobUploadDialog";
 import JobKanban from "@/components/JobKanban";

@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatDistanceToNow, isPast, isToday } from "date-fns";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
+import StatusSelect from "@/components/StatusSelect";
 import FitScoreStars from "@/components/FitScoreStars";
 import type { Job, Contact, Interview } from "@/types/jobTracker";
 
