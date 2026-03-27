@@ -351,7 +351,23 @@ export default function ProfileEditor() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Preferred Locations</Label>
-              <TagInput value={form.locations} onChange={v => setForm(f => ({ ...f, locations: v }))} placeholder="e.g. Ann Arbor, MI" />
+              <div className="flex items-center gap-2 mb-2">
+                <Checkbox
+                  id="any-location"
+                  checked={form.locations.length === 1 && form.locations[0] === "Any Location"}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setForm(f => ({ ...f, locations: ["Any Location"] }));
+                    } else {
+                      setForm(f => ({ ...f, locations: [] }));
+                    }
+                  }}
+                />
+                <label htmlFor="any-location" className="text-sm text-muted-foreground cursor-pointer">Any Location — ignore location in search</label>
+              </div>
+              {!(form.locations.length === 1 && form.locations[0] === "Any Location") && (
+                <TagInput value={form.locations} onChange={v => setForm(f => ({ ...f, locations: v }))} placeholder="e.g. Ann Arbor, MI" />
+              )}
             </div>
             <div className="space-y-2">
               <Label>Remote Preference</Label>
