@@ -108,8 +108,14 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     setGatedBoards(gated.map((b: any) => ({ name: b.name, url: b.url })));
 
     try {
+      // Include closed jobs in the dismissed list to prevent re-adding
+      const closedJobs = existingJobs
+        .filter(j => j.status === "closed")
+        .map(j => ({ company: j.company, title: j.title }));
+      const allExcluded = [...dismissedJobs, ...closedJobs];
+
       const { data, error } = await supabase.functions.invoke("ai-job-search", {
-        body: { profile, dismissed: dismissedJobs, activeBoards: searchableBoards, searchParams },
+        body: { profile, dismissed: allExcluded, activeBoards: searchableBoards, searchParams },
       });
 
       if (error) throw error;
