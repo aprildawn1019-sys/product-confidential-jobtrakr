@@ -173,7 +173,7 @@ export default function Dashboard({ jobs, contacts, interviews }: DashboardProps
         <div className="rounded-xl border border-border bg-card p-6 lg:col-span-2">
           <h2 className="font-display text-lg font-semibold mb-4">Application Pipeline</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-            {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn"] as const).map(status => {
+            {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"] as const).map(status => {
               const count = jobs.filter(j => j.status === status).length;
               return (
                 <div key={status} className="text-center rounded-lg border border-border p-3">
