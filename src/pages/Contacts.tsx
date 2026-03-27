@@ -36,6 +36,8 @@ interface ContactsProps {
   onAddActivity: (activity: Omit<ContactActivity, "id" | "createdAt">) => void;
   onDeleteActivity: (id: string) => void;
   getJobsForContact: (contactId: string) => Job[];
+  getContactsForJob: (jobId: string) => Contact[];
+  getNetworkMatchesForJob: (job: Job) => Contact[];
   onLinkContactToJob: (jobId: string, contactId: string) => void;
   onUnlinkContactFromJob: (jobId: string, contactId: string) => void;
   onAddCampaign: (campaign: Omit<Campaign, "id" | "createdAt" | "updatedAt">) => void;
