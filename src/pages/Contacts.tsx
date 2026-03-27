@@ -671,12 +671,12 @@ export default function Contacts({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight">Connections</h1>
           <p className="mt-1 text-muted-foreground">{filteredContacts.length} of {contacts.length} contacts</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center rounded-lg border border-border p-0.5">
             <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("grid")} title="Grid view">
               <LayoutGrid className="h-4 w-4" />
