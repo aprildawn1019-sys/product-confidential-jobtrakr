@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 import StatusBadge from "@/components/StatusBadge";
+import StatusSelect from "@/components/StatusSelect";
 import AddJobDialog from "@/components/AddJobDialog";
 import BulkJobUploadDialog from "@/components/BulkJobUploadDialog";
 import JobKanban from "@/components/JobKanban";
@@ -439,16 +440,7 @@ export default function Jobs({
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <Select value={job.status} onValueChange={v => onUpdateStatus(job.id, v as JobStatus)}>
-                            <SelectTrigger className="w-36 h-8 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"] as const).map(s => (
-                                <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <StatusSelect value={job.status} onValueChange={v => onUpdateStatus(job.id, v as JobStatus)} />
                           {job.url && (
                             <Button variant="ghost" size="icon" asChild>
                               <a href={job.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>

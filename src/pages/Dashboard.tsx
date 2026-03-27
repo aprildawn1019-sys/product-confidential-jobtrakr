@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatDistanceToNow, isPast, isToday } from "date-fns";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
+import StatusSelect from "@/components/StatusSelect";
 import FitScoreStars from "@/components/FitScoreStars";
 import type { Job, Contact, Interview } from "@/types/jobTracker";
 
@@ -88,12 +89,7 @@ export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, 
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Select value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)}>
-                      <SelectTrigger className="h-7 text-xs w-[110px]"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {allStatuses.map(s => <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <StatusSelect value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)} />
                     <Select value={job.urgency || ""} onValueChange={v => onUpdateJob?.(job.id, { urgency: v })}>
                       <SelectTrigger className="h-7 text-xs w-[100px]"><SelectValue placeholder="Urgency" /></SelectTrigger>
                       <SelectContent>
@@ -131,12 +127,7 @@ export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, 
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Select value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)}>
-                      <SelectTrigger className="h-7 text-xs w-[110px]"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {allStatuses.map(s => <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <StatusSelect value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)} />
                     <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
                   </div>
                 </div>
