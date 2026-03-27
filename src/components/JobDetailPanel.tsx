@@ -204,7 +204,7 @@ export default function JobDetailPanel({
                 <span className="text-muted-foreground">Type / Salary</span>
                 <p className="font-medium capitalize">{job.type}{job.salary ? ` · ${job.salary}` : ""}</p>
               </div>
-              <div className="col-span-2 md:col-span-4">
+              <div className={compact ? "" : "col-span-2"}>
                 <span className="text-muted-foreground text-sm">Fit & Urgency</span>
                 <div className="flex items-center gap-3 mt-1">
                   <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} />
