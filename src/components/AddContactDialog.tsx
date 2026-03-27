@@ -16,10 +16,35 @@ interface AddContactDialogProps {
 
 export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
   const [open, setOpen] = useState(false);
+  const [fetchingLinkedin, setFetchingLinkedin] = useState(false);
   const [form, setForm] = useState({
     name: "", company: "", role: "", email: "", phone: "", linkedin: "", notes: "",
     relationshipWarmth: "", conversationLog: "",
   });
+
+  const handleLinkedinFetch = async () => {
+    const url = form.linkedin.trim();
+    if (!url || fetchingLinkedin) return;
+    const fullUrl = url.startsWith("http") ? url : `https://${url}`;
+    setFetchingLinkedin(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
+      if (error || !data?.success) throw new Error(data?.error || error?.message || "Failed");
+      const d = data.data;
+      setForm(f => ({
+        ...f,
+        name: d.name || f.name,
+        role: d.role || f.role,
+        company: d.company || f.company,
+        linkedin: d.linkedin || f.linkedin,
+      }));
+      toast({ title: "Contact info extracted!", description: `Found: ${d.name || "Unknown"}` });
+    } catch (e: any) {
+      toast({ title: "LinkedIn fetch failed", description: e.message, variant: "destructive" });
+    } finally {
+      setFetchingLinkedin(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
