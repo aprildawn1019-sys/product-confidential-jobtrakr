@@ -379,7 +379,6 @@ export default function Jobs({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 flex-wrap">
                             <h3 className="font-display font-semibold text-lg">{job.title}</h3>
-                            <StatusBadge status={job.status} />
                             {job.source === "ai-feed" && (
                               <Badge className="text-xs gap-1 bg-primary/10 text-primary border-primary/20">
                                 <Sparkles className="h-3 w-3" />AI Feed
