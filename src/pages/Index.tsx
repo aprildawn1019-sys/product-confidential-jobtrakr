@@ -21,7 +21,7 @@ export default function Index() {
       <AppSidebar />
       <main className="flex-1 ml-64 p-8">
         <Routes>
-          <Route index element={<Dashboard jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} onUpdateStatus={store.updateJobStatus} onUpdateJob={store.updateJob} />} />
+          <Route index element={<Dashboard jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} onUpdateStatus={store.updateJobStatus} onUpdateJob={store.updateJob} onUpdateContact={store.updateContact} />} />
           <Route path="jobs" element={
             <Jobs
               jobs={store.jobs}

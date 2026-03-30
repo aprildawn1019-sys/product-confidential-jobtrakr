@@ -1,9 +1,13 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
-import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink, X, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatDistanceToNow, isPast, isToday } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { formatDistanceToNow, isPast, isToday, format } from "date-fns";
+import { cn } from "@/lib/utils";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import StatusSelect from "@/components/StatusSelect";
@@ -16,6 +20,7 @@ interface DashboardProps {
   interviews: Interview[];
   onUpdateStatus?: (id: string, status: string) => void;
   onUpdateJob?: (id: string, updates: Partial<Job>) => void;
+  onUpdateContact?: (id: string, updates: Partial<Contact>) => void;
 }
 
 const urgencyColors: Record<string, string> = {
@@ -28,7 +33,8 @@ const urgencyColors: Record<string, string> = {
 const allStatuses = ["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"];
 const allUrgencies = ["low", "medium", "high", "critical"];
 
-export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, onUpdateJob }: DashboardProps) {
+export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, onUpdateJob, onUpdateContact }: DashboardProps) {
+  const navigate = useNavigate();
   const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
   const upcoming = interviews.filter(i => i.status === "scheduled");
 
@@ -143,6 +149,7 @@ export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, 
             {overdueCount > 0 && (
               <Badge variant="destructive" className="text-xs">{overdueCount} overdue</Badge>
             )}
+            <Link to="/contacts?followUp=all" className="ml-auto text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View all →</Link>
           </h2>
           {followUpContacts.length === 0 ? (
             <p className="text-sm text-muted-foreground italic py-4 text-center">No follow-ups scheduled</p>
@@ -153,14 +160,47 @@ export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, 
                 const overdue = isPast(d) && !isToday(d);
                 const today = isToday(d);
                 return (
-                  <div key={contact.id} className={`flex items-center justify-between rounded-lg border p-3 ${overdue ? "border-destructive/40 bg-destructive/5" : today ? "border-warning/40 bg-warning/5" : "border-border"}`}>
-                    <div className="min-w-0 flex-1">
+                  <div key={contact.id} className={cn("flex items-center justify-between rounded-lg border p-3 group", overdue ? "border-destructive/40 bg-destructive/5" : today ? "border-warning/40 bg-warning/5" : "border-border")}>
+                    <button
+                      onClick={() => navigate("/contacts")}
+                      className="min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
+                    >
                       <p className="font-medium text-sm">{contact.name}</p>
                       <p className="text-xs text-muted-foreground">{contact.role} at {contact.company}</p>
+                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="outline" className={cn("text-xs", overdue ? "text-destructive border-destructive/30" : today ? "text-warning border-warning/30" : "text-info border-info/30")}>
+                        {overdue ? `Overdue ${formatDistanceToNow(d)}` : today ? "Today" : `In ${formatDistanceToNow(d)}`}
+                      </Badge>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <Calendar
+                            mode="single"
+                            selected={d}
+                            onSelect={newDate => {
+                              if (newDate && onUpdateContact) {
+                                onUpdateContact(contact.id, { followUpDate: format(newDate, "yyyy-MM-dd") });
+                              }
+                            }}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                        onClick={() => onUpdateContact?.(contact.id, { followUpDate: undefined })}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
-                    <Badge variant="outline" className={`text-xs shrink-0 ${overdue ? "text-destructive border-destructive/30" : today ? "text-warning border-warning/30" : "text-info border-info/30"}`}>
-                      {overdue ? `Overdue ${formatDistanceToNow(d)}` : today ? "Today" : `In ${formatDistanceToNow(d)}`}
-                    </Badge>
                   </div>
                 );
               })}
