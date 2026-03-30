@@ -20,6 +20,7 @@ interface DashboardProps {
   interviews: Interview[];
   onUpdateStatus?: (id: string, status: string) => void;
   onUpdateJob?: (id: string, updates: Partial<Job>) => void;
+  onUpdateContact?: (id: string, updates: Partial<Contact>) => void;
 }
 
 const urgencyColors: Record<string, string> = {
