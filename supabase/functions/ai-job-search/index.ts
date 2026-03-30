@@ -126,6 +126,7 @@ serve(async (req) => {
     const realResults = await searchRealJobs(profile, searchParams, activeBoards || []);
     console.log(`Found ${realResults.length} real job postings from Firecrawl`);
 
+    const anyLocation = profile.locations?.includes("Any Location");
     const profileContext = `
 TARGET ROLES: ${profile.target_roles?.join(", ")}
 LOCATIONS: ${anyLocation ? "Any Location (no location preference)" : profile.locations?.join(", ")} (also open to remote US positions)
