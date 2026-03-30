@@ -1,9 +1,13 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
-import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink, X, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatDistanceToNow, isPast, isToday } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { formatDistanceToNow, isPast, isToday, format } from "date-fns";
+import { cn } from "@/lib/utils";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import StatusSelect from "@/components/StatusSelect";
