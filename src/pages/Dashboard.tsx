@@ -149,7 +149,7 @@ export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, 
             {overdueCount > 0 && (
               <Badge variant="destructive" className="text-xs">{overdueCount} overdue</Badge>
             )}
-            <Link to="/contacts?followUp=all" className="ml-auto text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View all →</Link>
+            <Link to="/interviews?filter=followups" className="ml-auto text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View all →</Link>
           </h2>
           {followUpContacts.length === 0 ? (
             <p className="text-sm text-muted-foreground italic py-4 text-center">No follow-ups scheduled</p>
