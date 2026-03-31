@@ -629,6 +629,51 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
         </div>
       )}
 
+      {/* Search History Section */}
+      {searchHistory.length > 0 && (
+        <div className="rounded-xl border border-border bg-card">
+          <button
+            onClick={() => setShowHistory(prev => !prev)}
+            className="flex items-center justify-between w-full p-4 text-left hover:bg-muted/50 transition-colors rounded-xl"
+          >
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <History className="h-4 w-4" />
+              Search History ({searchHistory.length})
+            </div>
+            {showHistory ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+          {showHistory && (
+            <div className="border-t border-border px-4 pb-4 space-y-2">
+              {searchHistory.map((entry) => {
+                const date = new Date(entry.created_at);
+                const summary = entry.results.slice(0, 3).map(r => r.company).join(", ");
+                const isViewing = viewingHistoryId === entry.id;
+                return (
+                  <div key={entry.id} className={`flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 ${isViewing ? "bg-primary/5 border border-primary/20" : ""}`}>
+                    <div className="text-sm flex-1 min-w-0">
+                      <span className="font-medium">{entry.result_count} results</span>
+                      <span className="text-muted-foreground"> · {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                      {entry.search_params.focusKeywords && (
+                        <span className="text-muted-foreground"> · "{entry.search_params.focusKeywords}"</span>
+                      )}
+                      <p className="text-xs text-muted-foreground truncate">{summary}{entry.result_count > 3 ? ` +${entry.result_count - 3} more` : ""}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button variant="ghost" size="sm" onClick={() => restoreHistoryEntry(entry)} className="text-muted-foreground hover:text-foreground">
+                        <RotateCcw className="h-3.5 w-3.5" /> View
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => deleteHistoryEntry(entry.id)} className="text-muted-foreground hover:text-destructive">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Dismissed Jobs Section */}
       {dismissedJobs.length > 0 && (
         <div className="rounded-xl border border-border bg-card">
