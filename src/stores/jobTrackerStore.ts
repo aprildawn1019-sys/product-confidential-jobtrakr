@@ -97,6 +97,14 @@ function mapRecommendationRequest(row: any): RecommendationRequest {
   };
 }
 
+function mapJobActivity(row: any): JobActivity {
+  return {
+    id: row.id, jobId: row.job_id, activityType: row.activity_type,
+    activityDate: row.activity_date, contactId: row.contact_id ?? undefined,
+    notes: row.notes ?? undefined, createdAt: row.created_at,
+  };
+}
+
 async function getUserId() {
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id;
