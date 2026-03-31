@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe, Settings2 } from "lucide-react";
+import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe, Settings2, XCircle } from "lucide-react";
 import { GatedBoardsNotice } from "@/components/jobsearch/GatedBoardsNotice";
 import { GatedBoardScrape } from "@/components/jobsearch/GatedBoardScrape";
 import { Slider } from "@/components/ui/slider";
@@ -59,6 +59,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [gatedBoards, setGatedBoards] = useState<{ name: string; url: string | null }[]>([]);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     resultCount: 10,
     minMatchScore: 60,
@@ -125,6 +126,8 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     setSearching(true);
     setResults([]);
     setAddedJobs(new Set());
+    const controller = new AbortController();
+    abortRef.current = controller;
     startTimer();
 
     // Separate gated from searchable boards
@@ -142,6 +145,8 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       const { data, error } = await supabase.functions.invoke("ai-job-search", {
         body: { profile, dismissed: allExcluded, activeBoards: searchableBoards, searchParams },
       });
+
+      if (controller.signal.aborted) return;
 
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Search failed");
@@ -171,12 +176,22 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       const metaInfo = meta ? ` (${meta.realJobsFound} from live search, ${meta.aiSuggestions} AI suggestions)` : "";
       toast({ title: "Search complete!", description: `Found ${uniqueResults.length} matching opportunities${metaInfo}.` });
     } catch (e: any) {
+      if (controller.signal.aborted) return;
       console.error("Job search error:", e);
       toast({ title: "Search failed", description: e.message || "Could not complete job search.", variant: "destructive" });
     } finally {
+      abortRef.current = null;
       stopTimer();
       setSearching(false);
     }
+  };
+
+  const handleCancel = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    stopTimer();
+    setSearching(false);
+    toast({ title: "Search cancelled", description: "The job search was stopped." });
   };
 
   const handleAddJob = (result: SearchResult) => {
@@ -280,10 +295,15 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
               <Plus className="h-4 w-4" /> Add All to Tracker
             </Button>
           )}
-          <Button onClick={handleSearch} disabled={searching}>
-            {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-            {searching ? "Searching…" : "Search Jobs"}
-          </Button>
+          {searching ? (
+            <Button variant="destructive" onClick={handleCancel}>
+              <XCircle className="h-4 w-4" /> Cancel Search
+            </Button>
+          ) : (
+            <Button onClick={handleSearch}>
+              <Search className="h-4 w-4" /> Search Jobs
+            </Button>
+          )}
         </div>
       </div>
 
