@@ -126,6 +126,8 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     setSearching(true);
     setResults([]);
     setAddedJobs(new Set());
+    const controller = new AbortController();
+    abortRef.current = controller;
     startTimer();
 
     // Separate gated from searchable boards
