@@ -41,6 +41,14 @@ interface DismissedJob {
   title: string;
 }
 
+interface SearchHistoryEntry {
+  id: string;
+  created_at: string;
+  search_params: SearchParams;
+  results: SearchResult[];
+  result_count: number;
+}
+
 interface JobSearchProps {
   onAddJob: (job: Omit<Job, "id" | "createdAt">) => void;
   existingJobs: Job[];
