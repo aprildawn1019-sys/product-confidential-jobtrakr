@@ -621,7 +621,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
         </div>
       )}
 
-      {!searching && results.length === 0 && (
+      {!searching && results.length === 0 && !viewingHistoryId && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
           <Search className="h-10 w-10 mb-4 opacity-40" />
           <p className="font-medium">Ready to search</p>
