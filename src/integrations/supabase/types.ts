@@ -491,6 +491,33 @@ export type Database = {
           },
         ]
       }
+      job_search_history: {
+        Row: {
+          created_at: string
+          id: string
+          result_count: number
+          results: Json
+          search_params: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          result_count?: number
+          results?: Json
+          search_params?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          result_count?: number
+          results?: Json
+          search_params?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       job_search_profile: {
         Row: {
           certifications: string[]
