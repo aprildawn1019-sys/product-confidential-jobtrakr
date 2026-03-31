@@ -223,9 +223,14 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       }
       const uniqueResults = Array.from(deduped.values());
       setResults(uniqueResults);
+      setViewingHistoryId(null);
       const meta = data.meta;
       const metaInfo = meta ? ` (${meta.realJobsFound} from live search, ${meta.aiSuggestions} AI suggestions)` : "";
       toast({ title: "Search complete!", description: `Found ${uniqueResults.length} matching opportunities${metaInfo}.` });
+      // Save to search history
+      if (uniqueResults.length > 0) {
+        saveSearchToHistory(searchParams, uniqueResults);
+      }
     } catch (e: any) {
       if (controller.signal.aborted) return;
       console.error("Job search error:", e);
