@@ -420,10 +420,29 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
       {/* Results */}
       {searching && (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin mb-4" />
-          <p className="font-medium">Searching for matching opportunities…</p>
-          <p className="text-sm">AI is analyzing your profile against current job market</p>
+        <div className="rounded-xl border border-border bg-card p-8 space-y-5">
+          <div className="flex flex-col items-center text-center space-y-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="font-medium text-foreground">{getProgressStage()}</p>
+            <p className="text-sm text-muted-foreground">
+              {remainingSeconds > 0
+                ? `Estimated ~${remainingSeconds < 60 ? `${remainingSeconds}s` : `${Math.ceil(remainingSeconds / 60)}m`} remaining`
+                : "Almost done…"}
+            </p>
+          </div>
+          {/* Progress bar */}
+          <div className="w-full max-w-md mx-auto">
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-1000 ease-linear"
+                style={{ width: `${Math.round(progress * 100)}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-1.5 text-xs text-muted-foreground">
+              <span>{elapsedSeconds}s elapsed</span>
+              <span>{Math.round(progress * 100)}%</span>
+            </div>
+          </div>
         </div>
       )}
 
