@@ -174,6 +174,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       console.error("Job search error:", e);
       toast({ title: "Search failed", description: e.message || "Could not complete job search.", variant: "destructive" });
     } finally {
+      stopTimer();
       setSearching(false);
     }
   };
