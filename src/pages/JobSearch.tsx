@@ -146,6 +146,8 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
         body: { profile, dismissed: allExcluded, activeBoards: searchableBoards, searchParams },
       });
 
+      if (controller.signal.aborted) return;
+
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Search failed");
 
