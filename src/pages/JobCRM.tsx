@@ -399,7 +399,7 @@ export default function JobCRM({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm">{contact.name}</span>
-                      <WarmthBadge warmth={contact.relationshipWarmth} />
+                      <WarmthBadge warmth={contact.relationshipWarmth} onChange={() => {}} />
                     </div>
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUnlinkContact(job.id, contact.id)}>
                       <Trash2 className="h-3 w-3 text-destructive" />
