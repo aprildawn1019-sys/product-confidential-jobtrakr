@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection, ContactActivity, Campaign, ContactCampaign, RecommendationRequest, SkillsSnapshot } from "@/types/jobTracker";
+import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection, ContactActivity, Campaign, ContactCampaign, RecommendationRequest, SkillsSnapshot, JobActivity } from "@/types/jobTracker";
 
 /** Normalize a company name for fuzzy matching */
 function normalizeCompany(name: string): string {
