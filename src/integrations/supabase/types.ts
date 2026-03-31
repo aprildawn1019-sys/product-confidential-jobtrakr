@@ -410,6 +410,39 @@ export type Database = {
           },
         ]
       }
+      job_activities: {
+        Row: {
+          activity_date: string
+          activity_type: string
+          contact_id: string | null
+          created_at: string
+          id: string
+          job_id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_date: string
+          activity_type?: string
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          activity_type?: string
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       job_boards: {
         Row: {
           category: string
