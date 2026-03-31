@@ -445,6 +445,9 @@ export default function Jobs({
                               <a href={job.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
                             </Button>
                           )}
+                          <Button variant="ghost" size="icon" onClick={() => navigate(`/jobs/${job.id}`)}>
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
                             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </Button>

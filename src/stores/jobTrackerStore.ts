@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection, ContactActivity, Campaign, ContactCampaign, RecommendationRequest, SkillsSnapshot } from "@/types/jobTracker";
+import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection, ContactActivity, Campaign, ContactCampaign, RecommendationRequest, SkillsSnapshot, JobActivity } from "@/types/jobTracker";
 
 /** Normalize a company name for fuzzy matching */
 function normalizeCompany(name: string): string {
@@ -97,6 +97,14 @@ function mapRecommendationRequest(row: any): RecommendationRequest {
   };
 }
 
+function mapJobActivity(row: any): JobActivity {
+  return {
+    id: row.id, jobId: row.job_id, activityType: row.activity_type,
+    activityDate: row.activity_date, contactId: row.contact_id ?? undefined,
+    notes: row.notes ?? undefined, createdAt: row.created_at,
+  };
+}
+
 async function getUserId() {
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id;
@@ -112,11 +120,12 @@ export function useJobTrackerStore() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [contactCampaigns, setContactCampaigns] = useState<ContactCampaign[]>([]);
   const [recommendationRequests, setRecommendationRequests] = useState<RecommendationRequest[]>([]);
+  const [jobActivities, setJobActivities] = useState<JobActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes, activitiesRes, campaignsRes, contactCampaignsRes, recReqRes] = await Promise.all([
+    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes, activitiesRes, campaignsRes, contactCampaignsRes, recReqRes, jobActRes] = await Promise.all([
       supabase.from("jobs").select("*").order("created_at", { ascending: false }).range(0, 9999),
       supabase.from("contacts").select("*").order("created_at", { ascending: false }).range(0, 9999),
       supabase.from("interviews").select("*").order("date", { ascending: true }).range(0, 9999),
@@ -126,6 +135,7 @@ export function useJobTrackerStore() {
       supabase.from("campaigns").select("*").order("created_at", { ascending: false }).range(0, 9999),
       supabase.from("contact_campaigns").select("*").range(0, 9999),
       supabase.from("recommendation_requests").select("*").order("requested_at", { ascending: false }).range(0, 9999),
+      supabase.from("job_activities").select("*").order("activity_date", { ascending: false }).range(0, 9999),
     ]);
     if (jobsRes.data) setJobs(jobsRes.data.map(mapJob));
     if (contactsRes.data) setContacts(contactsRes.data.map(mapContact));
@@ -136,6 +146,7 @@ export function useJobTrackerStore() {
     if (campaignsRes.data) setCampaigns(campaignsRes.data.map(mapCampaign));
     if (contactCampaignsRes.data) setContactCampaigns(contactCampaignsRes.data.map(mapContactCampaign));
     if (recReqRes.data) setRecommendationRequests(recReqRes.data.map(mapRecommendationRequest));
+    if (jobActRes.data) setJobActivities(jobActRes.data.map(mapJobActivity));
     setLoading(false);
   }, []);
 
@@ -503,13 +514,34 @@ export function useJobTrackerStore() {
     return recommendationRequests.filter(r => r.contactId === contactId);
   };
 
+  // === JOB ACTIVITIES ===
+  const addJobActivity = async (activity: Omit<JobActivity, "id" | "createdAt">) => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const { data } = await supabase.from("job_activities").insert({
+      user_id: userId, job_id: activity.jobId, activity_type: activity.activityType,
+      activity_date: activity.activityDate, contact_id: activity.contactId || null,
+      notes: activity.notes || null,
+    }).select().single();
+    if (data) setJobActivities(prev => [mapJobActivity(data), ...prev]);
+  };
+
+  const deleteJobActivity = async (id: string) => {
+    await supabase.from("job_activities").delete().eq("id", id);
+    setJobActivities(prev => prev.filter(ja => ja.id !== id));
+  };
+
+  const getJobActivitiesForJob = (jobId: string) => {
+    return jobActivities.filter(ja => ja.jobId === jobId);
+  };
+
   // === HELPERS ===
   const getJobsByStatus = (status: JobStatus) => jobs.filter(j => j.status === status);
   const getContactForJob = (contactId?: string) => contacts.find(c => c.id === contactId);
   const getInterviewsForJob = (jobId: string) => interviews.filter(i => i.jobId === jobId);
 
   return {
-    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, loading,
+    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, jobActivities, loading,
     addJob, addJobsBulk, updateJobStatus, updateJob, deleteJob,
     addContact, addContactsBulk, updateContact, deleteContact,
     addInterview, updateInterview, deleteInterview,
@@ -518,6 +550,7 @@ export function useJobTrackerStore() {
     addContactActivity, deleteContactActivity, getActivitiesForContact,
     addCampaign, updateCampaign, deleteCampaign, toggleContactCampaign, getCampaignsForContact, getContactsForCampaign,
     addRecommendationRequest, updateRecommendationRequest, deleteRecommendationRequest, getRecommendationRequestsForContact,
+    addJobActivity, deleteJobActivity, getJobActivitiesForJob,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
   };
 }

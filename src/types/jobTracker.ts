@@ -108,3 +108,13 @@ export interface RecommendationRequest {
   status: "pending" | "received" | "declined";
   createdAt: string;
 }
+
+export interface JobActivity {
+  id: string;
+  jobId: string;
+  activityType: string;
+  activityDate: string;
+  contactId?: string;
+  notes?: string;
+  createdAt: string;
+}
