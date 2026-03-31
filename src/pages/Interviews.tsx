@@ -364,7 +364,11 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
                           <Users className="h-3.5 w-3.5 text-muted-foreground" />
                           <span className="font-medium text-sm">{contact.name}</span>
                           <span className="text-sm text-muted-foreground">at {contact.company}</span>
-                          {contact.relationshipWarmth && <WarmthBadge warmth={contact.relationshipWarmth} />}
+                          {contact.relationshipWarmth && (
+                            <Badge variant="outline" className={cn("text-xs capitalize", warmthStyles[contact.relationshipWarmth] || "")}>
+                              {contact.relationshipWarmth}
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <CalendarIcon className="h-3.5 w-3.5" />
