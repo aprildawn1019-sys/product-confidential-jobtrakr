@@ -128,6 +128,16 @@ export default function Contacts({
   const jobIdFilter = searchParams.get("jobId");
   const highlightId = searchParams.get("highlight");
   const [expandedContact, setExpandedContact] = useState<string | null>(highlightId);
+
+  // Auto-scroll to highlighted contact
+  useEffect(() => {
+    if (highlightId) {
+      setTimeout(() => {
+        const el = document.getElementById(`contact-${highlightId}`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 200);
+    }
+  }, [highlightId]);
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
