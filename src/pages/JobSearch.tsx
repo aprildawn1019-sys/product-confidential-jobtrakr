@@ -95,6 +95,28 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     if (data) setActiveBoards(data);
   };
 
+  const startTimer = () => {
+    setElapsedSeconds(0);
+    timerRef.current = setInterval(() => setElapsedSeconds(s => s + 1), 1000);
+  };
+  const stopTimer = () => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  };
+  useEffect(() => () => stopTimer(), []);
+
+  // Estimate: ~8s per result requested + 10s base overhead
+  const estimatedTotal = Math.max(20, searchParams.resultCount * 8 + 10);
+  const progress = Math.min(elapsedSeconds / estimatedTotal, 0.95);
+  const remainingSeconds = Math.max(0, Math.round(estimatedTotal - elapsedSeconds));
+
+  const getProgressStage = () => {
+    if (elapsedSeconds < 5) return "Analyzing your search profile…";
+    if (elapsedSeconds < 15) return "Scraping live job boards…";
+    if (elapsedSeconds < estimatedTotal * 0.5) return "Matching jobs to your skills & preferences…";
+    if (elapsedSeconds < estimatedTotal * 0.8) return "Scoring and ranking results…";
+    return "Finalizing results…";
+  };
+
   const handleSearch = async () => {
     if (!profile) {
       toast({ title: "No profile found", description: "Please set up your job search profile first.", variant: "destructive" });
@@ -103,6 +125,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     setSearching(true);
     setResults([]);
     setAddedJobs(new Set());
+    startTimer();
 
     // Separate gated from searchable boards
     const searchableBoards = activeBoards.filter((b: any) => !b.is_gated);
