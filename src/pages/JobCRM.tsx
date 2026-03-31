@@ -101,6 +101,54 @@ export default function JobCRM({
   const [schedTime, setSchedTime] = useState("");
   const [schedNotes, setSchedNotes] = useState("");
 
+  const linkedContacts = job ? getContactsForJob(job.id) : [];
+  const networkMatches = job ? getNetworkMatchesForJob(job) : [];
+  const jobInterviews = job ? interviews.filter(i => i.jobId === job.id) : [];
+  const jobActivities = job ? getJobActivitiesForJob(job.id) : [];
+
+  // Build unified timeline
+  const timeline: TimelineEntry[] = useMemo(() => {
+    if (!job) return [];
+    const entries: TimelineEntry[] = [];
+
+    jobActivities.forEach(ja => {
+      const contact = ja.contactId ? contacts.find(c => c.id === ja.contactId) : undefined;
+      entries.push({
+        id: `ja-${ja.id}`, date: ja.activityDate, type: "job_activity",
+        label: activityLabel(ja.activityType), detail: ja.notes,
+        contactName: contact?.name, icon: <ActivityIcon type={ja.activityType} />,
+      });
+    });
+
+    jobInterviews.forEach(iv => {
+      entries.push({
+        id: `iv-${iv.id}`, date: iv.date, type: "interview",
+        label: `${iv.type.charAt(0).toUpperCase() + iv.type.slice(1)} Interview`,
+        detail: iv.notes, icon: <Calendar className="h-4 w-4" />,
+      });
+    });
+
+    linkedContacts.forEach(contact => {
+      const activities = getActivitiesForContact(contact.id);
+      activities.forEach(ca => {
+        entries.push({
+          id: `ca-${ca.id}`, date: ca.activityDate, type: "contact_activity",
+          label: ca.activityType, detail: ca.notes, contactName: contact.name,
+          icon: <User className="h-4 w-4" />,
+        });
+      });
+    });
+
+    if (job.statusUpdatedAt) {
+      entries.push({
+        id: "status", date: job.statusUpdatedAt.split("T")[0], type: "status_change",
+        label: `Status → ${job.status}`, icon: <Briefcase className="h-4 w-4" />,
+      });
+    }
+
+    return entries.sort((a, b) => b.date.localeCompare(a.date));
+  }, [job, jobActivities, jobInterviews, linkedContacts, contacts, getActivitiesForContact]);
+
   if (!job) {
     return (
       <div className="flex flex-col items-center justify-center py-24">
@@ -109,71 +157,6 @@ export default function JobCRM({
       </div>
     );
   }
-
-  const linkedContacts = getContactsForJob(job.id);
-  const networkMatches = getNetworkMatchesForJob(job);
-  const jobInterviews = interviews.filter(i => i.jobId === job.id);
-  const jobActivities = getJobActivitiesForJob(job.id);
-
-  // Build unified timeline
-  const timeline: TimelineEntry[] = useMemo(() => {
-    const entries: TimelineEntry[] = [];
-
-    // Job activities
-    jobActivities.forEach(ja => {
-      const contact = ja.contactId ? contacts.find(c => c.id === ja.contactId) : undefined;
-      entries.push({
-        id: `ja-${ja.id}`,
-        date: ja.activityDate,
-        type: "job_activity",
-        label: activityLabel(ja.activityType),
-        detail: ja.notes,
-        contactName: contact?.name,
-        icon: <ActivityIcon type={ja.activityType} />,
-      });
-    });
-
-    // Interviews
-    jobInterviews.forEach(iv => {
-      entries.push({
-        id: `iv-${iv.id}`,
-        date: iv.date,
-        type: "interview",
-        label: `${iv.type.charAt(0).toUpperCase() + iv.type.slice(1)} Interview`,
-        detail: iv.notes,
-        icon: <Calendar className="h-4 w-4" />,
-      });
-    });
-
-    // Contact activities for linked contacts
-    linkedContacts.forEach(contact => {
-      const activities = getActivitiesForContact(contact.id);
-      activities.forEach(ca => {
-        entries.push({
-          id: `ca-${ca.id}`,
-          date: ca.activityDate,
-          type: "contact_activity",
-          label: ca.activityType,
-          detail: ca.notes,
-          contactName: contact.name,
-          icon: <User className="h-4 w-4" />,
-        });
-      });
-    });
-
-    // Status change
-    if (job.statusUpdatedAt) {
-      entries.push({
-        id: "status",
-        date: job.statusUpdatedAt.split("T")[0],
-        type: "status_change",
-        label: `Status → ${job.status}`,
-        icon: <Briefcase className="h-4 w-4" />,
-      });
-    }
-
-    return entries.sort((a, b) => b.date.localeCompare(a.date));
-  }, [jobActivities, jobInterviews, linkedContacts, job.statusUpdatedAt, job.status, contacts, getActivitiesForContact]);
 
   const handleLogActivity = () => {
     if (!id) return;
