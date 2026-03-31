@@ -1,60 +1,83 @@
 
 
-# Integrating Follow-Up Reminders into Scheduling & Networking Workflows
+# Job Application CRM View
 
-## Current State
+## Overview
 
-Follow-up reminders live as a `followUpDate` field on contacts. They appear in two places:
-- **Dashboard widget** — shows upcoming/overdue reminders with inline edit (calendar popover) and delete
-- **Contacts page** — set/clear date per contact
+Create a dedicated full-page view for each job application that consolidates all related activity into a single CRM-like interface. Accessible by clicking a job from the Jobs list or via a new route `/jobs/:id`.
 
-The problem: reminders are isolated from the scheduling workflow (Interviews page) and the networking workflow (Connections page). They feel like an afterthought rather than part of the user's activity planning.
+## What exists today
 
-## Proposed Changes
+- `JobDetailPanel` — an inline expandable panel within job cards showing job details, recruiter info, interviews, and linked contacts. It lacks activity history and networking actions.
+- Store already has all needed data and functions: `getContactsForJob`, `getNetworkMatchesForJob`, `getActivitiesForContact`, `getInterviewsForJob`, linked contacts, etc.
+- No per-job activity log exists — activities are tracked per-contact, not per-job.
 
-### 1. Unified "Schedule" page — merge follow-ups into the Interviews/Calendar view
+## New database table
 
-Currently the Interviews page only shows interview events. We'll expand it into a combined scheduling view that includes both interviews and contact follow-up reminders on the same timeline.
+**`job_activities`** — tracks actions taken on a job application beyond status changes.
 
-**Changes to `src/pages/Interviews.tsx`:**
-- Accept `contacts` and `onUpdateContact` props
-- Add a filter toggle: "All" / "Interviews" / "Follow-ups"
-- Render follow-up reminders as timeline items alongside interviews, with distinct styling (different icon/color)
-- Each follow-up item shows the contact name, company, warmth badge, and due date
-- Allow inline reschedule (calendar popover) and dismiss (clear date) directly from this view
-- Clicking a follow-up navigates to the contact on the Connections page
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid | PK, default gen_random_uuid() |
+| user_id | uuid | not null |
+| job_id | uuid | not null |
+| activity_type | text | e.g. "shared_resume", "cold_outreach", "introduction", "referral_request", "informational_chat", "follow_up", "other" |
+| activity_date | text | date string |
+| contact_id | uuid | nullable — which contact was involved |
+| notes | text | nullable |
+| created_at | timestamptz | default now() |
 
-**Changes to `src/pages/Index.tsx`:**
-- Pass `contacts` and `store.updateContact` to `InterviewsPage`
+RLS: authenticated users manage own rows.
 
-### 2. Dashboard follow-up widget — deep-link to the contact
+## New page: `src/pages/JobCRM.tsx`
 
-**Changes to `src/pages/Dashboard.tsx`:**
-- Clicking a follow-up contact name navigates to `/contacts` with a query param to auto-expand that contact (e.g., `/contacts?highlight=<contactId>`)
-- "View all →" link changes to `/interviews?filter=followups` to show the unified schedule view
+A full-page view organized into sections:
 
-### 3. Contacts page — surface scheduling context
+### Section 1 — Header
+- Job title, company, location, type, status badge, fit score, urgency
+- Inline status selector to change status
+- Link to job posting, applied date
 
-**Changes to `src/pages/Contacts.tsx`:**
-- Support a `?highlight=<contactId>` query param that auto-expands and scrolls to the specified contact
-- This enables the dashboard → contact deep-link flow
+### Section 2 — Timeline / Activity Feed
+- Merged chronological feed combining:
+  - Status changes (derived from `statusUpdatedAt`)
+  - Interviews (from `interviews` table)
+  - Job activities (from new `job_activities` table)
+  - Contact activities for linked contacts (from `contact_activities`)
+- Each entry shows icon, date, description
+- "Log Activity" button to add new `job_activity` entries with type selector
 
-### 4. Sidebar label update
+### Section 3 — Network & Contacts
+- Linked contacts with last conversation snippet, warmth indicator, follow-up date
+- Network matches (contacts at same company) with link action
+- For each contact: "What we last spoke about" (from conversation_log), "Next step" (from follow-up date/notes)
 
-**Changes to `src/components/AppSidebar.tsx`:**
-- Rename the Interviews nav item label from "Interviews" to "Schedule" to reflect it now houses both interviews and follow-ups
+### Section 4 — Interviews
+- Reuse existing interview display + scheduling from `JobDetailPanel`
 
-## Files Modified
+### Section 5 — Recruiter Info
+- Reuse existing recruiter section from `JobDetailPanel`
+
+### Section 6 — Notes & Description
+- Job notes (editable)
+- Job description (collapsible)
+
+## Changes summary
 
 | File | Change |
 |------|--------|
-| `src/pages/Interviews.tsx` | Add follow-up reminders alongside interviews with filter toggle |
-| `src/pages/Index.tsx` | Pass contacts + updateContact to InterviewsPage |
-| `src/pages/Dashboard.tsx` | Deep-link follow-ups to contacts; link "View all" to schedule page |
-| `src/pages/Contacts.tsx` | Support `?highlight=contactId` for auto-expand |
-| `src/components/AppSidebar.tsx` | Rename "Interviews" to "Schedule" |
+| Migration SQL | Create `job_activities` table with RLS |
+| `src/types/jobTracker.ts` | Add `JobActivity` interface |
+| `src/stores/jobTrackerStore.ts` | Add CRUD for `job_activities`, fetch in `fetchAll` |
+| `src/pages/JobCRM.tsx` | New page component |
+| `src/pages/Index.tsx` | Add route `/jobs/:id` pointing to JobCRM, pass store props |
+| `src/components/AppSidebar.tsx` | No change needed — accessed via Jobs list |
+| `src/pages/Jobs.tsx` | Add click handler on job cards to navigate to `/jobs/:id` |
 
-## No database changes required
+## Technical notes
 
-The existing `follow_up_date` column on `contacts` and the `interviews` table are sufficient.
+- The timeline feed merges data from multiple sources client-side, sorted by date descending
+- The "Log Activity" form offers predefined types: Shared Resume, Cold Outreach, Introduction, Referral Request, Informational Chat, Follow Up, Other
+- Contact-id is optional on job activities so standalone actions (e.g. "researched company") are supported
+- Reuses existing UI components (StatusBadge, StatusSelect, FitScoreStars, UrgencyBadge, WarmthBadge)
 
