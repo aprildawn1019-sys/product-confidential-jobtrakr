@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -57,6 +57,8 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [resultFilter, setResultFilter] = useState("");
   const [gatedBoards, setGatedBoards] = useState<{ name: string; url: string | null }[]>([]);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     resultCount: 10,
     minMatchScore: 60,
@@ -93,6 +95,28 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     if (data) setActiveBoards(data);
   };
 
+  const startTimer = () => {
+    setElapsedSeconds(0);
+    timerRef.current = setInterval(() => setElapsedSeconds(s => s + 1), 1000);
+  };
+  const stopTimer = () => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  };
+  useEffect(() => () => stopTimer(), []);
+
+  // Estimate: ~8s per result requested + 10s base overhead
+  const estimatedTotal = Math.max(20, searchParams.resultCount * 8 + 10);
+  const progress = Math.min(elapsedSeconds / estimatedTotal, 0.95);
+  const remainingSeconds = Math.max(0, Math.round(estimatedTotal - elapsedSeconds));
+
+  const getProgressStage = () => {
+    if (elapsedSeconds < 5) return "Analyzing your search profile…";
+    if (elapsedSeconds < 15) return "Scraping live job boards…";
+    if (elapsedSeconds < estimatedTotal * 0.5) return "Matching jobs to your skills & preferences…";
+    if (elapsedSeconds < estimatedTotal * 0.8) return "Scoring and ranking results…";
+    return "Finalizing results…";
+  };
+
   const handleSearch = async () => {
     if (!profile) {
       toast({ title: "No profile found", description: "Please set up your job search profile first.", variant: "destructive" });
@@ -101,6 +125,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     setSearching(true);
     setResults([]);
     setAddedJobs(new Set());
+    startTimer();
 
     // Separate gated from searchable boards
     const searchableBoards = activeBoards.filter((b: any) => !b.is_gated);
@@ -149,6 +174,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       console.error("Job search error:", e);
       toast({ title: "Search failed", description: e.message || "Could not complete job search.", variant: "destructive" });
     } finally {
+      stopTimer();
       setSearching(false);
     }
   };
@@ -394,10 +420,29 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
       {/* Results */}
       {searching && (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin mb-4" />
-          <p className="font-medium">Searching for matching opportunities…</p>
-          <p className="text-sm">AI is analyzing your profile against current job market</p>
+        <div className="rounded-xl border border-border bg-card p-8 space-y-5">
+          <div className="flex flex-col items-center text-center space-y-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="font-medium text-foreground">{getProgressStage()}</p>
+            <p className="text-sm text-muted-foreground">
+              {remainingSeconds > 0
+                ? `Estimated ~${remainingSeconds < 60 ? `${remainingSeconds}s` : `${Math.ceil(remainingSeconds / 60)}m`} remaining`
+                : "Almost done…"}
+            </p>
+          </div>
+          {/* Progress bar */}
+          <div className="w-full max-w-md mx-auto">
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-1000 ease-linear"
+                style={{ width: `${Math.round(progress * 100)}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-1.5 text-xs text-muted-foreground">
+              <span>{elapsedSeconds}s elapsed</span>
+              <span>{Math.round(progress * 100)}%</span>
+            </div>
+          </div>
         </div>
       )}
 
