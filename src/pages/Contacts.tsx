@@ -246,7 +246,7 @@ export default function Contacts({
     const contactCampaignIds = contactCampaigns.filter(cc => cc.contactId === contact.id).map(cc => cc.campaignId);
 
     return (
-      <div key={contact.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md flex flex-col">
+      <div key={contact.id} id={`contact-${contact.id}`} className={cn("rounded-xl border bg-card transition-shadow hover:shadow-md flex flex-col", highlightId === contact.id ? "border-primary ring-2 ring-primary/20" : "border-border")}>
         <div className="p-5 flex flex-col flex-1">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3 min-w-0">
