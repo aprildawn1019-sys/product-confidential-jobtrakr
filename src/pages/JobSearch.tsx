@@ -63,6 +63,9 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [dismissedJobs, setDismissedJobs] = useState<DismissedJob[]>([]);
   const [showDismissed, setShowDismissed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryEntry[]>([]);
+  const [viewingHistoryId, setViewingHistoryId] = useState<string | null>(null);
   const [resultFilter, setResultFilter] = useState("");
   const [gatedBoards, setGatedBoards] = useState<{ name: string; url: string | null }[]>([]);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
