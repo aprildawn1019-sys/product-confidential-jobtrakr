@@ -12,8 +12,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import WarmthBadge from "@/components/WarmthBadge";
 import type { Job, Interview, Contact } from "@/types/jobTracker";
+
+const warmthStyles: Record<string, string> = {
+  cold: "bg-info/20 text-info border-info/30",
+  warm: "bg-warning/20 text-warning border-warning/30",
+  hot: "bg-destructive/20 text-destructive border-destructive/30",
+  champion: "bg-success/20 text-success border-success/30",
+};
 
 interface InterviewsPageProps {
   jobs: Job[];
