@@ -59,6 +59,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [gatedBoards, setGatedBoards] = useState<{ name: string; url: string | null }[]>([]);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     resultCount: 10,
     minMatchScore: 60,
