@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe, Settings2, XCircle } from "lucide-react";
+import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe, Settings2, XCircle, History, Trash2, RotateCcw } from "lucide-react";
 import { GatedBoardsNotice } from "@/components/jobsearch/GatedBoardsNotice";
 import { GatedBoardScrape } from "@/components/jobsearch/GatedBoardScrape";
 import { Slider } from "@/components/ui/slider";
@@ -41,6 +41,14 @@ interface DismissedJob {
   title: string;
 }
 
+interface SearchHistoryEntry {
+  id: string;
+  created_at: string;
+  search_params: SearchParams;
+  results: SearchResult[];
+  result_count: number;
+}
+
 interface JobSearchProps {
   onAddJob: (job: Omit<Job, "id" | "createdAt">) => void;
   existingJobs: Job[];
@@ -55,6 +63,9 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [dismissedJobs, setDismissedJobs] = useState<DismissedJob[]>([]);
   const [showDismissed, setShowDismissed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryEntry[]>([]);
+  const [viewingHistoryId, setViewingHistoryId] = useState<string | null>(null);
   const [resultFilter, setResultFilter] = useState("");
   const [gatedBoards, setGatedBoards] = useState<{ name: string; url: string | null }[]>([]);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -73,6 +84,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     loadProfile();
     loadDismissed();
     loadActiveBoards();
+    loadSearchHistory();
   }, []);
 
   const loadProfile = async () => {
@@ -94,6 +106,45 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const loadActiveBoards = async () => {
     const { data } = await supabase.from("job_boards").select("*").eq("is_active", true);
     if (data) setActiveBoards(data);
+  };
+
+  const loadSearchHistory = async () => {
+    const { data } = await supabase
+      .from("job_search_history")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (data) setSearchHistory(data.map((d: any) => ({
+      id: d.id,
+      created_at: d.created_at,
+      search_params: d.search_params as SearchParams,
+      results: d.results as SearchResult[],
+      result_count: d.result_count,
+    })));
+  };
+
+  const saveSearchToHistory = async (params: SearchParams, searchResults: SearchResult[]) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("job_search_history").insert({
+      user_id: user.id,
+      search_params: params as any,
+      results: searchResults as any,
+      result_count: searchResults.length,
+    });
+    loadSearchHistory();
+  };
+
+  const deleteHistoryEntry = async (id: string) => {
+    await supabase.from("job_search_history").delete().eq("id", id);
+    setSearchHistory(prev => prev.filter(h => h.id !== id));
+  };
+
+  const restoreHistoryEntry = (entry: SearchHistoryEntry) => {
+    setResults(entry.results);
+    setViewingHistoryId(entry.id);
+    setAddedJobs(new Set());
+    toast({ title: "Search restored", description: `Showing ${entry.result_count} results from ${new Date(entry.created_at).toLocaleDateString()}.` });
   };
 
   const startTimer = () => {
@@ -172,9 +223,14 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       }
       const uniqueResults = Array.from(deduped.values());
       setResults(uniqueResults);
+      setViewingHistoryId(null);
       const meta = data.meta;
       const metaInfo = meta ? ` (${meta.realJobsFound} from live search, ${meta.aiSuggestions} AI suggestions)` : "";
       toast({ title: "Search complete!", description: `Found ${uniqueResults.length} matching opportunities${metaInfo}.` });
+      // Save to search history
+      if (uniqueResults.length > 0) {
+        saveSearchToHistory(searchParams, uniqueResults);
+      }
     } catch (e: any) {
       if (controller.signal.aborted) return;
       console.error("Job search error:", e);
@@ -468,6 +524,15 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
       {!searching && results.length > 0 && (
         <div className="space-y-3">
+          {viewingHistoryId && (
+            <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm">
+              <History className="h-4 w-4 text-primary" />
+              <span className="text-muted-foreground">Viewing saved search results</span>
+              <Button variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={() => { setResults([]); setViewingHistoryId(null); }}>
+                Clear
+              </Button>
+            </div>
+          )}
           {/* Result filter */}
           <div className="relative max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -565,11 +630,56 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
         </div>
       )}
 
-      {!searching && results.length === 0 && (
+      {!searching && results.length === 0 && !viewingHistoryId && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
           <Search className="h-10 w-10 mb-4 opacity-40" />
           <p className="font-medium">Ready to search</p>
           <p className="text-sm">Click "Search Jobs" to find opportunities matching your profile</p>
+        </div>
+      )}
+
+      {/* Search History Section */}
+      {searchHistory.length > 0 && (
+        <div className="rounded-xl border border-border bg-card">
+          <button
+            onClick={() => setShowHistory(prev => !prev)}
+            className="flex items-center justify-between w-full p-4 text-left hover:bg-muted/50 transition-colors rounded-xl"
+          >
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <History className="h-4 w-4" />
+              Search History ({searchHistory.length})
+            </div>
+            {showHistory ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+          {showHistory && (
+            <div className="border-t border-border px-4 pb-4 space-y-2">
+              {searchHistory.map((entry) => {
+                const date = new Date(entry.created_at);
+                const summary = entry.results.slice(0, 3).map(r => r.company).join(", ");
+                const isViewing = viewingHistoryId === entry.id;
+                return (
+                  <div key={entry.id} className={`flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 ${isViewing ? "bg-primary/5 border border-primary/20" : ""}`}>
+                    <div className="text-sm flex-1 min-w-0">
+                      <span className="font-medium">{entry.result_count} results</span>
+                      <span className="text-muted-foreground"> · {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                      {entry.search_params.focusKeywords && (
+                        <span className="text-muted-foreground"> · "{entry.search_params.focusKeywords}"</span>
+                      )}
+                      <p className="text-xs text-muted-foreground truncate">{summary}{entry.result_count > 3 ? ` +${entry.result_count - 3} more` : ""}</p>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button variant="ghost" size="sm" onClick={() => restoreHistoryEntry(entry)} className="text-muted-foreground hover:text-foreground">
+                        <RotateCcw className="h-3.5 w-3.5" /> View
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => deleteHistoryEntry(entry.id)} className="text-muted-foreground hover:text-destructive">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
