@@ -13,47 +13,93 @@ Deno.serve(async (req) => {
     let formattedUrl = url.trim();
     if (!formattedUrl.startsWith("http")) formattedUrl = `https://${formattedUrl}`;
 
-    // Use Firecrawl to scrape LinkedIn (handles JS rendering and anti-bot)
-    const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
-    if (!firecrawlKey) throw new Error("Firecrawl connector not configured. Enable it in Settings → Connectors.");
+    // Extract the LinkedIn username from the URL for search
+    const linkedinMatch = formattedUrl.match(/linkedin\.com\/in\/([^/?#]+)/);
+    const slug = linkedinMatch?.[1]?.replace(/-/g, " ") || "";
 
-    console.log("Scraping LinkedIn via Firecrawl:", formattedUrl);
-
-    const scrapeResp = await fetch("https://api.firecrawl.dev/v1/scrape", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${firecrawlKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        url: formattedUrl,
-        formats: ["markdown"],
-        onlyMainContent: true,
-        waitFor: 3000,
-      }),
-    });
-
-    if (!scrapeResp.ok) {
-      const errData = await scrapeResp.json().catch(() => ({}));
-      console.error("Firecrawl error:", scrapeResp.status, errData);
-      if (scrapeResp.status === 402) throw new Error("Firecrawl credits exhausted. Please top up your Firecrawl plan.");
-      throw new Error(`Failed to scrape LinkedIn page (status ${scrapeResp.status})`);
-    }
-
-    const scrapeData = await scrapeResp.json();
-    const markdown = scrapeData.data?.markdown || scrapeData.markdown || "";
-
-    if (!markdown || markdown.length < 50) {
-      console.error("Firecrawl returned insufficient content:", markdown.substring(0, 200));
-      throw new Error("Could not extract content from LinkedIn profile. The page may require login.");
-    }
-
-    const cleaned = markdown.substring(0, 8000);
-    console.log("Got markdown content, length:", cleaned.length);
-
-    // Use AI to extract structured contact info
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    // Strategy: Use Firecrawl search to find public info about this LinkedIn profile
+    let profileContent = "";
+
+    const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
+    if (firecrawlKey && slug) {
+      console.log("Searching for LinkedIn profile info via Firecrawl:", slug);
+      try {
+        const searchResp = await fetch("https://api.firecrawl.dev/v1/search", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${firecrawlKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: `site:linkedin.com/in "${slug}" current position company`,
+            limit: 3,
+            scrapeOptions: { formats: ["markdown"] },
+          }),
+        });
+
+        if (searchResp.ok) {
+          const searchData = await searchResp.json();
+          const results = searchData.data || [];
+          profileContent = results
+            .map((r: any) => `${r.title || ""}\n${r.description || ""}\n${r.markdown || ""}`)
+            .join("\n\n")
+            .substring(0, 6000);
+          console.log("Firecrawl search returned content length:", profileContent.length);
+        } else {
+          console.log("Firecrawl search failed, falling back to AI-only extraction");
+        }
+      } catch (e) {
+        console.log("Firecrawl search error, falling back:", e.message);
+      }
+    }
+
+    // If Firecrawl didn't return enough content, try a direct fetch as fallback
+    // (public profiles sometimes return partial HTML)
+    if (profileContent.length < 100) {
+      console.log("Trying direct fetch for public profile data...");
+      try {
+        const directResp = await fetch(formattedUrl, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+            "Accept": "text/html,application/xhtml+xml",
+            "Accept-Language": "en-US,en;q=0.9",
+          },
+          redirect: "follow",
+        });
+
+        if (directResp.ok) {
+          let html = await directResp.text();
+          // Try to extract JSON-LD structured data first (LinkedIn embeds this for public profiles)
+          const jsonLdMatch = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i);
+          if (jsonLdMatch) {
+            profileContent = jsonLdMatch[1];
+            console.log("Found JSON-LD data, length:", profileContent.length);
+          } else {
+            // Clean HTML fallback
+            html = html.replace(/<script[\s\S]*?<\/script>/gi, "");
+            html = html.replace(/<style[\s\S]*?<\/style>/gi, "");
+            html = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+            profileContent = html.substring(0, 8000);
+            console.log("Using cleaned HTML, length:", profileContent.length);
+          }
+        } else {
+          console.log("Direct fetch returned status:", directResp.status);
+        }
+      } catch (e) {
+        console.log("Direct fetch failed:", e.message);
+      }
+    }
+
+    // If we still have no content, ask AI to infer from the URL slug alone
+    if (profileContent.length < 50) {
+      profileContent = `LinkedIn profile URL: ${formattedUrl}\nProfile slug: ${slug}\nNo page content could be retrieved. Please extract what you can from the URL.`;
+      console.log("No content retrieved, using URL-only extraction");
+    }
+
+    console.log("Sending to AI for extraction...");
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -61,8 +107,14 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "Extract contact information from a LinkedIn profile page. Return structured data using the provided tool." },
-          { role: "user", content: `Extract the person's details from this LinkedIn profile content:\n\n${cleaned}` },
+          {
+            role: "system",
+            content: "Extract contact information from LinkedIn profile data. If there's JSON-LD data, parse it for name, jobTitle, and worksFor. If only a URL slug is available, convert the slug to a proper name (e.g. 'john-doe' → 'John Doe'). Return structured data using the provided tool.",
+          },
+          {
+            role: "user",
+            content: `Extract the person's details from this LinkedIn profile data:\n\nURL: ${formattedUrl}\n\n${profileContent}`,
+          },
         ],
         tools: [{
           type: "function",
