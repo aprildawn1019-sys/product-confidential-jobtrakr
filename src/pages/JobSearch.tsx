@@ -108,6 +108,45 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     if (data) setActiveBoards(data);
   };
 
+  const loadSearchHistory = async () => {
+    const { data } = await supabase
+      .from("job_search_history")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (data) setSearchHistory(data.map((d: any) => ({
+      id: d.id,
+      created_at: d.created_at,
+      search_params: d.search_params as SearchParams,
+      results: d.results as SearchResult[],
+      result_count: d.result_count,
+    })));
+  };
+
+  const saveSearchToHistory = async (params: SearchParams, searchResults: SearchResult[]) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("job_search_history").insert({
+      user_id: user.id,
+      search_params: params as any,
+      results: searchResults as any,
+      result_count: searchResults.length,
+    });
+    loadSearchHistory();
+  };
+
+  const deleteHistoryEntry = async (id: string) => {
+    await supabase.from("job_search_history").delete().eq("id", id);
+    setSearchHistory(prev => prev.filter(h => h.id !== id));
+  };
+
+  const restoreHistoryEntry = (entry: SearchHistoryEntry) => {
+    setResults(entry.results);
+    setViewingHistoryId(entry.id);
+    setAddedJobs(new Set());
+    toast({ title: "Search restored", description: `Showing ${entry.result_count} results from ${new Date(entry.created_at).toLocaleDateString()}.` });
+  };
+
   const startTimer = () => {
     setElapsedSeconds(0);
     timerRef.current = setInterval(() => setElapsedSeconds(s => s + 1), 1000);
