@@ -524,6 +524,15 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
 
       {!searching && results.length > 0 && (
         <div className="space-y-3">
+          {viewingHistoryId && (
+            <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm">
+              <History className="h-4 w-4 text-primary" />
+              <span className="text-muted-foreground">Viewing saved search results</span>
+              <Button variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={() => { setResults([]); setViewingHistoryId(null); }}>
+                Clear
+              </Button>
+            </div>
+          )}
           {/* Result filter */}
           <div className="relative max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
