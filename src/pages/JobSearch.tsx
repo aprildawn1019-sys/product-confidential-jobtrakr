@@ -176,12 +176,22 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       const metaInfo = meta ? ` (${meta.realJobsFound} from live search, ${meta.aiSuggestions} AI suggestions)` : "";
       toast({ title: "Search complete!", description: `Found ${uniqueResults.length} matching opportunities${metaInfo}.` });
     } catch (e: any) {
+      if (controller.signal.aborted) return;
       console.error("Job search error:", e);
       toast({ title: "Search failed", description: e.message || "Could not complete job search.", variant: "destructive" });
     } finally {
+      abortRef.current = null;
       stopTimer();
       setSearching(false);
     }
+  };
+
+  const handleCancel = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    stopTimer();
+    setSearching(false);
+    toast({ title: "Search cancelled", description: "The job search was stopped." });
   };
 
   const handleAddJob = (result: SearchResult) => {
