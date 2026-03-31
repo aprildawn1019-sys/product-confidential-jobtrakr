@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import AppSidebar from "@/components/AppSidebar";
 import Dashboard from "@/pages/Dashboard";
 import Jobs from "@/pages/Jobs";
+import JobCRM from "@/pages/JobCRM";
 import Contacts from "@/pages/Contacts";
 import Applications from "@/pages/Applications";
 import Recommendations from "@/pages/Recommendations";
@@ -39,6 +40,26 @@ export default function Index() {
               onAddInterview={store.addInterview}
               onUpdateInterview={store.updateInterview}
               onDeleteInterview={store.deleteInterview}
+            />
+          } />
+          <Route path="jobs/:id" element={
+            <JobCRM
+              jobs={store.jobs}
+              contacts={store.contacts}
+              interviews={store.interviews}
+              onUpdateStatus={store.updateJobStatus}
+              onUpdateJob={store.updateJob}
+              onLinkContact={store.linkContactToJob}
+              onUnlinkContact={store.unlinkContactFromJob}
+              getContactsForJob={store.getContactsForJob}
+              getNetworkMatchesForJob={store.getNetworkMatchesForJob}
+              onAddInterview={store.addInterview}
+              onUpdateInterview={store.updateInterview}
+              onDeleteInterview={store.deleteInterview}
+              getActivitiesForContact={store.getActivitiesForContact}
+              getJobActivitiesForJob={store.getJobActivitiesForJob}
+              onAddJobActivity={store.addJobActivity}
+              onDeleteJobActivity={store.deleteJobActivity}
             />
           } />
           <Route path="contacts" element={
