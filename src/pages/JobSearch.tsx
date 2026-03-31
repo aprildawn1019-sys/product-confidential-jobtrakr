@@ -295,10 +295,15 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
               <Plus className="h-4 w-4" /> Add All to Tracker
             </Button>
           )}
-          <Button onClick={handleSearch} disabled={searching}>
-            {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-            {searching ? "Searching…" : "Search Jobs"}
-          </Button>
+          {searching ? (
+            <Button variant="destructive" onClick={handleCancel}>
+              <XCircle className="h-4 w-4" /> Cancel Search
+            </Button>
+          ) : (
+            <Button onClick={handleSearch}>
+              <Search className="h-4 w-4" /> Search Jobs
+            </Button>
+          )}
         </div>
       </div>
 
