@@ -514,13 +514,34 @@ export function useJobTrackerStore() {
     return recommendationRequests.filter(r => r.contactId === contactId);
   };
 
+  // === JOB ACTIVITIES ===
+  const addJobActivity = async (activity: Omit<JobActivity, "id" | "createdAt">) => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const { data } = await supabase.from("job_activities").insert({
+      user_id: userId, job_id: activity.jobId, activity_type: activity.activityType,
+      activity_date: activity.activityDate, contact_id: activity.contactId || null,
+      notes: activity.notes || null,
+    }).select().single();
+    if (data) setJobActivities(prev => [mapJobActivity(data), ...prev]);
+  };
+
+  const deleteJobActivity = async (id: string) => {
+    await supabase.from("job_activities").delete().eq("id", id);
+    setJobActivities(prev => prev.filter(ja => ja.id !== id));
+  };
+
+  const getJobActivitiesForJob = (jobId: string) => {
+    return jobActivities.filter(ja => ja.jobId === jobId);
+  };
+
   // === HELPERS ===
   const getJobsByStatus = (status: JobStatus) => jobs.filter(j => j.status === status);
   const getContactForJob = (contactId?: string) => contacts.find(c => c.id === contactId);
   const getInterviewsForJob = (jobId: string) => interviews.filter(i => i.jobId === jobId);
 
   return {
-    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, loading,
+    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, jobActivities, loading,
     addJob, addJobsBulk, updateJobStatus, updateJob, deleteJob,
     addContact, addContactsBulk, updateContact, deleteContact,
     addInterview, updateInterview, deleteInterview,
@@ -529,6 +550,7 @@ export function useJobTrackerStore() {
     addContactActivity, deleteContactActivity, getActivitiesForContact,
     addCampaign, updateCampaign, deleteCampaign, toggleContactCampaign, getCampaignsForContact, getContactsForCampaign,
     addRecommendationRequest, updateRecommendationRequest, deleteRecommendationRequest, getRecommendationRequestsForContact,
+    addJobActivity, deleteJobActivity, getJobActivitiesForJob,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
   };
 }
