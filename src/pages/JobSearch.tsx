@@ -84,6 +84,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     loadProfile();
     loadDismissed();
     loadActiveBoards();
+    loadSearchHistory();
   }, []);
 
   const loadProfile = async () => {
