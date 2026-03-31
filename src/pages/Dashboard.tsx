@@ -162,7 +162,7 @@ export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, 
                 return (
                   <div key={contact.id} className={cn("flex items-center justify-between rounded-lg border p-3 group", overdue ? "border-destructive/40 bg-destructive/5" : today ? "border-warning/40 bg-warning/5" : "border-border")}>
                     <button
-                      onClick={() => navigate("/contacts")}
+                      onClick={() => navigate(`/contacts?highlight=${contact.id}`)}
                       className="min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
                     >
                       <p className="font-medium text-sm">{contact.name}</p>

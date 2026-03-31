@@ -82,9 +82,11 @@ export default function Index() {
             <InterviewsPage
               jobs={store.jobs}
               interviews={store.interviews}
+              contacts={store.contacts}
               onAdd={store.addInterview}
               onUpdate={store.updateInterview}
               onDelete={store.deleteInterview}
+              onUpdateContact={store.updateContact}
             />
           } />
           <Route path="recommendations" element={<Recommendations />} />

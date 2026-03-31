@@ -126,7 +126,8 @@ export default function Contacts({
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const jobIdFilter = searchParams.get("jobId");
-  const [expandedContact, setExpandedContact] = useState<string | null>(null);
+  const highlightId = searchParams.get("highlight");
+  const [expandedContact, setExpandedContact] = useState<string | null>(highlightId);
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");

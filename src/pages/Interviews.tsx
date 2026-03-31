@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { format, parseISO, isToday, isTomorrow, isThisWeek, isPast, isFuture } from "date-fns";
-import { Calendar as CalendarIcon, Clock, Plus, Trash2, CheckCircle2, XCircle, Filter, Briefcase, Download } from "lucide-react";
+import { format, parseISO, isToday, isTomorrow, isPast, formatDistanceToNow } from "date-fns";
+import { Calendar as CalendarIcon, Clock, Plus, Trash2, CheckCircle2, XCircle, Briefcase, Users, Pencil, X } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,14 +12,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import type { Job, Interview } from "@/types/jobTracker";
+import WarmthBadge from "@/components/WarmthBadge";
+import type { Job, Interview, Contact } from "@/types/jobTracker";
 
 interface InterviewsPageProps {
   jobs: Job[];
   interviews: Interview[];
+  contacts?: Contact[];
   onAdd: (interview: Omit<Interview, "id">) => void;
   onUpdate: (id: string, updates: Partial<Interview>) => void;
   onDelete: (id: string) => void;
+  onUpdateContact?: (id: string, updates: Partial<Contact>) => void;
 }
 
 const typeColors: Record<string, string> = {
@@ -29,25 +33,44 @@ const typeColors: Record<string, string> = {
   final: "bg-red-500/10 text-red-700 border-red-200",
 };
 
-export default function InterviewsPage({ jobs, interviews, onAdd, onUpdate, onDelete }: InterviewsPageProps) {
-  const [filter, setFilter] = useState<"all" | "upcoming" | "completed" | "cancelled">("all");
+type FilterType = "all" | "interviews" | "followups";
+
+type TimelineItem =
+  | { kind: "interview"; interview: Interview; date: string }
+  | { kind: "followup"; contact: Contact; date: string };
+
+export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd, onUpdate, onDelete, onUpdateContact }: InterviewsPageProps) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialFilter = (searchParams.get("filter") as FilterType) || "all";
+  const [filter, setFilter] = useState<FilterType>(initialFilter);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newInterview, setNewInterview] = useState({
     jobId: "", type: "phone" as Interview["type"], date: "", time: "", notes: "",
   });
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
-  const filtered = interviews.filter(i => {
-    if (filter === "upcoming") return i.status === "scheduled";
-    if (filter === "completed") return i.status === "completed";
-    if (filter === "cancelled") return i.status === "cancelled";
+  // Build unified timeline
+  const followUps: TimelineItem[] = contacts
+    .filter(c => c.followUpDate)
+    .map(c => ({ kind: "followup" as const, contact: c, date: c.followUpDate! }));
+
+  const interviewItems: TimelineItem[] = interviews.map(i => ({
+    kind: "interview" as const, interview: i, date: i.date,
+  }));
+
+  const allItems = [...interviewItems, ...followUps];
+
+  const filtered = allItems.filter(item => {
+    if (filter === "interviews") return item.kind === "interview";
+    if (filter === "followups") return item.kind === "followup";
     return true;
   });
 
   const sorted = [...filtered].sort((a, b) => {
-    if (a.status === "scheduled" && b.status !== "scheduled") return -1;
-    if (b.status === "scheduled" && a.status !== "scheduled") return 1;
-    return new Date(a.date).getTime() - new Date(b.date).getTime();
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return dateA - dateB;
   });
 
   const handleAdd = () => {
@@ -73,16 +96,20 @@ export default function InterviewsPage({ jobs, interviews, onAdd, onUpdate, onDe
     try { return format(parseISO(i.date), "yyyy-MM-dd"); } catch { return ""; }
   }));
 
+  const followUpDates = new Set(contacts.filter(c => c.followUpDate).map(c => {
+    try { return format(parseISO(c.followUpDate!), "yyyy-MM-dd"); } catch { return ""; }
+  }));
+
   const upcomingCount = interviews.filter(i => i.status === "scheduled").length;
-  const completedCount = interviews.filter(i => i.status === "completed").length;
+  const followUpCount = contacts.filter(c => c.followUpDate).length;
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Interviews</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Schedule</h1>
           <p className="mt-1 text-muted-foreground">
-            {upcomingCount} upcoming · {completedCount} completed
+            {upcomingCount} interviews · {followUpCount} follow-ups
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -173,118 +200,200 @@ export default function InterviewsPage({ jobs, interviews, onAdd, onUpdate, onDe
         <div className="space-y-4">
           {/* Filters */}
           <div className="flex gap-2">
-            {(["all", "upcoming", "completed", "cancelled"] as const).map(f => (
+            {([
+              { key: "all" as const, label: "All" },
+              { key: "interviews" as const, label: "Interviews" },
+              { key: "followups" as const, label: "Follow-ups" },
+            ]).map(f => (
               <Button
-                key={f}
-                variant={filter === f ? "default" : "outline"}
+                key={f.key}
+                variant={filter === f.key ? "default" : "outline"}
                 size="sm"
-                onClick={() => setFilter(f)}
-                className="capitalize"
+                onClick={() => setFilter(f.key)}
               >
-                {f}
+                {f.label}
               </Button>
             ))}
           </div>
 
-          {/* Interview List */}
+          {/* Timeline List */}
           {sorted.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <CalendarIcon className="h-10 w-10 mb-3" />
-              <p className="text-lg font-medium">No interviews {filter !== "all" ? filter : "yet"}</p>
-              <p className="text-sm">Schedule your first interview to get started</p>
+              <p className="text-lg font-medium">
+                {filter === "followups" ? "No follow-ups scheduled" : filter === "interviews" ? "No interviews yet" : "Nothing scheduled yet"}
+              </p>
+              <p className="text-sm">Schedule an interview or set a follow-up reminder on a contact</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {sorted.map(interview => {
-                const job = jobs.find(j => j.id === interview.jobId);
-                const isUpcoming = interview.status === "scheduled";
+              {sorted.map(item => {
+                if (item.kind === "interview") {
+                  const interview = item.interview;
+                  const job = jobs.find(j => j.id === interview.jobId);
+                  const isUpcoming = interview.status === "scheduled";
+                  return (
+                    <div
+                      key={`int-${interview.id}`}
+                      className={cn(
+                        "rounded-xl border bg-card p-4 transition-all",
+                        isUpcoming ? "border-border" : "border-border/50 opacity-75"
+                      )}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className={cn("text-xs capitalize", typeColors[interview.type])}>
+                              {interview.type}
+                            </Badge>
+                            <Badge variant={interview.status === "scheduled" ? "default" : interview.status === "completed" ? "secondary" : "destructive"} className="text-xs capitalize">
+                              {interview.status}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="font-medium text-sm">{job?.title || "Unknown Job"}</span>
+                            <span className="text-sm text-muted-foreground">at {job?.company || "Unknown"}</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <CalendarIcon className="h-3.5 w-3.5" />
+                              {getDateLabel(interview.date)}
+                            </span>
+                            {interview.time && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3.5 w-3.5" />
+                                {interview.time}
+                              </span>
+                            )}
+                          </div>
+                          {interview.notes && (
+                            <p className="text-xs text-muted-foreground mt-1">{interview.notes}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {isUpcoming && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                title="Add to Google Calendar"
+                                onClick={() => {
+                                  const startDate = interview.date.replace(/-/g, "");
+                                  const startTime = interview.time ? interview.time.replace(":", "") + "00" : "090000";
+                                  const endH = interview.time ? String(parseInt(interview.time.split(":")[0]) + 1).padStart(2, "0") : "10";
+                                  const endTime = endH + (interview.time ? interview.time.split(":")[1] : "00") + "00";
+                                  const title = encodeURIComponent(`${interview.type.charAt(0).toUpperCase() + interview.type.slice(1)} Interview — ${job?.title || "Job"} at ${job?.company || "Company"}`);
+                                  const details = encodeURIComponent(interview.notes || "");
+                                  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}T${startTime}/${startDate}T${endTime}&details=${details}`;
+                                  window.open(url, "_blank");
+                                }}
+                              >
+                                <CalendarIcon className="h-4 w-4 text-primary" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                className="h-7 w-7"
+                                title="Mark completed"
+                                onClick={() => onUpdate(interview.id, { status: "completed" })}
+                              >
+                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                title="Cancel"
+                                onClick={() => onUpdate(interview.id, { status: "cancelled" })}
+                              >
+                                <XCircle className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            title="Delete"
+                            onClick={() => onDelete(interview.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // Follow-up item
+                const contact = item.contact;
+                const d = new Date(contact.followUpDate!);
+                const overdue = isPast(d) && !isToday(d);
+                const today = isToday(d);
+
                 return (
                   <div
-                    key={interview.id}
+                    key={`fu-${contact.id}`}
                     className={cn(
-                      "rounded-xl border bg-card p-4 transition-all",
-                      isUpcoming ? "border-border" : "border-border/50 opacity-75"
+                      "rounded-xl border bg-card p-4 transition-all group",
+                      overdue ? "border-destructive/40 bg-destructive/5" : today ? "border-warning/40 bg-warning/5" : "border-border"
                     )}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="space-y-1.5">
+                      <button
+                        onClick={() => navigate(`/contacts?highlight=${contact.id}`)}
+                        className="text-left space-y-1.5 min-w-0 flex-1"
+                      >
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className={cn("text-xs capitalize", typeColors[interview.type])}>
-                            {interview.type}
+                          <Badge variant="outline" className="text-xs bg-info/10 text-info border-info/30">
+                            <Users className="h-3 w-3 mr-1" />
+                            Follow-up
                           </Badge>
-                          <Badge variant={interview.status === "scheduled" ? "default" : interview.status === "completed" ? "secondary" : "destructive"} className="text-xs capitalize">
-                            {interview.status}
+                          <Badge variant="outline" className={cn("text-xs", overdue ? "text-destructive border-destructive/30" : today ? "text-warning border-warning/30" : "text-info border-info/30")}>
+                            {overdue ? `Overdue ${formatDistanceToNow(d)}` : today ? "Today" : `In ${formatDistanceToNow(d)}`}
                           </Badge>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="font-medium text-sm">{job?.title || "Unknown Job"}</span>
-                          <span className="text-sm text-muted-foreground">at {job?.company || "Unknown"}</span>
+                          <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="font-medium text-sm">{contact.name}</span>
+                          <span className="text-sm text-muted-foreground">at {contact.company}</span>
+                          {contact.relationshipWarmth && <WarmthBadge warmth={contact.relationshipWarmth} />}
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <CalendarIcon className="h-3.5 w-3.5" />
-                            {getDateLabel(interview.date)}
-                          </span>
-                          {interview.time && (
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3.5 w-3.5" />
-                              {interview.time}
-                            </span>
-                          )}
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <CalendarIcon className="h-3.5 w-3.5" />
+                          {getDateLabel(contact.followUpDate!)}
                         </div>
-                        {interview.notes && (
-                          <p className="text-xs text-muted-foreground mt-1">{interview.notes}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {isUpcoming && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              title="Add to Google Calendar"
-                              onClick={() => {
-                                const startDate = interview.date.replace(/-/g, "");
-                                const startTime = interview.time ? interview.time.replace(":", "") + "00" : "090000";
-                                const endH = interview.time ? String(parseInt(interview.time.split(":")[0]) + 1).padStart(2, "0") : "10";
-                                const endTime = endH + (interview.time ? interview.time.split(":")[1] : "00") + "00";
-                                const title = encodeURIComponent(`${interview.type.charAt(0).toUpperCase() + interview.type.slice(1)} Interview — ${job?.title || "Job"} at ${job?.company || "Company"}`);
-                                const details = encodeURIComponent(interview.notes || "");
-                                const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}T${startTime}/${startDate}T${endTime}&details=${details}`;
-                                window.open(url, "_blank");
+                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" title="Reschedule">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                              mode="single"
+                              selected={d}
+                              onSelect={newDate => {
+                                if (newDate && onUpdateContact) {
+                                  onUpdateContact(contact.id, { followUpDate: format(newDate, "yyyy-MM-dd") });
+                                }
                               }}
-                            >
-                              <CalendarIcon className="h-4 w-4 text-primary" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              className="h-7 w-7"
-                              title="Mark completed"
-                              onClick={() => onUpdate(interview.id, { status: "completed" })}
-                            >
-                              <CheckCircle2 className="h-4 w-4 text-green-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              title="Cancel"
-                              onClick={() => onUpdate(interview.id, { status: "cancelled" })}
-                            >
-                              <XCircle className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </>
-                        )}
+                              initialFocus
+                              className="p-3 pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7"
-                          title="Delete"
-                          onClick={() => onDelete(interview.id)}
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                          title="Clear reminder"
+                          onClick={() => onUpdateContact?.(contact.id, { followUpDate: undefined })}
                         >
-                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          <X className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -297,20 +406,28 @@ export default function InterviewsPage({ jobs, interviews, onAdd, onUpdate, onDe
 
         {/* Calendar sidebar */}
         <div className="rounded-xl border border-border bg-card p-4">
-          <h3 className="font-display font-semibold text-sm mb-3">Interview Calendar</h3>
+          <h3 className="font-display font-semibold text-sm mb-3">Schedule Calendar</h3>
           <Calendar
             mode="single"
             className={cn("p-0 pointer-events-auto")}
             modifiers={{
               interview: (date) => interviewDates.has(format(date, "yyyy-MM-dd")),
+              followup: (date) => followUpDates.has(format(date, "yyyy-MM-dd")),
             }}
             modifiersClassNames={{
               interview: "bg-primary/20 text-primary font-bold rounded-full",
+              followup: "bg-info/20 text-info font-bold rounded-full",
             }}
           />
-          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-            <div className="h-3 w-3 rounded-full bg-primary/20" />
-            Scheduled interview
+          <div className="mt-3 space-y-1">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="h-3 w-3 rounded-full bg-primary/20" />
+              Scheduled interview
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="h-3 w-3 rounded-full bg-info/20" />
+              Follow-up reminder
+            </div>
           </div>
         </div>
       </div>
