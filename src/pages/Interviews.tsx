@@ -376,6 +376,21 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
                         </div>
                       </button>
                       <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Add to Google Calendar"
+                          onClick={() => {
+                            const fuDate = contact.followUpDate!.replace(/-/g, "");
+                            const title = encodeURIComponent(`Follow up with ${contact.name} (${contact.company})`);
+                            const details = encodeURIComponent(`Role: ${contact.role}\n${contact.notes || ""}`);
+                            const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fuDate}T090000/${fuDate}T093000&details=${details}`;
+                            window.open(url, "_blank");
+                          }}
+                        >
+                          <CalendarIcon className="h-4 w-4 text-primary" />
+                        </Button>
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" title="Reschedule">
