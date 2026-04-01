@@ -38,14 +38,16 @@ export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, 
   const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
   const upcoming = interviews.filter(i => i.status === "scheduled");
 
+  const inactiveStatuses = ["rejected", "closed"];
+
   const highUrgencyJobs = useMemo(() =>
-    jobs.filter(j => j.urgency === "critical" || j.urgency === "high")
+    jobs.filter(j => (j.urgency === "critical" || j.urgency === "high") && !inactiveStatuses.includes(j.status))
       .sort((a, b) => (a.urgency === "critical" ? 0 : 1) - (b.urgency === "critical" ? 0 : 1))
       .slice(0, 5),
   [jobs]);
 
   const topFitJobs = useMemo(() =>
-    jobs.filter(j => j.fitScore && j.fitScore >= 4)
+    jobs.filter(j => j.fitScore && j.fitScore >= 4 && !inactiveStatuses.includes(j.status))
       .sort((a, b) => (b.fitScore || 0) - (a.fitScore || 0))
       .slice(0, 5),
   [jobs]);
