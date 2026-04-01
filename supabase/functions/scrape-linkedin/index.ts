@@ -13,19 +13,56 @@ Deno.serve(async (req) => {
     let formattedUrl = url.trim();
     if (!formattedUrl.startsWith("http")) formattedUrl = `https://${formattedUrl}`;
 
+    // Normalize LinkedIn URL — strip trailing slashes, query params, locale prefixes
+    formattedUrl = formattedUrl.split("?")[0].replace(/\/+$/, "");
+
     // Extract the LinkedIn username slug from the URL
     const linkedinMatch = formattedUrl.match(/linkedin\.com\/in\/([^/?#]+)/);
-    const slug = linkedinMatch?.[1]?.replace(/-/g, " ") || "";
+    const rawSlug = linkedinMatch?.[1] || "";
+    const slug = rawSlug.replace(/-/g, " ");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    // Strategy 1: Try Firecrawl search for public info (fast, no scraping)
-    let profileContent = "";
     const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
+    let profileContent = "";
 
-    if (firecrawlKey && slug) {
-      console.log("Searching for LinkedIn profile info:", slug);
+    // Strategy 1: Try Firecrawl SCRAPE on the LinkedIn URL directly
+    if (firecrawlKey) {
+      console.log("Strategy 1: Firecrawl scrape of LinkedIn URL");
+      try {
+        const scrapeResp = await fetch("https://api.firecrawl.dev/v1/scrape", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${firecrawlKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            url: formattedUrl,
+            formats: ["markdown"],
+            onlyMainContent: true,
+            waitFor: 3000,
+          }),
+        });
+
+        if (scrapeResp.ok) {
+          const scrapeData = await scrapeResp.json();
+          const markdown = scrapeData.data?.markdown || scrapeData.markdown || "";
+          if (markdown.length > 50) {
+            profileContent = markdown.substring(0, 6000);
+            console.log("Firecrawl scrape success, content length:", profileContent.length);
+          }
+        } else {
+          console.log("Firecrawl scrape status:", scrapeResp.status);
+        }
+      } catch (e) {
+        console.log("Firecrawl scrape error:", e.message);
+      }
+    }
+
+    // Strategy 2: Firecrawl search with the full LinkedIn URL as query
+    if (profileContent.length < 100 && firecrawlKey && rawSlug) {
+      console.log("Strategy 2: Firecrawl search for profile URL");
       try {
         const searchResp = await fetch("https://api.firecrawl.dev/v1/search", {
           method: "POST",
@@ -34,7 +71,46 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            query: `"${slug}" linkedin current position company title`,
+            query: `site:linkedin.com/in/${rawSlug} current position`,
+            limit: 5,
+            scrapeOptions: { formats: ["markdown"] },
+          }),
+        });
+
+        if (searchResp.ok) {
+          const searchData = await searchResp.json();
+          const results = searchData.data || [];
+          const combined = results
+            .map((r: any) => {
+              const md = r.markdown || "";
+              const title = r.title || "";
+              const desc = r.description || "";
+              return `${title}\n${desc}\n${md}`;
+            })
+            .join("\n---\n")
+            .substring(0, 6000);
+          if (combined.length > 50) {
+            profileContent = combined;
+            console.log("Firecrawl search success, content length:", profileContent.length);
+          }
+        }
+      } catch (e) {
+        console.log("Search error:", e.message);
+      }
+    }
+
+    // Strategy 3: Google search for the person's name + LinkedIn
+    if (profileContent.length < 100 && firecrawlKey && slug) {
+      console.log("Strategy 3: Web search for person name");
+      try {
+        const searchResp = await fetch("https://api.firecrawl.dev/v1/search", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${firecrawlKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: `"${slug}" linkedin profile current role company`,
             limit: 5,
           }),
         });
@@ -46,15 +122,16 @@ Deno.serve(async (req) => {
             .map((r: any) => `${r.title || ""} - ${r.description || ""}`)
             .join("\n")
             .substring(0, 4000);
-          console.log("Search returned content length:", profileContent.length);
+          console.log("Web search content length:", profileContent.length);
         }
       } catch (e) {
-        console.log("Search error, continuing:", e.message);
+        console.log("Web search error:", e.message);
       }
     }
 
-    // Strategy 2: Try direct fetch for JSON-LD (public profiles embed structured data)
+    // Strategy 4: Direct fetch for JSON-LD or meta tags
     if (profileContent.length < 100) {
+      console.log("Strategy 4: Direct fetch for meta/JSON-LD");
       try {
         const directResp = await fetch(formattedUrl, {
           headers: {
@@ -71,7 +148,6 @@ Deno.serve(async (req) => {
             profileContent = jsonLdMatch[1];
             console.log("Found JSON-LD data");
           } else {
-            // Extract meta tags as fallback
             const metaContent: string[] = [];
             const metaMatches = html.matchAll(/<meta[^>]*(?:name|property)="([^"]*)"[^>]*content="([^"]*)"[^>]*>/gi);
             for (const m of metaMatches) {
@@ -101,15 +177,21 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-2.5-flash",
         messages: [
           {
             role: "system",
-            content: "Extract contact info from LinkedIn profile data. Parse JSON-LD if present. Convert URL slugs to proper names (e.g. 'john-doe' → 'John Doe'). Return data via the tool.",
+            content: `You extract contact information from LinkedIn profile data. Rules:
+1. Parse JSON-LD structured data if present
+2. Convert URL slugs to proper capitalized names (e.g. 'john-doe-123' → 'John Doe', 'jane-smith-mba' → 'Jane Smith')
+3. Remove trailing numbers, credentials, and suffixes from URL-derived names
+4. Look for current job title and company in the content
+5. If no company or role can be determined from the content, return empty strings for those fields — do NOT guess
+6. Always return the LinkedIn URL as provided`,
           },
           {
             role: "user",
-            content: `Extract details from this LinkedIn profile:\n\nURL: ${formattedUrl}\n\n${profileContent}`,
+            content: `Extract contact details from this LinkedIn profile:\n\nURL: ${formattedUrl}\nURL slug: ${rawSlug}\n\nProfile content:\n${profileContent}`,
           },
         ],
         tools: [{
@@ -120,12 +202,12 @@ Deno.serve(async (req) => {
             parameters: {
               type: "object",
               properties: {
-                name: { type: "string", description: "Full name" },
-                role: { type: "string", description: "Current job title/headline" },
-                company: { type: "string", description: "Current company" },
+                name: { type: "string", description: "Full name (properly capitalized)" },
+                role: { type: "string", description: "Current job title/headline. Empty string if unknown." },
+                company: { type: "string", description: "Current company name. Empty string if unknown." },
                 linkedin: { type: "string", description: "LinkedIn profile URL" },
               },
-              required: ["name"],
+              required: ["name", "role", "company", "linkedin"],
             },
           },
         }],
