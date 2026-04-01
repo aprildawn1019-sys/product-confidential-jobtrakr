@@ -138,10 +138,53 @@ export default function AppSidebar({ jobs = [] }: AppSidebarProps) {
 
               <CollapsibleContent className="space-y-0.5 pt-0.5">
                 {group.items.map(({ to, icon: Icon, label }) => (
-                  <NavLink key={to} to={to} className={navLinkClass}>
-                    <Icon className="h-4 w-4" />
-                    {label}
-                  </NavLink>
+                  <div key={to}>
+                    {to === "/jobs" ? (
+                      <>
+                        <div className="flex items-center">
+                          <NavLink to={to} className={navLinkClass} end>
+                            <Icon className="h-4 w-4" />
+                            {label}
+                          </NavLink>
+                          {jobs.length > 0 && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setJobSubOpen(!jobSubOpen); }}
+                              className="mr-2 p-0.5 rounded hover:bg-sidebar-accent/50 text-sidebar-muted hover:text-sidebar-foreground transition-colors"
+                              aria-label="Toggle job list"
+                            >
+                              {jobSubOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                            </button>
+                          )}
+                        </div>
+                        {jobSubOpen && jobs.length > 0 && (
+                          <div className="max-h-48 overflow-y-auto space-y-0.5 py-0.5">
+                            {jobs.map((job) => (
+                              <NavLink
+                                key={job.id}
+                                to={`/jobs/${job.id}`}
+                                className={({ isActive }) =>
+                                  cn(
+                                    "flex flex-col rounded-lg pl-9 pr-3 py-1.5 text-xs transition-colors truncate",
+                                    isActive
+                                      ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                                      : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                                  )
+                                }
+                              >
+                                <span className="truncate font-medium">{job.company}</span>
+                                <span className="truncate opacity-70">{job.title}</span>
+                              </NavLink>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <NavLink to={to} className={navLinkClass}>
+                        <Icon className="h-4 w-4" />
+                        {label}
+                      </NavLink>
+                    )}
+                  </div>
                 ))}
               </CollapsibleContent>
             </Collapsible>
