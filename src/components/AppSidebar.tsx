@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, TrendingUp, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type LinkItem = { to: string; icon: LucideIcon; label: string };
+
+interface AppSidebarProps {
+  jobs?: { id: string; title: string; company: string }[];
+}
 
 const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   {
@@ -38,14 +42,17 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   },
 ];
 
-export default function AppSidebar() {
+export default function AppSidebar({ jobs = [] }: AppSidebarProps) {
   const location = useLocation();
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
 
+  const isOnJobCRM = location.pathname.startsWith("/jobs/");
+  const [jobSubOpen, setJobSubOpen] = useState(isOnJobCRM);
+
   const initialOpen = groups.reduce<Record<string, boolean>>((acc, group) => {
-    acc[group.label] = group.items.some((item) => location.pathname === item.to);
+    acc[group.label] = group.items.some((item) => location.pathname === item.to || (item.to === "/jobs" && isOnJobCRM));
     return acc;
   }, {});
 
