@@ -19,7 +19,7 @@ export default function Index() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar />
+      <AppSidebar jobs={store.jobs} />
       <main className="flex-1 ml-64 p-8">
         <Routes>
           <Route index element={<Dashboard jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} onUpdateStatus={store.updateJobStatus} onUpdateJob={store.updateJob} onUpdateContact={store.updateContact} />} />
