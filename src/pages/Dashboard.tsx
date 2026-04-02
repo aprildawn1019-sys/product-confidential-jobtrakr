@@ -12,6 +12,7 @@ import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import StatusSelect from "@/components/StatusSelect";
 import FitScoreStars from "@/components/FitScoreStars";
+import CompanyAvatar from "@/components/CompanyAvatar";
 import type { Job, Contact, Interview, JobContact } from "@/types/jobTracker";
 
 interface DashboardProps {
@@ -104,8 +105,9 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
             <div className="space-y-3">
               {highUrgencyJobs.map(job => (
                 <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Link to="/jobs" className="min-w-0 flex-1">
+                  <div className="flex items-center gap-3">
+                    <CompanyAvatar company={job.company} />
+                    <Link to={`/jobs/${job.id}`} className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{job.title}</p>
                       <p className="text-xs text-muted-foreground">{job.company}</p>
                     </Link>
@@ -148,8 +150,9 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
             <div className="space-y-3">
               {topFitJobs.map(job => (
                 <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Link to="/jobs" className="min-w-0 flex-1">
+                  <div className="flex items-center gap-3">
+                    <CompanyAvatar company={job.company} />
+                    <Link to={`/jobs/${job.id}`} className="min-w-0 flex-1">
                       <p className="font-medium text-sm truncate">{job.title}</p>
                       <p className="text-xs text-muted-foreground">{job.company}</p>
                     </Link>
