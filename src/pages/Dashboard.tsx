@@ -294,24 +294,25 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
                 {/* Progress bar */}
                 <div className="flex h-8 w-full rounded-full overflow-hidden bg-muted">
                   {counts.map(s => s.count > 0 ? (
-                    <div
+                    <Link
                       key={s.key}
-                      className={cn("flex items-center justify-center text-xs font-bold text-white transition-all", s.color)}
+                      to={`/jobs?status=${s.key}`}
+                      className={cn("flex items-center justify-center text-xs font-bold text-white transition-all hover:brightness-110 hover:scale-y-105 cursor-pointer", s.color)}
                       style={{ width: `${(s.count / total) * 100}%`, minWidth: s.count > 0 ? "28px" : "0" }}
-                      title={`${s.label}: ${s.count}`}
+                      title={`${s.label}: ${s.count} — Click to view`}
                     >
                       {s.count}
-                    </div>
+                    </Link>
                   ) : null)}
                 </div>
                 {/* Legend */}
                 <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center">
                   {counts.map(s => (
-                    <div key={s.key} className="flex items-center gap-1.5">
+                    <Link key={s.key} to={`/jobs?status=${s.key}`} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
                       <div className={cn("h-2.5 w-2.5 rounded-full", s.color)} />
                       <span className="text-xs text-muted-foreground">{s.label}</span>
                       <span className="text-xs font-semibold">{s.count}</span>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>
