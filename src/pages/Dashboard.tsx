@@ -275,18 +275,48 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
 
         {/* Pipeline */}
         <div className="rounded-xl border border-border bg-card p-6 lg:col-span-2">
-          <h2 className="font-display text-lg font-semibold mb-4">Application Pipeline</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-            {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"] as const).map(status => {
-              const count = jobs.filter(j => j.status === status).length;
-              return (
-                <div key={status} className="text-center rounded-lg border border-border p-3">
-                  <p className="font-display text-2xl font-bold">{count}</p>
-                  <p className="text-xs text-muted-foreground capitalize mt-1">{status}</p>
+          <h2 className="font-display text-lg font-semibold mb-5">Application Pipeline</h2>
+          {(() => {
+            const stages = [
+              { key: "saved", label: "Saved", color: "bg-muted-foreground" },
+              { key: "applied", label: "Applied", color: "bg-info" },
+              { key: "screening", label: "Screening", color: "bg-info" },
+              { key: "interviewing", label: "Interviewing", color: "bg-warning" },
+              { key: "offer", label: "Offer", color: "bg-success" },
+              { key: "rejected", label: "Rejected", color: "bg-destructive" },
+              { key: "withdrawn", label: "Withdrawn", color: "bg-muted-foreground/60" },
+              { key: "closed", label: "Closed", color: "bg-muted-foreground/40" },
+            ];
+            const counts = stages.map(s => ({ ...s, count: jobs.filter(j => j.status === s.key).length }));
+            const total = Math.max(jobs.length, 1);
+            return (
+              <div className="space-y-3">
+                {/* Progress bar */}
+                <div className="flex h-8 w-full rounded-full overflow-hidden bg-muted">
+                  {counts.map(s => s.count > 0 ? (
+                    <div
+                      key={s.key}
+                      className={cn("flex items-center justify-center text-xs font-bold text-white transition-all", s.color)}
+                      style={{ width: `${(s.count / total) * 100}%`, minWidth: s.count > 0 ? "28px" : "0" }}
+                      title={`${s.label}: ${s.count}`}
+                    >
+                      {s.count}
+                    </div>
+                  ) : null)}
                 </div>
-              );
-            })}
-          </div>
+                {/* Legend */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center">
+                  {counts.map(s => (
+                    <div key={s.key} className="flex items-center gap-1.5">
+                      <div className={cn("h-2.5 w-2.5 rounded-full", s.color)} />
+                      <span className="text-xs text-muted-foreground">{s.label}</span>
+                      <span className="text-xs font-semibold">{s.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
