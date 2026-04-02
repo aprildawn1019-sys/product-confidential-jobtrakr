@@ -248,9 +248,12 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
             <Link to="/interviews" className="text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View calendar →</Link>
           </h2>
           {upcoming.length === 0 ? (
-            <Link to="/interviews" className="flex flex-col items-center justify-center py-8 text-muted-foreground hover:text-primary transition-colors">
-              <Clock className="h-8 w-8 mb-2" />
-              <p className="text-sm">No upcoming interviews</p>
+            <Link to="/interviews" className="flex flex-col items-center justify-center py-8 text-center group">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning/10 mb-3 group-hover:bg-warning/20 transition-colors">
+                <Clock className="h-6 w-6 text-warning" />
+              </div>
+              <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">No upcoming interviews</p>
+              <p className="text-xs text-primary mt-1">Schedule one →</p>
             </Link>
           ) : (
             <div className="space-y-3">
