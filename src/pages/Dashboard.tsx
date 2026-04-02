@@ -12,12 +12,13 @@ import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import StatusSelect from "@/components/StatusSelect";
 import FitScoreStars from "@/components/FitScoreStars";
-import type { Job, Contact, Interview } from "@/types/jobTracker";
+import type { Job, Contact, Interview, JobContact } from "@/types/jobTracker";
 
 interface DashboardProps {
   jobs: Job[];
   contacts: Contact[];
   interviews: Interview[];
+  jobContacts: JobContact[];
   onUpdateStatus?: (id: string, status: string) => void;
   onUpdateJob?: (id: string, updates: Partial<Job>) => void;
   onUpdateContact?: (id: string, updates: Partial<Contact>) => void;
