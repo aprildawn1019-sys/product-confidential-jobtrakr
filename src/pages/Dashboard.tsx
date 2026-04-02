@@ -295,19 +295,38 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
             const total = Math.max(jobs.length, 1);
             return (
               <div className="space-y-3">
-                {/* Progress bar */}
-                <div className="flex h-8 w-full rounded-full overflow-hidden bg-muted">
-                  {counts.map(s => s.count > 0 ? (
-                    <Link
-                      key={s.key}
-                      to={`/jobs?status=${s.key}`}
-                      className={cn("flex items-center justify-center text-xs font-bold text-white transition-all hover:brightness-110 hover:scale-y-105 cursor-pointer", s.color)}
-                      style={{ width: `${(s.count / total) * 100}%`, minWidth: s.count > 0 ? "28px" : "0" }}
-                      title={`${s.label}: ${s.count} — Click to view`}
-                    >
-                      {s.count}
-                    </Link>
-                  ) : null)}
+                {/* Progress bar with soft rounded overlapping segments */}
+                <div className="relative h-9 w-full">
+                  {(() => {
+                    let leftPercent = 0;
+                    return activeStages.map((s, i) => {
+                      const widthPercent = (s.count / total) * 100;
+                      const el = (
+                        <Link
+                          key={s.key}
+                          to={`/jobs?status=${s.key}`}
+                          className={cn(
+                            "absolute top-0 h-full rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm transition-all hover:brightness-110 hover:shadow-md cursor-pointer",
+                            s.color
+                          )}
+                          style={{
+                            left: `${leftPercent}%`,
+                            width: `${Math.max(widthPercent, 3)}%`,
+                            minWidth: "36px",
+                            zIndex: activeStages.length - i,
+                          }}
+                          title={`${s.label}: ${s.count} — Click to view`}
+                        >
+                          {s.count}
+                        </Link>
+                      );
+                      leftPercent += widthPercent;
+                      return el;
+                    });
+                  })()}
+                  {activeStages.length === 0 && (
+                    <div className="absolute inset-0 rounded-full bg-muted" />
+                  )}
                 </div>
                 {/* Legend */}
                 <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center">
