@@ -54,10 +54,22 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
   [jobs]);
 
   const followUpContacts = useMemo(() =>
-    contacts.filter(c => c.followUpDate)
+    contacts.filter(c => {
+      if (!c.followUpDate) return false;
+      const linkedJobIds = jobContacts.filter(jc => jc.contactId === c.id).map(jc => jc.jobId);
+      // If the contact has linked jobs, exclude if ALL are inactive
+      if (linkedJobIds.length > 0) {
+        const allInactive = linkedJobIds.every(jid => {
+          const job = jobs.find(j => j.id === jid);
+          return job && inactiveStatuses.includes(job.status);
+        });
+        if (allInactive) return false;
+      }
+      return true;
+    })
       .sort((a, b) => new Date(a.followUpDate!).getTime() - new Date(b.followUpDate!).getTime())
       .slice(0, 6),
-  [contacts]);
+  [contacts, jobContacts, jobs]);
 
   const overdueCount = followUpContacts.filter(c => isPast(new Date(c.followUpDate!)) && !isToday(new Date(c.followUpDate!))).length;
 
