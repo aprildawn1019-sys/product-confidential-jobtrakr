@@ -137,7 +137,13 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
             <Star className="h-5 w-5 text-primary" />Top Rated Fits
           </h2>
           {topFitJobs.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic py-4 text-center">No jobs rated 4+ stars yet</p>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3">
+                <Star className="h-6 w-6 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground">No jobs rated 4+ stars yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Rate your job fit to surface the best opportunities</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {topFitJobs.map(job => (
