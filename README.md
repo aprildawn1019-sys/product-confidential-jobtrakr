@@ -4,6 +4,8 @@ A comprehensive job search management application built with React, TypeScript, 
 
 ![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-blue) ![Vite](https://img.shields.io/badge/Vite-5-purple)
 
+![JobTrackr Dashboard](public/screenshot-dashboard.png)
+
 ## Features
 
 ### 📊 Dashboard
