@@ -179,7 +179,13 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
             <Link to="/interviews?filter=followups" className="ml-auto text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View all →</Link>
           </h2>
           {followUpContacts.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic py-4 text-center">No follow-ups scheduled</p>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-info/10 mb-3">
+                <CalendarDays className="h-6 w-6 text-info" />
+              </div>
+              <p className="text-sm text-muted-foreground">No follow-ups scheduled</p>
+              <Link to="/contacts" className="text-xs text-primary hover:underline mt-1">Set a follow-up on a contact →</Link>
+            </div>
           ) : (
             <div className="space-y-3">
               {followUpContacts.map(contact => {
