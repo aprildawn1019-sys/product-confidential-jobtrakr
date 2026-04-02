@@ -93,7 +93,13 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
             <AlertTriangle className="h-5 w-5 text-warning" />High Urgency Jobs
           </h2>
           {highUrgencyJobs.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic py-4 text-center">No high-urgency jobs</p>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning/10 mb-3">
+                <AlertTriangle className="h-6 w-6 text-warning" />
+              </div>
+              <p className="text-sm text-muted-foreground">No high-urgency jobs right now</p>
+              <p className="text-xs text-muted-foreground mt-1">Set urgency on jobs to track what needs attention first</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {highUrgencyJobs.map(job => (
@@ -131,7 +137,13 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
             <Star className="h-5 w-5 text-primary" />Top Rated Fits
           </h2>
           {topFitJobs.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic py-4 text-center">No jobs rated 4+ stars yet</p>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3">
+                <Star className="h-6 w-6 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground">No jobs rated 4+ stars yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Rate your job fit to surface the best opportunities</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {topFitJobs.map(job => (
@@ -167,7 +179,13 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
             <Link to="/interviews?filter=followups" className="ml-auto text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View all →</Link>
           </h2>
           {followUpContacts.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic py-4 text-center">No follow-ups scheduled</p>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-info/10 mb-3">
+                <CalendarDays className="h-6 w-6 text-info" />
+              </div>
+              <p className="text-sm text-muted-foreground">No follow-ups scheduled</p>
+              <Link to="/contacts" className="text-xs text-primary hover:underline mt-1">Set a follow-up on a contact →</Link>
+            </div>
           ) : (
             <div className="space-y-3">
               {followUpContacts.map(contact => {
@@ -230,9 +248,12 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
             <Link to="/interviews" className="text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View calendar →</Link>
           </h2>
           {upcoming.length === 0 ? (
-            <Link to="/interviews" className="flex flex-col items-center justify-center py-8 text-muted-foreground hover:text-primary transition-colors">
-              <Clock className="h-8 w-8 mb-2" />
-              <p className="text-sm">No upcoming interviews</p>
+            <Link to="/interviews" className="flex flex-col items-center justify-center py-8 text-center group">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning/10 mb-3 group-hover:bg-warning/20 transition-colors">
+                <Clock className="h-6 w-6 text-warning" />
+              </div>
+              <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">No upcoming interviews</p>
+              <p className="text-xs text-primary mt-1">Schedule one →</p>
             </Link>
           ) : (
             <div className="space-y-3">
@@ -254,18 +275,48 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
 
         {/* Pipeline */}
         <div className="rounded-xl border border-border bg-card p-6 lg:col-span-2">
-          <h2 className="font-display text-lg font-semibold mb-4">Application Pipeline</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-            {(["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"] as const).map(status => {
-              const count = jobs.filter(j => j.status === status).length;
-              return (
-                <div key={status} className="text-center rounded-lg border border-border p-3">
-                  <p className="font-display text-2xl font-bold">{count}</p>
-                  <p className="text-xs text-muted-foreground capitalize mt-1">{status}</p>
+          <h2 className="font-display text-lg font-semibold mb-5">Application Pipeline</h2>
+          {(() => {
+            const stages = [
+              { key: "saved", label: "Saved", color: "bg-muted-foreground" },
+              { key: "applied", label: "Applied", color: "bg-info" },
+              { key: "screening", label: "Screening", color: "bg-info" },
+              { key: "interviewing", label: "Interviewing", color: "bg-warning" },
+              { key: "offer", label: "Offer", color: "bg-success" },
+              { key: "rejected", label: "Rejected", color: "bg-destructive" },
+              { key: "withdrawn", label: "Withdrawn", color: "bg-muted-foreground/60" },
+              { key: "closed", label: "Closed", color: "bg-muted-foreground/40" },
+            ];
+            const counts = stages.map(s => ({ ...s, count: jobs.filter(j => j.status === s.key).length }));
+            const total = Math.max(jobs.length, 1);
+            return (
+              <div className="space-y-3">
+                {/* Progress bar */}
+                <div className="flex h-8 w-full rounded-full overflow-hidden bg-muted">
+                  {counts.map(s => s.count > 0 ? (
+                    <div
+                      key={s.key}
+                      className={cn("flex items-center justify-center text-xs font-bold text-white transition-all", s.color)}
+                      style={{ width: `${(s.count / total) * 100}%`, minWidth: s.count > 0 ? "28px" : "0" }}
+                      title={`${s.label}: ${s.count}`}
+                    >
+                      {s.count}
+                    </div>
+                  ) : null)}
                 </div>
-              );
-            })}
-          </div>
+                {/* Legend */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center">
+                  {counts.map(s => (
+                    <div key={s.key} className="flex items-center gap-1.5">
+                      <div className={cn("h-2.5 w-2.5 rounded-full", s.color)} />
+                      <span className="text-xs text-muted-foreground">{s.label}</span>
+                      <span className="text-xs font-semibold">{s.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
