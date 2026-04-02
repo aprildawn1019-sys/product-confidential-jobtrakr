@@ -12,6 +12,7 @@ import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import StatusSelect from "@/components/StatusSelect";
 import FitScoreStars from "@/components/FitScoreStars";
+import CompanyAvatar from "@/components/CompanyAvatar";
 import type { Job, Contact, Interview, JobContact } from "@/types/jobTracker";
 
 interface DashboardProps {
