@@ -29,13 +29,9 @@ export default function StatusSelect({ value, onValueChange, className }: Status
         {allStatuses.map((s) => {
           const sc = statusStyles[s];
           return (
-            <SelectItem key={s} value={s}>
-              <span
-                className={cn(
-                  "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider",
-                  sc.className
-                )}
-              >
+            <SelectItem key={s} value={s} className="text-[11px] font-semibold uppercase tracking-wider">
+              <span className={cn("inline-flex items-center gap-1.5", sc.className.replace(/border\S*/g, "").replace(/rounded-full/g, "").replace(/px-\S*/g, "").replace(/py-\S*/g, ""))}>
+                <span className={cn("h-2 w-2 rounded-full shrink-0", sc.dotColor ?? "bg-current")} />
                 {sc.label}
               </span>
             </SelectItem>
