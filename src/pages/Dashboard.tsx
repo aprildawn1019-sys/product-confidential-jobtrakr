@@ -12,12 +12,13 @@ import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import StatusSelect from "@/components/StatusSelect";
 import FitScoreStars from "@/components/FitScoreStars";
-import type { Job, Contact, Interview } from "@/types/jobTracker";
+import type { Job, Contact, Interview, JobContact } from "@/types/jobTracker";
 
 interface DashboardProps {
   jobs: Job[];
   contacts: Contact[];
   interviews: Interview[];
+  jobContacts: JobContact[];
   onUpdateStatus?: (id: string, status: string) => void;
   onUpdateJob?: (id: string, updates: Partial<Job>) => void;
   onUpdateContact?: (id: string, updates: Partial<Contact>) => void;
@@ -33,7 +34,7 @@ const urgencyColors: Record<string, string> = {
 const allStatuses = ["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"];
 const allUrgencies = ["low", "medium", "high", "critical"];
 
-export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, onUpdateJob, onUpdateContact }: DashboardProps) {
+export default function Dashboard({ jobs, contacts, interviews, jobContacts, onUpdateStatus, onUpdateJob, onUpdateContact }: DashboardProps) {
   const navigate = useNavigate();
   const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
   const upcoming = interviews.filter(i => i.status === "scheduled");
@@ -53,10 +54,22 @@ export default function Dashboard({ jobs, contacts, interviews, onUpdateStatus, 
   [jobs]);
 
   const followUpContacts = useMemo(() =>
-    contacts.filter(c => c.followUpDate)
+    contacts.filter(c => {
+      if (!c.followUpDate) return false;
+      const linkedJobIds = jobContacts.filter(jc => jc.contactId === c.id).map(jc => jc.jobId);
+      // If the contact has linked jobs, exclude if ALL are inactive
+      if (linkedJobIds.length > 0) {
+        const allInactive = linkedJobIds.every(jid => {
+          const job = jobs.find(j => j.id === jid);
+          return job && inactiveStatuses.includes(job.status);
+        });
+        if (allInactive) return false;
+      }
+      return true;
+    })
       .sort((a, b) => new Date(a.followUpDate!).getTime() - new Date(b.followUpDate!).getTime())
       .slice(0, 6),
-  [contacts]);
+  [contacts, jobContacts, jobs]);
 
   const overdueCount = followUpContacts.filter(c => isPast(new Date(c.followUpDate!)) && !isToday(new Date(c.followUpDate!))).length;
 
