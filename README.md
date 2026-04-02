@@ -130,7 +130,7 @@ JobTrackr uses email-based authentication with email verification. All data is s
 
 ## License
 
-This project is private. All rights reserved.
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
