@@ -281,16 +281,17 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
           <h2 className="font-display text-lg font-semibold mb-5">Application Pipeline</h2>
           {(() => {
             const stages = [
-              { key: "saved", label: "Saved", color: "bg-muted-foreground" },
-              { key: "applied", label: "Applied", color: "bg-info" },
-              { key: "screening", label: "Screening", color: "bg-info" },
-              { key: "interviewing", label: "Interviewing", color: "bg-warning" },
-              { key: "offer", label: "Offer", color: "bg-success" },
-              { key: "rejected", label: "Rejected", color: "bg-destructive" },
-              { key: "withdrawn", label: "Withdrawn", color: "bg-muted-foreground/60" },
-              { key: "closed", label: "Closed", color: "bg-muted-foreground/40" },
+              { key: "saved", label: "Saved", color: "bg-[hsl(220,9%,46%)]" },
+              { key: "applied", label: "Applied", color: "bg-[hsl(142,60%,45%)]" },
+              { key: "screening", label: "Screening", color: "bg-[hsl(190,70%,48%)]" },
+              { key: "interviewing", label: "Interviewing", color: "bg-[hsl(210,80%,52%)]" },
+              { key: "offer", label: "Offer", color: "bg-[hsl(36,90%,55%)]" },
+              { key: "rejected", label: "Rejected", color: "bg-[hsl(15,75%,55%)]" },
+              { key: "withdrawn", label: "Withdrawn", color: "bg-[hsl(220,9%,62%)]" },
+              { key: "closed", label: "Closed", color: "bg-[hsl(220,9%,72%)]" },
             ];
             const counts = stages.map(s => ({ ...s, count: jobs.filter(j => j.status === s.key).length }));
+            const activeStages = counts.filter(s => s.count > 0);
             const total = Math.max(jobs.length, 1);
             return (
               <div className="space-y-3">
