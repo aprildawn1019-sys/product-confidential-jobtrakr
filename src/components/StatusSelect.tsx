@@ -28,14 +28,12 @@ export default function StatusSelect({ value, onValueChange, className }: Status
       <SelectContent>
         {allStatuses.map((s) => {
           const sc = statusStyles[s];
+          // Extract just the text color from the className
+          const textColor = sc.className.match(/text-\S+/)?.[0] ?? "text-foreground";
           return (
-            <SelectItem key={s} value={s}>
-              <span
-                className={cn(
-                  "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider",
-                  sc.className
-                )}
-              >
+            <SelectItem key={s} value={s} className="text-[11px] font-semibold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5">
+                <span className={cn("h-2 w-2 rounded-full shrink-0", textColor.replace("text-", "bg-"))} />
                 {sc.label}
               </span>
             </SelectItem>
