@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
+import Landing from "./pages/Landing.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -48,7 +49,10 @@ const App = () => {
             {session ? (
               <Route path="/*" element={<Index />} />
             ) : (
-              <Route path="/*" element={<Auth />} />
+              <>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/*" element={<Landing />} />
+              </>
             )}
           </Routes>
         </BrowserRouter>
