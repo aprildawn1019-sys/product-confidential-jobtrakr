@@ -468,9 +468,16 @@ export default function Jobs({
                               View on {job.company}
                             </TooltipContent>
                           </Tooltip>
-                          <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
-                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
+                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">
+                              {isExpanded ? "Collapse details" : "View details"}
+                            </TooltipContent>
+                          </Tooltip>
                           <Button variant="ghost" size="icon" onClick={() => onDelete(job.id)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
