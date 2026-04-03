@@ -449,18 +449,25 @@ export default function Jobs({
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <StatusSelect value={job.status} onValueChange={v => onUpdateStatus(job.id, v as JobStatus)} />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className={job.url ? "" : "invisible"}
-                            asChild={!!job.url}
-                          >
-                            {job.url ? (
-                              <a href={job.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
-                            ) : (
-                              <span><ExternalLink className="h-4 w-4" /></span>
-                            )}
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className={job.url ? "" : "invisible"}
+                                asChild={!!job.url}
+                              >
+                                {job.url ? (
+                                  <a href={job.url} target="_blank" rel="noopener noreferrer"><Building2 className="h-4 w-4" /></a>
+                                ) : (
+                                  <span><Building2 className="h-4 w-4" /></span>
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">
+                              View on {job.company}
+                            </TooltipContent>
+                          </Tooltip>
                           <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
                             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </Button>
