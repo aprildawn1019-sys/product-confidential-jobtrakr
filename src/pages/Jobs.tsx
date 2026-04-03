@@ -448,13 +448,17 @@ export default function Jobs({
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <StatusSelect value={job.status} onValueChange={v => onUpdateStatus(job.id, v as JobStatus)} />
-                          {job.url && (
-                            <Button variant="ghost" size="icon" asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={job.url ? "" : "invisible"}
+                            asChild={!!job.url}
+                          >
+                            {job.url ? (
                               <a href={job.url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4" /></a>
-                            </Button>
-                          )}
-                          <Button variant="ghost" size="icon" onClick={() => navigate(`/jobs/${job.id}`)}>
-                            <ExternalLink className="h-4 w-4" />
+                            ) : (
+                              <span><ExternalLink className="h-4 w-4" /></span>
+                            )}
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
                             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
