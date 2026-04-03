@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert, Building2 } from "lucide-react";
+import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert, Building2, FileText } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import FitScoreStars from "@/components/FitScoreStars";
 import UrgencyBadge from "@/components/UrgencyBadge";
@@ -468,9 +468,16 @@ export default function Jobs({
                               View on {job.company}
                             </TooltipContent>
                           </Tooltip>
-                          <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
-                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon" onClick={() => toggleExpand(job.id)}>
+                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">
+                              {isExpanded ? "Collapse details" : "View details"}
+                            </TooltipContent>
+                          </Tooltip>
                           <Button variant="ghost" size="icon" onClick={() => onDelete(job.id)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
