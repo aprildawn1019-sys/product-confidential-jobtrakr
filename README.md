@@ -6,6 +6,10 @@ A comprehensive job search management application built with React, TypeScript, 
 
 ![JobTrackr Dashboard](public/screenshot-dashboard.png)
 
+## Landing Page
+
+JobTrackr features a public landing page with a hero mockup of the dashboard, a feature grid, and clear CTAs for sign-up and sign-in. Unauthenticated users see the landing page at `/`, with `/auth` for authentication.
+
 ## Features
 
 ### 📊 Dashboard
