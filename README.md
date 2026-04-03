@@ -10,12 +10,14 @@ A comprehensive job search management application built with React, TypeScript, 
 
 ### 📊 Dashboard
 - At-a-glance stats: total jobs, active applications, upcoming interviews
-- High urgency jobs and top-rated fits widgets
+- Company avatars with deterministic color coding
+- High urgency jobs and top-rated fits widgets with interactive star ratings and tooltips
 - Follow-up reminders with overdue tracking
-- Application pipeline breakdown by status
+- Application pipeline with rounded, overlapping status segments — click any segment to filter Jobs by that status
 
 ### 💼 Job Tracking
 - **List & Kanban views** — drag-and-drop jobs between status columns
+- Consistent card layout with tooltips on all action buttons (fit score, company link, details)
 - Statuses: Saved → Applied → Screening → Interviewing → Offer / Rejected / Withdrawn / Closed
 - Inline editing of status, fit score (1–5 stars), and urgency level
 - Job detail panel with description, recruiter info, and linked contacts
