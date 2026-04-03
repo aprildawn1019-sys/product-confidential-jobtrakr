@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, ExternalLink, Trash2, GripVertical, Calendar, Clock, User, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { MapPin, ExternalLink, Trash2, GripVertical, Calendar, Clock, User, Users, ChevronDown, ChevronUp, Building2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
@@ -176,11 +177,18 @@ export default function JobKanban({
                       </Button>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         {job.url && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
-                            <a href={job.url} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
+                                <a href={job.url} target="_blank" rel="noopener noreferrer">
+                                  <Building2 className="h-3 w-3" />
+                                </a>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">
+                              View on {job.company}
+                            </TooltipContent>
+                          </Tooltip>
                         )}
                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onDelete(job.id)}>
                           <Trash2 className="h-3 w-3 text-destructive" />
