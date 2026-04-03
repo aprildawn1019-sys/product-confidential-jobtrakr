@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, ExternalLink, Trash2, GripVertical, Calendar, Clock, User, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { MapPin, ExternalLink, Trash2, GripVertical, Calendar, Clock, User, Users, ChevronDown, ChevronUp, Building2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
