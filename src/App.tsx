@@ -49,7 +49,10 @@ const App = () => {
             {session ? (
               <Route path="/*" element={<Index />} />
             ) : (
-              <Route path="/*" element={<Auth />} />
+              <>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/*" element={<Landing />} />
+              </>
             )}
           </Routes>
         </BrowserRouter>
