@@ -59,6 +59,14 @@ export default function Jobs({
   const [rateLimited, setRateLimited] = useState(false);
   const { toast } = useToast();
 
+  // Sync status filter from URL query params
+  useEffect(() => {
+    const urlStatus = searchParams.get("status");
+    if (urlStatus && urlStatus !== statusFilter) {
+      setStatusFilter(urlStatus);
+    }
+  }, [searchParams]);
+
   // Load persisted feed on mount
   const loadPersistedFeed = useCallback(async () => {
     try {
