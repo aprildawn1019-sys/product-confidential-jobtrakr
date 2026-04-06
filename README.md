@@ -63,9 +63,6 @@ A comprehensive job search management application built with React, TypeScript, 
 - Skills frequency analysis across tracked job postings
 - Snapshot history for trending skill demand over time
 
-### ✉️ Cover Letters
-- AI-generated cover letters tailored to specific job postings
-- Stored per job for easy access and iteration
 
 ## Tech Stack
 
