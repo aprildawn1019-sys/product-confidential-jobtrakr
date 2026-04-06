@@ -846,8 +846,9 @@ export default function SkillsInsights() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <BarChart3 className="h-5 w-5 text-primary" />
-                Top Skills in Demand
+                Top Skills in Demand Right Now
               </CardTitle>
+              <p className="text-sm text-muted-foreground">Based on job descriptions from the last 30 days</p>
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
