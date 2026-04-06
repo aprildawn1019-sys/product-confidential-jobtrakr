@@ -33,8 +33,7 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
     label: "Track & Apply",
     icon: ClipboardList,
     items: [
-      { to: "/jobs", icon: Briefcase, label: "Job Postings" },
-      { to: "/applications", icon: CalendarCheck, label: "Applications" },
+      { to: "/jobs", icon: Briefcase, label: "Job Pipeline" },
       { to: "/interviews", icon: CalendarDays, label: "Schedule" },
       { to: "/cover-letters", icon: FileText, label: "Cover Letters" },
     ],
