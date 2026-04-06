@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, BarChart3, Loader2, RefreshCw, Copy, Check, AlertTriangle, CheckCircle2, FileText, Linkedin, PlusCircle } from "lucide-react";
+import { TrendingUp, BarChart3, Loader2, RefreshCw, Copy, Check, AlertTriangle, CheckCircle2, FileText, Linkedin, PlusCircle, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface Snapshot {
@@ -35,6 +35,7 @@ export default function SkillsInsights() {
   const [backfillProgress, setBackfillProgress] = useState({ done: 0, total: 0 });
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [addingSkill, setAddingSkill] = useState<string | null>(null);
+  const [removingSkill, setRemovingSkill] = useState<string | null>(null);
 
   const loadSnapshots = useCallback(async () => {
     setLoading(true);
@@ -250,6 +251,39 @@ export default function SkillsInsights() {
       toast({ title: "Error", description: e.message || "Failed to add skill", variant: "destructive" });
     } finally {
       setAddingSkill(null);
+    }
+  }, []);
+
+  const handleRemoveSkillFromProfile = useCallback(async (skillLabel: string) => {
+    const skillLower = skillLabel.trim().toLowerCase();
+    setRemovingSkill(skillLower);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: profile } = await supabase
+        .from("job_search_profile")
+        .select("id, skills")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!profile) return;
+
+      const updated = (profile.skills || []).filter(
+        (s: string) => s.trim().toLowerCase() !== skillLower
+      );
+
+      await supabase
+        .from("job_search_profile")
+        .update({ skills: updated })
+        .eq("id", profile.id);
+
+      setProfileSkills(prev => prev ? { ...prev, skills: updated } : prev);
+      toast({ title: "Skill removed", description: `"${skillLabel}" removed from your Search Profile.` });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to remove skill", variant: "destructive" });
+    } finally {
+      setRemovingSkill(null);
     }
   }, []);
 
@@ -475,9 +509,19 @@ export default function SkillsInsights() {
                         <p className="text-sm text-muted-foreground">No matching skills found. Update your profile.</p>
                       )}
                       {matchedSkills.map(s => (
-                        <Badge key={s.skill} variant="secondary" className="text-xs">
+                        <Badge
+                          key={s.skill}
+                          variant="secondary"
+                          className="text-xs cursor-pointer hover:opacity-80 transition-opacity gap-1 group/skill"
+                          onClick={() => handleRemoveSkillFromProfile(s.label)}
+                        >
                           {s.label}
-                          {s.pct >= 50 && <span className="ml-1 text-primary font-bold">★</span>}
+                          {s.pct >= 50 && <span className="text-primary font-bold">★</span>}
+                          {removingSkill === s.skill ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <X className="h-3 w-3 opacity-0 group-hover/skill:opacity-100 transition-opacity" />
+                          )}
                         </Badge>
                       ))}
                     </div>
