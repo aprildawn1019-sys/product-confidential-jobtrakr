@@ -257,6 +257,10 @@ supabase/
 
 JobTrackr uses email-based authentication with email verification, plus optional Google OAuth. All data is scoped per user via Row-Level Security policies.
 
+## Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, coding conventions, and how to submit a pull request.
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
