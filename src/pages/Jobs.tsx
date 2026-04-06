@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Job, Contact, JobStatus, Interview, TargetCompany } from "@/types/jobTracker";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import PipelineFunnel from "@/components/PipelineFunnel";
 
 interface JobsProps {
   jobs: Job[];
@@ -285,22 +286,27 @@ export default function Jobs({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Job Pipeline</h1>
-          <p className="mt-1 text-muted-foreground">{filteredJobs.length} of {jobs.length} positions</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center rounded-lg border border-border p-0.5">
-            <Button variant={view === "list" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setView("list")}>
-              <LayoutList className="h-4 w-4" />
-            </Button>
-            <Button variant={view === "kanban" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setView("kanban")}>
-              <Kanban className="h-4 w-4" />
-            </Button>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div>
+              <h1 className="font-display text-3xl font-bold tracking-tight">Job Pipeline</h1>
+              <p className="mt-1 text-muted-foreground">{filteredJobs.length} of {jobs.length} positions</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center rounded-lg border border-border p-0.5">
+                <Button variant={view === "list" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setView("list")}>
+                  <LayoutList className="h-4 w-4" />
+                </Button>
+                <Button variant={view === "kanban" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setView("kanban")}>
+                  <Kanban className="h-4 w-4" />
+                </Button>
+              </div>
+              <BulkJobUploadDialog onAddJobs={onAddBulk} existingJobs={jobs} />
+              <AddJobDialog onAdd={onAdd} contacts={contacts} />
+            </div>
           </div>
-          <BulkJobUploadDialog onAddJobs={onAddBulk} existingJobs={jobs} />
-          <AddJobDialog onAdd={onAdd} contacts={contacts} />
+          <PipelineFunnel jobs={jobs} onClickStage={(status) => setStatusFilter(status)} />
         </div>
       </div>
 
