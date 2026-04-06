@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink, X, Pencil } from "lucide-react";
+import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink, X, Pencil, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,13 +13,14 @@ import StatusBadge from "@/components/StatusBadge";
 import StatusSelect from "@/components/StatusSelect";
 import FitScoreStars from "@/components/FitScoreStars";
 import CompanyAvatar from "@/components/CompanyAvatar";
-import type { Job, Contact, Interview, JobContact } from "@/types/jobTracker";
+import type { Job, Contact, Interview, JobContact, TargetCompany } from "@/types/jobTracker";
 
 interface DashboardProps {
   jobs: Job[];
   contacts: Contact[];
   interviews: Interview[];
   jobContacts: JobContact[];
+  targetCompanies?: TargetCompany[];
   onUpdateStatus?: (id: string, status: string) => void;
   onUpdateJob?: (id: string, updates: Partial<Job>) => void;
   onUpdateContact?: (id: string, updates: Partial<Contact>) => void;
@@ -35,7 +36,7 @@ const urgencyColors: Record<string, string> = {
 const allStatuses = ["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"];
 const allUrgencies = ["low", "medium", "high", "critical"];
 
-export default function Dashboard({ jobs, contacts, interviews, jobContacts, onUpdateStatus, onUpdateJob, onUpdateContact }: DashboardProps) {
+export default function Dashboard({ jobs, contacts, interviews, jobContacts, targetCompanies = [], onUpdateStatus, onUpdateJob, onUpdateContact }: DashboardProps) {
   const navigate = useNavigate();
   const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
   const upcoming = interviews.filter(i => i.status === "scheduled");
@@ -81,10 +82,11 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, onU
         <p className="mt-1 text-muted-foreground">Your job search at a glance</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total Jobs" value={jobs.length} icon={Briefcase} href="/jobs" />
         <StatCard label="Active Applications" value={activeApps} icon={Send} accent="info" href="/jobs?status=active" />
         <StatCard label="Interviews Scheduled" value={upcoming.length} icon={CalendarCheck} accent="warning" href="/interviews" />
+        <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} icon={Star} accent="success" href="/target-companies" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

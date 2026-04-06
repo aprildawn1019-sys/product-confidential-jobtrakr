@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection, ContactActivity, Campaign, ContactCampaign, RecommendationRequest, SkillsSnapshot, JobActivity } from "@/types/jobTracker";
+import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection, ContactActivity, Campaign, ContactCampaign, RecommendationRequest, SkillsSnapshot, JobActivity, TargetCompany } from "@/types/jobTracker";
 
 /** Normalize a company name for fuzzy matching */
 function normalizeCompany(name: string): string {
@@ -105,6 +105,16 @@ function mapJobActivity(row: any): JobActivity {
   };
 }
 
+function mapTargetCompany(row: any): TargetCompany {
+  return {
+    id: row.id, name: row.name, website: row.website ?? undefined,
+    careersUrl: row.careers_url ?? undefined, industry: row.industry ?? undefined,
+    size: row.size ?? undefined, priority: row.priority, status: row.status,
+    notes: row.notes ?? undefined, logoUrl: row.logo_url ?? undefined,
+    createdAt: row.created_at,
+  };
+}
+
 async function getUserId() {
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id;
@@ -121,11 +131,12 @@ export function useJobTrackerStore() {
   const [contactCampaigns, setContactCampaigns] = useState<ContactCampaign[]>([]);
   const [recommendationRequests, setRecommendationRequests] = useState<RecommendationRequest[]>([]);
   const [jobActivities, setJobActivities] = useState<JobActivity[]>([]);
+  const [targetCompanies, setTargetCompanies] = useState<TargetCompany[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes, activitiesRes, campaignsRes, contactCampaignsRes, recReqRes, jobActRes] = await Promise.all([
+    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes, activitiesRes, campaignsRes, contactCampaignsRes, recReqRes, jobActRes, targetCoRes] = await Promise.all([
       supabase.from("jobs").select("*").order("created_at", { ascending: false }).range(0, 9999),
       supabase.from("contacts").select("*").order("created_at", { ascending: false }).range(0, 9999),
       supabase.from("interviews").select("*").order("date", { ascending: true }).range(0, 9999),
@@ -136,6 +147,7 @@ export function useJobTrackerStore() {
       supabase.from("contact_campaigns").select("*").range(0, 9999),
       supabase.from("recommendation_requests").select("*").order("requested_at", { ascending: false }).range(0, 9999),
       supabase.from("job_activities").select("*").order("activity_date", { ascending: false }).range(0, 9999),
+      supabase.from("target_companies").select("*").order("created_at", { ascending: false }).range(0, 9999),
     ]);
     if (jobsRes.data) setJobs(jobsRes.data.map(mapJob));
     if (contactsRes.data) setContacts(contactsRes.data.map(mapContact));
@@ -147,6 +159,7 @@ export function useJobTrackerStore() {
     if (contactCampaignsRes.data) setContactCampaigns(contactCampaignsRes.data.map(mapContactCampaign));
     if (recReqRes.data) setRecommendationRequests(recReqRes.data.map(mapRecommendationRequest));
     if (jobActRes.data) setJobActivities(jobActRes.data.map(mapJobActivity));
+    if (targetCoRes.data) setTargetCompanies(targetCoRes.data.map(mapTargetCompany));
     setLoading(false);
   }, []);
 
@@ -535,13 +548,54 @@ export function useJobTrackerStore() {
     return jobActivities.filter(ja => ja.jobId === jobId);
   };
 
+  // === TARGET COMPANIES ===
+  const addTargetCompany = async (company: Omit<TargetCompany, "id" | "createdAt">) => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const { data } = await supabase.from("target_companies").insert({
+      user_id: userId, name: company.name, website: company.website || null,
+      careers_url: company.careersUrl || null, industry: company.industry || null,
+      size: company.size || null, priority: company.priority, status: company.status,
+      notes: company.notes || null, logo_url: company.logoUrl || null,
+    }).select().single();
+    if (data) setTargetCompanies(prev => [mapTargetCompany(data), ...prev]);
+  };
+
+  const updateTargetCompany = async (id: string, updates: Partial<TargetCompany>) => {
+    const dbUpdates: any = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.website !== undefined) dbUpdates.website = updates.website || null;
+    if (updates.careersUrl !== undefined) dbUpdates.careers_url = updates.careersUrl || null;
+    if (updates.industry !== undefined) dbUpdates.industry = updates.industry || null;
+    if (updates.size !== undefined) dbUpdates.size = updates.size || null;
+    if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
+    if (updates.logoUrl !== undefined) dbUpdates.logo_url = updates.logoUrl || null;
+    await supabase.from("target_companies").update(dbUpdates).eq("id", id);
+    setTargetCompanies(prev => prev.map(tc => tc.id === id ? { ...tc, ...updates } : tc));
+  };
+
+  const deleteTargetCompany = async (id: string) => {
+    await supabase.from("target_companies").delete().eq("id", id);
+    setTargetCompanies(prev => prev.filter(tc => tc.id !== id));
+  };
+
+  const isTargetCompany = (companyName: string) => {
+    return targetCompanies.some(tc => tc.status !== "archived" && companiesMatch(tc.name, companyName));
+  };
+
+  const getTargetCompanyMatch = (companyName: string) => {
+    return targetCompanies.find(tc => companiesMatch(tc.name, companyName));
+  };
+
   // === HELPERS ===
   const getJobsByStatus = (status: JobStatus) => jobs.filter(j => j.status === status);
   const getContactForJob = (contactId?: string) => contacts.find(c => c.id === contactId);
   const getInterviewsForJob = (jobId: string) => interviews.filter(i => i.jobId === jobId);
 
   return {
-    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, jobActivities, loading,
+    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, jobActivities, targetCompanies, loading,
     addJob, addJobsBulk, updateJobStatus, updateJob, deleteJob,
     addContact, addContactsBulk, updateContact, deleteContact,
     addInterview, updateInterview, deleteInterview,
@@ -551,6 +605,7 @@ export function useJobTrackerStore() {
     addCampaign, updateCampaign, deleteCampaign, toggleContactCampaign, getCampaignsForContact, getContactsForCampaign,
     addRecommendationRequest, updateRecommendationRequest, deleteRecommendationRequest, getRecommendationRequestsForContact,
     addJobActivity, deleteJobActivity, getJobActivitiesForJob,
+    addTargetCompany, updateTargetCompany, deleteTargetCompany, isTargetCompany, getTargetCompanyMatch,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
   };
 }

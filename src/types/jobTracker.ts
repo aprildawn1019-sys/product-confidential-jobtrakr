@@ -118,3 +118,20 @@ export interface JobActivity {
   notes?: string;
   createdAt: string;
 }
+
+export type TargetCompanyPriority = "dream" | "strong" | "interested";
+export type TargetCompanyStatus = "researching" | "applied" | "connected" | "archived";
+
+export interface TargetCompany {
+  id: string;
+  name: string;
+  website?: string;
+  careersUrl?: string;
+  industry?: string;
+  size?: string;
+  priority: TargetCompanyPriority;
+  status: TargetCompanyStatus;
+  notes?: string;
+  logoUrl?: string;
+  createdAt: string;
+}

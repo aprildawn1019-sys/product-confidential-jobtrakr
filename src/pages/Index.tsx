@@ -13,6 +13,7 @@ import ProfileEditor from "@/pages/ProfileEditor";
 import JobBoards from "@/pages/JobBoards";
 import SkillsInsights from "@/pages/SkillsInsights";
 import InterviewsPage from "@/pages/Interviews";
+import TargetCompanies from "@/pages/TargetCompanies";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -43,7 +44,7 @@ export default function Index() {
 
       <main className={`flex-1 ${isMobile ? 'pt-14 p-4' : 'ml-64 p-8'}`}>
         <Routes>
-          <Route index element={<Dashboard jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} jobContacts={store.jobContacts} onUpdateStatus={store.updateJobStatus} onUpdateJob={store.updateJob} onUpdateContact={store.updateContact} />} />
+          <Route index element={<Dashboard jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} jobContacts={store.jobContacts} targetCompanies={store.targetCompanies} onUpdateStatus={store.updateJobStatus} onUpdateJob={store.updateJob} onUpdateContact={store.updateContact} />} />
           <Route path="jobs" element={
             <Jobs
               jobs={store.jobs}
@@ -136,6 +137,16 @@ export default function Index() {
           <Route path="profile" element={<ProfileEditor />} />
           <Route path="job-boards" element={<JobBoards />} />
           <Route path="skills-insights" element={<SkillsInsights />} />
+          <Route path="target-companies" element={
+            <TargetCompanies
+              targetCompanies={store.targetCompanies}
+              jobs={store.jobs}
+              contacts={store.contacts}
+              onAdd={store.addTargetCompany}
+              onUpdate={store.updateTargetCompany}
+              onDelete={store.deleteTargetCompany}
+            />
+          } />
         </Routes>
       </main>
     </div>
