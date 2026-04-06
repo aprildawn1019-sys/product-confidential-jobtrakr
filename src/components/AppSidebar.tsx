@@ -5,11 +5,15 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type LinkItem = { to: string; icon: LucideIcon; label: string };
 
 interface AppSidebarProps {
   jobs?: { id: string; title: string; company: string }[];
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
@@ -42,7 +46,7 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   },
 ];
 
-export default function AppSidebar({ jobs = [] }: AppSidebarProps) {
+function SidebarContent({ jobs, onNavigate }: { jobs: { id: string; title: string; company: string }[]; onNavigate?: () => void }) {
   const location = useLocation();
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -73,12 +77,12 @@ export default function AppSidebar({ jobs = [] }: AppSidebarProps) {
         : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
     );
 
+  const handleNavClick = () => {
+    onNavigate?.();
+  };
+
   return (
-    <aside
-      className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border"
-      role="navigation"
-      aria-label="Main navigation"
-    >
+    <>
       <div className="flex h-16 items-center gap-2.5 px-6">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
           <Briefcase className="h-4 w-4 text-sidebar-primary-foreground" />
@@ -87,7 +91,7 @@ export default function AppSidebar({ jobs = [] }: AppSidebarProps) {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1" aria-label="Primary">
-        <NavLink to="/" end className={({ isActive }) =>
+        <NavLink to="/" end onClick={handleNavClick} className={({ isActive }) =>
           cn(
             "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
             isActive
@@ -142,7 +146,7 @@ export default function AppSidebar({ jobs = [] }: AppSidebarProps) {
                     {to === "/jobs" ? (
                       <>
                         <div className="flex items-center">
-                          <NavLink to={to} className={navLinkClass} end>
+                          <NavLink to={to} className={navLinkClass} end onClick={handleNavClick}>
                             <Icon className="h-4 w-4" />
                             {label}
                           </NavLink>
@@ -162,6 +166,7 @@ export default function AppSidebar({ jobs = [] }: AppSidebarProps) {
                               <NavLink
                                 key={job.id}
                                 to={`/jobs/${job.id}`}
+                                onClick={handleNavClick}
                                 className={({ isActive }) =>
                                   cn(
                                     "flex flex-col rounded-lg pl-9 pr-3 py-1.5 text-xs transition-colors truncate",
@@ -179,7 +184,7 @@ export default function AppSidebar({ jobs = [] }: AppSidebarProps) {
                         )}
                       </>
                     ) : (
-                      <NavLink to={to} className={navLinkClass}>
+                      <NavLink to={to} className={navLinkClass} onClick={handleNavClick}>
                         <Icon className="h-4 w-4" />
                         {label}
                       </NavLink>
@@ -203,6 +208,30 @@ export default function AppSidebar({ jobs = [] }: AppSidebarProps) {
           Sign Out
         </Button>
       </div>
+    </>
+  );
+}
+
+export default function AppSidebar({ jobs = [], mobileOpen = false, onMobileClose }: AppSidebarProps) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <Sheet open={mobileOpen} onOpenChange={(open) => { if (!open) onMobileClose?.(); }}>
+        <SheetContent side="left" className="w-64 p-0 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col">
+          <SidebarContent jobs={jobs} onNavigate={onMobileClose} />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <aside
+      className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border"
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      <SidebarContent jobs={jobs} />
     </aside>
   );
 }

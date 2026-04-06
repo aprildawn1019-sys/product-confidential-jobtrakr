@@ -42,43 +42,43 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
+      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
             <Briefcase className="h-4.5 w-4.5 text-primary-foreground" />
           </div>
           <span className="font-display text-xl font-bold tracking-tight text-foreground">JobTrackr</span>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" onClick={() => navigate("/auth?mode=login")}>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Button variant="ghost" size="sm" className="sm:size-default" onClick={() => navigate("/auth?mode=login")}>
             Sign In
           </Button>
-          <Button onClick={() => navigate("/auth?mode=signup")}>
+          <Button size="sm" className="sm:size-default" onClick={() => navigate("/auth?mode=signup")}>
             Get Started
           </Button>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="px-6 pt-16 pb-20 max-w-7xl mx-auto">
+      <section className="px-4 sm:px-6 pt-10 sm:pt-16 pb-14 sm:pb-20 max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-medium text-accent mb-6">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-medium text-accent mb-4 sm:mb-6">
             <Star className="h-3 w-3 fill-accent text-accent" />
             Your job search command center
           </div>
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-tight">
+          <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-tight">
             Track every opportunity.
             <br />
             <span className="text-primary">Land your next role.</span>
           </h1>
-          <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-4 sm:mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             JobTrackr brings your entire job search into one place — applications, contacts, interviews, and insights — so you can focus on what matters.
           </p>
-          <div className="flex items-center justify-center gap-3 mt-8">
-            <Button size="lg" className="gap-2 text-base px-6" onClick={() => navigate("/auth?mode=signup")}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6 sm:mt-8">
+            <Button size="lg" className="w-full sm:w-auto gap-2 text-base px-6" onClick={() => navigate("/auth?mode=signup")}>
               Start Tracking <ArrowRight className="h-4 w-4" />
             </Button>
-            <Button size="lg" variant="outline" className="text-base px-6" onClick={() => navigate("/auth?mode=login")}>
+            <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-6" onClick={() => navigate("/auth?mode=login")}>
               Sign In
             </Button>
           </div>
@@ -105,21 +105,21 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section className="px-6 py-20 bg-muted/30">
+      <section className="px-4 sm:px-6 py-14 sm:py-20 bg-muted/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-display text-3xl font-bold tracking-tight text-foreground">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
               Everything you need to manage your job search
             </h2>
-            <p className="mt-3 text-muted-foreground text-lg max-w-2xl mx-auto">
+            <p className="mt-3 text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
               From first application to final offer, JobTrackr keeps you organized and in control.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {features.map((f) => (
               <div
                 key={f.title}
-                className="rounded-xl border border-border bg-card p-6 hover:shadow-md transition-shadow"
+                className="rounded-xl border border-border bg-card p-5 sm:p-6 hover:shadow-md transition-shadow"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-4">
                   <f.icon className="h-5 w-5" />
@@ -133,23 +133,23 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="px-6 py-20">
+      <section className="px-4 sm:px-6 py-14 sm:py-20">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight text-foreground">
+          <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Ready to take control of your job search?
           </h2>
-          <p className="mt-3 text-muted-foreground text-lg">
+          <p className="mt-3 text-muted-foreground text-base sm:text-lg">
             Join JobTrackr and never lose track of an opportunity again.
           </p>
-          <Button size="lg" className="mt-8 gap-2 text-base px-8" onClick={() => navigate("/auth?mode=signup")}>
+          <Button size="lg" className="mt-6 sm:mt-8 w-full sm:w-auto gap-2 text-base px-8" onClick={() => navigate("/auth?mode=signup")}>
             Get Started Free <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="px-6 py-8 border-t border-border">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-sm text-muted-foreground">
+      <footer className="px-4 sm:px-6 py-6 sm:py-8 border-t border-border">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Briefcase className="h-4 w-4" />
             <span>JobTrackr</span>
