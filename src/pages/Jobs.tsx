@@ -50,7 +50,12 @@ export default function Jobs({
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<"list" | "kanban">("list");
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const companyFilter = searchParams.get("company");
+  const [searchQuery, setSearchQuery] = useState(companyFilter || "");
+
+  const getTargetForJob = useMemo(() => {
+    return (job: Job) => targetCompanies.find(tc => companiesMatch(tc.name, job.company));
+  }, [targetCompanies]);
   const [statusFilter, setStatusFilter] = useState<string>(() => searchParams.get("status") || "all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
