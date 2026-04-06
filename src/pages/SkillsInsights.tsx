@@ -444,6 +444,7 @@ export default function SkillsInsights() {
               job_id: job.id,
               skills: skillsData.skills,
               source: "tracked",
+              captured_at: job.created_at,
             });
             consecutiveErrors = 0;
           }
