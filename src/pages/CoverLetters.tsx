@@ -75,6 +75,33 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleStartEdit = (letter: CoverLetter) => {
+    setEditingId(letter.id);
+    setEditContent(letter.content);
+    setExpandedId(letter.id);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditContent("");
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    if (!editContent.trim()) return;
+    setSaving(true);
+    try {
+      await supabase.from("cover_letters").update({ content: editContent }).eq("id", id);
+      setLetters(prev => prev.map(l => l.id === id ? { ...l, content: editContent } : l));
+      setEditingId(null);
+      setEditContent("");
+      toast({ title: "Cover letter saved" });
+    } catch {
+      toast({ title: "Save failed", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const filtered = letters.filter(l => {
     if (!search) return true;
     const q = search.toLowerCase();
