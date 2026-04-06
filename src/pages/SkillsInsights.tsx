@@ -36,6 +36,7 @@ export default function SkillsInsights() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [addingSkill, setAddingSkill] = useState<string | null>(null);
   const [removingSkill, setRemovingSkill] = useState<string | null>(null);
+  const [trendScale, setTrendScale] = useState<"weeks" | "months">("weeks");
 
   const loadSnapshots = useCallback(async () => {
     setLoading(true);
@@ -180,9 +181,14 @@ export default function SkillsInsights() {
     const buckets: Record<string, Record<string, number>> = {};
     filteredSnapshots.forEach((s) => {
       const d = new Date(s.captured_at);
-      const weekStart = new Date(d);
-      weekStart.setDate(d.getDate() - d.getDay());
-      const key = weekStart.toISOString().slice(0, 10);
+      let key: string;
+      if (trendScale === "months") {
+        key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      } else {
+        const weekStart = new Date(d);
+        weekStart.setDate(d.getDate() - d.getDay());
+        key = weekStart.toISOString().slice(0, 10);
+      }
       if (!buckets[key]) buckets[key] = {};
       s.skills.forEach((sk) => {
         const n = sk.trim().toLowerCase();
@@ -194,13 +200,15 @@ export default function SkillsInsights() {
 
     const data = Object.entries(buckets)
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([week, skills]) => ({
-        week: new Date(week).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      .map(([bucket, skills]) => ({
+        week: trendScale === "months"
+          ? new Date(bucket + "-01").toLocaleDateString("en-US", { month: "short", year: "numeric" })
+          : new Date(bucket).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
         ...top5.reduce((acc, s) => ({ ...acc, [s]: skills[s] || 0 }), {}),
       }));
 
     return { trendData: data, trendSkills: top5 };
-  }, [filteredSnapshots]);
+  }, [filteredSnapshots, trendScale]);
 
   // Skill Gap Analysis — show ALL profile skills in "You Have", plus gap from top 20
   const { matchedSkills, gapSkills } = useMemo(() => {
@@ -438,7 +446,10 @@ export default function SkillsInsights() {
     }
   }, [loadSnapshots, loadProfileSkills]);
 
-  const lineColors = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#10b981", "#8b5cf6"];
+  const lineColors = [
+    "hsl(var(--primary))", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6",
+    "#ec4899", "#14b8a6", "#f97316", "#06b6d4", "#84cc16",
+  ];
 
   if (loading) {
     return (
@@ -676,11 +687,20 @@ export default function SkillsInsights() {
           {/* Skills Trend */}
           {trendData.length > 1 && (
             <Card className="lg:col-span-2">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <TrendingUp className="h-5 w-5 text-primary" />
                   Skills Trend Over Time
                 </CardTitle>
+                <Select value={trendScale} onValueChange={(v) => setTrendScale(v as "weeks" | "months")}>
+                  <SelectTrigger className="w-28 h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weeks">Weeks</SelectItem>
+                    <SelectItem value="months">Months</SelectItem>
+                  </SelectContent>
+                </Select>
               </CardHeader>
               <CardContent>
                 <div className="h-[350px]">
