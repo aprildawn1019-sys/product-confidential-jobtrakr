@@ -80,7 +80,7 @@ export default function JobCRM({
   getContactsForJob, getNetworkMatchesForJob,
   onAddInterview, onUpdateInterview, onDeleteInterview,
   getActivitiesForContact, getJobActivitiesForJob,
-  onAddJobActivity, onDeleteJobActivity,
+  onAddJobActivity, onDeleteJobActivity, targetCompanies = [],
 }: JobCRMProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
