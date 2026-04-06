@@ -104,7 +104,7 @@ export default function SkillsInsights() {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 15)
       .map(([skill, count]) => ({
-        skill: skill.charAt(0).toUpperCase() + skill.slice(1),
+        skill: formatSkillLabel(skill),
         count,
       }));
   }, [filteredSnapshots]);
