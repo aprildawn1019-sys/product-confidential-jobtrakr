@@ -60,25 +60,25 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="px-6 pt-16 pb-20 max-w-7xl mx-auto">
+      <section className="px-4 sm:px-6 pt-10 sm:pt-16 pb-14 sm:pb-20 max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-medium text-accent mb-6">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-medium text-accent mb-4 sm:mb-6">
             <Star className="h-3 w-3 fill-accent text-accent" />
             Your job search command center
           </div>
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-tight">
+          <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-tight">
             Track every opportunity.
             <br />
             <span className="text-primary">Land your next role.</span>
           </h1>
-          <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-4 sm:mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             JobTrackr brings your entire job search into one place — applications, contacts, interviews, and insights — so you can focus on what matters.
           </p>
-          <div className="flex items-center justify-center gap-3 mt-8">
-            <Button size="lg" className="gap-2 text-base px-6" onClick={() => navigate("/auth?mode=signup")}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6 sm:mt-8">
+            <Button size="lg" className="w-full sm:w-auto gap-2 text-base px-6" onClick={() => navigate("/auth?mode=signup")}>
               Start Tracking <ArrowRight className="h-4 w-4" />
             </Button>
-            <Button size="lg" variant="outline" className="text-base px-6" onClick={() => navigate("/auth?mode=login")}>
+            <Button size="lg" variant="outline" className="w-full sm:w-auto text-base px-6" onClick={() => navigate("/auth?mode=login")}>
               Sign In
             </Button>
           </div>
