@@ -261,7 +261,7 @@ export default function SkillsInsights() {
     } finally {
       setBackfilling(false);
     }
-  }, [dateRange]);
+  }, [loadSnapshots]);
 
   const lineColors = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#10b981", "#8b5cf6"];
 
