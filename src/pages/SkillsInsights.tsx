@@ -160,7 +160,13 @@ export default function SkillsInsights() {
   const { matchedSkills, gapSkills } = useMemo(() => {
     if (!profileSkills) return { matchedSkills: [], gapSkills: [] };
     const mySkills = new Set(
-      [...profileSkills.skills, ...profileSkills.technical_skills, ...profileSkills.soft_skills, ...profileSkills.tools_platforms]
+      [
+        ...profileSkills.skills,
+        ...profileSkills.technical_skills,
+        ...profileSkills.soft_skills,
+        ...profileSkills.tools_platforms,
+        ...profileSkills.certifications,
+      ]
         .map(s => s.trim().toLowerCase())
         .filter(Boolean)
     );
