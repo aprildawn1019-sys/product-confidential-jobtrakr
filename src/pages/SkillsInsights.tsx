@@ -197,7 +197,51 @@ export default function SkillsInsights() {
     setTimeout(() => setCopiedField(null), 2000);
   }, []);
 
-  // Backfill: extract skills for jobs without snapshots
+  const handleAddSkillToProfile = useCallback(async (skillLabel: string) => {
+    const skillLower = skillLabel.trim().toLowerCase();
+    setAddingSkill(skillLower);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: profile } = await supabase
+        .from("job_search_profile")
+        .select("id, skills")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!profile) {
+        // Create profile with the skill
+        await supabase.from("job_search_profile").insert({
+          user_id: user.id,
+          skills: [skillLabel.trim()],
+        });
+      } else {
+        const existing = (profile.skills || []).map((s: string) => s.trim().toLowerCase());
+        if (existing.includes(skillLower)) {
+          toast({ title: "Already added", description: `"${skillLabel}" is already in your profile.` });
+          return;
+        }
+        await supabase
+          .from("job_search_profile")
+          .update({ skills: [...(profile.skills || []), skillLabel.trim()] })
+          .eq("id", profile.id);
+      }
+
+      // Update local state so UI reflects immediately
+      setProfileSkills(prev => prev
+        ? { ...prev, skills: [...prev.skills, skillLabel.trim()] }
+        : { skills: [skillLabel.trim()], technical_skills: [], soft_skills: [], tools_platforms: [], certifications: [], target_roles: [] }
+      );
+      toast({ title: "Skill added!", description: `"${skillLabel}" added to your Search Profile.` });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to add skill", variant: "destructive" });
+    } finally {
+      setAddingSkill(null);
+    }
+  }, []);
+
+
   const handleBackfill = useCallback(async () => {
     setBackfilling(true);
     try {
