@@ -21,6 +21,7 @@ interface ProfileSkills {
   technical_skills: string[];
   soft_skills: string[];
   tools_platforms: string[];
+  certifications: string[];
   target_roles: string[];
 }
 
