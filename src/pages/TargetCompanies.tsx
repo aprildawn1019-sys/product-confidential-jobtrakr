@@ -59,10 +59,12 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
     });
   }, [targetCompanies, search, filterPriority, filterStatus]);
 
+  const activeStatuses = ["applied", "screening", "interviewing", "offer"];
+
   const getStats = (companyName: string) => {
     const matchedJobs = jobs.filter(j => companiesMatch(j.company, companyName));
     const matchedContacts = contacts.filter(c => companiesMatch(c.company, companyName));
-    const activeApps = matchedJobs.filter(j => ["applied", "screening", "interviewing", "offer"].includes(j.status));
+    const activeApps = matchedJobs.filter(j => activeStatuses.includes(j.status));
     return { jobCount: matchedJobs.length, contactCount: matchedContacts.length, activeApps: activeApps.length };
   };
 
