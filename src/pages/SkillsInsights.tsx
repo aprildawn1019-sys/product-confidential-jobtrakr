@@ -687,11 +687,20 @@ export default function SkillsInsights() {
           {/* Skills Trend */}
           {trendData.length > 1 && (
             <Card className="lg:col-span-2">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <TrendingUp className="h-5 w-5 text-primary" />
                   Skills Trend Over Time
                 </CardTitle>
+                <Select value={trendScale} onValueChange={(v) => setTrendScale(v as "weeks" | "months")}>
+                  <SelectTrigger className="w-28 h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weeks">Weeks</SelectItem>
+                    <SelectItem value="months">Months</SelectItem>
+                  </SelectContent>
+                </Select>
               </CardHeader>
               <CardContent>
                 <div className="h-[350px]">
