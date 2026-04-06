@@ -61,18 +61,20 @@ export default function SkillsInsights() {
   }, [loadSnapshots]);
 
   // Load profile skills
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from("job_search_profile")
-        .select("skills, technical_skills, soft_skills, tools_platforms, certifications, target_roles")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (data) setProfileSkills(data as ProfileSkills);
-    })();
+  const loadProfileSkills = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase
+      .from("job_search_profile")
+      .select("skills, technical_skills, soft_skills, tools_platforms, certifications, target_roles")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (data) setProfileSkills(data as ProfileSkills);
   }, []);
+
+  useEffect(() => {
+    loadProfileSkills();
+  }, [loadProfileSkills]);
 
   // Filter by source
   const filteredSnapshots = useMemo(() => {
@@ -352,14 +354,14 @@ export default function SkillsInsights() {
 
       toast({ title: "Skills refreshed!", description: `Extracted skills from ${toProcess.length} jobs.` });
 
-      // Reload snapshots
-      await loadSnapshots();
+      // Reload snapshots and profile skills
+      await Promise.all([loadSnapshots(), loadProfileSkills()]);
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Backfill failed", variant: "destructive" });
     } finally {
       setBackfilling(false);
     }
-  }, [loadSnapshots]);
+  }, [loadSnapshots, loadProfileSkills]);
 
   const lineColors = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#10b981", "#8b5cf6"];
 
