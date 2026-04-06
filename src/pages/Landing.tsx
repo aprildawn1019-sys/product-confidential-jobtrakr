@@ -148,8 +148,8 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="px-6 py-8 border-t border-border">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-sm text-muted-foreground">
+      <footer className="px-4 sm:px-6 py-6 sm:py-8 border-t border-border">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Briefcase className="h-4 w-4" />
             <span>JobTrackr</span>
