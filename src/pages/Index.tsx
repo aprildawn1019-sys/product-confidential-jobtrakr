@@ -148,7 +148,7 @@ export default function Index() {
               onDelete={store.deleteTargetCompany}
             />
           } />
-          <Route path="cover-letters" element={<CoverLetters />} />
+          <Route path="cover-letters" element={<CoverLetters jobs={store.jobs} />} />
         </Routes>
       </main>
     </div>
