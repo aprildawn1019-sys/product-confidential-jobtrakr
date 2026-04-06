@@ -354,8 +354,8 @@ export default function SkillsInsights() {
 
       toast({ title: "Skills refreshed!", description: `Extracted skills from ${toProcess.length} jobs.` });
 
-      // Reload snapshots
-      await loadSnapshots();
+      // Reload snapshots and profile skills
+      await Promise.all([loadSnapshots(), loadProfileSkills()]);
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Backfill failed", variant: "destructive" });
     } finally {
