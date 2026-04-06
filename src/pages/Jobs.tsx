@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Job, Contact, JobStatus, Interview, TargetCompany } from "@/types/jobTracker";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import PipelineFunnel from "@/components/PipelineFunnel";
 
 interface JobsProps {
   jobs: Job[];
