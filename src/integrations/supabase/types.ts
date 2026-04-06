@@ -797,6 +797,51 @@ export type Database = {
           },
         ]
       }
+      target_companies: {
+        Row: {
+          careers_url: string | null
+          created_at: string
+          id: string
+          industry: string | null
+          logo_url: string | null
+          name: string
+          notes: string | null
+          priority: string
+          size: string | null
+          status: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          careers_url?: string | null
+          created_at?: string
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          name: string
+          notes?: string | null
+          priority?: string
+          size?: string | null
+          status?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          careers_url?: string | null
+          created_at?: string
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          name?: string
+          notes?: string | null
+          priority?: string
+          size?: string | null
+          status?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
