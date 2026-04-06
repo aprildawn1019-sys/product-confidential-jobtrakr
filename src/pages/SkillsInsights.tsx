@@ -581,22 +581,33 @@ export default function SkillsInsights() {
           {/* Resume Keywords */}
           {allSkillsRanked.length > 0 && (
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <FileText className="h-5 w-5 text-primary" />
                   Resume Keywords
                 </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleGenerateAIContent("resume_keywords")}
+                  disabled={generatingResume}
+                >
+                  {generatingResume ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  {generatingResume ? "Generating..." : "AI Refresh"}
+                </Button>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-3">Top keywords from job descriptions — add these to your resume skills section:</p>
+                <p className="text-sm text-muted-foreground mb-3">
+                  {aiResumeKeywords ? "AI-optimized keywords for your resume:" : "Top keywords from job descriptions — add these to your resume skills section:"}
+                </p>
                 <div className="rounded-md bg-muted/50 p-3 text-sm leading-relaxed">
-                  {resumeKeywords}
+                  {aiResumeKeywords || resumeKeywords}
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   className="mt-3"
-                  onClick={() => handleCopy(resumeKeywords, "resume")}
+                  onClick={() => handleCopy(aiResumeKeywords || resumeKeywords, "resume")}
                 >
                   {copiedField === "resume" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   {copiedField === "resume" ? "Copied!" : "Copy Keywords"}
@@ -608,22 +619,33 @@ export default function SkillsInsights() {
           {/* LinkedIn Headline Builder */}
           {linkedInHeadline && (
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Linkedin className="h-5 w-5 text-primary" />
                   LinkedIn Headline Builder
                 </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleGenerateAIContent("linkedin_headline")}
+                  disabled={generatingLinkedIn}
+                >
+                  {generatingLinkedIn ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  {generatingLinkedIn ? "Generating..." : "AI Refresh"}
+                </Button>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-3">Suggested headline based on top in-demand skills:</p>
+                <p className="text-sm text-muted-foreground mb-3">
+                  {aiLinkedInHeadline ? "AI-crafted headline for maximum recruiter visibility:" : "Suggested headline based on top in-demand skills:"}
+                </p>
                 <div className="rounded-md bg-muted/50 p-3 text-sm font-medium">
-                  {linkedInHeadline}
+                  {aiLinkedInHeadline || linkedInHeadline}
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   className="mt-3"
-                  onClick={() => handleCopy(linkedInHeadline, "linkedin")}
+                  onClick={() => handleCopy(aiLinkedInHeadline || linkedInHeadline, "linkedin")}
                 >
                   {copiedField === "linkedin" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   {copiedField === "linkedin" ? "Copied!" : "Copy Headline"}
