@@ -123,7 +123,7 @@ export default function Index() {
               getRecommendationRequestsForContact={store.getRecommendationRequestsForContact}
             />
           } />
-          <Route path="applications" element={<Applications jobs={store.jobs} interviews={store.interviews} onUpdateJob={store.updateJob} />} />
+          
           <Route path="interviews" element={
             <InterviewsPage
               jobs={store.jobs}
