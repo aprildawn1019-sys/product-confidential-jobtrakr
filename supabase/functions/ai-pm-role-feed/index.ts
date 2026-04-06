@@ -48,15 +48,15 @@ serve(async (req) => {
 
     const { keywords, locations } = await req.json();
     const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const ai = getAIConfig("google/gemini-3-flash-preview");
 
     if (!FIRECRAWL_API_KEY) {
       return new Response(JSON.stringify({ error: "Firecrawl not configured" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ error: "AI gateway not configured" }), {
+    if (!ai) {
+      return new Response(JSON.stringify({ error: "No AI provider configured. Set OPENAI_API_KEY or LOVABLE_API_KEY." }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
