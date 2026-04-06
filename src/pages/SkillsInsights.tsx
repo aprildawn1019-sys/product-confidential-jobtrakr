@@ -176,9 +176,35 @@ export default function SkillsInsights() {
       .slice(0, 5)
       .map(([s]) => s);
 
-    if (top5.length === 0 || filteredSnapshots.length === 0) return { trendData: [], trendSkills: [] };
+    if (top5.length === 0) return { trendData: [], trendSkills: [] };
 
+    // Build empty buckets covering the full time window (today backwards)
+    const now = new Date();
+    const allBucketKeys: string[] = [];
+
+    if (trendScale === "months") {
+      const days = parseInt(dateRange);
+      const monthCount = Math.max(1, Math.ceil(days / 30));
+      for (let i = monthCount - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        allBucketKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+      }
+    } else {
+      const days = parseInt(dateRange);
+      const weekCount = Math.max(1, Math.ceil(days / 7));
+      for (let i = weekCount - 1; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i * 7);
+        d.setDate(d.getDate() - d.getDay()); // week start (Sunday)
+        const key = d.toISOString().slice(0, 10);
+        if (!allBucketKeys.includes(key)) allBucketKeys.push(key);
+      }
+    }
+
+    // Fill buckets with snapshot data
     const buckets: Record<string, Record<string, number>> = {};
+    allBucketKeys.forEach(k => { buckets[k] = {}; });
+
     filteredSnapshots.forEach((s) => {
       const d = new Date(s.captured_at);
       let key: string;
@@ -198,17 +224,15 @@ export default function SkillsInsights() {
       });
     });
 
-    const data = Object.entries(buckets)
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([bucket, skills]) => ({
-        week: trendScale === "months"
-          ? new Date(bucket + "-01").toLocaleDateString("en-US", { month: "short", year: "numeric" })
-          : new Date(bucket).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        ...top5.reduce((acc, s) => ({ ...acc, [s]: skills[s] || 0 }), {}),
-      }));
+    const data = allBucketKeys.map((bucket) => ({
+      week: trendScale === "months"
+        ? new Date(bucket + "-01").toLocaleDateString("en-US", { month: "short", year: "numeric" })
+        : new Date(bucket).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      ...top5.reduce((acc, s) => ({ ...acc, [s]: (buckets[bucket] || {})[s] || 0 }), {}),
+    }));
 
     return { trendData: data, trendSkills: top5 };
-  }, [filteredSnapshots, trendScale]);
+  }, [filteredSnapshots, trendScale, dateRange]);
 
   // Skill Gap Analysis — show ALL profile skills in "You Have", plus gap from top 20
   const { matchedSkills, gapSkills } = useMemo(() => {
