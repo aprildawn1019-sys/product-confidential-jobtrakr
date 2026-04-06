@@ -181,9 +181,14 @@ export default function SkillsInsights() {
     const buckets: Record<string, Record<string, number>> = {};
     filteredSnapshots.forEach((s) => {
       const d = new Date(s.captured_at);
-      const weekStart = new Date(d);
-      weekStart.setDate(d.getDate() - d.getDay());
-      const key = weekStart.toISOString().slice(0, 10);
+      let key: string;
+      if (trendScale === "months") {
+        key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      } else {
+        const weekStart = new Date(d);
+        weekStart.setDate(d.getDate() - d.getDay());
+        key = weekStart.toISOString().slice(0, 10);
+      }
       if (!buckets[key]) buckets[key] = {};
       s.skills.forEach((sk) => {
         const n = sk.trim().toLowerCase();
@@ -195,13 +200,15 @@ export default function SkillsInsights() {
 
     const data = Object.entries(buckets)
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([week, skills]) => ({
-        week: new Date(week).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      .map(([bucket, skills]) => ({
+        week: trendScale === "months"
+          ? new Date(bucket + "-01").toLocaleDateString("en-US", { month: "short", year: "numeric" })
+          : new Date(bucket).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
         ...top5.reduce((acc, s) => ({ ...acc, [s]: skills[s] || 0 }), {}),
       }));
 
     return { trendData: data, trendSkills: top5 };
-  }, [filteredSnapshots]);
+  }, [filteredSnapshots, trendScale]);
 
   // Skill Gap Analysis — show ALL profile skills in "You Have", plus gap from top 20
   const { matchedSkills, gapSkills } = useMemo(() => {
