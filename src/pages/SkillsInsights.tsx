@@ -122,7 +122,7 @@ export default function SkillsInsights() {
       .sort((a, b) => b[1] - a[1])
       .map(([skill, count]) => ({
         skill,
-        label: skill.charAt(0).toUpperCase() + skill.slice(1),
+        label: formatSkillLabel(skill),
         count,
         pct: filteredSnapshots.length > 0 ? Math.round((count / filteredSnapshots.length) * 100) : 0,
       }));
