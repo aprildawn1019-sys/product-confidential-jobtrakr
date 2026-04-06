@@ -21,6 +21,7 @@ interface ProfileSkills {
   technical_skills: string[];
   soft_skills: string[];
   tools_platforms: string[];
+  certifications: string[];
   target_roles: string[];
 }
 
@@ -64,7 +65,7 @@ export default function SkillsInsights() {
       if (!user) return;
       const { data } = await supabase
         .from("job_search_profile")
-        .select("skills, technical_skills, soft_skills, tools_platforms, target_roles")
+        .select("skills, technical_skills, soft_skills, tools_platforms, certifications, target_roles")
         .eq("user_id", user.id)
         .maybeSingle();
       if (data) setProfileSkills(data as ProfileSkills);
@@ -159,7 +160,13 @@ export default function SkillsInsights() {
   const { matchedSkills, gapSkills } = useMemo(() => {
     if (!profileSkills) return { matchedSkills: [], gapSkills: [] };
     const mySkills = new Set(
-      [...profileSkills.skills, ...profileSkills.technical_skills, ...profileSkills.soft_skills, ...profileSkills.tools_platforms]
+      [
+        ...profileSkills.skills,
+        ...profileSkills.technical_skills,
+        ...profileSkills.soft_skills,
+        ...profileSkills.tools_platforms,
+        ...profileSkills.certifications,
+      ]
         .map(s => s.trim().toLowerCase())
         .filter(Boolean)
     );
