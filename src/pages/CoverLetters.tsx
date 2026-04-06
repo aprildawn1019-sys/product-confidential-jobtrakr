@@ -201,7 +201,7 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
   };
 
   const handleCopyGenerated = () => {
-    navigator.clipboard.writeText(generatedLetter);
+    navigator.clipboard.writeText(htmlToPlainText(generatedLetter));
     toast({ title: "Copied to clipboard" });
   };
 
