@@ -41,6 +41,7 @@ const emptyForm = {
 };
 
 export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd, onUpdate, onDelete }: TargetCompaniesProps) {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
