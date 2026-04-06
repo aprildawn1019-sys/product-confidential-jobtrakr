@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, BarChart3, Loader2, RefreshCw, Copy, Check, AlertTriangle, CheckCircle2, FileText, Linkedin, PlusCircle, X } from "lucide-react";
+import { TrendingUp, BarChart3, Loader2, RefreshCw, Copy, Check, AlertTriangle, CheckCircle2, FileText, Linkedin, PlusCircle, X, RotateCcw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface Snapshot {
@@ -41,6 +41,7 @@ export default function SkillsInsights() {
   const [aiLinkedInHeadline, setAiLinkedInHeadline] = useState<string | null>(null);
   const [generatingResume, setGeneratingResume] = useState(false);
   const [generatingLinkedIn, setGeneratingLinkedIn] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   const loadSnapshots = useCallback(async () => {
     setLoading(true);
@@ -502,6 +503,91 @@ export default function SkillsInsights() {
     }
   }, [loadSnapshots, loadProfileSkills]);
 
+  const handleResetAndReextract = useCallback(async () => {
+    if (!confirm("This will delete all existing skill snapshots and re-extract from every job. Continue?")) return;
+    setResetting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Delete all existing snapshots for this user
+      const { error: delError } = await supabase
+        .from("job_skills_snapshots")
+        .delete()
+        .eq("user_id", user.id);
+      if (delError) throw delError;
+
+      // Get all jobs with descriptions
+      const { data: jobsData } = await supabase
+        .from("jobs")
+        .select("id, description, created_at")
+        .eq("user_id", user.id)
+        .not("description", "is", null);
+
+      const toProcess = (jobsData || []).filter(
+        (j: any) => j.description && j.description.length >= 20
+      );
+
+      if (toProcess.length === 0) {
+        await Promise.all([loadSnapshots(), loadProfileSkills()]);
+        toast({ title: "Reset complete", description: "No jobs with descriptions to process." });
+        setResetting(false);
+        return;
+      }
+
+      setBackfillProgress({ done: 0, total: toProcess.length });
+
+      let consecutiveErrors = 0;
+      for (let i = 0; i < toProcess.length; i++) {
+        const job = toProcess[i];
+        try {
+          const result = await Promise.race([
+            supabase.functions.invoke("extract-job-skills", {
+              body: { description: job.description },
+            }),
+            new Promise<{ data: null; error: Error }>((_, reject) =>
+              setTimeout(() => reject(new Error("Timeout")), 20000)
+            ),
+          ]);
+          const { data: skillsData, error: fnError } = result;
+          if (fnError) {
+            consecutiveErrors++;
+          } else if (skillsData?.error) {
+            if (String(skillsData.error).includes("Rate limited") || String(skillsData.error).includes("Credits")) {
+              toast({ title: "Rate limited", description: "Please try again in a few minutes.", variant: "destructive" });
+              break;
+            }
+            consecutiveErrors++;
+          } else if (skillsData?.skills?.length) {
+            await supabase.from("job_skills_snapshots").insert({
+              user_id: user.id,
+              job_id: job.id,
+              skills: skillsData.skills,
+              source: "tracked",
+              captured_at: job.created_at,
+            });
+            consecutiveErrors = 0;
+          }
+        } catch (e) {
+          consecutiveErrors++;
+        }
+        if (consecutiveErrors >= 3) {
+          toast({ title: "Stopping early", description: "Multiple failures in a row. Try again later.", variant: "destructive" });
+          break;
+        }
+        setBackfillProgress({ done: i + 1, total: toProcess.length });
+        if (i < toProcess.length - 1) await new Promise(r => setTimeout(r, 500));
+      }
+
+      toast({ title: "Reset & re-extract complete!", description: `Processed ${toProcess.length} jobs with correct dates.` });
+      await Promise.all([loadSnapshots(), loadProfileSkills()]);
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Reset failed", variant: "destructive" });
+    } finally {
+      setResetting(false);
+    }
+  }, [loadSnapshots, loadProfileSkills]);
+
   const lineColors = [
     "hsl(var(--primary))", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6",
     "#ec4899", "#14b8a6", "#f97316", "#06b6d4", "#84cc16",
@@ -562,6 +648,25 @@ export default function SkillsInsights() {
               <>
                 <RefreshCw className="h-4 w-4" />
                 Refresh All Skills
+              </>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResetAndReextract}
+            disabled={resetting || backfilling}
+            className="text-destructive border-destructive/30 hover:bg-destructive/10"
+          >
+            {resetting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {backfillProgress.total > 0 && `${backfillProgress.done}/${backfillProgress.total}`}
+              </>
+            ) : (
+              <>
+                <RotateCcw className="h-4 w-4" />
+                Reset & Re-extract
               </>
             )}
           </Button>
