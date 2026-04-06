@@ -1,0 +1,1 @@
+ALTER TABLE public.job_skills_snapshots ADD COLUMN source text DEFAULT 'tracked';
