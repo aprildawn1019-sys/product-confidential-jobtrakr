@@ -651,6 +651,25 @@ export default function SkillsInsights() {
               </>
             )}
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResetAndReextract}
+            disabled={resetting || backfilling}
+            className="text-destructive border-destructive/30 hover:bg-destructive/10"
+          >
+            {resetting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {backfillProgress.total > 0 && `${backfillProgress.done}/${backfillProgress.total}`}
+              </>
+            ) : (
+              <>
+                <RotateCcw className="h-4 w-4" />
+                Reset & Re-extract
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
