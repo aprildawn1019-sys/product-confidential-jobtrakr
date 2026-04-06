@@ -44,7 +44,7 @@ interface JobsProps {
 export default function Jobs({
   jobs, contacts, interviews, onAdd, onAddBulk, onUpdateStatus, onUpdateJob, onDelete,
   onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
-  onAddInterview, onUpdateInterview, onDeleteInterview,
+  onAddInterview, onUpdateInterview, onDeleteInterview, targetCompanies = [],
 }: JobsProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
