@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Sparkles, ExternalLink, Bookmark, Star, MapPin } from "lucide-react";
+import { Sparkles, ExternalLink, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
