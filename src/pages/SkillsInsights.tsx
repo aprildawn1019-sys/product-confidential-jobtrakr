@@ -202,25 +202,54 @@ export default function SkillsInsights() {
     return { trendData: data, trendSkills: top5 };
   }, [filteredSnapshots]);
 
-  // Skill Gap Analysis
+  // Skill Gap Analysis — show ALL profile skills in "You Have", plus gap from top 20
   const { matchedSkills, gapSkills } = useMemo(() => {
     if (!profileSkills) return { matchedSkills: [], gapSkills: [] };
-    const mySkills = new Set(
-      [
-        ...profileSkills.skills,
-        ...profileSkills.technical_skills,
-        ...profileSkills.soft_skills,
-        ...profileSkills.tools_platforms,
-        ...profileSkills.certifications,
-      ]
-        .map(s => s.trim().toLowerCase())
-        .filter(Boolean)
-    );
+    const allProfileSkillsList = [
+      ...profileSkills.skills,
+      ...profileSkills.technical_skills,
+      ...profileSkills.soft_skills,
+      ...profileSkills.tools_platforms,
+      ...profileSkills.certifications,
+    ]
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    // Deduplicate by lowercase
+    const seen = new Set<string>();
+    const uniqueProfileSkills: string[] = [];
+    for (const s of allProfileSkillsList) {
+      const lower = s.toLowerCase();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        uniqueProfileSkills.push(s);
+      }
+    }
+
+    // Build a lookup of snapshot counts by lowercase skill
+    const snapshotCounts: Record<string, number> = {};
+    for (const r of allSkillsRanked) {
+      snapshotCounts[r.skill] = r.count;
+    }
+
+    const mySkillsLower = new Set(uniqueProfileSkills.map(s => s.toLowerCase()));
+
+    // Matched = every profile skill, with its snapshot count (0 if not in any job)
+    const matched = uniqueProfileSkills.map(s => ({
+      skill: s.toLowerCase(),
+      label: formatSkillLabel(s),
+      count: snapshotCounts[s.toLowerCase()] || 0,
+      pct: filteredSnapshots.length > 0
+        ? Math.round(((snapshotCounts[s.toLowerCase()] || 0) / filteredSnapshots.length) * 100)
+        : 0,
+    })).sort((a, b) => b.count - a.count);
+
+    // Gap = top 20 snapshot skills NOT in profile
     const top20 = allSkillsRanked.slice(0, 20);
-    const matched = top20.filter(s => mySkills.has(s.skill));
-    const gap = top20.filter(s => !mySkills.has(s.skill));
+    const gap = top20.filter(s => !mySkillsLower.has(s.skill));
+
     return { matchedSkills: matched, gapSkills: gap };
-  }, [profileSkills, allSkillsRanked]);
+  }, [profileSkills, allSkillsRanked, filteredSnapshots]);
 
   // Resume keywords string
   const resumeKeywords = useMemo(() => {
