@@ -9,7 +9,9 @@ import StatusBadge from "@/components/StatusBadge";
 import JobDetailPanel from "@/components/JobDetailPanel";
 import FitScoreStars from "@/components/FitScoreStars";
 import UrgencyBadge from "@/components/UrgencyBadge";
-import type { Job, Contact, JobStatus, Interview } from "@/types/jobTracker";
+import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import { companiesMatch } from "@/stores/jobTrackerStore";
+import type { Job, Contact, JobStatus, Interview, TargetCompany } from "@/types/jobTracker";
 
 const columns: { status: JobStatus; label: string }[] = [
   { status: "saved", label: "Saved" },
