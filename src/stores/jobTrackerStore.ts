@@ -105,6 +105,16 @@ function mapJobActivity(row: any): JobActivity {
   };
 }
 
+function mapTargetCompany(row: any): TargetCompany {
+  return {
+    id: row.id, name: row.name, website: row.website ?? undefined,
+    careersUrl: row.careers_url ?? undefined, industry: row.industry ?? undefined,
+    size: row.size ?? undefined, priority: row.priority, status: row.status,
+    notes: row.notes ?? undefined, logoUrl: row.logo_url ?? undefined,
+    createdAt: row.created_at,
+  };
+}
+
 async function getUserId() {
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id;
