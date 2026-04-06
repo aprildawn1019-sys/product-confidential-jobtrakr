@@ -22,7 +22,7 @@ interface ScoredJob {
   target?: TargetCompany;
 }
 
-export default function Recommendations({ jobs, contacts, targetCompanies, onAddJob }: RecommendationsProps) {
+export default function Recommendations({ jobs, contacts, targetCompanies }: RecommendationsProps) {
   const recommendations = useMemo(() => {
     const scored: ScoredJob[] = jobs
       .filter(j => !["rejected", "withdrawn", "closed"].includes(j.status))
