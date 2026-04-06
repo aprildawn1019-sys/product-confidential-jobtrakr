@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getAIConfig } from "../_shared/ai-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,8 +18,8 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const ai = getAIConfig("google/gemini-2.5-flash-lite");
+    if (!ai) throw new Error("No AI provider configured. Set OPENAI_API_KEY or LOVABLE_API_KEY.");
 
     const targetFields = [
       { name: "company", description: "Company or employer name", required: true },
@@ -43,14 +44,14 @@ Sample data rows: ${JSON.stringify((sampleRows || []).slice(0, 3))}
 
 Return a mapping object where keys are target field names and values are the column index (0-based) that best matches. Only include fields that have a reasonable match. If no column matches a field, omit it.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`${ai.baseUrl}/v1/chat/completions`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${ai.apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: ai.model,
         messages: [
           { role: "system", content: "You map spreadsheet columns to database fields. Return only the tool call." },
           { role: "user", content: prompt },

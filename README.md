@@ -1,14 +1,8 @@
 # JobTrackr
 
-A comprehensive job search management application built with React, TypeScript, and Lovable Cloud. Track job postings, manage your application pipeline, nurture professional contacts, and stay on top of interviews — all in one place.
+A comprehensive job search management application built with React, TypeScript, and Supabase. Track job postings, manage your application pipeline, nurture professional contacts, and stay on top of interviews — all in one place.
 
 ![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-blue) ![Vite](https://img.shields.io/badge/Vite-5-purple)
-
-![JobTrackr Dashboard](public/screenshot-dashboard.png)
-
-## Landing Page
-
-JobTrackr features a public landing page with a hero mockup of the dashboard, a feature grid, and clear CTAs for sign-up and sign-in. Unauthenticated users see the landing page at `/`, with `/auth` for authentication.
 
 ## Features
 
@@ -75,39 +69,164 @@ JobTrackr features a public landing page with a hero mockup of the dashboard, a 
 | **Styling** | Tailwind CSS 3, shadcn/ui, Radix UI |
 | **State** | React hooks, TanStack React Query |
 | **Routing** | React Router v6 |
-| **Backend** | Lovable Cloud (Supabase) — Auth, Database, Edge Functions, Storage |
-| **AI** | Lovable AI (Gemini, GPT) for job search, cover letters, resume parsing, LinkedIn scraping |
+| **Backend** | Supabase — Auth, Database, Edge Functions |
+| **AI** | Any OpenAI-compatible provider (OpenAI, Google AI Studio, Together, Groq, etc.) |
 | **Charts** | Recharts |
 
-## Getting Started
+---
+
+## Quick Start (Lovable Cloud)
+
+If you're running on [Lovable](https://lovable.dev), everything is pre-configured. Just click **Publish** and you're done — no environment setup needed.
+
+---
+
+## Self-Hosting Guide
 
 ### Prerequisites
-- Node.js 18+ and npm/bun
 
-### Installation
+- **Node.js 18+** and npm (or Bun)
+- **Supabase CLI** — [Install guide](https://supabase.com/docs/guides/cli/getting-started)
+- An **AI API key** from any OpenAI-compatible provider
+
+### 1. Clone & install
 
 ```bash
-# Clone the repository
 git clone <your-repo-url>
 cd jobtrackr
-
-# Install dependencies
 npm install
+```
 
-# Start the development server
+### 2. Create a Supabase project
+
+1. Go to [supabase.com/dashboard](https://supabase.com/dashboard) and create a new project.
+2. Copy the **Project URL** and **anon (public) key** from Settings → API.
+
+### 3. Configure environment
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` and fill in your Supabase credentials:
+
+```env
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+```
+
+### 4. Apply database migrations
+
+```bash
+supabase link --project-ref <your-project-ref>
+supabase db push
+```
+
+This creates all tables, RLS policies, and functions.
+
+### 5. Set edge function secrets
+
+Edge functions need an AI provider key. Set it (and optionally override the base URL and model):
+
+```bash
+# Required — pick any OpenAI-compatible provider
+supabase secrets set OPENAI_API_KEY=sk-...
+
+# Optional — defaults to OpenAI's API and gpt-4o-mini
+supabase secrets set AI_BASE_URL=https://api.openai.com
+supabase secrets set AI_MODEL=gpt-4o-mini
+```
+
+### 6. Deploy edge functions
+
+```bash
+supabase functions deploy
+```
+
+### 7. (Optional) Configure Google OAuth
+
+To enable "Sign in with Google":
+
+1. In the Supabase dashboard, go to **Authentication → Providers → Google**.
+2. Enable it and add your Google OAuth client ID and secret.
+3. Add `http://localhost:5173` (and your production URL) to the redirect URLs.
+
+The app automatically falls back to native Supabase OAuth when self-hosted.
+
+### 8. (Optional) Enable job board scraping
+
+For real-time job board scraping via [Firecrawl](https://firecrawl.dev):
+
+```bash
+supabase secrets set FIRECRAWL_API_KEY=fc-...
+```
+
+Without this, the AI job search will still work but will generate suggestions only (no live scraping).
+
+### 9. Start the dev server
+
+```bash
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`.
+Open [http://localhost:5173](http://localhost:5173).
 
-### Environment Variables
+---
 
-The following environment variables are managed automatically when using Lovable Cloud:
+## AI Provider Options
 
-| Variable | Description |
-|----------|-------------|
-| `VITE_SUPABASE_URL` | Backend API URL |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Public API key |
+All 8 edge functions use a shared config helper (`supabase/functions/_shared/ai-config.ts`). It checks `OPENAI_API_KEY` first; if unset, falls back to `LOVABLE_API_KEY` (auto-configured on Lovable Cloud).
+
+| Provider | `AI_BASE_URL` | Example `AI_MODEL` |
+|----------|--------------|-------------------|
+| **OpenAI** (default) | `https://api.openai.com` | `gpt-4o-mini`, `gpt-4o` |
+| **Google AI Studio** | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.0-flash` |
+| **Together AI** | `https://api.together.xyz/v1` | `meta-llama/Llama-3-70b-chat-hf` |
+| **Groq** | `https://api.groq.com/openai/v1` | `llama-3.1-70b-versatile` |
+| **Ollama** (local) | `http://localhost:11434/v1` | `llama3.1` |
+
+> **Note:** The provider must support the OpenAI chat completions API format, including tool/function calling.
+
+---
+
+## Edge Function Secrets Reference
+
+| Secret | Required | Description |
+|--------|----------|-------------|
+| `OPENAI_API_KEY` | **Yes** (self-hosted) | API key for your AI provider |
+| `AI_BASE_URL` | No | Override AI endpoint (default: `https://api.openai.com`) |
+| `AI_MODEL` | No | Override model name (default: `gpt-4o-mini`) |
+| `FIRECRAWL_API_KEY` | No | Enables live job board scraping |
+| `LOVABLE_API_KEY` | Auto | Set automatically on Lovable Cloud |
+
+---
+
+## Deployment
+
+JobTrackr is a static SPA — deploy the `dist/` folder to any static host:
+
+```bash
+npm run build
+```
+
+### Vercel
+
+```bash
+npx vercel --prod
+```
+
+### Netlify
+
+1. Connect your repo in the Netlify dashboard.
+2. Build command: `npm run build`
+3. Publish directory: `dist`
+4. Add environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`).
+
+### Any static host
+
+Upload the contents of `dist/` to your host. Add a catch-all redirect rule to serve `index.html` for all routes (SPA routing).
+
+---
 
 ## Project Structure
 
@@ -118,7 +237,7 @@ src/
 │   ├── jobboards/       # Job board components
 │   └── jobsearch/       # Job search components
 ├── hooks/               # Custom React hooks
-├── integrations/        # Lovable Cloud client & types
+├── integrations/        # Supabase client & types
 ├── pages/               # Route-level page components
 ├── stores/              # State management (jobTrackerStore)
 ├── types/               # TypeScript type definitions
@@ -126,18 +245,15 @@ src/
 
 supabase/
 ├── functions/           # Edge functions (AI search, scraping, etc.)
+│   └── _shared/         # Shared helpers (ai-config.ts)
 ├── migrations/          # Database migrations
 └── config.toml          # Backend configuration
 ```
 
 ## Authentication
 
-JobTrackr uses email-based authentication with email verification. All data is scoped per user via Row-Level Security policies.
+JobTrackr uses email-based authentication with email verification, plus optional Google OAuth. All data is scoped per user via Row-Level Security policies.
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
----
-
-Built with [Lovable](https://lovable.dev)

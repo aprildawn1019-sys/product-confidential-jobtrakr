@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getAIConfig } from "../_shared/ai-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -117,10 +118,8 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+    const ai = getAIConfig("google/gemini-2.5-flash");
+    if (!ai) throw new Error("No AI provider configured. Set OPENAI_API_KEY or LOVABLE_API_KEY.");
 
     // Step 1: Search real job boards via Firecrawl
     const realResults = await searchRealJobs(profile, searchParams, activeBoards || []);
@@ -202,15 +201,15 @@ Content Preview: ${r.markdown?.slice(0, 500) || "N/A"}
 
     // Step 2: Send to AI for scoring real results + supplementing with suggestions
     const aiRes = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      `${ai.baseUrl}/v1/chat/completions`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${ai.apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: ai.model,
           messages: [
             {
               role: "system",
