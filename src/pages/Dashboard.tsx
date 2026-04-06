@@ -90,7 +90,10 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
         <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} icon={Star} accent="success" href="/target-companies" />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h2 className="font-display text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Pipeline Overview</h2>
+        <PipelineFunnel jobs={jobs} onClickStage={(status) => navigate(`/jobs?status=${status}`)} />
+      </div>
         {/* High Urgency Jobs */}
         <div className="rounded-xl border border-border bg-card p-6">
           <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
