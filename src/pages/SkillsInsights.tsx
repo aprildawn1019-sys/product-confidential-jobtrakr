@@ -220,10 +220,18 @@ export default function SkillsInsights() {
       for (let i = 0; i < toProcess.length; i++) {
         const job = toProcess[i];
         try {
-          const { data: skillsData } = await supabase.functions.invoke("extract-job-skills", {
+          const { data: skillsData, error: fnError } = await supabase.functions.invoke("extract-job-skills", {
             body: { description: job.description },
           });
-          if (skillsData?.skills?.length) {
+          if (fnError) {
+            console.error(`Skills extraction error for job ${job.id}:`, fnError);
+          } else if (skillsData?.error) {
+            console.error(`Skills extraction returned error for job ${job.id}:`, skillsData.error);
+            if (skillsData.error.includes("Rate limited") || skillsData.error.includes("Credits")) {
+              toast({ title: "Rate limited", description: "Please try again in a few minutes.", variant: "destructive" });
+              break;
+            }
+          } else if (skillsData?.skills?.length) {
             await supabase.from("job_skills_snapshots").insert({
               user_id: user.id,
               job_id: job.id,
