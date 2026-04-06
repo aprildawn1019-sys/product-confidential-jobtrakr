@@ -130,10 +130,14 @@ export default function SkillsInsights() {
     }).join("");
   };
 
-  // Top Skills bar chart data
+  // Top Skills bar chart data — current demand (most recent 30 days only)
   const topSkillsData = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    const recentSnapshots = filteredSnapshots.filter(s => new Date(s.captured_at) >= cutoff);
+    const source = recentSnapshots.length > 0 ? recentSnapshots : filteredSnapshots;
     const counts: Record<string, number> = {};
-    filteredSnapshots.forEach((s) => {
+    source.forEach((s) => {
       s.skills.forEach((skill) => {
         const normalized = skill.trim().toLowerCase();
         counts[normalized] = (counts[normalized] || 0) + 1;
@@ -842,8 +846,9 @@ export default function SkillsInsights() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <BarChart3 className="h-5 w-5 text-primary" />
-                Top Skills in Demand
+                Top Skills in Demand Right Now
               </CardTitle>
+              <p className="text-sm text-muted-foreground">Based on job descriptions from the last 30 days</p>
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
