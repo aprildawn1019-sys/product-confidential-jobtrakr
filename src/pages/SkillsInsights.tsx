@@ -352,23 +352,29 @@ export default function SkillsInsights() {
 
       setBackfillProgress({ done: 0, total: toProcess.length });
 
+      let consecutiveErrors = 0;
       for (let i = 0; i < toProcess.length; i++) {
         const job = toProcess[i];
         try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 15000);
-          const { data: skillsData, error: fnError } = await supabase.functions.invoke("extract-job-skills", {
-            body: { description: job.description },
-          });
-          clearTimeout(timeout);
+          const result = await Promise.race([
+            supabase.functions.invoke("extract-job-skills", {
+              body: { description: job.description },
+            }),
+            new Promise<{ data: null; error: Error }>((_, reject) =>
+              setTimeout(() => reject(new Error("Timeout")), 20000)
+            ),
+          ]);
+          const { data: skillsData, error: fnError } = result;
           if (fnError) {
             console.error(`Skills extraction error for job ${job.id}:`, fnError);
+            consecutiveErrors++;
           } else if (skillsData?.error) {
             console.error(`Skills extraction returned error for job ${job.id}:`, skillsData.error);
             if (String(skillsData.error).includes("Rate limited") || String(skillsData.error).includes("Credits")) {
               toast({ title: "Rate limited", description: "Please try again in a few minutes.", variant: "destructive" });
               break;
             }
+            consecutiveErrors++;
           } else if (skillsData?.skills?.length) {
             await supabase.from("job_skills_snapshots").insert({
               user_id: user.id,
@@ -376,12 +382,17 @@ export default function SkillsInsights() {
               skills: skillsData.skills,
               source: "tracked",
             });
+            consecutiveErrors = 0;
           }
         } catch (e) {
           console.error(`Skills extraction failed for job ${job.id}:`, e);
+          consecutiveErrors++;
+        }
+        if (consecutiveErrors >= 3) {
+          toast({ title: "Stopping early", description: "Multiple failures in a row. Try again later.", variant: "destructive" });
+          break;
         }
         setBackfillProgress({ done: i + 1, total: toProcess.length });
-        // Small delay to avoid rate limits
         if (i < toProcess.length - 1) await new Promise(r => setTimeout(r, 500));
       }
 
