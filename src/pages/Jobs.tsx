@@ -372,8 +372,24 @@ export default function Jobs({
                 <SelectItem value="onsite">On-site</SelectItem>
               </SelectContent>
             </Select>
+            {targetCompanies.length > 0 && (
+              <Select value={targetFilter} onValueChange={setTargetFilter}>
+                <SelectTrigger className="w-36 h-9">
+                  <Building2 className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                  <SelectValue placeholder="Target Co." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Companies</SelectItem>
+                  <SelectItem value="any">⭐ Any Target</SelectItem>
+                  <SelectItem value="dream">🌟 Dream</SelectItem>
+                  <SelectItem value="strong">💪 Strong</SelectItem>
+                  <SelectItem value="interested">👍 Interested</SelectItem>
+                  <SelectItem value="none">No Target</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
             {hasFilters && (
-              <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setStatusFilter("all"); setUrgencyFilter("all"); setTypeFilter("all"); }}>
+              <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setStatusFilter("all"); setUrgencyFilter("all"); setTypeFilter("all"); setTargetFilter("all"); }}>
                 <X className="h-4 w-4 mr-1" />Clear
               </Button>
             )}
