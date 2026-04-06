@@ -496,6 +496,9 @@ export default function SkillsInsights() {
                         </Badge>
                       ))}
                     </div>
+                    {gapSkills.length > 0 && (
+                      <p className="text-[11px] text-muted-foreground mt-2">Click a skill to add it to your Search Profile</p>
+                    )}
                   </div>
                 </div>
                 {!profileSkills.skills?.length && !profileSkills.technical_skills?.length && (
