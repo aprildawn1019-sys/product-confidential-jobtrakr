@@ -238,6 +238,7 @@ export default function Jobs({
                     user_id: user2.id,
                     job_id: r.id,
                     skills: skillsData.skills,
+                    source: "feed",
                   });
                 }
               }).catch(e => console.error("Feed skills extraction failed:", e));
