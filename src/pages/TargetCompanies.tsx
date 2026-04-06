@@ -166,7 +166,7 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
 
                   <div className="flex gap-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Briefcase className="h-3.5 w-3.5" />{stats.jobCount} jobs</span>
-                    <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{stats.contactCount} contacts</span>
+                    <button onClick={() => navigate(`/contacts?company=${encodeURIComponent(tc.name)}`)} className="flex items-center gap-1 hover:text-foreground transition-colors"><Users className="h-3.5 w-3.5" />{stats.contactCount} contacts</button>
                     {stats.activeApps > 0 && (
                       <span className="flex items-center gap-1 text-green-600 font-medium">{stats.activeApps} active</span>
                     )}
