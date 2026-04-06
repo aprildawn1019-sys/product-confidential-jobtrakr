@@ -63,6 +63,7 @@ export default function Index() {
               onAddInterview={store.addInterview}
               onUpdateInterview={store.updateInterview}
               onDeleteInterview={store.deleteInterview}
+              targetCompanies={store.targetCompanies}
             />
           } />
           <Route path="jobs/:id" element={
