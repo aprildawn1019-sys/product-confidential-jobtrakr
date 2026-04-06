@@ -190,7 +190,7 @@ export function useJobTrackerStore() {
           });
           if (skillsData?.skills?.length) {
             await supabase.from("job_skills_snapshots").insert({
-              user_id: userId, job_id: newJob.id, skills: skillsData.skills,
+              user_id: userId, job_id: newJob.id, skills: skillsData.skills, source: "tracked",
             });
           }
         } catch (e) {

@@ -1,41 +1,81 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, BarChart3, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { TrendingUp, BarChart3, Loader2, RefreshCw, Copy, Check, AlertTriangle, CheckCircle2, FileText, Linkedin } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface Snapshot {
   id: string;
   job_id: string | null;
   skills: string[];
   captured_at: string;
+  source: string | null;
+}
+
+interface ProfileSkills {
+  skills: string[];
+  technical_skills: string[];
+  soft_skills: string[];
+  tools_platforms: string[];
+  target_roles: string[];
 }
 
 export default function SkillsInsights() {
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState("90");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [profileSkills, setProfileSkills] = useState<ProfileSkills | null>(null);
+  const [backfilling, setBackfilling] = useState(false);
+  const [backfillProgress, setBackfillProgress] = useState({ done: 0, total: 0 });
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - parseInt(dateRange));
-      const { data } = await supabase
+
+      const query = supabase
         .from("job_skills_snapshots")
         .select("*")
         .gte("captured_at", cutoff.toISOString())
         .order("captured_at", { ascending: true });
-      setSnapshots((data as Snapshot[]) || []);
+
+      const { data } = await query;
+      setSnapshots((data as any[] || []).map(d => ({ ...d, source: d.source || "tracked" })));
       setLoading(false);
     })();
   }, [dateRange]);
 
+  // Load profile skills
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("job_search_profile")
+        .select("skills, technical_skills, soft_skills, tools_platforms, target_roles")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) setProfileSkills(data as ProfileSkills);
+    })();
+  }, []);
+
+  // Filter by source
+  const filteredSnapshots = useMemo(() => {
+    if (sourceFilter === "all") return snapshots;
+    return snapshots.filter(s => (s.source || "tracked") === sourceFilter);
+  }, [snapshots, sourceFilter]);
+
   // Top Skills bar chart data
   const topSkillsData = useMemo(() => {
     const counts: Record<string, number> = {};
-    snapshots.forEach((s) => {
+    filteredSnapshots.forEach((s) => {
       s.skills.forEach((skill) => {
         const normalized = skill.trim().toLowerCase();
         counts[normalized] = (counts[normalized] || 0) + 1;
@@ -48,13 +88,31 @@ export default function SkillsInsights() {
         skill: skill.charAt(0).toUpperCase() + skill.slice(1),
         count,
       }));
-  }, [snapshots]);
+  }, [filteredSnapshots]);
 
-  // Skills trend data (weekly buckets for top 5 skills)
-  const { trendData, trendSkills } = useMemo(() => {
-    // Find top 5 skills overall
+  // All skills ranked
+  const allSkillsRanked = useMemo(() => {
     const counts: Record<string, number> = {};
-    snapshots.forEach((s) =>
+    filteredSnapshots.forEach((s) => {
+      s.skills.forEach((sk) => {
+        const n = sk.trim().toLowerCase();
+        counts[n] = (counts[n] || 0) + 1;
+      });
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([skill, count]) => ({
+        skill,
+        label: skill.charAt(0).toUpperCase() + skill.slice(1),
+        count,
+        pct: filteredSnapshots.length > 0 ? Math.round((count / filteredSnapshots.length) * 100) : 0,
+      }));
+  }, [filteredSnapshots]);
+
+  // Skills trend data
+  const { trendData, trendSkills } = useMemo(() => {
+    const counts: Record<string, number> = {};
+    filteredSnapshots.forEach((s) =>
       s.skills.forEach((sk) => {
         const n = sk.trim().toLowerCase();
         counts[n] = (counts[n] || 0) + 1;
@@ -65,11 +123,10 @@ export default function SkillsInsights() {
       .slice(0, 5)
       .map(([s]) => s);
 
-    if (top5.length === 0 || snapshots.length === 0) return { trendData: [], trendSkills: [] };
+    if (top5.length === 0 || filteredSnapshots.length === 0) return { trendData: [], trendSkills: [] };
 
-    // Group snapshots into weekly buckets
     const buckets: Record<string, Record<string, number>> = {};
-    snapshots.forEach((s) => {
+    filteredSnapshots.forEach((s) => {
       const d = new Date(s.captured_at);
       const weekStart = new Date(d);
       weekStart.setDate(d.getDate() - d.getDay());
@@ -91,7 +148,114 @@ export default function SkillsInsights() {
       }));
 
     return { trendData: data, trendSkills: top5 };
-  }, [snapshots]);
+  }, [filteredSnapshots]);
+
+  // Skill Gap Analysis
+  const { matchedSkills, gapSkills } = useMemo(() => {
+    if (!profileSkills) return { matchedSkills: [], gapSkills: [] };
+    const mySkills = new Set(
+      [...profileSkills.skills, ...profileSkills.technical_skills, ...profileSkills.soft_skills, ...profileSkills.tools_platforms]
+        .map(s => s.trim().toLowerCase())
+        .filter(Boolean)
+    );
+    const top20 = allSkillsRanked.slice(0, 20);
+    const matched = top20.filter(s => mySkills.has(s.skill));
+    const gap = top20.filter(s => !mySkills.has(s.skill));
+    return { matchedSkills: matched, gapSkills: gap };
+  }, [profileSkills, allSkillsRanked]);
+
+  // Resume keywords string
+  const resumeKeywords = useMemo(() => {
+    return allSkillsRanked.slice(0, 20).map(s => s.label).join(", ");
+  }, [allSkillsRanked]);
+
+  // LinkedIn headline
+  const linkedInHeadline = useMemo(() => {
+    const roles = profileSkills?.target_roles?.slice(0, 1).map(r => r.trim()) || [];
+    const topSkills = allSkillsRanked.slice(0, 4).map(s => s.label);
+    const parts = [...roles, ...topSkills];
+    return parts.join(" | ");
+  }, [allSkillsRanked, profileSkills]);
+
+  const handleCopy = useCallback(async (text: string, field: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    toast({ title: "Copied!", description: "Text copied to clipboard." });
+    setTimeout(() => setCopiedField(null), 2000);
+  }, []);
+
+  // Backfill: extract skills for jobs without snapshots
+  const handleBackfill = useCallback(async () => {
+    setBackfilling(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Get all job IDs that already have snapshots
+      const { data: existingSnaps } = await supabase
+        .from("job_skills_snapshots")
+        .select("job_id")
+        .eq("user_id", user.id);
+      const snappedIds = new Set((existingSnaps || []).map((s: any) => s.job_id).filter(Boolean));
+
+      // Get jobs with descriptions but no snapshot
+      const { data: jobsData } = await supabase
+        .from("jobs")
+        .select("id, description")
+        .eq("user_id", user.id)
+        .not("description", "is", null);
+
+      const toProcess = (jobsData || []).filter(
+        (j: any) => j.description && j.description.length >= 20 && !snappedIds.has(j.id)
+      );
+
+      if (toProcess.length === 0) {
+        toast({ title: "All up to date", description: "All jobs with descriptions already have skills extracted." });
+        setBackfilling(false);
+        return;
+      }
+
+      setBackfillProgress({ done: 0, total: toProcess.length });
+
+      for (let i = 0; i < toProcess.length; i++) {
+        const job = toProcess[i];
+        try {
+          const { data: skillsData } = await supabase.functions.invoke("extract-job-skills", {
+            body: { description: job.description },
+          });
+          if (skillsData?.skills?.length) {
+            await supabase.from("job_skills_snapshots").insert({
+              user_id: user.id,
+              job_id: job.id,
+              skills: skillsData.skills,
+              source: "tracked",
+            });
+          }
+        } catch (e) {
+          console.error(`Skills extraction failed for job ${job.id}:`, e);
+        }
+        setBackfillProgress({ done: i + 1, total: toProcess.length });
+        // Small delay to avoid rate limits
+        if (i < toProcess.length - 1) await new Promise(r => setTimeout(r, 500));
+      }
+
+      toast({ title: "Skills refreshed!", description: `Extracted skills from ${toProcess.length} jobs.` });
+
+      // Reload snapshots
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - parseInt(dateRange));
+      const { data: refreshed } = await supabase
+        .from("job_skills_snapshots")
+        .select("*")
+        .gte("captured_at", cutoff.toISOString())
+        .order("captured_at", { ascending: true });
+      setSnapshots((refreshed as any[] || []).map(d => ({ ...d, source: d.source || "tracked" })));
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Backfill failed", variant: "destructive" });
+    } finally {
+      setBackfilling(false);
+    }
+  }, [dateRange]);
 
   const lineColors = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#10b981", "#8b5cf6"];
 
@@ -105,36 +269,180 @@ export default function SkillsInsights() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight">Skills Insights</h1>
           <p className="mt-1 text-muted-foreground">
-            Analyze skills demand across {snapshots.length} tracked job descriptions
+            Analyze skills demand across {filteredSnapshots.length} tracked job descriptions
           </p>
         </div>
-        <Select value={dateRange} onValueChange={setDateRange}>
-          <SelectTrigger className="w-36 h-9">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="30">Last 30 days</SelectItem>
-            <SelectItem value="60">Last 60 days</SelectItem>
-            <SelectItem value="90">Last 90 days</SelectItem>
-            <SelectItem value="365">Last year</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select value={sourceFilter} onValueChange={setSourceFilter}>
+            <SelectTrigger className="w-36 h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sources</SelectItem>
+              <SelectItem value="tracked">Tracked Jobs</SelectItem>
+              <SelectItem value="search">Job Search</SelectItem>
+              <SelectItem value="feed">AI PM Feed</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={dateRange} onValueChange={setDateRange}>
+            <SelectTrigger className="w-36 h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="60">Last 60 days</SelectItem>
+              <SelectItem value="90">Last 90 days</SelectItem>
+              <SelectItem value="365">Last year</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleBackfill}
+            disabled={backfilling}
+          >
+            {backfilling ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {backfillProgress.total > 0 && `${backfillProgress.done}/${backfillProgress.total}`}
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4" />
+                Refresh All Skills
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
-      {snapshots.length === 0 ? (
+      {filteredSnapshots.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <BarChart3 className="h-10 w-10 mb-4 opacity-40" />
             <p className="font-medium">No skills data yet</p>
-            <p className="text-sm">Skills are extracted automatically when you add jobs with descriptions, or use the AI PM Feed.</p>
+            <p className="text-sm">Skills are extracted automatically when you add jobs with descriptions. Use "Refresh All Skills" to backfill existing jobs.</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
+          {/* Resume Keywords */}
+          {allSkillsRanked.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Resume Keywords
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-3">Top keywords from job descriptions — add these to your resume skills section:</p>
+                <div className="rounded-md bg-muted/50 p-3 text-sm leading-relaxed">
+                  {resumeKeywords}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => handleCopy(resumeKeywords, "resume")}
+                >
+                  {copiedField === "resume" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copiedField === "resume" ? "Copied!" : "Copy Keywords"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* LinkedIn Headline Builder */}
+          {linkedInHeadline && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Linkedin className="h-5 w-5 text-primary" />
+                  LinkedIn Headline Builder
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-3">Suggested headline based on top in-demand skills:</p>
+                <div className="rounded-md bg-muted/50 p-3 text-sm font-medium">
+                  {linkedInHeadline}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => handleCopy(linkedInHeadline, "linkedin")}
+                >
+                  {copiedField === "linkedin" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copiedField === "linkedin" ? "Copied!" : "Copy Headline"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Skill Gap Analysis */}
+          {profileSkills && allSkillsRanked.length > 0 && (
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Skill Gap Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div>
+                    <h4 className="flex items-center gap-2 font-medium text-sm mb-3">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      You Have ({matchedSkills.length})
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {matchedSkills.length === 0 && (
+                        <p className="text-sm text-muted-foreground">No matching skills found. Update your profile.</p>
+                      )}
+                      {matchedSkills.map(s => (
+                        <Badge key={s.skill} variant="secondary" className="text-xs">
+                          {s.label}
+                          {s.pct >= 50 && <span className="ml-1 text-primary font-bold">★</span>}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="flex items-center gap-2 font-medium text-sm mb-3">
+                      <AlertTriangle className="h-4 w-4 text-amber-500" />
+                      Skills Gap ({gapSkills.length})
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {gapSkills.length === 0 && (
+                        <p className="text-sm text-muted-foreground">Great — you cover all top skills!</p>
+                      )}
+                      {gapSkills.map(s => (
+                        <Badge
+                          key={s.skill}
+                          variant={s.pct >= 50 ? "destructive" : "outline"}
+                          className="text-xs"
+                        >
+                          {s.label}
+                          <span className="ml-1 text-[10px] opacity-70">({s.pct}%)</span>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {!profileSkills.skills?.length && !profileSkills.technical_skills?.length && (
+                  <p className="mt-4 text-sm text-muted-foreground">
+                    💡 Add skills to your Job Search Profile to see gap analysis.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Top Skills */}
           <Card className="lg:col-span-2">
             <CardHeader>
