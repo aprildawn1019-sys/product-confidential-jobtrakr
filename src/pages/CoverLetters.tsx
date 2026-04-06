@@ -34,6 +34,9 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // Generate dialog state
   const [genOpen, setGenOpen] = useState(false);
