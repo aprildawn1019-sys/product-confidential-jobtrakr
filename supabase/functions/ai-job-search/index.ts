@@ -118,10 +118,8 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+    const ai = getAIConfig("google/gemini-2.5-flash");
+    if (!ai) throw new Error("No AI provider configured. Set OPENAI_API_KEY or LOVABLE_API_KEY.");
 
     // Step 1: Search real job boards via Firecrawl
     const realResults = await searchRealJobs(profile, searchParams, activeBoards || []);
