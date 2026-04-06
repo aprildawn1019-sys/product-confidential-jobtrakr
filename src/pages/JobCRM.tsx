@@ -19,7 +19,9 @@ import FitScoreStars from "@/components/FitScoreStars";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import WarmthBadge from "@/components/WarmthBadge";
 import CoverLetterDialog from "@/components/CoverLetterDialog";
-import type { Job, Contact, Interview, JobActivity, JobStatus } from "@/types/jobTracker";
+import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import { companiesMatch } from "@/stores/jobTrackerStore";
+import type { Job, Contact, Interview, JobActivity, JobStatus, TargetCompany } from "@/types/jobTracker";
 
 const ACTIVITY_TYPES = [
   { value: "shared_resume", label: "Shared Resume", icon: FileText },
