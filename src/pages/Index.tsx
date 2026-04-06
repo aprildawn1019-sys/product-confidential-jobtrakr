@@ -137,6 +137,16 @@ export default function Index() {
           <Route path="profile" element={<ProfileEditor />} />
           <Route path="job-boards" element={<JobBoards />} />
           <Route path="skills-insights" element={<SkillsInsights />} />
+          <Route path="target-companies" element={
+            <TargetCompanies
+              targetCompanies={store.targetCompanies}
+              jobs={store.jobs}
+              contacts={store.contacts}
+              onAdd={store.addTargetCompany}
+              onUpdate={store.updateTargetCompany}
+              onDelete={store.deleteTargetCompany}
+            />
+          } />
         </Routes>
       </main>
     </div>
