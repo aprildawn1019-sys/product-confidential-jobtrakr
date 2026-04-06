@@ -6,7 +6,7 @@ import Dashboard from "@/pages/Dashboard";
 import Jobs from "@/pages/Jobs";
 import JobCRM from "@/pages/JobCRM";
 import Contacts from "@/pages/Contacts";
-import Applications from "@/pages/Applications";
+
 import Recommendations from "@/pages/Recommendations";
 import JobSearch from "@/pages/JobSearch";
 import ProfileEditor from "@/pages/ProfileEditor";
