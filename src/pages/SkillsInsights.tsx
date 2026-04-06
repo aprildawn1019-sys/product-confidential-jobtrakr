@@ -83,15 +83,45 @@ export default function SkillsInsights() {
   }, [snapshots, sourceFilter]);
 
   const formatSkillLabel = (skill: string) => {
+    // Full-string overrides
     const overrides: Record<string, string> = {
       "p&l": "P&L", "saas": "SaaS", "ai": "AI", "sql": "SQL", "css": "CSS",
       "html": "HTML", "api": "API", "apis": "APIs", "ui": "UI", "ux": "UX",
       "ui/ux": "UI/UX", "kpi": "KPI", "kpis": "KPIs", "roi": "ROI",
       "okr": "OKR", "okrs": "OKRs", "crm": "CRM", "b2b": "B2B", "b2c": "B2C",
-      "aws": "AWS", "gcp": "GCP", "ci/cd": "CI/CD", "sdk": "SDK",
+      "aws": "AWS", "gcp": "GCP", "ci/cd": "CI/CD", "sdk": "SDK", "sdks": "SDKs",
+      "plg": "PLG", "mvp": "MVP", "pm": "PM", "pmo": "PMO", "qa": "QA",
+      "seo": "SEO", "sem": "SEM", "erp": "ERP", "etl": "ETL", "ml": "ML",
+      "nlp": "NLP", "llm": "LLM", "llms": "LLMs", "devops": "DevOps",
+      "devsecops": "DevSecOps", "graphql": "GraphQL", "nosql": "NoSQL",
+      "postgresql": "PostgreSQL", "mysql": "MySQL", "mongodb": "MongoDB",
+      "dynamodb": "DynamoDB", "json": "JSON", "yaml": "YAML", "csv": "CSV",
+      "rest": "REST", "oauth": "OAuth", "sso": "SSO", "rbac": "RBAC",
+      "gdpr": "GDPR", "hipaa": "HIPAA", "soc": "SOC", "iso": "ISO",
+      "vpc": "VPC", "dns": "DNS", "cdn": "CDN", "tcp": "TCP", "http": "HTTP",
+      "https": "HTTPS", "ssh": "SSH", "ssl": "SSL", "tls": "TLS",
+      "ios": "iOS", "macos": "macOS", "iot": "IoT",
+      "cto": "CTO", "ceo": "CEO", "cfo": "CFO", "coo": "COO",
+      "a/b": "A/B", "pr": "PR", "nps": "NPS", "cac": "CAC", "ltv": "LTV",
+      "arpu": "ARPU", "arr": "ARR", "mrr": "MRR", "tam": "TAM",
     };
     if (overrides[skill]) return overrides[skill];
-    return skill.charAt(0).toUpperCase() + skill.slice(1);
+
+    // Word-level acronym detection + title case
+    const acronymSet = new Set(Object.keys(overrides));
+    const smallWords = new Set(["a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by", "as", "vs"]);
+
+    return skill.split(/(\s+|[-/&])/).map((part, i) => {
+      const lower = part.toLowerCase();
+      if (overrides[lower]) return overrides[lower];
+      if (/^\s+$/.test(part) || /^[-/&]$/.test(part)) return part;
+      // Check if it looks like an acronym (2-5 letters, all same case in original)
+      if (lower.length >= 2 && lower.length <= 5 && acronymSet.has(lower)) return overrides[lower];
+      // Small words stay lowercase (except first word)
+      if (i > 0 && smallWords.has(lower)) return lower;
+      // Title case
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    }).join("");
   };
 
   // Top Skills bar chart data
