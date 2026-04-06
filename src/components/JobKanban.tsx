@@ -138,7 +138,10 @@ export default function JobKanban({
                             </HoverCard>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">{job.company}</p>
+                        <div className="flex items-center gap-1">
+                          <p className="text-xs text-muted-foreground truncate">{job.company}</p>
+                          <TargetCompanyBadge target={targetCompanies.find(tc => companiesMatch(tc.name, job.company))} size="sm" />
+                        </div>
                         <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
                           <MapPin className="h-3 w-3" />
                           <span className="truncate">{job.location}</span>

@@ -228,7 +228,10 @@ export default function JobCRM({
               <h1 className="font-display text-2xl font-bold tracking-tight">{job.title}</h1>
               <StatusSelect value={job.status} onValueChange={v => onUpdateStatus(job.id, v as JobStatus)} />
             </div>
-            <p className="text-lg text-muted-foreground">{job.company}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-lg text-muted-foreground">{job.company}</p>
+              <TargetCompanyBadge target={targetCompanies.find(tc => companiesMatch(tc.name, job.company))} size="md" />
+            </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{job.location || "—"}</span>
               <span className="capitalize">{job.type}</span>
