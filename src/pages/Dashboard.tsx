@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import PipelineFunnel from "@/components/PipelineFunnel";
 import { Link, useNavigate } from "react-router-dom";
 import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink, X, Pencil, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
