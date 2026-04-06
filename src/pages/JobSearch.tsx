@@ -33,6 +33,7 @@ interface SearchResult {
   posted_ago?: string;
   hiring_contact?: string;
   job_source?: string;
+  skills?: string[];
 }
 
 interface DismissedJob {
