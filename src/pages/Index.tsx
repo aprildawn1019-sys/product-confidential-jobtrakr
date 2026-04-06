@@ -14,6 +14,7 @@ import JobBoards from "@/pages/JobBoards";
 import SkillsInsights from "@/pages/SkillsInsights";
 import InterviewsPage from "@/pages/Interviews";
 import TargetCompanies from "@/pages/TargetCompanies";
+import CoverLetters from "@/pages/CoverLetters";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -147,6 +148,7 @@ export default function Index() {
               onDelete={store.deleteTargetCompany}
             />
           } />
+          <Route path="cover-letters" element={<CoverLetters />} />
         </Routes>
       </main>
     </div>

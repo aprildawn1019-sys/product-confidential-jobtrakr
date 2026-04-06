@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, FileText, LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +36,7 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
       { to: "/jobs", icon: Briefcase, label: "Job Postings" },
       { to: "/applications", icon: CalendarCheck, label: "Applications" },
       { to: "/interviews", icon: CalendarDays, label: "Schedule" },
+      { to: "/cover-letters", icon: FileText, label: "Cover Letters" },
     ],
   },
   {
