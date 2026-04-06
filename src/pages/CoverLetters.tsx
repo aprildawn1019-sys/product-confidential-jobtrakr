@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { FileText, Copy, Check, Trash2, ChevronDown, ChevronUp, ExternalLink, Loader2, Plus, Globe, Sparkles } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { FileText, Copy, Check, Trash2, ChevronDown, ChevronUp, ExternalLink, Loader2, Plus, Globe, Sparkles, Pencil, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
