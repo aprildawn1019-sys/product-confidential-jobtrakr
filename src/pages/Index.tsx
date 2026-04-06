@@ -134,7 +134,7 @@ export default function Index() {
               onUpdateContact={store.updateContact}
             />
           } />
-          <Route path="recommendations" element={<Recommendations />} />
+          <Route path="recommendations" element={<Recommendations jobs={store.jobs} contacts={store.contacts} targetCompanies={store.targetCompanies} onAddJob={store.addJob} />} />
           <Route path="job-search" element={<JobSearch onAddJob={store.addJob} existingJobs={store.jobs} />} />
           <Route path="profile" element={<ProfileEditor />} />
           <Route path="job-boards" element={<JobBoards />} />
