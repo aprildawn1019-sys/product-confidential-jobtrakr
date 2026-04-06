@@ -38,6 +38,7 @@ interface JobKanbanProps {
   onAddInterview: (interview: Omit<Interview, "id">) => void;
   onUpdateInterview: (id: string, updates: Partial<Interview>) => void;
   onDeleteInterview: (id: string) => void;
+  targetCompanies?: TargetCompany[];
 }
 
 export default function JobKanban({
