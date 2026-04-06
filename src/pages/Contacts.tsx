@@ -127,6 +127,7 @@ export default function Contacts({
   const [searchParams, setSearchParams] = useSearchParams();
   const jobIdFilter = searchParams.get("jobId");
   const highlightId = searchParams.get("highlight");
+  const companyFilter = searchParams.get("company");
   const [expandedContact, setExpandedContact] = useState<string | null>(highlightId);
 
   // Auto-scroll to highlighted contact
@@ -142,7 +143,7 @@ export default function Contacts({
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "compact" | "detailed">("grid");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(companyFilter || "");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
   const [followUpFilter, setFollowUpFilter] = useState<string>("all");
   const [campaignFilter, setCampaignFilter] = useState<string>("all");

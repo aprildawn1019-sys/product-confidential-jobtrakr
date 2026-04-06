@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ const emptyForm = {
 };
 
 export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd, onUpdate, onDelete }: TargetCompaniesProps) {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -164,7 +166,7 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
 
                   <div className="flex gap-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1"><Briefcase className="h-3.5 w-3.5" />{stats.jobCount} jobs</span>
-                    <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{stats.contactCount} contacts</span>
+                    <button onClick={() => navigate(`/contacts?company=${encodeURIComponent(tc.name)}`)} className="flex items-center gap-1 hover:text-foreground transition-colors"><Users className="h-3.5 w-3.5" />{stats.contactCount} contacts</button>
                     {stats.activeApps > 0 && (
                       <span className="flex items-center gap-1 text-green-600 font-medium">{stats.activeApps} active</span>
                     )}
