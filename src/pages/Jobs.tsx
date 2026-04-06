@@ -129,9 +129,19 @@ export default function Jobs({
       }
       if (urgencyFilter !== "all" && (job.urgency || "none") !== urgencyFilter) return false;
       if (typeFilter !== "all" && job.type !== typeFilter) return false;
+      if (targetFilter !== "all") {
+        const tc = getTargetForJob(job);
+        if (targetFilter === "any") {
+          if (!tc) return false;
+        } else if (targetFilter === "none") {
+          if (tc) return false;
+        } else {
+          if (!tc || tc.priority !== targetFilter) return false;
+        }
+      }
       return true;
     });
-  }, [jobs, searchQuery, statusFilter, urgencyFilter, typeFilter]);
+  }, [jobs, searchQuery, statusFilter, urgencyFilter, typeFilter, targetFilter, getTargetForJob]);
 
   const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all";
 
