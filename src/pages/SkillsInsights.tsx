@@ -12,13 +12,13 @@ import { SkillsTrendChart } from "@/components/skills/SkillsTrendChart";
 export default function SkillsInsights() {
   const {
     loading, filteredSnapshots, dateRange, setDateRange, sourceFilter, setSourceFilter,
-    trendScale, setTrendScale, backfilling, resetting, backfillProgress,
+    trendScale, setTrendScale, backfilling, backfillProgress,
     copiedField, addingSkill, removingSkill, generatingResume, generatingLinkedIn,
     aiResumeKeywords, aiLinkedInHeadline,
     topSkillsData, allSkillsRanked, trendData, trendSkills,
     matchedSkills, gapSkills, resumeKeywords, linkedInHeadline, profileSkills,
     handleCopy, handleGenerateAIContent, handleAddSkillToProfile,
-    handleRemoveSkillFromProfile, handleBackfill, handleResetAndReextract,
+    handleRemoveSkillFromProfile, handleBackfill,
   } = useSkillsInsights();
 
   if (loading) {
