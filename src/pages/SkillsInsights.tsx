@@ -397,7 +397,7 @@ export default function SkillsInsights() {
       // Get jobs with descriptions but no snapshot
       const { data: jobsData } = await supabase
         .from("jobs")
-        .select("id, description")
+        .select("id, description, created_at")
         .eq("user_id", user.id)
         .not("description", "is", null);
 
