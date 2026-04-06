@@ -345,7 +345,9 @@ export default function SkillsInsights() {
       );
 
       if (toProcess.length === 0) {
-        toast({ title: "All up to date", description: "All jobs with descriptions already have skills extracted." });
+        // Still reload profile skills in case user updated their profile
+        await loadProfileSkills();
+        toast({ title: "All up to date", description: "Skills data refreshed from your profile." });
         setBackfilling(false);
         return;
       }
