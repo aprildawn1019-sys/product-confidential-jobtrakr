@@ -231,6 +231,24 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       // Save to search history
       if (uniqueResults.length > 0) {
         saveSearchToHistory(searchParams, uniqueResults);
+        // Save skills from search results to snapshots in background
+        (async () => {
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            for (const result of uniqueResults) {
+              if (result.skills && result.skills.length > 0) {
+                await supabase.from("job_skills_snapshots").insert({
+                  user_id: user.id,
+                  skills: result.skills,
+                  source: "search",
+                });
+              }
+            }
+          } catch (e) {
+            console.error("Search skills snapshot save failed:", e);
+          }
+        })();
       }
     } catch (e: any) {
       if (controller.signal.aborted) return;
