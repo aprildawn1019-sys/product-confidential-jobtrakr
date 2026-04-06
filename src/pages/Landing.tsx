@@ -105,21 +105,21 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section className="px-6 py-20 bg-muted/30">
+      <section className="px-4 sm:px-6 py-14 sm:py-20 bg-muted/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-display text-3xl font-bold tracking-tight text-foreground">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
               Everything you need to manage your job search
             </h2>
-            <p className="mt-3 text-muted-foreground text-lg max-w-2xl mx-auto">
+            <p className="mt-3 text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
               From first application to final offer, JobTrackr keeps you organized and in control.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {features.map((f) => (
               <div
                 key={f.title}
-                className="rounded-xl border border-border bg-card p-6 hover:shadow-md transition-shadow"
+                className="rounded-xl border border-border bg-card p-5 sm:p-6 hover:shadow-md transition-shadow"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-4">
                   <f.icon className="h-5 w-5" />
