@@ -127,6 +127,7 @@ export default function Contacts({
   const [searchParams, setSearchParams] = useSearchParams();
   const jobIdFilter = searchParams.get("jobId");
   const highlightId = searchParams.get("highlight");
+  const companyFilter = searchParams.get("company");
   const [expandedContact, setExpandedContact] = useState<string | null>(highlightId);
 
   // Auto-scroll to highlighted contact
