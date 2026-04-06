@@ -19,7 +19,7 @@ export function useSkillsInsights() {
   const [aiLinkedInHeadline, setAiLinkedInHeadline] = useState<string | null>(null);
   const [generatingResume, setGeneratingResume] = useState(false);
   const [generatingLinkedIn, setGeneratingLinkedIn] = useState(false);
-  const [resetting, setResetting] = useState(false);
+  
 
   const loadSnapshots = useCallback(async () => {
     setLoading(true);
