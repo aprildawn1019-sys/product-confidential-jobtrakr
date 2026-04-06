@@ -1,39 +1,49 @@
 
 
-# Add Job CRM Quick-Nav Dropdown to Sidebar
+## Mobile Responsiveness Plan
 
-## Overview
-Add a collapsible sub-menu under "Job Postings" in the sidebar that lists all tracked jobs as direct links to their CRM pages (`/jobs/:id`). This mirrors the Salesforce pattern where the list view shows opportunities and each item links to its detail page.
+### Problem Summary
 
-## Approach
+The app has several critical mobile issues:
 
-The sidebar currently uses static config and has no access to job data. We need to:
+1. **Fixed sidebar blocks entire screen** — The 256px (`w-64`) sidebar is always visible with `fixed left-0`, and main content has a hard `ml-64` offset. On mobile, the sidebar covers the viewport and content is pushed off-screen.
+2. **No mobile navigation** — There is no hamburger menu, drawer, or any way to toggle the sidebar on small screens.
+3. **Landing page** — Needs review for text sizing, image scaling, and button layout on small screens.
+4. **Dashboard/page layouts** — Grid layouts and card content mostly use responsive classes (`sm:`, `lg:`) already, but some areas have fixed widths or dense layouts that need touch-friendly spacing.
 
-1. **Pass jobs to AppSidebar** — update `Index.tsx` to pass `store.jobs` as a prop to `AppSidebar`.
+### Plan
 
-2. **Add expandable sub-list under "Job Postings"** — in `AppSidebar.tsx`:
-   - Accept a `jobs` prop (array of `{ id, title, company }`)
-   - After the "Job Postings" NavLink, render a collapsible chevron toggle
-   - When expanded, show a scrollable list of jobs as NavLinks to `/jobs/{id}`
-   - Each entry displays: company name + job title (truncated)
-   - Highlight the active CRM page if the user is on `/jobs/:id`
-   - Cap the visible list height with `max-h` and `overflow-y-auto` for long lists
+#### 1. Add mobile sidebar with hamburger toggle
 
-3. **Visual design**:
-   - The "Job Postings" link itself remains clickable and navigates to the full list
-   - A small caret/chevron to the right of "Job Postings" toggles the sub-list
-   - Sub-items are further indented (pl-9) with smaller text (text-xs)
-   - Active CRM page gets the standard active styling
+- Update `AppSidebar` to accept an `open` prop and render as a slide-over drawer (using the existing `Sheet` component) on mobile, and as the current fixed sidebar on desktop.
+- Create a `MobileHeader` bar (sticky top, visible only below `md` breakpoint) with the app logo, a hamburger button to open the sidebar sheet, and a sign-out icon.
+- Use the existing `useIsMobile` hook to switch between desktop sidebar and mobile sheet.
 
-## Files changed
+#### 2. Fix main layout in Index.tsx
+
+- Remove the hard-coded `ml-64` on the `<main>` tag. Use `md:ml-64` so content is full-width on mobile.
+- Reduce padding from `p-8` to `p-4 md:p-8`.
+
+#### 3. Landing page mobile polish
+
+- Ensure hero text uses responsive font sizes (`text-3xl md:text-5xl`).
+- Stack CTA buttons vertically on mobile.
+- Make the mockup image scale properly with `max-w-full`.
+- Adjust nav bar for small screens.
+
+#### 4. Touch-friendly adjustments across pages
+
+- Ensure interactive elements (buttons, cards, selects) have adequate tap targets (min 44px).
+- Review Kanban board for horizontal scroll on mobile.
+- Ensure dialogs and popovers are usable on small screens (they already use Radix, which handles this reasonably).
+
+### Files to modify
 
 | File | Change |
-|------|--------|
-| `src/components/AppSidebar.tsx` | Accept `jobs` prop, render expandable sub-list under Job Postings with links to `/jobs/:id` |
-| `src/pages/Index.tsx` | Pass `store.jobs` to `<AppSidebar />` |
-
-## Technical notes
-- The "Job Postings" item is currently part of the static `groups` config. The rendering loop will special-case the `/jobs` route to inject the sub-menu.
-- The sub-list auto-opens when the user is on a `/jobs/:id` route.
-- No new database tables or backend changes needed.
+|---|---|
+| `src/components/AppSidebar.tsx` | Wrap in Sheet on mobile; accept open/onClose props |
+| `src/pages/Index.tsx` | Add MobileHeader; responsive margin/padding on main |
+| `src/pages/Landing.tsx` | Responsive text, button stacking, image sizing |
+| `src/pages/Dashboard.tsx` | Minor spacing tweaks if needed |
+| `src/hooks/use-mobile.tsx` | Already exists, no changes needed |
 
