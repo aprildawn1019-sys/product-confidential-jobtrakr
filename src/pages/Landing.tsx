@@ -133,15 +133,15 @@ export default function Landing() {
       </section>
 
       {/* CTA */}
-      <section className="px-6 py-20">
+      <section className="px-4 sm:px-6 py-14 sm:py-20">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight text-foreground">
+          <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Ready to take control of your job search?
           </h2>
-          <p className="mt-3 text-muted-foreground text-lg">
+          <p className="mt-3 text-muted-foreground text-base sm:text-lg">
             Join JobTrackr and never lose track of an opportunity again.
           </p>
-          <Button size="lg" className="mt-8 gap-2 text-base px-8" onClick={() => navigate("/auth?mode=signup")}>
+          <Button size="lg" className="mt-6 sm:mt-8 w-full sm:w-auto gap-2 text-base px-8" onClick={() => navigate("/auth?mode=signup")}>
             Get Started Free <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
