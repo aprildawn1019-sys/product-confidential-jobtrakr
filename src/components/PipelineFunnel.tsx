@@ -32,6 +32,12 @@ export default function PipelineFunnel({ jobs, onClickStage }: PipelineFunnelPro
 
   const maxCount = Math.max(...stages.map(s => counts[s.status] || 0), 1);
 
+  const [animated, setAnimated] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setAnimated(true), 50);
+    return () => clearTimeout(t);
+  }, []);
+
   const terminalCounts = terminalStages
     .map(s => ({ ...s, count: counts[s.status] || 0 }))
     .filter(s => s.count > 0);
@@ -40,7 +46,7 @@ export default function PipelineFunnel({ jobs, onClickStage }: PipelineFunnelPro
     <div className="w-full space-y-2">
       {/* Funnel bars */}
       <div className="flex items-end gap-1 h-10">
-        {stages.map((stage) => {
+        {stages.map((stage, i) => {
           const count = counts[stage.status] || 0;
           const heightPct = maxCount > 0 ? Math.max((count / maxCount) * 100, count > 0 ? 12 : 4) : 4;
 
@@ -52,8 +58,13 @@ export default function PipelineFunnel({ jobs, onClickStage }: PipelineFunnelPro
                   className="flex-1 flex flex-col items-center justify-end h-full group cursor-pointer"
                 >
                   <div
-                    className={`w-full rounded-t-sm transition-all ${stage.color} group-hover:opacity-80`}
-                    style={{ height: `${heightPct}%`, minHeight: 2 }}
+                    className={`w-full rounded-t-sm ${stage.color} group-hover:opacity-80`}
+                    style={{
+                      height: animated ? `${heightPct}%` : '0%',
+                      minHeight: animated ? 2 : 0,
+                      opacity: animated ? 1 : 0,
+                      transition: `height 0.5s ease-out ${i * 0.07}s, opacity 0.4s ease-out ${i * 0.07}s`,
+                    }}
                   />
                 </button>
               </TooltipTrigger>
