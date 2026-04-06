@@ -37,6 +37,10 @@ export default function SkillsInsights() {
   const [addingSkill, setAddingSkill] = useState<string | null>(null);
   const [removingSkill, setRemovingSkill] = useState<string | null>(null);
   const [trendScale, setTrendScale] = useState<"weeks" | "months">("weeks");
+  const [aiResumeKeywords, setAiResumeKeywords] = useState<string | null>(null);
+  const [aiLinkedInHeadline, setAiLinkedInHeadline] = useState<string | null>(null);
+  const [generatingResume, setGeneratingResume] = useState(false);
+  const [generatingLinkedIn, setGeneratingLinkedIn] = useState(false);
 
   const loadSnapshots = useCallback(async () => {
     setLoading(true);
