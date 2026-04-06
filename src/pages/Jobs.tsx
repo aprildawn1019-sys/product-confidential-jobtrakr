@@ -18,7 +18,9 @@ import JobDetailPanel from "@/components/JobDetailPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { Job, Contact, JobStatus, Interview } from "@/types/jobTracker";
+import type { Job, Contact, JobStatus, Interview, TargetCompany } from "@/types/jobTracker";
+import { companiesMatch } from "@/stores/jobTrackerStore";
+import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 
 interface JobsProps {
   jobs: Job[];
@@ -36,18 +38,24 @@ interface JobsProps {
   onAddInterview: (interview: Omit<Interview, "id">) => void;
   onUpdateInterview: (id: string, updates: Partial<Interview>) => void;
   onDeleteInterview: (id: string) => void;
+  targetCompanies?: TargetCompany[];
 }
 
 export default function Jobs({
   jobs, contacts, interviews, onAdd, onAddBulk, onUpdateStatus, onUpdateJob, onDelete,
   onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
-  onAddInterview, onUpdateInterview, onDeleteInterview,
+  onAddInterview, onUpdateInterview, onDeleteInterview, targetCompanies = [],
 }: JobsProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<"list" | "kanban">("list");
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const companyFilter = searchParams.get("company");
+  const [searchQuery, setSearchQuery] = useState(companyFilter || "");
+
+  const getTargetForJob = useMemo(() => {
+    return (job: Job) => targetCompanies.find(tc => companiesMatch(tc.name, job.company));
+  }, [targetCompanies]);
   const [statusFilter, setStatusFilter] = useState<string>(() => searchParams.get("status") || "all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -431,7 +439,10 @@ export default function Jobs({
                             <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
                             <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} />
                           </div>
-                          <p className="text-muted-foreground mt-1">{job.company}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-muted-foreground">{job.company}</p>
+                            <TargetCompanyBadge target={getTargetForJob(job)} />
+                          </div>
                           <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
                             <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{job.location}</span>
                             <span className="capitalize">{job.type}</span>
