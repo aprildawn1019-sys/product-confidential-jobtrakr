@@ -168,8 +168,18 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
                   </div>
 
                   <div className="flex gap-4 text-xs text-muted-foreground">
-                    <button onClick={() => navigate(`/jobs?company=${encodeURIComponent(tc.name)}`)} className="flex items-center gap-1 hover:text-foreground transition-colors"><Briefcase className="h-3.5 w-3.5" />{stats.jobCount} jobs</button>
-                    <button onClick={() => navigate(`/contacts?company=${encodeURIComponent(tc.name)}`)} className="flex items-center gap-1 hover:text-foreground transition-colors"><Users className="h-3.5 w-3.5" />{stats.contactCount} contacts</button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button onClick={() => navigate(`/jobs?company=${encodeURIComponent(tc.name)}`)} className="flex items-center gap-1 hover:text-foreground transition-colors"><Briefcase className="h-3.5 w-3.5" />{stats.jobCount} jobs</button>
+                      </TooltipTrigger>
+                      <TooltipContent>View all jobs at {tc.name}</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button onClick={() => navigate(`/contacts?company=${encodeURIComponent(tc.name)}`)} className="flex items-center gap-1 hover:text-foreground transition-colors"><Users className="h-3.5 w-3.5" />{stats.contactCount} contacts</button>
+                      </TooltipTrigger>
+                      <TooltipContent>View contacts at {tc.name}</TooltipContent>
+                    </Tooltip>
                     {stats.activeApps > 0 && (
                       <Tooltip>
                         <TooltipTrigger asChild>
