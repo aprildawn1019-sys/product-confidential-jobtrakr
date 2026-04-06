@@ -23,8 +23,8 @@ Deno.serve(async (req) => {
     const rawSlug = linkedinMatch?.[1] || "";
     const slug = rawSlug.replace(/-/g, " ");
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const ai = getAIConfig("google/gemini-2.5-flash");
+    if (!ai) throw new Error("No AI provider configured. Set OPENAI_API_KEY or LOVABLE_API_KEY.");
 
     const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
     let profileContent = "";
