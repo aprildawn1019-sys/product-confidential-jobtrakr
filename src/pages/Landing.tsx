@@ -42,18 +42,18 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
+      <nav className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
             <Briefcase className="h-4.5 w-4.5 text-primary-foreground" />
           </div>
           <span className="font-display text-xl font-bold tracking-tight text-foreground">JobTrackr</span>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" onClick={() => navigate("/auth?mode=login")}>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Button variant="ghost" size="sm" className="sm:size-default" onClick={() => navigate("/auth?mode=login")}>
             Sign In
           </Button>
-          <Button onClick={() => navigate("/auth?mode=signup")}>
+          <Button size="sm" className="sm:size-default" onClick={() => navigate("/auth?mode=signup")}>
             Get Started
           </Button>
         </div>
