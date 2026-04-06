@@ -1,7 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Loader2, RefreshCw, RotateCcw } from "lucide-react";
+import { BarChart3, Loader2, RefreshCw } from "lucide-react";
 import { useSkillsInsights } from "@/components/skills/useSkillsInsights";
 import { ResumeKeywordsCard } from "@/components/skills/ResumeKeywordsCard";
 import { LinkedInHeadlineCard } from "@/components/skills/LinkedInHeadlineCard";
