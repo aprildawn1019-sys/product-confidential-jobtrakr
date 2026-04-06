@@ -255,14 +255,7 @@ export default function SkillsInsights() {
       toast({ title: "Skills refreshed!", description: `Extracted skills from ${toProcess.length} jobs.` });
 
       // Reload snapshots
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - parseInt(dateRange));
-      const { data: refreshed } = await supabase
-        .from("job_skills_snapshots")
-        .select("*")
-        .gte("captured_at", cutoff.toISOString())
-        .order("captured_at", { ascending: true });
-      setSnapshots((refreshed as any[] || []).map(d => ({ ...d, source: d.source || "tracked" })));
+      await loadSnapshots();
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Backfill failed", variant: "destructive" });
     } finally {
