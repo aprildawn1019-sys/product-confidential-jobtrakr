@@ -24,7 +24,6 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
       { to: "/job-search", icon: Search, label: "AI Job Search" },
       { to: "/job-boards", icon: Globe, label: "Job Boards" },
       { to: "/profile", icon: UserCog, label: "Search Profile" },
-      { to: "/target-companies", icon: Star, label: "Target Companies" },
       { to: "/recommendations", icon: Sparkles, label: "Recommendations" },
       { to: "/skills-insights", icon: TrendingUp, label: "Skills Insights" },
     ],
@@ -34,6 +33,7 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
     icon: ClipboardList,
     items: [
       { to: "/jobs", icon: Briefcase, label: "Job Pipeline" },
+      { to: "/target-companies", icon: Star, label: "Target Companies" },
       { to: "/interviews", icon: CalendarDays, label: "Schedule" },
       { to: "/cover-letters", icon: FileText, label: "Cover Letters" },
     ],
