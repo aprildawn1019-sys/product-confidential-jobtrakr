@@ -319,41 +319,14 @@ export function useSkillsInsights() {
     }
   }, [loadSnapshots, loadProfileSkills]);
 
-  const handleResetAndReextract = useCallback(async () => {
-    if (!confirm("This will delete all existing skill snapshots and re-extract from every job. Continue?")) return;
-    setResetting(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-      const { error: delError } = await supabase.from("job_skills_snapshots").delete().eq("user_id", user.id);
-      if (delError) throw delError;
-      const { data: jobsData } = await supabase.from("jobs").select("id, description, created_at").eq("user_id", user.id).not("description", "is", null);
-      const toProcess = (jobsData || []).filter((j: any) => j.description && j.description.length >= 20);
-      if (toProcess.length === 0) {
-        await Promise.all([loadSnapshots(), loadProfileSkills()]);
-        toast({ title: "Reset complete", description: "No jobs with descriptions to process." });
-        setResetting(false);
-        return;
-      }
-      setBackfillProgress({ done: 0, total: toProcess.length });
-      await processJobs(toProcess, user.id);
-      toast({ title: "Reset & re-extract complete!", description: `Processed ${toProcess.length} jobs with correct dates.` });
-      await Promise.all([loadSnapshots(), loadProfileSkills()]);
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message || "Reset failed", variant: "destructive" });
-    } finally {
-      setResetting(false);
-    }
-  }, [loadSnapshots, loadProfileSkills]);
-
   return {
     loading, filteredSnapshots, dateRange, setDateRange, sourceFilter, setSourceFilter,
-    trendScale, setTrendScale, backfilling, resetting, backfillProgress,
+    trendScale, setTrendScale, backfilling, backfillProgress,
     copiedField, addingSkill, removingSkill, generatingResume, generatingLinkedIn,
     aiResumeKeywords, aiLinkedInHeadline,
     topSkillsData, allSkillsRanked, trendData, trendSkills,
     matchedSkills, gapSkills, resumeKeywords, linkedInHeadline, profileSkills,
     handleCopy, handleGenerateAIContent, handleAddSkillToProfile,
-    handleRemoveSkillFromProfile, handleBackfill, handleResetAndReextract,
+    handleRemoveSkillFromProfile, handleBackfill,
   };
 }
