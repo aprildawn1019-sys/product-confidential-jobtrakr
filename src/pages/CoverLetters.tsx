@@ -89,7 +89,7 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
 
   const handleStartEdit = (letter: CoverLetter) => {
     setEditingId(letter.id);
-    setEditContent(letter.content);
+    setEditContent(textToHtml(letter.content));
     setExpandedId(letter.id);
   };
 
