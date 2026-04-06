@@ -36,7 +36,7 @@ const urgencyColors: Record<string, string> = {
 const allStatuses = ["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"];
 const allUrgencies = ["low", "medium", "high", "critical"];
 
-export default function Dashboard({ jobs, contacts, interviews, jobContacts, onUpdateStatus, onUpdateJob, onUpdateContact }: DashboardProps) {
+export default function Dashboard({ jobs, contacts, interviews, jobContacts, targetCompanies = [], onUpdateStatus, onUpdateJob, onUpdateContact }: DashboardProps) {
   const navigate = useNavigate();
   const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
   const upcoming = interviews.filter(i => i.status === "scheduled");
