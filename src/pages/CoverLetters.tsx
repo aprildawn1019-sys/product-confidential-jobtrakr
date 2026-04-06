@@ -301,8 +301,30 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
                     </div>
                   </div>
                   {isExpanded && (
-                    <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4 text-sm whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
-                      {letter.content}
+                    <div className="mt-4 space-y-2">
+                      {editingId === letter.id ? (
+                        <>
+                          <Textarea
+                            value={editContent}
+                            onChange={e => setEditContent(e.target.value)}
+                            rows={14}
+                            className="text-sm leading-relaxed font-mono"
+                          />
+                          <div className="flex items-center gap-2 justify-end">
+                            <Button variant="ghost" size="sm" onClick={handleCancelEdit} disabled={saving}>
+                              <X className="h-3.5 w-3.5 mr-1" /> Cancel
+                            </Button>
+                            <Button size="sm" onClick={() => handleSaveEdit(letter.id)} disabled={saving || !editContent.trim()}>
+                              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Save className="h-3.5 w-3.5 mr-1" />}
+                              Save
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
+                          {letter.content}
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
