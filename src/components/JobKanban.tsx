@@ -44,7 +44,7 @@ interface JobKanbanProps {
 export default function JobKanban({
   jobs, contacts, interviews, onUpdateStatus, onUpdateJob, onDelete,
   onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
-  onAddInterview, onUpdateInterview, onDeleteInterview,
+  onAddInterview, onUpdateInterview, onDeleteInterview, targetCompanies = [],
 }: JobKanbanProps) {
   const navigate = useNavigate();
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
