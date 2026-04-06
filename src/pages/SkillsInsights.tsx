@@ -446,7 +446,10 @@ export default function SkillsInsights() {
     }
   }, [loadSnapshots, loadProfileSkills]);
 
-  const lineColors = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#10b981", "#8b5cf6"];
+  const lineColors = [
+    "hsl(var(--primary))", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6",
+    "#ec4899", "#14b8a6", "#f97316", "#06b6d4", "#84cc16",
+  ];
 
   if (loading) {
     return (
