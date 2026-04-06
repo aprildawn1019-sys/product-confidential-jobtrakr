@@ -55,7 +55,12 @@ export default function Jobs({
   const [searchQuery, setSearchQuery] = useState(companyFilter || "");
 
   const getTargetForJob = useMemo(() => {
-    return (job: Job) => targetCompanies.find(tc => companiesMatch(tc.name, job.company));
+    const priorityOrder: Record<string, number> = { dream: 0, strong: 1, interested: 2 };
+    return (job: Job) => {
+      const matches = targetCompanies.filter(tc => companiesMatch(tc.name, job.company));
+      if (matches.length === 0) return undefined;
+      return matches.sort((a, b) => (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99))[0];
+    };
   }, [targetCompanies]);
   const [statusFilter, setStatusFilter] = useState<string>(() => searchParams.get("status") || "all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
