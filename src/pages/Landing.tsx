@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Briefcase, BarChart3, Users, CalendarCheck, Brain, FileText, ArrowRight, Star } from "lucide-react";
+import { Briefcase, BarChart3, Users, CalendarCheck, Brain, FileText, ArrowRight, Star, Target, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dashboardMockup from "@/assets/dashboard-mockup.jpg";
 
@@ -8,6 +8,11 @@ const features = [
     icon: Briefcase,
     title: "Job Tracking",
     description: "List & Kanban views with drag-and-drop. Track status, fit scores, and urgency across your pipeline.",
+  },
+  {
+    icon: Target,
+    title: "Target Companies",
+    description: "Build a shortlist of dream employers and track your pipeline per company with priority-based organization.",
   },
   {
     icon: Users,
@@ -25,14 +30,19 @@ const features = [
     description: "Discover roles matched to your profile with AI-driven job search and recommendations.",
   },
   {
+    icon: Sparkles,
+    title: "Cover Letters",
+    description: "Generate tailored cover letters instantly from your profile and any job description using AI.",
+  },
+  {
     icon: BarChart3,
     title: "Skills Insights",
     description: "Analyze trending skills across your tracked jobs to guide your professional development.",
   },
   {
     icon: FileText,
-    title: "Cover Letters",
-    description: "Generate tailored cover letters for each application with AI assistance.",
+    title: "Job CRM",
+    description: "Dedicated per-job pages with activity timelines, contact linking, and conversation tracking.",
   },
 ];
 
