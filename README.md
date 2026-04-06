@@ -33,6 +33,12 @@ A comprehensive job search management application built with React, TypeScript, 
 - Activity types: Cold Outreach, Introduction, Referral Request, Informational Chat, Follow Up, and more
 - Conversation logs and next-step tracking per contact
 
+### ✉️ Cover Letters
+- AI-generated cover letters tailored to each job description and your search profile
+- Pick from tracked jobs or enter details manually
+- Auto-extract job descriptions from URLs
+- Full history page to view, search, copy, and manage all generated letters
+
 ### 👥 Contact Management
 - Full CRM for professional relationships
 - Relationship warmth tracking (Cold → Warm → Hot → Champion)
