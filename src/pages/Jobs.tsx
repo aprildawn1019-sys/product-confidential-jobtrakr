@@ -143,7 +143,7 @@ export default function Jobs({
     });
   }, [jobs, searchQuery, statusFilter, urgencyFilter, typeFilter, targetFilter, getTargetForJob]);
 
-  const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all";
+  const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all" || targetFilter !== "all";
 
   const feedSteps = [
     { label: "Searching job boards…", icon: SearchCheck },
