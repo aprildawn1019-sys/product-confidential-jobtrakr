@@ -471,7 +471,7 @@ export default function SkillsInsights() {
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                     <YAxis dataKey="skill" type="category" stroke="hsl(var(--muted-foreground))" fontSize={12} width={110} />
-                    <Tooltip
+                    <RechartsTooltip
                       contentStyle={{
                         backgroundColor: "hsl(var(--card))",
                         border: "1px solid hsl(var(--border))",
