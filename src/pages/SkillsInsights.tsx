@@ -483,10 +483,16 @@ export default function SkillsInsights() {
                         <Badge
                           key={s.skill}
                           variant={s.pct >= 50 ? "destructive" : "outline"}
-                          className="text-xs"
+                          className="text-xs cursor-pointer hover:opacity-80 transition-opacity gap-1"
+                          onClick={() => handleAddSkillToProfile(s.label)}
                         >
+                          {addingSkill === s.skill ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <PlusCircle className="h-3 w-3" />
+                          )}
                           {s.label}
-                          <span className="ml-1 text-[10px] opacity-70">({s.pct}%)</span>
+                          <span className="text-[10px] opacity-70">({s.pct}%)</span>
                         </Badge>
                       ))}
                     </div>
