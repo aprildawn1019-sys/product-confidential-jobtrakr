@@ -548,13 +548,54 @@ export function useJobTrackerStore() {
     return jobActivities.filter(ja => ja.jobId === jobId);
   };
 
+  // === TARGET COMPANIES ===
+  const addTargetCompany = async (company: Omit<TargetCompany, "id" | "createdAt">) => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const { data } = await supabase.from("target_companies").insert({
+      user_id: userId, name: company.name, website: company.website || null,
+      careers_url: company.careersUrl || null, industry: company.industry || null,
+      size: company.size || null, priority: company.priority, status: company.status,
+      notes: company.notes || null, logo_url: company.logoUrl || null,
+    }).select().single();
+    if (data) setTargetCompanies(prev => [mapTargetCompany(data), ...prev]);
+  };
+
+  const updateTargetCompany = async (id: string, updates: Partial<TargetCompany>) => {
+    const dbUpdates: any = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.website !== undefined) dbUpdates.website = updates.website || null;
+    if (updates.careersUrl !== undefined) dbUpdates.careers_url = updates.careersUrl || null;
+    if (updates.industry !== undefined) dbUpdates.industry = updates.industry || null;
+    if (updates.size !== undefined) dbUpdates.size = updates.size || null;
+    if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
+    if (updates.logoUrl !== undefined) dbUpdates.logo_url = updates.logoUrl || null;
+    await supabase.from("target_companies").update(dbUpdates).eq("id", id);
+    setTargetCompanies(prev => prev.map(tc => tc.id === id ? { ...tc, ...updates } : tc));
+  };
+
+  const deleteTargetCompany = async (id: string) => {
+    await supabase.from("target_companies").delete().eq("id", id);
+    setTargetCompanies(prev => prev.filter(tc => tc.id !== id));
+  };
+
+  const isTargetCompany = (companyName: string) => {
+    return targetCompanies.some(tc => tc.status !== "archived" && companiesMatch(tc.name, companyName));
+  };
+
+  const getTargetCompanyMatch = (companyName: string) => {
+    return targetCompanies.find(tc => companiesMatch(tc.name, companyName));
+  };
+
   // === HELPERS ===
   const getJobsByStatus = (status: JobStatus) => jobs.filter(j => j.status === status);
   const getContactForJob = (contactId?: string) => contacts.find(c => c.id === contactId);
   const getInterviewsForJob = (jobId: string) => interviews.filter(i => i.jobId === jobId);
 
   return {
-    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, jobActivities, loading,
+    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, jobActivities, targetCompanies, loading,
     addJob, addJobsBulk, updateJobStatus, updateJob, deleteJob,
     addContact, addContactsBulk, updateContact, deleteContact,
     addInterview, updateInterview, deleteInterview,
@@ -564,6 +605,7 @@ export function useJobTrackerStore() {
     addCampaign, updateCampaign, deleteCampaign, toggleContactCampaign, getCampaignsForContact, getContactsForCampaign,
     addRecommendationRequest, updateRecommendationRequest, deleteRecommendationRequest, getRecommendationRequestsForContact,
     addJobActivity, deleteJobActivity, getJobActivitiesForJob,
+    addTargetCompany, updateTargetCompany, deleteTargetCompany, isTargetCompany, getTargetCompanyMatch,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
   };
 }
