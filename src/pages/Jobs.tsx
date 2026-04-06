@@ -60,6 +60,7 @@ export default function Jobs({
   const [statusFilter, setStatusFilter] = useState<string>(() => searchParams.get("status") || "all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [targetFilter, setTargetFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("all");
   const [feedResults, setFeedResults] = useState<any[]>([]);
   const [feedLoading, setFeedLoading] = useState(false);
@@ -128,11 +129,21 @@ export default function Jobs({
       }
       if (urgencyFilter !== "all" && (job.urgency || "none") !== urgencyFilter) return false;
       if (typeFilter !== "all" && job.type !== typeFilter) return false;
+      if (targetFilter !== "all") {
+        const tc = getTargetForJob(job);
+        if (targetFilter === "any") {
+          if (!tc) return false;
+        } else if (targetFilter === "none") {
+          if (tc) return false;
+        } else {
+          if (!tc || tc.priority !== targetFilter) return false;
+        }
+      }
       return true;
     });
-  }, [jobs, searchQuery, statusFilter, urgencyFilter, typeFilter]);
+  }, [jobs, searchQuery, statusFilter, urgencyFilter, typeFilter, targetFilter, getTargetForJob]);
 
-  const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all";
+  const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all" || targetFilter !== "all";
 
   const feedSteps = [
     { label: "Searching job boards…", icon: SearchCheck },
@@ -361,8 +372,24 @@ export default function Jobs({
                 <SelectItem value="onsite">On-site</SelectItem>
               </SelectContent>
             </Select>
+            {targetCompanies.length > 0 && (
+              <Select value={targetFilter} onValueChange={setTargetFilter}>
+                <SelectTrigger className="w-36 h-9">
+                  <Building2 className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                  <SelectValue placeholder="Target Co." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Companies</SelectItem>
+                  <SelectItem value="any">⭐ Any Target</SelectItem>
+                  <SelectItem value="dream">🌟 Dream</SelectItem>
+                  <SelectItem value="strong">💪 Strong</SelectItem>
+                  <SelectItem value="interested">👍 Interested</SelectItem>
+                  <SelectItem value="none">No Target</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
             {hasFilters && (
-              <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setStatusFilter("all"); setUrgencyFilter("all"); setTypeFilter("all"); }}>
+              <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setStatusFilter("all"); setUrgencyFilter("all"); setTypeFilter("all"); setTargetFilter("all"); }}>
                 <X className="h-4 w-4 mr-1" />Clear
               </Button>
             )}
