@@ -36,6 +36,7 @@ export default function SkillsInsights() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [addingSkill, setAddingSkill] = useState<string | null>(null);
   const [removingSkill, setRemovingSkill] = useState<string | null>(null);
+  const [trendScale, setTrendScale] = useState<"weeks" | "months">("weeks");
 
   const loadSnapshots = useCallback(async () => {
     setLoading(true);
