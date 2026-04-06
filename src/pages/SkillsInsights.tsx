@@ -476,9 +476,19 @@ export default function SkillsInsights() {
                         <p className="text-sm text-muted-foreground">No matching skills found. Update your profile.</p>
                       )}
                       {matchedSkills.map(s => (
-                        <Badge key={s.skill} variant="secondary" className="text-xs">
+                        <Badge
+                          key={s.skill}
+                          variant="secondary"
+                          className="text-xs cursor-pointer hover:opacity-80 transition-opacity gap-1 group/skill"
+                          onClick={() => handleRemoveSkillFromProfile(s.label)}
+                        >
                           {s.label}
-                          {s.pct >= 50 && <span className="ml-1 text-primary font-bold">★</span>}
+                          {s.pct >= 50 && <span className="text-primary font-bold">★</span>}
+                          {removingSkill === s.skill ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <X className="h-3 w-3 opacity-0 group-hover/skill:opacity-100 transition-opacity" />
+                          )}
                         </Badge>
                       ))}
                     </div>
