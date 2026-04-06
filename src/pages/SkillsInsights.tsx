@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, BarChart3, Loader2, RefreshCw, Copy, Check, AlertTriangle, CheckCircle2, FileText, Linkedin } from "lucide-react";
+import { TrendingUp, BarChart3, Loader2, RefreshCw, Copy, Check, AlertTriangle, CheckCircle2, FileText, Linkedin, PlusCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface Snapshot {
@@ -34,6 +34,7 @@ export default function SkillsInsights() {
   const [backfilling, setBackfilling] = useState(false);
   const [backfillProgress, setBackfillProgress] = useState({ done: 0, total: 0 });
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [addingSkill, setAddingSkill] = useState<string | null>(null);
 
   const loadSnapshots = useCallback(async () => {
     setLoading(true);
@@ -196,7 +197,51 @@ export default function SkillsInsights() {
     setTimeout(() => setCopiedField(null), 2000);
   }, []);
 
-  // Backfill: extract skills for jobs without snapshots
+  const handleAddSkillToProfile = useCallback(async (skillLabel: string) => {
+    const skillLower = skillLabel.trim().toLowerCase();
+    setAddingSkill(skillLower);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: profile } = await supabase
+        .from("job_search_profile")
+        .select("id, skills")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!profile) {
+        // Create profile with the skill
+        await supabase.from("job_search_profile").insert({
+          user_id: user.id,
+          skills: [skillLabel.trim()],
+        });
+      } else {
+        const existing = (profile.skills || []).map((s: string) => s.trim().toLowerCase());
+        if (existing.includes(skillLower)) {
+          toast({ title: "Already added", description: `"${skillLabel}" is already in your profile.` });
+          return;
+        }
+        await supabase
+          .from("job_search_profile")
+          .update({ skills: [...(profile.skills || []), skillLabel.trim()] })
+          .eq("id", profile.id);
+      }
+
+      // Update local state so UI reflects immediately
+      setProfileSkills(prev => prev
+        ? { ...prev, skills: [...prev.skills, skillLabel.trim()] }
+        : { skills: [skillLabel.trim()], technical_skills: [], soft_skills: [], tools_platforms: [], certifications: [], target_roles: [] }
+      );
+      toast({ title: "Skill added!", description: `"${skillLabel}" added to your Search Profile.` });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to add skill", variant: "destructive" });
+    } finally {
+      setAddingSkill(null);
+    }
+  }, []);
+
+
   const handleBackfill = useCallback(async () => {
     setBackfilling(true);
     try {
@@ -438,13 +483,22 @@ export default function SkillsInsights() {
                         <Badge
                           key={s.skill}
                           variant={s.pct >= 50 ? "destructive" : "outline"}
-                          className="text-xs"
+                          className="text-xs cursor-pointer hover:opacity-80 transition-opacity gap-1"
+                          onClick={() => handleAddSkillToProfile(s.label)}
                         >
+                          {addingSkill === s.skill ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <PlusCircle className="h-3 w-3" />
+                          )}
                           {s.label}
-                          <span className="ml-1 text-[10px] opacity-70">({s.pct}%)</span>
+                          <span className="text-[10px] opacity-70">({s.pct}%)</span>
                         </Badge>
                       ))}
                     </div>
+                    {gapSkills.length > 0 && (
+                      <p className="text-[11px] text-muted-foreground mt-2">Click a skill to add it to your Search Profile</p>
+                    )}
                   </div>
                 </div>
                 {!profileSkills.skills?.length && !profileSkills.technical_skills?.length && (
@@ -471,7 +525,7 @@ export default function SkillsInsights() {
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                     <YAxis dataKey="skill" type="category" stroke="hsl(var(--muted-foreground))" fontSize={12} width={110} />
-                    <Tooltip
+                    <RechartsTooltip
                       contentStyle={{
                         backgroundColor: "hsl(var(--card))",
                         border: "1px solid hsl(var(--border))",
@@ -502,7 +556,7 @@ export default function SkillsInsights() {
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                       <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <Tooltip
+                      <RechartsTooltip
                         contentStyle={{
                           backgroundColor: "hsl(var(--card))",
                           border: "1px solid hsl(var(--border))",
