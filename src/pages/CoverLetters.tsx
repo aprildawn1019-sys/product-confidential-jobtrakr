@@ -316,11 +316,10 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
                     <div className="mt-4 space-y-2">
                       {editingId === letter.id ? (
                         <>
-                          <Textarea
-                            value={editContent}
-                            onChange={e => setEditContent(e.target.value)}
-                            rows={14}
-                            className="text-sm leading-relaxed font-mono"
+                          <RichTextEditor
+                            content={editContent}
+                            onChange={setEditContent}
+                            placeholder="Write your cover letter..."
                           />
                           <div className="flex items-center gap-2 justify-end">
                             <Button variant="ghost" size="sm" onClick={handleCancelEdit} disabled={saving}>
@@ -333,9 +332,10 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
                           </div>
                         </>
                       ) : (
-                        <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
-                          {letter.content}
-                        </div>
+                        <div
+                          className="rounded-lg border border-border bg-muted/30 p-4 text-sm leading-relaxed max-h-96 overflow-y-auto prose prose-sm dark:prose-invert max-w-none"
+                          dangerouslySetInnerHTML={{ __html: textToHtml(letter.content) }}
+                        />
                       )}
                     </div>
                   )}
