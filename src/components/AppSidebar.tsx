@@ -24,6 +24,7 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
       { to: "/job-search", icon: Search, label: "AI Job Search" },
       { to: "/job-boards", icon: Globe, label: "Job Boards" },
       { to: "/profile", icon: UserCog, label: "Search Profile" },
+      { to: "/target-companies", icon: Star, label: "Target Companies" },
       { to: "/recommendations", icon: Sparkles, label: "Recommendations" },
       { to: "/skills-insights", icon: TrendingUp, label: "Skills Insights" },
     ],
