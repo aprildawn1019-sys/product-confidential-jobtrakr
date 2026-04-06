@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import PipelineFunnel from "@/components/PipelineFunnel";
 import { Link, useNavigate } from "react-router-dom";
 import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink, X, Pencil, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +88,11 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
         <StatCard label="Active Applications" value={activeApps} icon={Send} accent="info" href="/jobs?status=active" />
         <StatCard label="Interviews Scheduled" value={upcoming.length} icon={CalendarCheck} accent="warning" href="/interviews" />
         <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} icon={Star} accent="success" href="/target-companies" />
+      </div>
+
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h2 className="font-display text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Pipeline Overview</h2>
+        <PipelineFunnel jobs={jobs} onClickStage={(status) => navigate(`/jobs?status=${status}`)} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
