@@ -1,129 +1,113 @@
 
 
-## Plan: Self-Hosting Support
+## Plan: Target Organizations — "Org-First" Pipeline
 
-### Summary
-Create a shared AI config helper for edge functions, add Auth.tsx fallback for native Supabase OAuth, create `.env.example`, and rewrite README with self-hosting guide.
+### Concept
 
-### 1. Create `supabase/functions/_shared/ai-config.ts`
+Add a **Target Companies** feature that lets users build a shortlist of dream employers, then track all activity (jobs, contacts, research notes) per company. This flips the workflow: instead of reacting to job postings, users proactively identify organizations and build a pipeline around them.
 
-Shared helper all 8 edge functions import. Checks `OPENAI_API_KEY` first (self-hosted), falls back to `LOVABLE_API_KEY` (Lovable-hosted). When `OPENAI_API_KEY` is set, uses `AI_BASE_URL` and `AI_MODEL` env vars to let users pick any OpenAI-compatible provider.
+### How It Fits the Current Design
 
-```typescript
-export function getAIConfig(defaultModel: string) {
-  const openaiKey = Deno.env.get("OPENAI_API_KEY");
-  if (openaiKey) {
-    return {
-      apiKey: openaiKey,
-      baseUrl: Deno.env.get("AI_BASE_URL") || "https://api.openai.com",
-      model: Deno.env.get("AI_MODEL") || "gpt-4o-mini",
-    };
-  }
-  const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-  if (lovableKey) {
-    return {
-      apiKey: lovableKey,
-      baseUrl: "https://ai.gateway.lovable.dev",
-      model: defaultModel,
-    };
-  }
-  return null;
-}
+```text
+Sidebar Navigation (updated)
+─────────────────────────────
+DISCOVER
+  AI Job Search
+  Job Boards
+  Search Profile
+  ★ Target Companies  ← NEW
+  Recommendations
+  Skills Insights
+
+TRACK & APPLY
+  Job Postings
+  Applications
+  Schedule
+
+NETWORKING
+  Connections
 ```
 
-Each function passes its current model name as `defaultModel`. The helper returns the correct key, URL, and model for the environment.
+Target Companies sits in "Discover" because it's a proactive research activity — the user is identifying *where* they want to work before individual postings exist.
 
-### 2. Update 8 edge functions
+### Data Model
 
-**Files:** `ai-job-search`, `ai-pm-role-feed`, `extract-job-skills`, `generate-cover-letter`, `map-bulk-columns`, `parse-resume`, `scrape-job`, `scrape-linkedin`
+New `target_companies` table:
 
-In each file:
-- Add `import { getAIConfig } from "../_shared/ai-config.ts";`
-- Replace the `LOVABLE_API_KEY` lookup + hardcoded gateway URL with:
-  ```typescript
-  const ai = getAIConfig("google/gemini-3-flash-preview"); // each fn uses its own default
-  if (!ai) throw new Error("No AI provider configured");
-  ```
-- Use `ai.baseUrl`, `ai.apiKey`, `ai.model` in the fetch call
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid | PK |
+| user_id | uuid | RLS-scoped |
+| name | text | Company name |
+| website | text? | Company URL |
+| careers_url | text? | Careers page URL |
+| industry | text? | e.g. "Fintech" |
+| size | text? | e.g. "1000-5000" |
+| priority | text | "dream" / "strong" / "interested" (default "interested") |
+| status | text | "researching" / "applied" / "connected" / "archived" (default "researching") |
+| notes | text? | Free-form research notes |
+| logo_url | text? | Optional logo |
+| created_at | timestamptz | default now() |
 
-This is a mechanical find-and-replace in each function. No logic changes.
+RLS: standard `user_id = auth.uid()` ALL policy.
 
-### 3. Update `src/pages/Auth.tsx` — native OAuth fallback
+No new tables for linking — the existing `jobs.company` and `contacts.company` fields already carry company names. The UI will use fuzzy company-name matching (already exists as `companiesMatch()` in the store) to dynamically surface related jobs and contacts.
 
-Replace the Google sign-in handler to try the Lovable auth first, and if it fails (e.g. module not available in self-hosted), fall back to native Supabase OAuth:
+### Page Design: `/target-companies`
 
-```typescript
-const handleGoogleSignIn = async () => {
-  setGoogleLoading(true);
-  try {
-    try {
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (error) throw error;
-    } catch {
-      // Fallback for self-hosted: use native Supabase OAuth
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: window.location.origin },
-      });
-      if (error) throw error;
-    }
-  } catch (e: any) {
-    toast({ title: "Google sign-in failed", description: e.message, variant: "destructive" });
-  } finally {
-    setGoogleLoading(false);
-  }
-};
+**Header**: "Target Companies" title + "Add Company" button
+
+**View**: Card grid (default) with optional list toggle
+
+**Each company card shows**:
+- Company name, industry, priority badge (color-coded: dream=gold, strong=blue, interested=gray)
+- Status chip (researching / applied / connected / archived)
+- Auto-computed stats pulled from existing data:
+  - Jobs tracked at this company (count from `jobs` table where company matches)
+  - Contacts at this company (count from `contacts` table)
+  - Open applications (jobs with active status)
+- Quick actions: edit, change priority, change status, open careers URL, archive
+
+**Add Company dialog**: Name (required), website, careers URL, industry, size, priority, notes. Minimal — users should be able to add a company in under 10 seconds.
+
+**Filters**: Priority (dream/strong/interested), Status, search by name
+
+### Integration Points
+
+1. **Dashboard widget** — "Target Companies" stat card showing total targets + how many have no jobs tracked yet (nudge to take action).
+
+2. **Job Search** — When AI Job Search returns results, highlight results from target companies with a ★ badge and "Target Company" label so they stand out.
+
+3. **Job Postings** — On the Jobs list/Kanban, jobs whose company matches a target company get a small target icon. When adding a job, if the company matches a target, auto-link visually.
+
+4. **Contacts** — On the Contacts page, contacts at target companies get a subtle indicator.
+
+5. **Job CRM** — The individual job CRM page shows a "Target Company" badge if the job's company is in the target list.
+
+### Workflow
+
+```text
+1. User goes to Target Companies → adds "Stripe", "Figma", "Notion"
+2. Sets Stripe as "Dream", others as "Strong"
+3. Runs AI Job Search → results from Stripe are highlighted with ★
+4. Adds a Stripe PM role to tracker → Jobs page shows target badge
+5. Finds a contact at Stripe → Contacts page shows target indicator
+6. Dashboard shows "3 Target Companies, 1 with active applications"
 ```
 
-### 4. Create `.env.example`
+### Implementation Steps
 
-```env
-# Required — Supabase project credentials
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
+1. **Migration**: Create `target_companies` table with RLS policy
+2. **Store**: Add target company CRUD to `jobTrackerStore.ts` (add, update, delete, fetch)
+3. **Types**: Add `TargetCompany` interface to `jobTracker.ts`
+4. **Page**: Create `src/pages/TargetCompanies.tsx` with card grid, filters, add/edit dialogs
+5. **Routing**: Add route in `Index.tsx`, add nav item in `AppSidebar.tsx`
+6. **Cross-feature integration**: Add target-company indicators to JobSearch results, Jobs list, Contacts page, Dashboard stat card, and JobCRM page
+7. **README**: Add Target Companies to the features list
 
-# AI Provider (choose one)
-# Option A: OpenAI
-OPENAI_API_KEY=sk-...
-# AI_BASE_URL=https://api.openai.com     # default
-# AI_MODEL=gpt-4o-mini                    # default
+### Scope Control
 
-# Option B: Google AI Studio
-# OPENAI_API_KEY=your-google-ai-key
-# AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
-# AI_MODEL=gemini-2.0-flash
+Phase 1 (this plan): Core page + data model + cross-feature badges/highlights. No AI features, no auto-scraping of careers pages — just a clean, manual target list with smart linking to existing data via company name matching.
 
-# Option C: Other OpenAI-compatible (Together, Groq, etc.)
-# OPENAI_API_KEY=your-key
-# AI_BASE_URL=https://api.together.xyz/v1
-# AI_MODEL=meta-llama/Llama-3-70b-chat-hf
-
-# Optional — enables job board scraping
-# FIRECRAWL_API_KEY=fc-...
-```
-
-### 5. Rewrite `README.md`
-
-Keep existing feature list and tech stack. Add these new sections:
-
-- **Quick Start (Lovable)** — existing one-liner
-- **Self-Hosting Guide** with steps:
-  1. Clone and install
-  2. Create Supabase project, get URL + anon key
-  3. Copy `.env.example` to `.env.local`
-  4. Run migrations: `supabase link --project-ref <ref>` then `supabase db push`
-  5. Set edge function secrets: `supabase secrets set OPENAI_API_KEY=... AI_MODEL=...`
-  6. Deploy functions: `supabase functions deploy`
-  7. (Optional) Configure Google OAuth in Supabase Auth settings
-  8. (Optional) Set `FIRECRAWL_API_KEY` for scraping
-  9. `npm run dev`
-- **AI Provider Options** — table of providers with base URLs and model names
-- **Edge Function Secrets Reference** — table of all secrets (required vs optional)
-- **Deployment** — Vercel/Netlify/any static host instructions
-
-### Impact on current deployment
-
-Zero. The AI config helper checks `OPENAI_API_KEY` first — since it's not set in the current environment, it falls back to `LOVABLE_API_KEY` which is already configured. The Auth.tsx change wraps existing code in a try/catch — current behavior is preserved. `.env.example` and README are documentation only.
+Phase 2 (future): AI-powered company research, auto-monitor careers pages for new postings, company culture insights from profile data.
 
