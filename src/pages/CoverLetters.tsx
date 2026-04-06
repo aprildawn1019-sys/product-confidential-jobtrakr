@@ -70,8 +70,19 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
     toast({ title: "Cover letter deleted" });
   };
 
+  const textToHtml = (text: string) => {
+    if (text.startsWith("<")) return text; // already HTML
+    return text.split("\n\n").map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+  };
+
+  const htmlToPlainText = (html: string) => {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    return div.textContent || div.innerText || "";
+  };
+
   const handleCopy = (id: string, content: string) => {
-    navigator.clipboard.writeText(content);
+    navigator.clipboard.writeText(htmlToPlainText(content));
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
