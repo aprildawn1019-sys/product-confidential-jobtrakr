@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
+import { Menu, Briefcase } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import Dashboard from "@/pages/Dashboard";
 import Jobs from "@/pages/Jobs";
@@ -10,17 +12,36 @@ import JobSearch from "@/pages/JobSearch";
 import ProfileEditor from "@/pages/ProfileEditor";
 import JobBoards from "@/pages/JobBoards";
 import SkillsInsights from "@/pages/SkillsInsights";
-
 import InterviewsPage from "@/pages/Interviews";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
 
 export default function Index() {
   const store = useJobTrackerStore();
+  const isMobile = useIsMobile();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar jobs={store.jobs} />
-      <main className="flex-1 ml-64 p-8">
+      <AppSidebar jobs={store.jobs} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
+
+      {/* Mobile header */}
+      {isMobile && (
+        <header className="fixed top-0 left-0 right-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background px-4">
+          <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setMobileOpen(true)} aria-label="Open menu">
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+              <Briefcase className="h-3.5 w-3.5 text-primary-foreground" />
+            </div>
+            <span className="font-display text-base font-bold tracking-tight">JobTrackr</span>
+          </div>
+        </header>
+      )}
+
+      <main className={`flex-1 ${isMobile ? 'pt-14 p-4' : 'ml-64 p-8'}`}>
         <Routes>
           <Route index element={<Dashboard jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} jobContacts={store.jobContacts} onUpdateStatus={store.updateJobStatus} onUpdateJob={store.updateJob} onUpdateContact={store.updateContact} />} />
           <Route path="jobs" element={
