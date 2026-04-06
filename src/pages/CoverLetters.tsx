@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FileText, Copy, Check, Trash2, ChevronDown, ChevronUp, ExternalLink, Loader2, Plus, Globe, Sparkles } from "lucide-react";
+import { FileText, Copy, Check, Trash2, ChevronDown, ChevronUp, ExternalLink, Loader2, Plus, Globe, Sparkles, Pencil, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,9 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // Generate dialog state
   const [genOpen, setGenOpen] = useState(false);
@@ -70,6 +73,33 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
     navigator.clipboard.writeText(content);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleStartEdit = (letter: CoverLetter) => {
+    setEditingId(letter.id);
+    setEditContent(letter.content);
+    setExpandedId(letter.id);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditContent("");
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    if (!editContent.trim()) return;
+    setSaving(true);
+    try {
+      await supabase.from("cover_letters").update({ content: editContent }).eq("id", id);
+      setLetters(prev => prev.map(l => l.id === id ? { ...l, content: editContent } : l));
+      setEditingId(null);
+      setEditContent("");
+      toast({ title: "Cover letter saved" });
+    } catch {
+      toast({ title: "Save failed", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const filtered = letters.filter(l => {
@@ -238,6 +268,9 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy(letter.id, letter.content)}>
                         {isCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                       </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleStartEdit(letter)} title="Edit">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
                       {letter.job_id && (
                         <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                           <a href={`/jobs/${letter.job_id}`}><ExternalLink className="h-3.5 w-3.5" /></a>
@@ -268,8 +301,30 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
                     </div>
                   </div>
                   {isExpanded && (
-                    <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4 text-sm whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
-                      {letter.content}
+                    <div className="mt-4 space-y-2">
+                      {editingId === letter.id ? (
+                        <>
+                          <Textarea
+                            value={editContent}
+                            onChange={e => setEditContent(e.target.value)}
+                            rows={14}
+                            className="text-sm leading-relaxed font-mono"
+                          />
+                          <div className="flex items-center gap-2 justify-end">
+                            <Button variant="ghost" size="sm" onClick={handleCancelEdit} disabled={saving}>
+                              <X className="h-3.5 w-3.5 mr-1" /> Cancel
+                            </Button>
+                            <Button size="sm" onClick={() => handleSaveEdit(letter.id)} disabled={saving || !editContent.trim()}>
+                              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Save className="h-3.5 w-3.5 mr-1" />}
+                              Save
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
+                          {letter.content}
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
