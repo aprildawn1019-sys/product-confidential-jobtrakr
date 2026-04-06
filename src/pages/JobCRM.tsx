@@ -70,6 +70,7 @@ interface JobCRMProps {
   getJobActivitiesForJob: (jobId: string) => JobActivity[];
   onAddJobActivity: (activity: Omit<JobActivity, "id" | "createdAt">) => void;
   onDeleteJobActivity: (id: string) => void;
+  targetCompanies?: TargetCompany[];
 }
 
 export default function JobCRM({
