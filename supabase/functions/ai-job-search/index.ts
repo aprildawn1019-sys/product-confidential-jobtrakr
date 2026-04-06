@@ -201,15 +201,15 @@ Content Preview: ${r.markdown?.slice(0, 500) || "N/A"}
 
     // Step 2: Send to AI for scoring real results + supplementing with suggestions
     const aiRes = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      `${ai.baseUrl}/v1/chat/completions`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${ai.apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: ai.model,
           messages: [
             {
               role: "system",
