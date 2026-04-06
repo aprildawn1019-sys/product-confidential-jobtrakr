@@ -307,6 +307,33 @@ export default function SkillsInsights() {
     setTimeout(() => setCopiedField(null), 2000);
   }, []);
 
+  const handleGenerateAIContent = useCallback(async (type: "resume_keywords" | "linkedin_headline") => {
+    const isResume = type === "resume_keywords";
+    const setGenerating = isResume ? setGeneratingResume : setGeneratingLinkedIn;
+    const setContent = isResume ? setAiResumeKeywords : setAiLinkedInHeadline;
+
+    setGenerating(true);
+    try {
+      const topSkills = allSkillsRanked.slice(0, 20).map(s => s.label);
+      const { data, error } = await supabase.functions.invoke("generate-skills-content", {
+        body: {
+          type,
+          topSkills,
+          profileSummary: profileSkills?.skills?.join(", ") || "",
+          targetRoles: profileSkills?.target_roles || [],
+        },
+      });
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || "Generation failed");
+      setContent(data.content);
+      toast({ title: isResume ? "Keywords generated!" : "Headline generated!", description: "AI-optimized content is ready." });
+    } catch (e: any) {
+      toast({ title: "Generation failed", description: e.message, variant: "destructive" });
+    } finally {
+      setGenerating(false);
+    }
+  }, [allSkillsRanked, profileSkills]);
+
   const handleAddSkillToProfile = useCallback(async (skillLabel: string) => {
     const skillLower = skillLabel.trim().toLowerCase();
     setAddingSkill(skillLower);
