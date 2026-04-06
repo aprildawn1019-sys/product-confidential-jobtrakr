@@ -63,6 +63,13 @@ A comprehensive job search management application built with React, TypeScript, 
 - Skills frequency analysis across tracked job postings
 - Snapshot history for trending skill demand over time
 
+### 🎯 Target Companies
+- Build a shortlist of dream employers with priority levels (Dream, Strong, Interested)
+- Track pipeline status per company (Researching, Applied, Connected, Archived)
+- Auto-computed stats: jobs tracked, contacts, and active applications per company
+- Dashboard integration with target company stat card
+- Quick access to company websites and careers pages
+
 
 ## Tech Stack
 
