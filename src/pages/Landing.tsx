@@ -125,7 +125,7 @@ export default function Landing() {
               From first application to final offer, JobTrackr keeps you organized and in control.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {features.map((f) => (
               <div
                 key={f.title}
