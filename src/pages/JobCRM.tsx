@@ -19,7 +19,9 @@ import FitScoreStars from "@/components/FitScoreStars";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import WarmthBadge from "@/components/WarmthBadge";
 import CoverLetterDialog from "@/components/CoverLetterDialog";
-import type { Job, Contact, Interview, JobActivity, JobStatus } from "@/types/jobTracker";
+import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import { companiesMatch } from "@/stores/jobTrackerStore";
+import type { Job, Contact, Interview, JobActivity, JobStatus, TargetCompany } from "@/types/jobTracker";
 
 const ACTIVITY_TYPES = [
   { value: "shared_resume", label: "Shared Resume", icon: FileText },
@@ -68,6 +70,7 @@ interface JobCRMProps {
   getJobActivitiesForJob: (jobId: string) => JobActivity[];
   onAddJobActivity: (activity: Omit<JobActivity, "id" | "createdAt">) => void;
   onDeleteJobActivity: (id: string) => void;
+  targetCompanies?: TargetCompany[];
 }
 
 export default function JobCRM({
@@ -77,7 +80,7 @@ export default function JobCRM({
   getContactsForJob, getNetworkMatchesForJob,
   onAddInterview, onUpdateInterview, onDeleteInterview,
   getActivitiesForContact, getJobActivitiesForJob,
-  onAddJobActivity, onDeleteJobActivity,
+  onAddJobActivity, onDeleteJobActivity, targetCompanies = [],
 }: JobCRMProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -225,7 +228,10 @@ export default function JobCRM({
               <h1 className="font-display text-2xl font-bold tracking-tight">{job.title}</h1>
               <StatusSelect value={job.status} onValueChange={v => onUpdateStatus(job.id, v as JobStatus)} />
             </div>
-            <p className="text-lg text-muted-foreground">{job.company}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-lg text-muted-foreground">{job.company}</p>
+              <TargetCompanyBadge target={targetCompanies.find(tc => companiesMatch(tc.name, job.company))} size="md" />
+            </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{job.location || "—"}</span>
               <span className="capitalize">{job.type}</span>

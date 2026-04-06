@@ -9,7 +9,9 @@ import StatusBadge from "@/components/StatusBadge";
 import JobDetailPanel from "@/components/JobDetailPanel";
 import FitScoreStars from "@/components/FitScoreStars";
 import UrgencyBadge from "@/components/UrgencyBadge";
-import type { Job, Contact, JobStatus, Interview } from "@/types/jobTracker";
+import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import { companiesMatch } from "@/stores/jobTrackerStore";
+import type { Job, Contact, JobStatus, Interview, TargetCompany } from "@/types/jobTracker";
 
 const columns: { status: JobStatus; label: string }[] = [
   { status: "saved", label: "Saved" },
@@ -36,12 +38,13 @@ interface JobKanbanProps {
   onAddInterview: (interview: Omit<Interview, "id">) => void;
   onUpdateInterview: (id: string, updates: Partial<Interview>) => void;
   onDeleteInterview: (id: string) => void;
+  targetCompanies?: TargetCompany[];
 }
 
 export default function JobKanban({
   jobs, contacts, interviews, onUpdateStatus, onUpdateJob, onDelete,
   onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
-  onAddInterview, onUpdateInterview, onDeleteInterview,
+  onAddInterview, onUpdateInterview, onDeleteInterview, targetCompanies = [],
 }: JobKanbanProps) {
   const navigate = useNavigate();
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
@@ -135,7 +138,10 @@ export default function JobKanban({
                             </HoverCard>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">{job.company}</p>
+                        <div className="flex items-center gap-1">
+                          <p className="text-xs text-muted-foreground truncate">{job.company}</p>
+                          <TargetCompanyBadge target={targetCompanies.find(tc => companiesMatch(tc.name, job.company))} size="sm" />
+                        </div>
                         <div className="flex items-center gap-1 mt-1.5 text-xs text-muted-foreground">
                           <MapPin className="h-3 w-3" />
                           <span className="truncate">{job.location}</span>

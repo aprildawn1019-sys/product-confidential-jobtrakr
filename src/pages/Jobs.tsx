@@ -373,6 +373,7 @@ export default function Jobs({
               onAddInterview={onAddInterview}
               onUpdateInterview={onUpdateInterview}
               onDeleteInterview={onDeleteInterview}
+              targetCompanies={targetCompanies}
             />
           ) : (
             <div className="space-y-3 mt-4">

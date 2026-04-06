@@ -84,6 +84,7 @@ export default function Index() {
               getJobActivitiesForJob={store.getJobActivitiesForJob}
               onAddJobActivity={store.addJobActivity}
               onDeleteJobActivity={store.deleteJobActivity}
+              targetCompanies={store.targetCompanies}
             />
           } />
           <Route path="contacts" element={
