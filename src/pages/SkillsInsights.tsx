@@ -34,6 +34,7 @@ export default function SkillsInsights() {
   const [backfilling, setBackfilling] = useState(false);
   const [backfillProgress, setBackfillProgress] = useState({ done: 0, total: 0 });
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [addingSkill, setAddingSkill] = useState<string | null>(null);
 
   const loadSnapshots = useCallback(async () => {
     setLoading(true);
