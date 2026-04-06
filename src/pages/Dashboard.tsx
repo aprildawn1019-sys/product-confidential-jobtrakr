@@ -82,10 +82,11 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
         <p className="mt-1 text-muted-foreground">Your job search at a glance</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total Jobs" value={jobs.length} icon={Briefcase} href="/jobs" />
         <StatCard label="Active Applications" value={activeApps} icon={Send} accent="info" href="/jobs?status=active" />
         <StatCard label="Interviews Scheduled" value={upcoming.length} icon={CalendarCheck} accent="warning" href="/interviews" />
+        <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} icon={Star} accent="success" href="/target-companies" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
