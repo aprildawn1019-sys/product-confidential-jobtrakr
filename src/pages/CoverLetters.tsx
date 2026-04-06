@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import RichTextEditor from "@/components/RichTextEditor";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,15 +70,26 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
     toast({ title: "Cover letter deleted" });
   };
 
+  const textToHtml = (text: string) => {
+    if (text.startsWith("<")) return text; // already HTML
+    return text.split("\n\n").map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+  };
+
+  const htmlToPlainText = (html: string) => {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    return div.textContent || div.innerText || "";
+  };
+
   const handleCopy = (id: string, content: string) => {
-    navigator.clipboard.writeText(content);
+    navigator.clipboard.writeText(htmlToPlainText(content));
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleStartEdit = (letter: CoverLetter) => {
     setEditingId(letter.id);
-    setEditContent(letter.content);
+    setEditContent(textToHtml(letter.content));
     setExpandedId(letter.id);
   };
 
@@ -189,7 +201,7 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
   };
 
   const handleCopyGenerated = () => {
-    navigator.clipboard.writeText(generatedLetter);
+    navigator.clipboard.writeText(htmlToPlainText(generatedLetter));
     toast({ title: "Copied to clipboard" });
   };
 
@@ -304,11 +316,10 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
                     <div className="mt-4 space-y-2">
                       {editingId === letter.id ? (
                         <>
-                          <Textarea
-                            value={editContent}
-                            onChange={e => setEditContent(e.target.value)}
-                            rows={14}
-                            className="text-sm leading-relaxed font-mono"
+                          <RichTextEditor
+                            content={editContent}
+                            onChange={setEditContent}
+                            placeholder="Write your cover letter..."
                           />
                           <div className="flex items-center gap-2 justify-end">
                             <Button variant="ghost" size="sm" onClick={handleCancelEdit} disabled={saving}>
@@ -321,9 +332,10 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
                           </div>
                         </>
                       ) : (
-                        <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
-                          {letter.content}
-                        </div>
+                        <div
+                          className="rounded-lg border border-border bg-muted/30 p-4 text-sm leading-relaxed max-h-96 overflow-y-auto prose prose-sm dark:prose-invert max-w-none"
+                          dangerouslySetInnerHTML={{ __html: textToHtml(letter.content) }}
+                        />
                       )}
                     </div>
                   )}
