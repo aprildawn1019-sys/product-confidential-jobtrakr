@@ -79,6 +79,18 @@ export default function SkillsInsights() {
     return snapshots.filter(s => (s.source || "tracked") === sourceFilter);
   }, [snapshots, sourceFilter]);
 
+  const formatSkillLabel = (skill: string) => {
+    const overrides: Record<string, string> = {
+      "p&l": "P&L", "saas": "SaaS", "ai": "AI", "sql": "SQL", "css": "CSS",
+      "html": "HTML", "api": "API", "apis": "APIs", "ui": "UI", "ux": "UX",
+      "ui/ux": "UI/UX", "kpi": "KPI", "kpis": "KPIs", "roi": "ROI",
+      "okr": "OKR", "okrs": "OKRs", "crm": "CRM", "b2b": "B2B", "b2c": "B2C",
+      "aws": "AWS", "gcp": "GCP", "ci/cd": "CI/CD", "sdk": "SDK",
+    };
+    if (overrides[skill]) return overrides[skill];
+    return skill.charAt(0).toUpperCase() + skill.slice(1);
+  };
+
   // Top Skills bar chart data
   const topSkillsData = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -92,7 +104,7 @@ export default function SkillsInsights() {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 15)
       .map(([skill, count]) => ({
-        skill: skill.charAt(0).toUpperCase() + skill.slice(1),
+        skill: formatSkillLabel(skill),
         count,
       }));
   }, [filteredSnapshots]);
@@ -110,7 +122,7 @@ export default function SkillsInsights() {
       .sort((a, b) => b[1] - a[1])
       .map(([skill, count]) => ({
         skill,
-        label: skill.charAt(0).toUpperCase() + skill.slice(1),
+        label: formatSkillLabel(skill),
         count,
         pct: filteredSnapshots.length > 0 ? Math.round((count / filteredSnapshots.length) * 100) : 0,
       }));
