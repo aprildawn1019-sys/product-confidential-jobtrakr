@@ -65,7 +65,7 @@ export default function SkillsInsights() {
       if (!user) return;
       const { data } = await supabase
         .from("job_search_profile")
-        .select("skills, technical_skills, soft_skills, tools_platforms, target_roles")
+        .select("skills, technical_skills, soft_skills, tools_platforms, certifications, target_roles")
         .eq("user_id", user.id)
         .maybeSingle();
       if (data) setProfileSkills(data as ProfileSkills);
