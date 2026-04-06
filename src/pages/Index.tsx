@@ -6,7 +6,7 @@ import Dashboard from "@/pages/Dashboard";
 import Jobs from "@/pages/Jobs";
 import JobCRM from "@/pages/JobCRM";
 import Contacts from "@/pages/Contacts";
-import Applications from "@/pages/Applications";
+
 import Recommendations from "@/pages/Recommendations";
 import JobSearch from "@/pages/JobSearch";
 import ProfileEditor from "@/pages/ProfileEditor";
@@ -123,7 +123,7 @@ export default function Index() {
               getRecommendationRequestsForContact={store.getRecommendationRequestsForContact}
             />
           } />
-          <Route path="applications" element={<Applications jobs={store.jobs} interviews={store.interviews} onUpdateJob={store.updateJob} />} />
+          
           <Route path="interviews" element={
             <InterviewsPage
               jobs={store.jobs}
