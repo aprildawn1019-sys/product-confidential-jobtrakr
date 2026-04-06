@@ -213,7 +213,30 @@ export function useJobTrackerStore() {
       fit_score: job.fitScore || null, urgency: job.urgency || null,
     }));
     const { data } = await supabase.from("jobs").insert(rows).select();
-    if (data) setJobs(prev => [...data.map(mapJob), ...prev]);
+    if (data) {
+      setJobs(prev => [...data.map(mapJob), ...prev]);
+      // Extract skills from bulk-imported jobs in background
+      const jobsWithDesc = data.filter((j: any) => j.description && j.description.length >= 20);
+      if (jobsWithDesc.length > 0) {
+        (async () => {
+          for (const job of jobsWithDesc) {
+            try {
+              const { data: skillsData } = await supabase.functions.invoke("extract-job-skills", {
+                body: { description: job.description },
+              });
+              if (skillsData?.skills?.length) {
+                await supabase.from("job_skills_snapshots").insert({
+                  user_id: userId, job_id: job.id, skills: skillsData.skills, source: "tracked",
+                });
+              }
+            } catch (e) {
+              console.error("Bulk skills extraction failed:", e);
+            }
+            await new Promise(r => setTimeout(r, 500));
+          }
+        })();
+      }
+    }
   };
 
   const updateJobStatus = async (id: string, status: JobStatus) => {
