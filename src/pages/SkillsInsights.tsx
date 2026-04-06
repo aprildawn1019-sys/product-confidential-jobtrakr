@@ -61,18 +61,20 @@ export default function SkillsInsights() {
   }, [loadSnapshots]);
 
   // Load profile skills
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from("job_search_profile")
-        .select("skills, technical_skills, soft_skills, tools_platforms, certifications, target_roles")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (data) setProfileSkills(data as ProfileSkills);
-    })();
+  const loadProfileSkills = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase
+      .from("job_search_profile")
+      .select("skills, technical_skills, soft_skills, tools_platforms, certifications, target_roles")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (data) setProfileSkills(data as ProfileSkills);
   }, []);
+
+  useEffect(() => {
+    loadProfileSkills();
+  }, [loadProfileSkills]);
 
   // Filter by source
   const filteredSnapshots = useMemo(() => {
