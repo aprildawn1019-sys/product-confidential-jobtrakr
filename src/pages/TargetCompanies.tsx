@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import CompanyAvatar from "@/components/CompanyAvatar";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact } from "@/types/jobTracker";
@@ -175,21 +176,31 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
                   {tc.notes && <p className="text-xs text-muted-foreground line-clamp-2">{tc.notes}</p>}
 
                   <div className="flex items-center gap-1 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(tc)}><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Tooltip><TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(tc)}><Pencil className="h-3.5 w-3.5" /></Button>
+                    </TooltipTrigger><TooltipContent>Edit</TooltipContent></Tooltip>
                     {tc.careersUrl && (
-                      <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                        <a href={tc.careersUrl} target="_blank" rel="noopener noreferrer"><Globe className="h-3.5 w-3.5" /></a>
-                      </Button>
+                      <Tooltip><TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                          <a href={tc.careersUrl} target="_blank" rel="noopener noreferrer"><Globe className="h-3.5 w-3.5" /></a>
+                        </Button>
+                      </TooltipTrigger><TooltipContent>Careers page</TooltipContent></Tooltip>
                     )}
                     {tc.website && (
-                      <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                        <a href={tc.website} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
-                      </Button>
+                      <Tooltip><TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                          <a href={tc.website} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
+                        </Button>
+                      </TooltipTrigger><TooltipContent>Website</TooltipContent></Tooltip>
                     )}
                     {tc.status !== "archived" ? (
-                      <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto" onClick={() => onUpdate(tc.id, { status: "archived" })}><Archive className="h-3.5 w-3.5" /></Button>
+                      <Tooltip><TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto" onClick={() => onUpdate(tc.id, { status: "archived" })}><Archive className="h-3.5 w-3.5" /></Button>
+                      </TooltipTrigger><TooltipContent>Archive</TooltipContent></Tooltip>
                     ) : (
-                      <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto text-destructive" onClick={() => onDelete(tc.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      <Tooltip><TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto text-destructive" onClick={() => onDelete(tc.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </TooltipTrigger><TooltipContent>Delete</TooltipContent></Tooltip>
                     )}
                   </div>
                 </CardContent>
