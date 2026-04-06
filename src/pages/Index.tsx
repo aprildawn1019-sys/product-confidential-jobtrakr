@@ -13,6 +13,7 @@ import ProfileEditor from "@/pages/ProfileEditor";
 import JobBoards from "@/pages/JobBoards";
 import SkillsInsights from "@/pages/SkillsInsights";
 import InterviewsPage from "@/pages/Interviews";
+import TargetCompanies from "@/pages/TargetCompanies";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";

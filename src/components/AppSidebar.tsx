@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, CalendarCheck, Sparkles, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";

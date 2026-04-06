@@ -1,0 +1,269 @@
+import { useState, useMemo } from "react";
+import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CompanyAvatar } from "@/components/CompanyAvatar";
+import { companiesMatch } from "@/stores/jobTrackerStore";
+import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact } from "@/types/jobTracker";
+
+interface TargetCompaniesProps {
+  targetCompanies: TargetCompany[];
+  jobs: Job[];
+  contacts: Contact[];
+  onAdd: (company: Omit<TargetCompany, "id" | "createdAt">) => Promise<void>;
+  onUpdate: (id: string, updates: Partial<TargetCompany>) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}
+
+const priorityConfig: Record<TargetCompanyPriority, { label: string; color: string }> = {
+  dream: { label: "Dream", color: "bg-amber-100 text-amber-800 border-amber-300" },
+  strong: { label: "Strong", color: "bg-blue-100 text-blue-800 border-blue-300" },
+  interested: { label: "Interested", color: "bg-muted text-muted-foreground border-border" },
+};
+
+const statusConfig: Record<TargetCompanyStatus, { label: string; color: string }> = {
+  researching: { label: "Researching", color: "bg-purple-100 text-purple-800" },
+  applied: { label: "Applied", color: "bg-green-100 text-green-800" },
+  connected: { label: "Connected", color: "bg-blue-100 text-blue-800" },
+  archived: { label: "Archived", color: "bg-muted text-muted-foreground" },
+};
+
+const emptyForm = {
+  name: "", website: "", careersUrl: "", industry: "", size: "",
+  priority: "interested" as TargetCompanyPriority, status: "researching" as TargetCompanyStatus, notes: "",
+};
+
+export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd, onUpdate, onDelete }: TargetCompaniesProps) {
+  const [search, setSearch] = useState("");
+  const [filterPriority, setFilterPriority] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyForm);
+
+  const filtered = useMemo(() => {
+    return targetCompanies.filter(tc => {
+      if (filterPriority !== "all" && tc.priority !== filterPriority) return false;
+      if (filterStatus !== "all" && tc.status !== filterStatus) return false;
+      if (search && !tc.name.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
+  }, [targetCompanies, search, filterPriority, filterStatus]);
+
+  const getStats = (companyName: string) => {
+    const matchedJobs = jobs.filter(j => companiesMatch(j.company, companyName));
+    const matchedContacts = contacts.filter(c => companiesMatch(c.company, companyName));
+    const activeApps = matchedJobs.filter(j => ["applied", "screening", "interviewing", "offer"].includes(j.status));
+    return { jobCount: matchedJobs.length, contactCount: matchedContacts.length, activeApps: activeApps.length };
+  };
+
+  const openAdd = () => { setForm(emptyForm); setEditingId(null); setDialogOpen(true); };
+  const openEdit = (tc: TargetCompany) => {
+    setForm({
+      name: tc.name, website: tc.website || "", careersUrl: tc.careersUrl || "",
+      industry: tc.industry || "", size: tc.size || "", priority: tc.priority,
+      status: tc.status, notes: tc.notes || "",
+    });
+    setEditingId(tc.id);
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!form.name.trim()) return;
+    if (editingId) {
+      await onUpdate(editingId, form);
+    } else {
+      await onAdd(form);
+    }
+    setDialogOpen(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Star className="h-6 w-6 text-amber-500" />
+            Target Companies
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Build your dream employer shortlist and track your pipeline per company.</p>
+        </div>
+        <Button onClick={openAdd} className="gap-2">
+          <Plus className="h-4 w-4" /> Add Company
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search companies..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <Select value={filterPriority} onValueChange={setFilterPriority}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Priority" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Priorities</SelectItem>
+            <SelectItem value="dream">Dream</SelectItem>
+            <SelectItem value="strong">Strong</SelectItem>
+            <SelectItem value="interested">Interested</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="researching">Researching</SelectItem>
+            <SelectItem value="applied">Applied</SelectItem>
+            <SelectItem value="connected">Connected</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Card Grid */}
+      {filtered.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <Building2 className="h-12 w-12 text-muted-foreground/40 mb-4" />
+            <h3 className="text-lg font-semibold mb-1">No target companies yet</h3>
+            <p className="text-sm text-muted-foreground mb-4">Start by adding the organizations you'd love to work at.</p>
+            <Button onClick={openAdd} variant="outline" className="gap-2">
+              <Plus className="h-4 w-4" /> Add Your First Target
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map(tc => {
+            const stats = getStats(tc.name);
+            const pConf = priorityConfig[tc.priority];
+            const sConf = statusConfig[tc.status];
+            return (
+              <Card key={tc.id} className="group hover:shadow-md transition-shadow">
+                <CardContent className="p-5 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <CompanyAvatar company={tc.name} size="md" />
+                      <div className="min-w-0">
+                        <h3 className="font-semibold truncate">{tc.name}</h3>
+                        {tc.industry && <p className="text-xs text-muted-foreground truncate">{tc.industry}{tc.size ? ` · ${tc.size}` : ""}</p>}
+                      </div>
+                    </div>
+                    <Badge variant="outline" className={`shrink-0 text-xs ${pConf.color}`}>{pConf.label}</Badge>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className={`text-xs ${sConf.color}`}>{sConf.label}</Badge>
+                  </div>
+
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><Briefcase className="h-3.5 w-3.5" />{stats.jobCount} jobs</span>
+                    <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{stats.contactCount} contacts</span>
+                    {stats.activeApps > 0 && (
+                      <span className="flex items-center gap-1 text-green-600 font-medium">{stats.activeApps} active</span>
+                    )}
+                  </div>
+
+                  {tc.notes && <p className="text-xs text-muted-foreground line-clamp-2">{tc.notes}</p>}
+
+                  <div className="flex items-center gap-1 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(tc)}><Pencil className="h-3.5 w-3.5" /></Button>
+                    {tc.careersUrl && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                        <a href={tc.careersUrl} target="_blank" rel="noopener noreferrer"><Globe className="h-3.5 w-3.5" /></a>
+                      </Button>
+                    )}
+                    {tc.website && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                        <a href={tc.website} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
+                      </Button>
+                    )}
+                    {tc.status !== "archived" ? (
+                      <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto" onClick={() => onUpdate(tc.id, { status: "archived" })}><Archive className="h-3.5 w-3.5" /></Button>
+                    ) : (
+                      <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto text-destructive" onClick={() => onDelete(tc.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingId ? "Edit" : "Add"} Target Company</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Company Name *</Label>
+              <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Stripe" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Priority</Label>
+                <Select value={form.priority} onValueChange={v => setForm(f => ({ ...f, priority: v as TargetCompanyPriority }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dream">🌟 Dream</SelectItem>
+                    <SelectItem value="strong">💪 Strong</SelectItem>
+                    <SelectItem value="interested">👀 Interested</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v as TargetCompanyStatus }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="researching">Researching</SelectItem>
+                    <SelectItem value="applied">Applied</SelectItem>
+                    <SelectItem value="connected">Connected</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Website</Label>
+                <Input value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
+              </div>
+              <div>
+                <Label>Careers URL</Label>
+                <Input value={form.careersUrl} onChange={e => setForm(f => ({ ...f, careersUrl: e.target.value }))} placeholder="https://...careers" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Industry</Label>
+                <Input value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} placeholder="e.g. Fintech" />
+              </div>
+              <div>
+                <Label>Company Size</Label>
+                <Input value={form.size} onChange={e => setForm(f => ({ ...f, size: e.target.value }))} placeholder="e.g. 1000-5000" />
+              </div>
+            </div>
+            <div>
+              <Label>Notes</Label>
+              <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Research notes, why this company..." rows={3} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave} disabled={!form.name.trim()}>{editingId ? "Save" : "Add"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
