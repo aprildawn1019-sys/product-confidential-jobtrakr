@@ -661,7 +661,7 @@ export default function SkillsInsights() {
                           stroke={lineColors[i]}
                           strokeWidth={2}
                           dot={{ r: 3 }}
-                          name={skill.charAt(0).toUpperCase() + skill.slice(1)}
+                          name={formatSkillLabel(skill)}
                         />
                       ))}
                     </LineChart>
