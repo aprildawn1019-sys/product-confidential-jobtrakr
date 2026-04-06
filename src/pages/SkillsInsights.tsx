@@ -254,6 +254,39 @@ export default function SkillsInsights() {
     }
   }, []);
 
+  const handleRemoveSkillFromProfile = useCallback(async (skillLabel: string) => {
+    const skillLower = skillLabel.trim().toLowerCase();
+    setRemovingSkill(skillLower);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: profile } = await supabase
+        .from("job_search_profile")
+        .select("id, skills")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!profile) return;
+
+      const updated = (profile.skills || []).filter(
+        (s: string) => s.trim().toLowerCase() !== skillLower
+      );
+
+      await supabase
+        .from("job_search_profile")
+        .update({ skills: updated })
+        .eq("id", profile.id);
+
+      setProfileSkills(prev => prev ? { ...prev, skills: updated } : prev);
+      toast({ title: "Skill removed", description: `"${skillLabel}" removed from your Search Profile.` });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to remove skill", variant: "destructive" });
+    } finally {
+      setRemovingSkill(null);
+    }
+  }, []);
+
 
   const handleBackfill = useCallback(async () => {
     setBackfilling(true);
