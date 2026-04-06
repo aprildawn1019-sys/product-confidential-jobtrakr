@@ -268,6 +268,9 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy(letter.id, letter.content)}>
                         {isCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
                       </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleStartEdit(letter)} title="Edit">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
                       {letter.job_id && (
                         <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                           <a href={`/jobs/${letter.job_id}`}><ExternalLink className="h-3.5 w-3.5" /></a>
