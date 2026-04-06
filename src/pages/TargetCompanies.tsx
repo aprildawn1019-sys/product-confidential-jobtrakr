@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import CompanyAvatar from "@/components/CompanyAvatar";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact } from "@/types/jobTracker";
