@@ -34,23 +34,28 @@ export default function SkillsInsights() {
   const [backfillProgress, setBackfillProgress] = useState({ done: 0, total: 0 });
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - parseInt(dateRange));
+  const loadSnapshots = useCallback(async () => {
+    setLoading(true);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - parseInt(dateRange));
 
-      const query = supabase
-        .from("job_skills_snapshots")
-        .select("*")
-        .gte("captured_at", cutoff.toISOString())
-        .order("captured_at", { ascending: true });
+    const { data, error } = await supabase
+      .from("job_skills_snapshots")
+      .select("*")
+      .gte("captured_at", cutoff.toISOString())
+      .order("captured_at", { ascending: true });
 
-      const { data } = await query;
-      setSnapshots((data as any[] || []).map(d => ({ ...d, source: d.source || "tracked" })));
-      setLoading(false);
-    })();
+    if (error) {
+      console.error("Failed to load skills snapshots:", error);
+      toast({ title: "Failed to load skills data", description: error.message, variant: "destructive" });
+    }
+    setSnapshots((data as any[] || []).map(d => ({ ...d, source: d.source || "tracked" })));
+    setLoading(false);
   }, [dateRange]);
+
+  useEffect(() => {
+    loadSnapshots();
+  }, [loadSnapshots]);
 
   // Load profile skills
   useEffect(() => {
@@ -250,20 +255,13 @@ export default function SkillsInsights() {
       toast({ title: "Skills refreshed!", description: `Extracted skills from ${toProcess.length} jobs.` });
 
       // Reload snapshots
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - parseInt(dateRange));
-      const { data: refreshed } = await supabase
-        .from("job_skills_snapshots")
-        .select("*")
-        .gte("captured_at", cutoff.toISOString())
-        .order("captured_at", { ascending: true });
-      setSnapshots((refreshed as any[] || []).map(d => ({ ...d, source: d.source || "tracked" })));
+      await loadSnapshots();
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Backfill failed", variant: "destructive" });
     } finally {
       setBackfilling(false);
     }
-  }, [dateRange]);
+  }, [loadSnapshots]);
 
   const lineColors = ["hsl(var(--primary))", "hsl(var(--accent))", "#f59e0b", "#10b981", "#8b5cf6"];
 
