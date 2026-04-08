@@ -2,22 +2,22 @@ import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-export interface FitScoreStarsProps {
+export interface MatchScoreStarsProps {
   score?: number;
   onChange?: (score: number) => void;
   size?: "sm" | "md";
 }
 
 const labels: Record<number, string> = {
-  0: "No fit rating",
-  1: "Poor fit",
-  2: "Below average fit",
-  3: "Average fit",
-  4: "Good fit",
-  5: "Excellent fit",
+  0: "No match rating",
+  1: "Poor match",
+  2: "Below average match",
+  3: "Average match",
+  4: "Good match",
+  5: "Excellent match",
 };
 
-export default function FitScoreStars({ score, onChange, size = "md" }: FitScoreStarsProps) {
+export default function MatchScoreStars({ score, onChange, size = "md" }: MatchScoreStarsProps) {
   const iconSize = size === "sm" ? "h-3 w-3" : "h-4 w-4";
   const current = score || 0;
 
@@ -45,7 +45,7 @@ export default function FitScoreStars({ score, onChange, size = "md" }: FitScore
         </div>
       </TooltipTrigger>
       <TooltipContent side="top" className="text-xs">
-        Fit Score: {labels[current]}
+        Match: {labels[current]}
       </TooltipContent>
     </Tooltip>
   );

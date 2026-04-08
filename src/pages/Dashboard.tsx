@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import StatCard from "@/components/StatCard";
 // StatusBadge removed - unused
 import StatusSelect from "@/components/StatusSelect";
-import FitScoreStars from "@/components/FitScoreStars";
+import MatchScoreStars from "@/components/MatchScoreStars";
 import CompanyAvatar from "@/components/CompanyAvatar";
 import type { Job, Contact, Interview, JobContact, TargetCompany } from "@/types/jobTracker";
 
@@ -269,7 +269,7 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
                     </Select>
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-muted-foreground">Match:</span>
-                      <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
+                      <MatchScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
                     </div>
                   </div>
                 </div>

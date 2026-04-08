@@ -11,7 +11,7 @@ import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import CoverLetterDialog from "@/components/CoverLetterDialog";
-import FitScoreStars from "@/components/FitScoreStars";
+import MatchScoreStars from "@/components/MatchScoreStars";
 import PriorityBadge from "@/components/PriorityBadge";
 import type { Job, Contact, Interview } from "@/types/jobTracker";
 
@@ -205,9 +205,9 @@ export default function JobDetailPanel({
                 <p className="font-medium capitalize">{job.type}{job.salary ? ` · ${job.salary}` : ""}</p>
               </div>
               <div className={compact ? "" : "col-span-2"}>
-                <span className="text-muted-foreground text-sm">Fit & Priority</span>
+                <span className="text-muted-foreground text-sm">Match & Priority</span>
                 <div className="flex items-center gap-3 mt-1">
-                  <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} />
+                  <MatchScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} />
                   <PriorityBadge priority={job.priority} onChange={p => onUpdateJob(job.id, { priority: p })} />
                 </div>
               </div>

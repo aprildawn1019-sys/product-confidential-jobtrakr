@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import StatusSelect from "@/components/StatusSelect";
-import FitScoreStars from "@/components/FitScoreStars";
+import MatchScoreStars from "@/components/MatchScoreStars";
 import PriorityBadge from "@/components/PriorityBadge";
 import WarmthBadge from "@/components/WarmthBadge";
 import CoverLetterDialog from "@/components/CoverLetterDialog";
@@ -240,7 +240,7 @@ export default function JobCRM({
               {job.statusUpdatedAt && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />Updated {fmtDate(job.statusUpdatedAt)}</span>}
             </div>
             <div className="flex items-center gap-3 mt-1">
-              <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
+              <MatchScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
               <PriorityBadge priority={job.priority} onChange={p => onUpdateJob(job.id, { priority: p })} />
             </div>
           </div>
