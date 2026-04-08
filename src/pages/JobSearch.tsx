@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Undo2, ChevronDown, ChevronUp, Globe, Settings2, XCircle, History, Trash2, RotateCcw, Sparkles } from "lucide-react";
+import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Undo2, ChevronDown, ChevronUp, Globe, Settings2, XCircle, History, Trash2, RotateCcw, Sparkles, ArrowRight } from "lucide-react";
 import { GatedBoardsNotice } from "@/components/jobsearch/GatedBoardsNotice";
 import { GatedBoardScrape } from "@/components/jobsearch/GatedBoardScrape";
 import { Slider } from "@/components/ui/slider";
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import CompanyAvatar from "@/components/CompanyAvatar";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { Job, Contact, TargetCompany } from "@/types/jobTracker";
 
@@ -62,6 +64,7 @@ interface JobSearchProps {
 }
 
 export default function JobSearch({ onAddJob, existingJobs, contacts, targetCompanies }: JobSearchProps) {
+  const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [addedJobs, setAddedJobs] = useState<Set<string>>(new Set());
@@ -734,11 +737,21 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
                           ))}
                         </div>
                       </div>
-                      {job.url && (
-                        <a href={job.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-muted-foreground hover:text-primary">
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      )}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/jobs?jobId=${job.id}`)}>
+                              <ArrowRight className="h-3.5 w-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">View in Pipeline</TooltipContent>
+                        </Tooltip>
+                        {job.url && (
+                          <a href={job.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-muted-foreground hover:text-primary p-1.5">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
