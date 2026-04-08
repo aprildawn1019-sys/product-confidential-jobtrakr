@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import PipelineFunnel from "@/components/PipelineFunnel";
 import { Link, useNavigate } from "react-router-dom";
-import { Briefcase, Users, CalendarCheck, Clock, Send, AlertTriangle, Star, CalendarDays, ExternalLink, X, Pencil, Target } from "lucide-react";
+import { Briefcase, CalendarCheck, Clock, Send, Star, CalendarDays, ExternalLink, X, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { formatDistanceToNow, isPast, isToday, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import StatCard from "@/components/StatCard";
-import StatusBadge from "@/components/StatusBadge";
+// StatusBadge removed - unused
 import StatusSelect from "@/components/StatusSelect";
 import FitScoreStars from "@/components/FitScoreStars";
 import CompanyAvatar from "@/components/CompanyAvatar";
@@ -27,13 +27,6 @@ interface DashboardProps {
   onUpdateContact?: (id: string, updates: Partial<Contact>) => void;
 }
 
-const urgencyColors: Record<string, string> = {
-  critical: "bg-destructive/15 text-destructive border-destructive/30",
-  high: "bg-warning/15 text-warning border-warning/30",
-  medium: "bg-info/15 text-info border-info/30",
-  low: "bg-muted text-muted-foreground border-border",
-};
-
 const interviewTypeColors: Record<string, string> = {
   phone: "bg-blue-500/10 text-blue-700 border-blue-200",
   technical: "bg-purple-500/10 text-purple-700 border-purple-200",
@@ -42,8 +35,7 @@ const interviewTypeColors: Record<string, string> = {
   final: "bg-red-500/10 text-red-700 border-red-200",
 };
 
-const allStatuses = ["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"];
-const allUrgencies = ["low", "medium", "high"];
+const allPriorities = ["low", "medium", "high"];
 
 export default function Dashboard({ jobs, contacts, interviews, jobContacts, targetCompanies = [], onUpdateStatus, onUpdateJob, onUpdateContact }: DashboardProps) {
   const navigate = useNavigate();
@@ -52,17 +44,28 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
 
   const inactiveStatuses = ["rejected", "closed"];
 
-  const highUrgencyJobs = useMemo(() =>
-    jobs.filter(j => (j.urgency === "critical" || j.urgency === "high") && !inactiveStatuses.includes(j.status))
-      .sort((a, b) => (a.urgency === "critical" ? 0 : 1) - (b.urgency === "critical" ? 0 : 1))
-      .slice(0, 5),
-  [jobs]);
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [matchScoreFilter, setMatchScoreFilter] = useState<string>("all");
 
-  const topFitJobs = useMemo(() =>
-    jobs.filter(j => j.fitScore && j.fitScore >= 4 && !inactiveStatuses.includes(j.status))
-      .sort((a, b) => (b.fitScore || 0) - (a.fitScore || 0))
-      .slice(0, 5),
-  [jobs]);
+  const activeOpportunities = useMemo(() => {
+    let filtered = jobs.filter(j => !inactiveStatuses.includes(j.status));
+    if (priorityFilter !== "all") {
+      filtered = filtered.filter(j => j.urgency === priorityFilter);
+    }
+    if (matchScoreFilter !== "all") {
+      const minScore = parseInt(matchScoreFilter);
+      filtered = filtered.filter(j => j.fitScore && j.fitScore >= minScore);
+    }
+    return filtered
+      .sort((a, b) => {
+        const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
+        const aPri = priorityOrder[a.urgency || ""] ?? 3;
+        const bPri = priorityOrder[b.urgency || ""] ?? 3;
+        if (aPri !== bPri) return aPri - bPri;
+        return (b.fitScore || 0) - (a.fitScore || 0);
+      })
+      .slice(0, 10);
+  }, [jobs, priorityFilter, matchScoreFilter]);
 
   const followUpContacts = useMemo(() =>
     contacts.filter(c => {
@@ -207,22 +210,42 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
           )}
         </div>
 
-        {/* High Urgency Jobs */}
-        <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-warning" />High Urgency Jobs
-          </h2>
-          {highUrgencyJobs.length === 0 ? (
+        {/* Active Opportunities */}
+        <div className="rounded-xl border border-border bg-card p-6 lg:col-span-2">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-primary" />Active Opportunities
+            </h2>
+            <div className="flex items-center gap-2">
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="h-7 text-xs w-[110px]"><SelectValue placeholder="Priority" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-xs">All Priorities</SelectItem>
+                  {allPriorities.map(p => <SelectItem key={p} value={p} className="text-xs capitalize">{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={matchScoreFilter} onValueChange={setMatchScoreFilter}>
+                <SelectTrigger className="h-7 text-xs w-[120px]"><SelectValue placeholder="Match Score" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-xs">All Scores</SelectItem>
+                  <SelectItem value="4" className="text-xs">4+ Stars</SelectItem>
+                  <SelectItem value="3" className="text-xs">3+ Stars</SelectItem>
+                  <SelectItem value="2" className="text-xs">2+ Stars</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {activeOpportunities.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning/10 mb-3">
-                <AlertTriangle className="h-6 w-6 text-warning" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3">
+                <Briefcase className="h-6 w-6 text-primary" />
               </div>
-              <p className="text-sm text-muted-foreground">No high-urgency jobs right now</p>
-              <p className="text-xs text-muted-foreground mt-1">Set urgency on jobs to track what needs attention first</p>
+              <p className="text-sm text-muted-foreground">No active opportunities match your filters</p>
+              <p className="text-xs text-muted-foreground mt-1">Adjust filters or add jobs to get started</p>
             </div>
           ) : (
-            <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1">
-              {highUrgencyJobs.map(job => (
+            <div className="max-h-[400px] overflow-y-auto space-y-3 pr-1">
+              {activeOpportunities.map(job => (
                 <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
                   <div className="flex items-center gap-3">
                     <CompanyAvatar company={job.company} />
@@ -239,51 +262,15 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
                   <div className="flex items-center gap-2 flex-wrap">
                     <StatusSelect value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)} />
                     <Select value={job.urgency || ""} onValueChange={v => onUpdateJob?.(job.id, { urgency: v })}>
-                      <SelectTrigger className="h-7 text-xs w-[100px]"><SelectValue placeholder="Urgency" /></SelectTrigger>
+                      <SelectTrigger className="h-7 text-xs w-[100px]"><SelectValue placeholder="Priority" /></SelectTrigger>
                       <SelectContent>
-                        {allUrgencies.map(u => <SelectItem key={u} value={u} className="text-xs capitalize">{u}</SelectItem>)}
+                        {allPriorities.map(p => <SelectItem key={p} value={p} className="text-xs">{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                    <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Top Rated Fits */}
-        <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
-            <Star className="h-5 w-5 text-primary" />Top Rated Fits
-          </h2>
-          {topFitJobs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3">
-                <Star className="h-6 w-6 text-primary" />
-              </div>
-              <p className="text-sm text-muted-foreground">No jobs rated 4+ stars yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Rate your job fit to surface the best opportunities</p>
-            </div>
-          ) : (
-            <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1">
-              {topFitJobs.map(job => (
-                <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
-                  <div className="flex items-center gap-3">
-                    <CompanyAvatar company={job.company} />
-                    <Link to={`/jobs/${job.id}`} className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">{job.title}</p>
-                      <p className="text-xs text-muted-foreground">{job.company}</p>
-                    </Link>
-                    {job.url && (
-                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary shrink-0 ml-2">
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <StatusSelect value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)} />
-                    <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground">Match:</span>
+                      <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
+                    </div>
                   </div>
                 </div>
               ))}
