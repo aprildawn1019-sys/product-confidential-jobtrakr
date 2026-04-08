@@ -184,9 +184,19 @@ export function useSkillsInsights() {
 
   const linkedInHeadline = useMemo(() => {
     const roles = profileSkills?.target_roles?.slice(0, 1).map(r => r.trim()) || [];
-    const topSkills = allSkillsRanked.slice(0, 4).map(s => s.label);
-    return [...roles, ...topSkills].join(" | ");
-  }, [allSkillsRanked, profileSkills]);
+    const profileSkillsList = [
+      ...(profileSkills?.skills || []),
+      ...(profileSkills?.technical_skills || []),
+      ...(profileSkills?.tools_platforms || []),
+    ].map(s => formatSkillLabel(s.trim())).filter(Boolean);
+    const seen = new Set<string>();
+    const unique: string[] = [];
+    for (const s of profileSkillsList) {
+      const lower = s.toLowerCase();
+      if (!seen.has(lower)) { seen.add(lower); unique.push(s); }
+    }
+    return [...roles, ...unique.slice(0, 4)].join(" | ");
+  }, [profileSkills]);
 
   // --- Handlers ---
 
