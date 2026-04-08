@@ -96,7 +96,7 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* High Urgency Jobs */}
+        {/* Follow-up Reminders */}
         <div className="rounded-xl border border-border bg-card p-6">
           <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-warning" />High Urgency Jobs
