@@ -180,7 +180,16 @@ export function useSkillsInsights() {
     return { matchedSkills: matched, gapSkills: gap };
   }, [profileSkills, allSkillsRanked, filteredSnapshots]);
 
-  const resumeKeywords = useMemo(() => allSkillsRanked.slice(0, 20).map(s => s.label).join(", "), [allSkillsRanked]);
+  const resumeKeywords = useMemo(() => {
+    if (!profileSkills) return allSkillsRanked.slice(0, 20).map(s => s.label).join(", ");
+    const mySkills = new Set(
+      [...profileSkills.skills, ...profileSkills.technical_skills, ...profileSkills.soft_skills,
+       ...profileSkills.tools_platforms, ...profileSkills.certifications]
+        .map(s => s.trim().toLowerCase()).filter(Boolean)
+    );
+    const overlapping = allSkillsRanked.filter(s => mySkills.has(s.skill));
+    return overlapping.slice(0, 25).map(s => s.label).join(", ");
+  }, [allSkillsRanked, profileSkills]);
 
   const linkedInHeadline = useMemo(() => {
     const roles = profileSkills?.target_roles?.slice(0, 1).map(r => r.trim()) || [];
