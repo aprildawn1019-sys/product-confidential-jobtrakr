@@ -10,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { formatDistanceToNow, isPast, isToday, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import StatCard from "@/components/StatCard";
-import StatusBadge from "@/components/StatusBadge";
+// StatusBadge removed - unused
 import StatusSelect from "@/components/StatusSelect";
 import FitScoreStars from "@/components/FitScoreStars";
 import CompanyAvatar from "@/components/CompanyAvatar";
