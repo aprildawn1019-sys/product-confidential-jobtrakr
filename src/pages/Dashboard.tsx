@@ -34,6 +34,14 @@ const urgencyColors: Record<string, string> = {
   low: "bg-muted text-muted-foreground border-border",
 };
 
+const interviewTypeColors: Record<string, string> = {
+  phone: "bg-blue-500/10 text-blue-700 border-blue-200",
+  technical: "bg-purple-500/10 text-purple-700 border-purple-200",
+  behavioral: "bg-amber-500/10 text-amber-700 border-amber-200",
+  onsite: "bg-green-500/10 text-green-700 border-green-200",
+  final: "bg-red-500/10 text-red-700 border-red-200",
+};
+
 const allStatuses = ["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"];
 const allUrgencies = ["low", "medium", "high", "critical"];
 
