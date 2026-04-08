@@ -40,12 +40,12 @@ JobTrackr is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE),
 
 ## How to Obtain a Commercial License
 
-1. **Email**: Send a request to **[your-email@example.com]** with:
+1. **Email**: Send a request to **april@productconfidential.co** with:
    - Your company name and size
    - Intended use case
    - Expected number of users
 
-2. **GitHub**: Open a [Discussion](https://github.com/your-username/jobtrackr/discussions) in the repository with the `commercial-license` tag.
+2. **GitHub**: Open a [Discussion](https://github.com/productconfidential/jobtrackr/discussions) in the repository with the `commercial-license` tag.
 
 We aim to respond within **2 business days**.
 
