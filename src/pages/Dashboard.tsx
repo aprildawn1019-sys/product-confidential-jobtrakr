@@ -43,7 +43,7 @@ const interviewTypeColors: Record<string, string> = {
 };
 
 const allStatuses = ["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"];
-const allUrgencies = ["low", "medium", "high"];
+const allPriorities = ["low", "medium", "high"];
 
 export default function Dashboard({ jobs, contacts, interviews, jobContacts, targetCompanies = [], onUpdateStatus, onUpdateJob, onUpdateContact }: DashboardProps) {
   const navigate = useNavigate();
