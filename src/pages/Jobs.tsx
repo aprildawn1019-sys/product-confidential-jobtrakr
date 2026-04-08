@@ -446,7 +446,11 @@ export default function Jobs({
                 const hasNetwork = linkedContacts.length > 0 || networkMatches.length > 0;
 
                 return (
-                  <div key={job.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
+                  <div
+                    key={job.id}
+                    ref={job.id === highlightedJobId ? highlightedRef : undefined}
+                    className={`rounded-xl border bg-card transition-all hover:shadow-md ${job.id === highlightedJobId ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
+                  >
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
