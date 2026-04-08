@@ -21,6 +21,14 @@ export function SkillsTrendChart({ trendData, trendSkills, trendScale, onScaleCh
         <CardTitle className="flex items-center gap-2 text-lg">
           <TrendingUp className="h-5 w-5 text-primary" />
           Skills Trend Over Time
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent side="right" className="max-w-xs text-sm">
+              Tracks how often the top 5 most demanded skills appear in job descriptions over time, grouped by week or month. Helps you spot rising or declining skill requirements in the market.
+            </TooltipContent>
+          </Tooltip>
         </CardTitle>
         <Select value={trendScale} onValueChange={(v) => onScaleChange(v as "weeks" | "months")}>
           <SelectTrigger className="w-28 h-8 text-xs">
