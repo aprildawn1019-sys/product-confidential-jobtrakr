@@ -52,17 +52,28 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
 
   const inactiveStatuses = ["rejected", "closed"];
 
-  const highUrgencyJobs = useMemo(() =>
-    jobs.filter(j => (j.urgency === "critical" || j.urgency === "high") && !inactiveStatuses.includes(j.status))
-      .sort((a, b) => (a.urgency === "critical" ? 0 : 1) - (b.urgency === "critical" ? 0 : 1))
-      .slice(0, 5),
-  [jobs]);
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [matchScoreFilter, setMatchScoreFilter] = useState<string>("all");
 
-  const topFitJobs = useMemo(() =>
-    jobs.filter(j => j.fitScore && j.fitScore >= 4 && !inactiveStatuses.includes(j.status))
-      .sort((a, b) => (b.fitScore || 0) - (a.fitScore || 0))
-      .slice(0, 5),
-  [jobs]);
+  const activeOpportunities = useMemo(() => {
+    let filtered = jobs.filter(j => !inactiveStatuses.includes(j.status));
+    if (priorityFilter !== "all") {
+      filtered = filtered.filter(j => j.urgency === priorityFilter);
+    }
+    if (matchScoreFilter !== "all") {
+      const minScore = parseInt(matchScoreFilter);
+      filtered = filtered.filter(j => j.fitScore && j.fitScore >= minScore);
+    }
+    return filtered
+      .sort((a, b) => {
+        const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
+        const aPri = priorityOrder[a.urgency || ""] ?? 3;
+        const bPri = priorityOrder[b.urgency || ""] ?? 3;
+        if (aPri !== bPri) return aPri - bPri;
+        return (b.fitScore || 0) - (a.fitScore || 0);
+      })
+      .slice(0, 10);
+  }, [jobs, priorityFilter, matchScoreFilter]);
 
   const followUpContacts = useMemo(() =>
     contacts.filter(c => {
