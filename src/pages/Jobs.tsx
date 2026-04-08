@@ -370,11 +370,10 @@ export default function Jobs({
                 ))}
               </SelectContent>
             </Select>
-            <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
-              <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Urgency" /></SelectTrigger>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Priority" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Urgency</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="all">All Priority</SelectItem>
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
