@@ -7,7 +7,7 @@ const features = [
   {
     icon: Briefcase,
     title: "Job Tracking",
-    description: "List & Kanban views with drag-and-drop. Track status, fit scores, and priority across your pipeline.",
+    description: "List & Kanban views with drag-and-drop. Track status, match scores, and priority across your pipeline.",
   },
   {
     icon: Target,

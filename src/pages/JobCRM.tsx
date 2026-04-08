@@ -240,7 +240,7 @@ export default function JobCRM({
               {job.statusUpdatedAt && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />Updated {fmtDate(job.statusUpdatedAt)}</span>}
             </div>
             <div className="flex items-center gap-3 mt-1">
-              <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
+              <MatchScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
               <PriorityBadge priority={job.priority} onChange={p => onUpdateJob(job.id, { priority: p })} />
             </div>
           </div>
