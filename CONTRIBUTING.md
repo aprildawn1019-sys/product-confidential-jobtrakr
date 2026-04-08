@@ -209,4 +209,4 @@ Be kind, be constructive, be inclusive. We follow the [Contributor Covenant](htt
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing, you agree that your contributions will be licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE).
