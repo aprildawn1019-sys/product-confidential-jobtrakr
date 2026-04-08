@@ -7,7 +7,7 @@ import Jobs from "@/pages/Jobs";
 import JobCRM from "@/pages/JobCRM";
 import Contacts from "@/pages/Contacts";
 
-import Recommendations from "@/pages/Recommendations";
+
 import JobSearch from "@/pages/JobSearch";
 import ProfileEditor from "@/pages/ProfileEditor";
 import JobBoards from "@/pages/JobBoards";
