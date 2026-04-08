@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe, Settings2, XCircle, History, Trash2, RotateCcw, Sparkles } from "lucide-react";
+import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Undo2, ChevronDown, ChevronUp, Globe, Settings2, XCircle, History, Trash2, RotateCcw, Sparkles } from "lucide-react";
 import { GatedBoardsNotice } from "@/components/jobsearch/GatedBoardsNotice";
 import { GatedBoardScrape } from "@/components/jobsearch/GatedBoardScrape";
 import { Slider } from "@/components/ui/slider";
