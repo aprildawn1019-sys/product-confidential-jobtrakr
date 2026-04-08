@@ -20,7 +20,7 @@ export interface Job {
   posterPhone?: string;
   posterRole?: string;
   fitScore?: number;
-  urgency?: string;
+  priority?: string;
   source?: string;
 }
 
