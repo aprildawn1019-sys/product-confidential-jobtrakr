@@ -145,7 +145,7 @@ export default function Jobs({
         const statuses = statusFilter.split(",");
         if (!statuses.includes(job.status)) return false;
       }
-      if (urgencyFilter !== "all" && (job.urgency || "none") !== urgencyFilter) return false;
+      if (priorityFilter !== "all" && (job.priority || "none") !== priorityFilter) return false;
       if (typeFilter !== "all" && job.type !== typeFilter) return false;
       if (targetFilter !== "all") {
         const tc = getTargetForJob(job);
