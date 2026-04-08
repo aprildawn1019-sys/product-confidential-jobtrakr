@@ -16,7 +16,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Separator } from "@/components/ui/separator";
 import StatusSelect from "@/components/StatusSelect";
 import FitScoreStars from "@/components/FitScoreStars";
-import UrgencyBadge from "@/components/UrgencyBadge";
+import PriorityBadge from "@/components/PriorityBadge";
 import WarmthBadge from "@/components/WarmthBadge";
 import CoverLetterDialog from "@/components/CoverLetterDialog";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
