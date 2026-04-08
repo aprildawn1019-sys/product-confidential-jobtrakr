@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import CompanyAvatar from "@/components/CompanyAvatar";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { Job, Contact, TargetCompany } from "@/types/jobTracker";
 
