@@ -8,7 +8,7 @@ import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/h
 import StatusBadge from "@/components/StatusBadge";
 import JobDetailPanel from "@/components/JobDetailPanel";
 import FitScoreStars from "@/components/FitScoreStars";
-import UrgencyBadge from "@/components/UrgencyBadge";
+import PriorityBadge from "@/components/PriorityBadge";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { Job, Contact, JobStatus, Interview, TargetCompany } from "@/types/jobTracker";
