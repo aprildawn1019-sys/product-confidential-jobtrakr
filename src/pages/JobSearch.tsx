@@ -78,6 +78,7 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [showRecommendations, setShowRecommendations] = useState(true);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     resultCount: 10,
     minMatchScore: 60,
@@ -86,6 +87,45 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
     creativityLevel: "balanced",
     focusKeywords: "",
   });
+
+  // Recommendations: score tracked jobs by target company, fit, urgency, contacts
+  const recommendations = useMemo(() => {
+    interface ScoredJob { job: Job; score: number; reasons: string[]; target?: TargetCompany; }
+    const scored: ScoredJob[] = existingJobs
+      .filter(j => !["rejected", "withdrawn", "closed"].includes(j.status))
+      .map(job => {
+        let score = 50;
+        const reasons: string[] = [];
+        const target = targetCompanies.find(tc => tc.status !== "archived" && companiesMatch(tc.name, job.company));
+        if (target) {
+          const boost = target.priority === "dream" ? 20 : target.priority === "strong" ? 15 : 10;
+          score += boost;
+          reasons.push(`${target.priority === "dream" ? "🌟 Dream" : target.priority === "strong" ? "💪 Strong" : "👀 Interested"} target`);
+        }
+        if (job.fitScore) { score += job.fitScore * 4; if (job.fitScore >= 4) reasons.push("High fit score"); }
+        if (job.urgency === "high") { score += 10; reasons.push("High urgency"); }
+        else if (job.urgency === "medium") { score += 5; }
+        if (["applied", "screening", "interviewing"].includes(job.status)) { score += 8; reasons.push("Active in pipeline"); }
+        if (job.status === "offer") { score += 15; reasons.push("Has offer"); }
+        const companyContacts = contacts.filter(c => companiesMatch(c.company, job.company));
+        if (companyContacts.length > 0) { score += 5 * Math.min(companyContacts.length, 3); reasons.push(`${companyContacts.length} contact${companyContacts.length > 1 ? "s" : ""}`); }
+        if (job.type === "remote") score += 3;
+        if (job.description) score += 2;
+        score = Math.min(score, 99);
+        if (reasons.length === 0) reasons.push("Matches your criteria");
+        return { job, score, reasons, target };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8);
+    return scored;
+  }, [existingJobs, contacts, targetCompanies]);
+
+  const getRecommendationScoreColor = (score: number) => {
+    if (score >= 85) return "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700";
+    if (score >= 70) return "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700";
+    if (score >= 55) return "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700";
+    return "bg-muted text-muted-foreground";
+  };
 
   useEffect(() => {
     loadProfile();
