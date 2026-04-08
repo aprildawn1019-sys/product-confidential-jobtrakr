@@ -747,9 +747,14 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
                           <TooltipContent side="top" className="text-xs">View in Pipeline</TooltipContent>
                         </Tooltip>
                         {job.url && (
-                          <a href={job.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-muted-foreground hover:text-primary p-1.5">
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <a href={job.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-muted-foreground hover:text-primary p-1.5">
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </a>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">View job posting</TooltipContent>
+                          </Tooltip>
                         )}
                       </div>
                     </div>
