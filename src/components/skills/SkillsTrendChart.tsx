@@ -30,15 +30,6 @@ export function SkillsTrendChart({ trendData, trendSkills, trendScale, onScaleCh
             </TooltipContent>
           </Tooltip>
         </CardTitle>
-        <Select value={trendScale} onValueChange={(v) => onScaleChange(v as "weeks" | "months")}>
-          <SelectTrigger className="w-28 h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="weeks">Weeks</SelectItem>
-            <SelectItem value="months">Months</SelectItem>
-          </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent>
         <div className="h-[350px]">
