@@ -60,7 +60,6 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
     contacts.filter(c => {
       if (!c.followUpDate) return false;
       const linkedJobIds = jobContacts.filter(jc => jc.contactId === c.id).map(jc => jc.jobId);
-      // If the contact has linked jobs, exclude if ALL are inactive
       if (linkedJobIds.length > 0) {
         const allInactive = linkedJobIds.every(jid => {
           const job = jobs.find(j => j.id === jid);
@@ -99,6 +98,110 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
         {/* Follow-up Reminders */}
         <div className="rounded-xl border border-border bg-card p-6">
           <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
+            <CalendarDays className="h-5 w-5 text-info" />Follow-up Reminders
+            {overdueCount > 0 && (
+              <Badge variant="destructive" className="text-xs">{overdueCount} overdue</Badge>
+            )}
+            <Link to="/interviews?filter=followups" className="ml-auto text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View all →</Link>
+          </h2>
+          {followUpContacts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-info/10 mb-3">
+                <CalendarDays className="h-6 w-6 text-info" />
+              </div>
+              <p className="text-sm text-muted-foreground">No follow-ups scheduled</p>
+              <Link to="/contacts" className="text-xs text-primary hover:underline mt-1">Set a follow-up on a contact →</Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {followUpContacts.map(contact => {
+                const d = new Date(contact.followUpDate!);
+                const overdue = isPast(d) && !isToday(d);
+                const today = isToday(d);
+                return (
+                  <div key={contact.id} className={cn("flex items-center justify-between rounded-lg border p-3 group", overdue ? "border-destructive/40 bg-destructive/5" : today ? "border-warning/40 bg-warning/5" : "border-border")}>
+                    <button
+                      onClick={() => navigate(`/contacts?highlight=${contact.id}`)}
+                      className="min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
+                    >
+                      <p className="font-medium text-sm">{contact.name}</p>
+                      <p className="text-xs text-muted-foreground">{contact.role} at {contact.company}</p>
+                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant="outline" className={cn("text-xs", overdue ? "text-destructive border-destructive/30" : today ? "text-warning border-warning/30" : "text-info border-info/30")}>
+                        {overdue ? `Overdue ${formatDistanceToNow(d)}` : today ? "Today" : `In ${formatDistanceToNow(d)}`}
+                      </Badge>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <Calendar
+                            mode="single"
+                            selected={d}
+                            onSelect={newDate => {
+                              if (newDate && onUpdateContact) {
+                                onUpdateContact(contact.id, { followUpDate: format(newDate, "yyyy-MM-dd") });
+                              }
+                            }}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                        onClick={() => onUpdateContact?.(contact.id, { followUpDate: undefined })}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Upcoming Interviews */}
+        <div className="rounded-xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-semibold mb-4 flex items-center justify-between">
+            <span>Upcoming Interviews</span>
+            <Link to="/interviews" className="text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View calendar →</Link>
+          </h2>
+          {upcoming.length === 0 ? (
+            <Link to="/interviews" className="flex flex-col items-center justify-center py-8 text-center group">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning/10 mb-3 group-hover:bg-warning/20 transition-colors">
+                <Clock className="h-6 w-6 text-warning" />
+              </div>
+              <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">No upcoming interviews</p>
+              <p className="text-xs text-primary mt-1">Schedule one →</p>
+            </Link>
+          ) : (
+            <div className="space-y-3">
+              {upcoming.map(interview => {
+                const job = jobs.find(j => j.id === interview.jobId);
+                return (
+                  <Link to="/interviews" key={interview.id} className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
+                    <div>
+                      <p className="font-medium text-sm">{job?.company} — {interview.type}</p>
+                      <p className="text-xs text-muted-foreground">{interview.date} {interview.time && `at ${interview.time}`}</p>
+                    </div>
+                    <Badge variant="warning">{interview.type}</Badge>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* High Urgency Jobs */}
+        <div className="rounded-xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-warning" />High Urgency Jobs
           </h2>
           {highUrgencyJobs.length === 0 ? (
@@ -110,7 +213,7 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
               <p className="text-xs text-muted-foreground mt-1">Set urgency on jobs to track what needs attention first</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1">
               {highUrgencyJobs.map(job => (
                 <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
                   <div className="flex items-center gap-3">
@@ -155,7 +258,7 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
               <p className="text-xs text-muted-foreground mt-1">Rate your job fit to surface the best opportunities</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1">
               {topFitJobs.map(job => (
                 <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
                   <div className="flex items-center gap-3">
@@ -176,40 +279,6 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-        </div>
-
-        {/* High Urgency Jobs */}
-
-        {/* Upcoming Interviews */}
-        <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="font-display text-lg font-semibold mb-4 flex items-center justify-between">
-            <span>Upcoming Interviews</span>
-            <Link to="/interviews" className="text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View calendar →</Link>
-          </h2>
-          {upcoming.length === 0 ? (
-            <Link to="/interviews" className="flex flex-col items-center justify-center py-8 text-center group">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning/10 mb-3 group-hover:bg-warning/20 transition-colors">
-                <Clock className="h-6 w-6 text-warning" />
-              </div>
-              <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors">No upcoming interviews</p>
-              <p className="text-xs text-primary mt-1">Schedule one →</p>
-            </Link>
-          ) : (
-            <div className="space-y-3">
-              {upcoming.map(interview => {
-                const job = jobs.find(j => j.id === interview.jobId);
-                return (
-                  <Link to="/interviews" key={interview.id} className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
-                    <div>
-                      <p className="font-medium text-sm">{job?.company} — {interview.type}</p>
-                      <p className="text-xs text-muted-foreground">{interview.date} {interview.time && `at ${interview.time}`}</p>
-                    </div>
-                    <Badge variant="warning">{interview.type}</Badge>
-                  </Link>
-                );
-              })}
             </div>
           )}
         </div>
