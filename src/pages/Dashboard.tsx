@@ -199,7 +199,7 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
                 return (
                   <Link to="/interviews" key={interview.id} className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors">
                     <div>
-                      <p className="font-medium text-sm">{job?.company} — {interview.type}</p>
+                      <p className="font-medium text-sm">{job?.title} at {job?.company}</p>
                       <p className="text-xs text-muted-foreground">{interview.date} {interview.time && `at ${interview.time}`}</p>
                     </div>
                     <Badge variant="outline" className={cn("capitalize", interviewTypeColors[interview.type] || "bg-muted text-muted-foreground")}>{interview.type}</Badge>
