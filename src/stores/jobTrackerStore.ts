@@ -177,7 +177,7 @@ export function useJobTrackerStore() {
       contact_id: job.contactId || null, poster_name: job.posterName || null,
       poster_email: job.posterEmail || null, poster_phone: job.posterPhone || null,
       poster_role: job.posterRole || null, fit_score: job.fitScore || null,
-      urgency: job.urgency || null, source: job.source || "manual",
+      urgency: job.priority || null, source: job.source || "manual",
     }).select().single();
     if (data) {
       const newJob = mapJob(data);
