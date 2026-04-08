@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import StatCard from "@/components/StatCard";
 // StatusBadge removed - unused
 import StatusSelect from "@/components/StatusSelect";
-import FitScoreStars from "@/components/FitScoreStars";
+import MatchScoreStars from "@/components/MatchScoreStars";
 import CompanyAvatar from "@/components/CompanyAvatar";
 import type { Job, Contact, Interview, JobContact, TargetCompany } from "@/types/jobTracker";
 
