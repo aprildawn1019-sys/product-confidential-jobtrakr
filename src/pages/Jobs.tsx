@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert, Building2, FileText } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -51,6 +51,8 @@ export default function Jobs({
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<"list" | "kanban">("list");
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const highlightedJobId = searchParams.get("jobId");
+  const highlightedRef = useRef<HTMLDivElement | null>(null);
   const companyFilter = searchParams.get("company");
   const [searchQuery, setSearchQuery] = useState(companyFilter || "");
 
@@ -83,7 +85,18 @@ export default function Jobs({
     }
   }, [searchParams]);
 
-  // Load persisted feed on mount
+  // Auto-expand and scroll to highlighted job from query param
+  useEffect(() => {
+    if (highlightedJobId) {
+      setExpandedJob(highlightedJobId);
+      // Small delay to let the DOM render the row
+      setTimeout(() => {
+        highlightedRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 200);
+    }
+  }, [highlightedJobId]);
+
+
   const loadPersistedFeed = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -433,7 +446,11 @@ export default function Jobs({
                 const hasNetwork = linkedContacts.length > 0 || networkMatches.length > 0;
 
                 return (
-                  <div key={job.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
+                  <div
+                    key={job.id}
+                    ref={job.id === highlightedJobId ? highlightedRef : undefined}
+                    className={`rounded-xl border bg-card transition-all hover:shadow-md ${job.id === highlightedJobId ? "border-primary ring-2 ring-primary/30" : "border-border"}`}
+                  >
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
