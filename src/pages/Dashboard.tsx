@@ -27,13 +27,6 @@ interface DashboardProps {
   onUpdateContact?: (id: string, updates: Partial<Contact>) => void;
 }
 
-const urgencyColors: Record<string, string> = {
-  critical: "bg-destructive/15 text-destructive border-destructive/30",
-  high: "bg-warning/15 text-warning border-warning/30",
-  medium: "bg-info/15 text-info border-info/30",
-  low: "bg-muted text-muted-foreground border-border",
-};
-
 const interviewTypeColors: Record<string, string> = {
   phone: "bg-blue-500/10 text-blue-700 border-blue-200",
   technical: "bg-purple-500/10 text-purple-700 border-purple-200",
@@ -42,7 +35,6 @@ const interviewTypeColors: Record<string, string> = {
   final: "bg-red-500/10 text-red-700 border-red-200",
 };
 
-const allStatuses = ["saved", "applied", "screening", "interviewing", "offer", "rejected", "withdrawn", "closed"];
 const allPriorities = ["low", "medium", "high"];
 
 export default function Dashboard({ jobs, contacts, interviews, jobContacts, targetCompanies = [], onUpdateStatus, onUpdateJob, onUpdateContact }: DashboardProps) {
