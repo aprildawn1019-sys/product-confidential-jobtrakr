@@ -241,7 +241,7 @@ export default function JobCRM({
             </div>
             <div className="flex items-center gap-3 mt-1">
               <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
-              <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} />
+              <PriorityBadge priority={job.priority} onChange={p => onUpdateJob(job.id, { priority: p })} />
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
