@@ -59,8 +59,8 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
     return filtered
       .sort((a, b) => {
         const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
-        const aPri = priorityOrder[a.urgency || ""] ?? 3;
-        const bPri = priorityOrder[b.urgency || ""] ?? 3;
+        const aPri = priorityOrder[a.priority || ""] ?? 3;
+        const bPri = priorityOrder[b.priority || ""] ?? 3;
         if (aPri !== bPri) return aPri - bPri;
         return (b.fitScore || 0) - (a.fitScore || 0);
       })
