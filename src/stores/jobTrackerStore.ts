@@ -35,7 +35,7 @@ function mapJob(row: any): Job {
     createdAt: row.created_at, statusUpdatedAt: row.status_updated_at ?? undefined,
     posterName: row.poster_name ?? undefined, posterEmail: row.poster_email ?? undefined,
     posterPhone: row.poster_phone ?? undefined, posterRole: row.poster_role ?? undefined,
-    fitScore: row.fit_score ?? undefined, urgency: row.urgency ?? undefined,
+    fitScore: row.fit_score ?? undefined, priority: row.urgency ?? undefined,
     source: row.source ?? "manual",
   };
 }
@@ -177,7 +177,7 @@ export function useJobTrackerStore() {
       contact_id: job.contactId || null, poster_name: job.posterName || null,
       poster_email: job.posterEmail || null, poster_phone: job.posterPhone || null,
       poster_role: job.posterRole || null, fit_score: job.fitScore || null,
-      urgency: job.urgency || null, source: job.source || "manual",
+      urgency: job.priority || null, source: job.source || "manual",
     }).select().single();
     if (data) {
       const newJob = mapJob(data);
@@ -210,7 +210,7 @@ export function useJobTrackerStore() {
       description: job.description || null, contact_id: job.contactId || null,
       poster_name: job.posterName || null, poster_email: job.posterEmail || null,
       poster_phone: job.posterPhone || null, poster_role: job.posterRole || null,
-      fit_score: job.fitScore || null, urgency: job.urgency || null,
+      fit_score: job.fitScore || null, urgency: job.priority || null,
     }));
     const { data } = await supabase.from("jobs").insert(rows).select();
     if (data) {
@@ -271,7 +271,7 @@ export function useJobTrackerStore() {
     if (updates.posterPhone !== undefined) dbUpdates.poster_phone = updates.posterPhone || null;
     if (updates.posterRole !== undefined) dbUpdates.poster_role = updates.posterRole || null;
     if (updates.fitScore !== undefined) dbUpdates.fit_score = updates.fitScore || null;
-    if (updates.urgency !== undefined) dbUpdates.urgency = updates.urgency || null;
+    if (updates.priority !== undefined) dbUpdates.urgency = updates.priority || null;
     if (updates.status !== undefined) {
       dbUpdates.status = updates.status;
       dbUpdates.status_updated_at = new Date().toISOString();

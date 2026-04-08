@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import CoverLetterDialog from "@/components/CoverLetterDialog";
 import FitScoreStars from "@/components/FitScoreStars";
-import UrgencyBadge from "@/components/UrgencyBadge";
+import PriorityBadge from "@/components/PriorityBadge";
 import type { Job, Contact, Interview } from "@/types/jobTracker";
 
 interface JobDetailPanelProps {
@@ -205,10 +205,10 @@ export default function JobDetailPanel({
                 <p className="font-medium capitalize">{job.type}{job.salary ? ` · ${job.salary}` : ""}</p>
               </div>
               <div className={compact ? "" : "col-span-2"}>
-                <span className="text-muted-foreground text-sm">Fit & Urgency</span>
+                <span className="text-muted-foreground text-sm">Fit & Priority</span>
                 <div className="flex items-center gap-3 mt-1">
                   <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} />
-                  <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} />
+                  <PriorityBadge priority={job.priority} onChange={p => onUpdateJob(job.id, { priority: p })} />
                 </div>
               </div>
             </div>

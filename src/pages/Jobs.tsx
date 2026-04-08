@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert, Building2, FileText } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import FitScoreStars from "@/components/FitScoreStars";
-import UrgencyBadge from "@/components/UrgencyBadge";
+import PriorityBadge from "@/components/PriorityBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -65,7 +65,7 @@ export default function Jobs({
     };
   }, [targetCompanies]);
   const [statusFilter, setStatusFilter] = useState<string>(() => searchParams.get("status") || "all");
-  const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [targetFilter, setTargetFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("all");
@@ -145,7 +145,7 @@ export default function Jobs({
         const statuses = statusFilter.split(",");
         if (!statuses.includes(job.status)) return false;
       }
-      if (urgencyFilter !== "all" && (job.urgency || "none") !== urgencyFilter) return false;
+      if (priorityFilter !== "all" && (job.priority || "none") !== priorityFilter) return false;
       if (typeFilter !== "all" && job.type !== typeFilter) return false;
       if (targetFilter !== "all") {
         const tc = getTargetForJob(job);
@@ -159,9 +159,9 @@ export default function Jobs({
       }
       return true;
     });
-  }, [jobs, searchQuery, statusFilter, urgencyFilter, typeFilter, targetFilter, getTargetForJob]);
+  }, [jobs, searchQuery, statusFilter, priorityFilter, typeFilter, targetFilter, getTargetForJob]);
 
-  const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all" || targetFilter !== "all";
+  const hasFilters = searchQuery || statusFilter !== "all" || priorityFilter !== "all" || typeFilter !== "all" || targetFilter !== "all";
 
   const feedSteps = [
     { label: "Searching job boards…", icon: SearchCheck },
@@ -370,11 +370,10 @@ export default function Jobs({
                 ))}
               </SelectContent>
             </Select>
-            <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
-              <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Urgency" /></SelectTrigger>
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="w-32 h-9"><SelectValue placeholder="Priority" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Urgency</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="all">All Priority</SelectItem>
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
@@ -407,7 +406,7 @@ export default function Jobs({
               </Select>
             )}
             {hasFilters && (
-              <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setStatusFilter("all"); setUrgencyFilter("all"); setTypeFilter("all"); setTargetFilter("all"); }}>
+              <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setStatusFilter("all"); setPriorityFilter("all"); setTypeFilter("all"); setTargetFilter("all"); }}>
                 <X className="h-4 w-4 mr-1" />Clear
               </Button>
             )}
@@ -497,7 +496,7 @@ export default function Jobs({
                           </div>
                           <div className="flex items-center gap-2 mt-1">
                             <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
-                            <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} />
+                            <PriorityBadge priority={job.priority} onChange={p => onUpdateJob(job.id, { priority: p })} />
                           </div>
                           <div className="flex items-center gap-2 mt-1">
                             <p className="text-muted-foreground">{job.company}</p>

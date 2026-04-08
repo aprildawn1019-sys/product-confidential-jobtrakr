@@ -106,8 +106,8 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
           reasons.push(`${target.priority === "dream" ? "🌟 Dream" : target.priority === "strong" ? "💪 Strong" : "👀 Interested"} target`);
         }
         if (job.fitScore) { score += job.fitScore * 4; if (job.fitScore >= 4) reasons.push("High fit score"); }
-        if (job.urgency === "high") { score += 10; reasons.push("High urgency"); }
-        else if (job.urgency === "medium") { score += 5; }
+        if (job.priority === "high") { score += 10; reasons.push("High priority"); }
+        else if (job.priority === "medium") { score += 5; }
         if (["applied", "screening", "interviewing"].includes(job.status)) { score += 8; reasons.push("Active in pipeline"); }
         if (job.status === "offer") { score += 15; reasons.push("Has offer"); }
         const companyContacts = contacts.filter(c => companiesMatch(c.company, job.company));
@@ -710,7 +710,7 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-amber-500" />
                   <span className="font-semibold text-sm">Recommended for You</span>
-                  <span className="text-xs text-muted-foreground">— top tracked jobs by fit, urgency &amp; network</span>
+                  <span className="text-xs text-muted-foreground">— top tracked jobs by fit, priority &amp; network</span>
                 </div>
                 {showRecommendations ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
               </button>

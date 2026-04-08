@@ -8,7 +8,7 @@ import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/h
 import StatusBadge from "@/components/StatusBadge";
 import JobDetailPanel from "@/components/JobDetailPanel";
 import FitScoreStars from "@/components/FitScoreStars";
-import UrgencyBadge from "@/components/UrgencyBadge";
+import PriorityBadge from "@/components/PriorityBadge";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { Job, Contact, JobStatus, Interview, TargetCompany } from "@/types/jobTracker";
@@ -164,10 +164,10 @@ export default function JobKanban({
                           </p>
                         )}
 
-                        {/* Fit & Urgency */}
+                        {/* Fit & Priority */}
                         <div className="flex items-center gap-1.5 mt-1.5">
                           <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
-                          {job.urgency && <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} mode="badge" />}
+                          {job.priority && <PriorityBadge priority={job.priority} onChange={p => onUpdateJob(job.id, { priority: p })} mode="badge" />}
                         </div>
                       </div>
                     </div>

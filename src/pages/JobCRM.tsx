@@ -16,7 +16,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Separator } from "@/components/ui/separator";
 import StatusSelect from "@/components/StatusSelect";
 import FitScoreStars from "@/components/FitScoreStars";
-import UrgencyBadge from "@/components/UrgencyBadge";
+import PriorityBadge from "@/components/PriorityBadge";
 import WarmthBadge from "@/components/WarmthBadge";
 import CoverLetterDialog from "@/components/CoverLetterDialog";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
@@ -241,7 +241,7 @@ export default function JobCRM({
             </div>
             <div className="flex items-center gap-3 mt-1">
               <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
-              <UrgencyBadge urgency={job.urgency} onChange={u => onUpdateJob(job.id, { urgency: u })} />
+              <PriorityBadge priority={job.priority} onChange={p => onUpdateJob(job.id, { priority: p })} />
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">

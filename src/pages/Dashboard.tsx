@@ -50,7 +50,7 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
   const activeOpportunities = useMemo(() => {
     let filtered = jobs.filter(j => !inactiveStatuses.includes(j.status));
     if (priorityFilter !== "all") {
-      filtered = filtered.filter(j => j.urgency === priorityFilter);
+      filtered = filtered.filter(j => j.priority === priorityFilter);
     }
     if (matchScoreFilter !== "all") {
       const minScore = parseInt(matchScoreFilter);
@@ -59,8 +59,8 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
     return filtered
       .sort((a, b) => {
         const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
-        const aPri = priorityOrder[a.urgency || ""] ?? 3;
-        const bPri = priorityOrder[b.urgency || ""] ?? 3;
+        const aPri = priorityOrder[a.priority || ""] ?? 3;
+        const bPri = priorityOrder[b.priority || ""] ?? 3;
         if (aPri !== bPri) return aPri - bPri;
         return (b.fitScore || 0) - (a.fitScore || 0);
       })
@@ -261,7 +261,7 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <StatusSelect value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)} />
-                    <Select value={job.urgency || ""} onValueChange={v => onUpdateJob?.(job.id, { urgency: v })}>
+                    <Select value={job.priority || ""} onValueChange={v => onUpdateJob?.(job.id, { priority: v })}>
                       <SelectTrigger className="h-7 text-xs w-[100px]"><SelectValue placeholder="Priority" /></SelectTrigger>
                       <SelectContent>
                         {allPriorities.map(p => <SelectItem key={p} value={p} className="text-xs">{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>)}
