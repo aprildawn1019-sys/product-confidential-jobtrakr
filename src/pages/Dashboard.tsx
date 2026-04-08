@@ -60,7 +60,6 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
     contacts.filter(c => {
       if (!c.followUpDate) return false;
       const linkedJobIds = jobContacts.filter(jc => jc.contactId === c.id).map(jc => jc.jobId);
-      // If the contact has linked jobs, exclude if ALL are inactive
       if (linkedJobIds.length > 0) {
         const allInactive = linkedJobIds.every(jid => {
           const job = jobs.find(j => j.id === jid);
@@ -96,90 +95,6 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* High Urgency Jobs */}
-        <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-warning" />High Urgency Jobs
-          </h2>
-          {highUrgencyJobs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning/10 mb-3">
-                <AlertTriangle className="h-6 w-6 text-warning" />
-              </div>
-              <p className="text-sm text-muted-foreground">No high-urgency jobs right now</p>
-              <p className="text-xs text-muted-foreground mt-1">Set urgency on jobs to track what needs attention first</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {highUrgencyJobs.map(job => (
-                <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
-                  <div className="flex items-center gap-3">
-                    <CompanyAvatar company={job.company} />
-                    <Link to={`/jobs/${job.id}`} className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">{job.title}</p>
-                      <p className="text-xs text-muted-foreground">{job.company}</p>
-                    </Link>
-                    {job.url && (
-                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary shrink-0 ml-2">
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <StatusSelect value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)} />
-                    <Select value={job.urgency || ""} onValueChange={v => onUpdateJob?.(job.id, { urgency: v })}>
-                      <SelectTrigger className="h-7 text-xs w-[100px]"><SelectValue placeholder="Urgency" /></SelectTrigger>
-                      <SelectContent>
-                        {allUrgencies.map(u => <SelectItem key={u} value={u} className="text-xs capitalize">{u}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Top Rated Fits */}
-        <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
-            <Star className="h-5 w-5 text-primary" />Top Rated Fits
-          </h2>
-          {topFitJobs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3">
-                <Star className="h-6 w-6 text-primary" />
-              </div>
-              <p className="text-sm text-muted-foreground">No jobs rated 4+ stars yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Rate your job fit to surface the best opportunities</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {topFitJobs.map(job => (
-                <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
-                  <div className="flex items-center gap-3">
-                    <CompanyAvatar company={job.company} />
-                    <Link to={`/jobs/${job.id}`} className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">{job.title}</p>
-                      <p className="text-xs text-muted-foreground">{job.company}</p>
-                    </Link>
-                    {job.url && (
-                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary shrink-0 ml-2">
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <StatusSelect value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)} />
-                    <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
         {/* Follow-up Reminders */}
         <div className="rounded-xl border border-border bg-card p-6">
           <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
@@ -280,6 +195,90 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
                   </Link>
                 );
               })}
+            </div>
+          )}
+        </div>
+
+        {/* High Urgency Jobs */}
+        <div className="rounded-xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-warning" />High Urgency Jobs
+          </h2>
+          {highUrgencyJobs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning/10 mb-3">
+                <AlertTriangle className="h-6 w-6 text-warning" />
+              </div>
+              <p className="text-sm text-muted-foreground">No high-urgency jobs right now</p>
+              <p className="text-xs text-muted-foreground mt-1">Set urgency on jobs to track what needs attention first</p>
+            </div>
+          ) : (
+            <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1">
+              {highUrgencyJobs.map(job => (
+                <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
+                  <div className="flex items-center gap-3">
+                    <CompanyAvatar company={job.company} />
+                    <Link to={`/jobs/${job.id}`} className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{job.title}</p>
+                      <p className="text-xs text-muted-foreground">{job.company}</p>
+                    </Link>
+                    {job.url && (
+                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary shrink-0 ml-2">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <StatusSelect value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)} />
+                    <Select value={job.urgency || ""} onValueChange={v => onUpdateJob?.(job.id, { urgency: v })}>
+                      <SelectTrigger className="h-7 text-xs w-[100px]"><SelectValue placeholder="Urgency" /></SelectTrigger>
+                      <SelectContent>
+                        {allUrgencies.map(u => <SelectItem key={u} value={u} className="text-xs capitalize">{u}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Top Rated Fits */}
+        <div className="rounded-xl border border-border bg-card p-6">
+          <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
+            <Star className="h-5 w-5 text-primary" />Top Rated Fits
+          </h2>
+          {topFitJobs.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3">
+                <Star className="h-6 w-6 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground">No jobs rated 4+ stars yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Rate your job fit to surface the best opportunities</p>
+            </div>
+          ) : (
+            <div className="max-h-[320px] overflow-y-auto space-y-3 pr-1">
+              {topFitJobs.map(job => (
+                <div key={job.id} className="rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors space-y-2">
+                  <div className="flex items-center gap-3">
+                    <CompanyAvatar company={job.company} />
+                    <Link to={`/jobs/${job.id}`} className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{job.title}</p>
+                      <p className="text-xs text-muted-foreground">{job.company}</p>
+                    </Link>
+                    {job.url && (
+                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary shrink-0 ml-2">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <StatusSelect value={job.status} onValueChange={v => onUpdateStatus?.(job.id, v)} />
+                    <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
