@@ -85,7 +85,18 @@ export default function Jobs({
     }
   }, [searchParams]);
 
-  // Load persisted feed on mount
+  // Auto-expand and scroll to highlighted job from query param
+  useEffect(() => {
+    if (highlightedJobId) {
+      setExpandedJob(highlightedJobId);
+      // Small delay to let the DOM render the row
+      setTimeout(() => {
+        highlightedRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 200);
+    }
+  }, [highlightedJobId]);
+
+
   const loadPersistedFeed = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
