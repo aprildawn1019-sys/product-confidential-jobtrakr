@@ -61,7 +61,7 @@ interface JobSearchProps {
   targetCompanies: TargetCompany[];
 }
 
-export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
+export default function JobSearch({ onAddJob, existingJobs, contacts, targetCompanies }: JobSearchProps) {
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [addedJobs, setAddedJobs] = useState<Set<string>>(new Set());
