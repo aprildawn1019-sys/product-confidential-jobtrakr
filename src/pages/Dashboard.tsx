@@ -50,7 +50,7 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
   const activeOpportunities = useMemo(() => {
     let filtered = jobs.filter(j => !inactiveStatuses.includes(j.status));
     if (priorityFilter !== "all") {
-      filtered = filtered.filter(j => j.urgency === priorityFilter);
+      filtered = filtered.filter(j => j.priority === priorityFilter);
     }
     if (matchScoreFilter !== "all") {
       const minScore = parseInt(matchScoreFilter);
