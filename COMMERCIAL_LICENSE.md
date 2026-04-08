@@ -1,4 +1,4 @@
-# Commercial License
+# Commercial License — Product Confidential
 
 JobTrackr is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE), which permits free use for personal, educational, and research purposes.
 
