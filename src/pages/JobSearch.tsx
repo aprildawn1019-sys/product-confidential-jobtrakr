@@ -57,6 +57,8 @@ interface SearchHistoryEntry {
 interface JobSearchProps {
   onAddJob: (job: Omit<Job, "id" | "createdAt">) => void;
   existingJobs: Job[];
+  contacts: Contact[];
+  targetCompanies: TargetCompany[];
 }
 
 export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
