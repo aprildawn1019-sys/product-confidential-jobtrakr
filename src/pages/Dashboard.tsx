@@ -199,7 +199,7 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
                       <p className="font-medium text-sm">{job?.company} — {interview.type}</p>
                       <p className="text-xs text-muted-foreground">{interview.date} {interview.time && `at ${interview.time}`}</p>
                     </div>
-                    <Badge variant="warning">{interview.type}</Badge>
+                    <Badge variant="outline" className={cn("capitalize", interviewTypeColors[interview.type] || "bg-muted text-muted-foreground")}>{interview.type}</Badge>
                   </Link>
                 );
               })}
