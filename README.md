@@ -10,6 +10,10 @@ A comprehensive job search management application built with React, TypeScript, 
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Supabase](https://img.shields.io/badge/Supabase-Backend-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com)
 
+<p align="center">
+  <img src="docs/images/hero.png" alt="JobTrackr Dashboard" width="800" />
+</p>
+
 ## Features
 
 ### 📊 Dashboard
