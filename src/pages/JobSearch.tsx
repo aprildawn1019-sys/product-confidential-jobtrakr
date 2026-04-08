@@ -736,11 +736,21 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
                           ))}
                         </div>
                       </div>
-                      {job.url && (
-                        <a href={job.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-muted-foreground hover:text-primary">
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      )}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => navigate(`/jobs?jobId=${job.id}`)}>
+                              <ArrowRight className="h-3.5 w-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">View in Pipeline</TooltipContent>
+                        </Tooltip>
+                        {job.url && (
+                          <a href={job.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-muted-foreground hover:text-primary p-1.5">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
