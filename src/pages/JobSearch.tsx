@@ -105,7 +105,7 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
           score += boost;
           reasons.push(`${target.priority === "dream" ? "🌟 Dream" : target.priority === "strong" ? "💪 Strong" : "👀 Interested"} target`);
         }
-        if (job.fitScore) { score += job.fitScore * 4; if (job.fitScore >= 4) reasons.push("High fit score"); }
+        if (job.fitScore) { score += job.fitScore * 4; if (job.fitScore >= 4) reasons.push("High match score"); }
         if (job.priority === "high") { score += 10; reasons.push("High priority"); }
         else if (job.priority === "medium") { score += 5; }
         if (["applied", "screening", "interviewing"].includes(job.status)) { score += 8; reasons.push("Active in pipeline"); }
