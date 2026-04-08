@@ -45,7 +45,7 @@ JobTrackr is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE),
    - Intended use case
    - Expected number of users
 
-2. **GitHub**: Open a [Discussion](https://github.com/aprildawn1019-sys/connect-career-compass-56/discussions) in the repository with the `commercial-license` tag.
+2. **GitHub**: Open a [Discussion](https://github.com/aprildawn1019-sys/product-confidential-jobtrakr/discussions) in the repository with the `commercial-license` tag.
 
 We aim to respond within **2 business days**.
 
