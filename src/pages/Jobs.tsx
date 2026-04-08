@@ -406,7 +406,7 @@ export default function Jobs({
               </Select>
             )}
             {hasFilters && (
-              <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setStatusFilter("all"); setUrgencyFilter("all"); setTypeFilter("all"); setTargetFilter("all"); }}>
+              <Button variant="ghost" size="sm" className="h-9" onClick={() => { setSearchQuery(""); setStatusFilter("all"); setPriorityFilter("all"); setTypeFilter("all"); setTargetFilter("all"); }}>
                 <X className="h-4 w-4 mr-1" />Clear
               </Button>
             )}
