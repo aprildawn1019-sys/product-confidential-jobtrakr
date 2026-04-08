@@ -164,9 +164,9 @@ export default function JobKanban({
                           </p>
                         )}
 
-                        {/* Fit & Priority */}
+                        {/* Match & Priority */}
                         <div className="flex items-center gap-1.5 mt-1.5">
-                          <FitScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
+                          <MatchScoreStars score={job.fitScore} onChange={s => onUpdateJob(job.id, { fitScore: s || undefined })} size="sm" />
                           {job.priority && <PriorityBadge priority={job.priority} onChange={p => onUpdateJob(job.id, { priority: p })} mode="badge" />}
                         </div>
                       </div>

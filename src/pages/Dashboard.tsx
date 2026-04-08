@@ -269,7 +269,7 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
                     </Select>
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-muted-foreground">Match:</span>
-                      <FitScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
+                      <MatchScoreStars score={job.fitScore} size="sm" onChange={s => onUpdateJob?.(job.id, { fitScore: s || undefined })} />
                     </div>
                   </div>
                 </div>
