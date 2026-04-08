@@ -1,7 +1,8 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { TrendingUp, Info } from "lucide-react";
 import { formatSkillLabel, TREND_LINE_COLORS } from "./skillsInsightsUtils";
 
 interface SkillsTrendChartProps {
