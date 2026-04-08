@@ -710,7 +710,7 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-amber-500" />
                   <span className="font-semibold text-sm">Recommended for You</span>
-                  <span className="text-xs text-muted-foreground">— top tracked jobs by fit, urgency &amp; network</span>
+                  <span className="text-xs text-muted-foreground">— top tracked jobs by fit, priority &amp; network</span>
                 </div>
                 {showRecommendations ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
               </button>
