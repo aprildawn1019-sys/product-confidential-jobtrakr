@@ -271,7 +271,7 @@ export function useJobTrackerStore() {
     if (updates.posterPhone !== undefined) dbUpdates.poster_phone = updates.posterPhone || null;
     if (updates.posterRole !== undefined) dbUpdates.poster_role = updates.posterRole || null;
     if (updates.fitScore !== undefined) dbUpdates.fit_score = updates.fitScore || null;
-    if (updates.urgency !== undefined) dbUpdates.urgency = updates.urgency || null;
+    if (updates.priority !== undefined) dbUpdates.urgency = updates.priority || null;
     if (updates.status !== undefined) {
       dbUpdates.status = updates.status;
       dbUpdates.status_updated_at = new Date().toISOString();
