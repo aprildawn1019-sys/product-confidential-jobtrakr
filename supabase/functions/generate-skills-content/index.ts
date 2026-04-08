@@ -41,11 +41,11 @@ ${targetRoles?.length ? `\nTarget roles: ${targetRoles.join(", ")}` : ""}
 Generate an optimized, ATS-friendly comma-separated keyword list (25-35 keywords). Include the most relevant skills plus related competencies, methodologies, and tools that would strengthen a resume for these types of roles.`;
     } else if (type === "linkedin_headline") {
       systemPrompt = `You are a LinkedIn branding expert. Create a compelling, keyword-rich LinkedIn headline that maximizes profile visibility and recruiter interest. The headline should be professional, impactful, and under 120 characters. Return ONLY the headline text, nothing else.`;
-      userPrompt = `Based on these top in-demand skills: ${topSkills.join(", ")}
+      userPrompt = `Based on the candidate's own skills and competencies: ${topSkills.join(", ")}
 ${targetRoles?.length ? `\nTarget roles: ${targetRoles.join(", ")}` : ""}
 ${profileSummary ? `\nCandidate summary: ${profileSummary}` : ""}
 
-Generate a compelling LinkedIn headline that incorporates the most relevant skills and role focus. Use pipe (|) or bullet separators. Make it attention-grabbing for recruiters.`;
+Generate a compelling LinkedIn headline that highlights the candidate's strongest skills and aligns with their target roles. Use pipe (|) or bullet separators. Make it attention-grabbing for recruiters.`;
     } else {
       return new Response(
         JSON.stringify({ error: "type must be 'resume_keywords' or 'linkedin_headline'" }),
