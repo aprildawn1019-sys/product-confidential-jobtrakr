@@ -696,11 +696,62 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
       )}
 
       {!searching && results.length === 0 && !viewingHistoryId && (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
-          <Search className="h-10 w-10 mb-4 opacity-40" />
-          <p className="font-medium">Ready to search</p>
-          <p className="text-sm">Click "Search Jobs" to find opportunities matching your profile</p>
-        </div>
+        <>
+          {/* Recommended for You */}
+          {recommendations.length > 0 && (
+            <div className="rounded-xl border border-border bg-card">
+              <button
+                onClick={() => setShowRecommendations(prev => !prev)}
+                className="flex items-center justify-between w-full p-4 text-left hover:bg-muted/50 transition-colors rounded-t-xl"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-amber-500" />
+                  <span className="font-semibold text-sm">Recommended for You</span>
+                  <span className="text-xs text-muted-foreground">— top tracked jobs by fit, urgency &amp; network</span>
+                </div>
+                {showRecommendations ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </button>
+              {showRecommendations && (
+                <div className="border-t border-border divide-y divide-border">
+                  {recommendations.map(({ job, score, reasons, target }) => (
+                    <div key={job.id} className="flex items-start gap-3 p-4 hover:bg-muted/30 transition-colors">
+                      <CompanyAvatar company={job.company} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-sm">{job.title}</span>
+                          <Badge variant="outline" className={`text-[10px] ${getRecommendationScoreColor(score)}`}>{score}%</Badge>
+                          <TargetCompanyBadge target={target} size="sm" />
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                          <span>{job.company}</span>
+                          {job.location && <><span>·</span><span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{job.location}</span></>}
+                          <span>·</span>
+                          <span className="capitalize">{job.status}</span>
+                        </div>
+                        <div className="flex gap-1 mt-1 flex-wrap">
+                          {reasons.map(r => (
+                            <span key={r} className="text-[10px] text-muted-foreground bg-muted rounded px-1.5 py-0.5">{r}</span>
+                          ))}
+                        </div>
+                      </div>
+                      {job.url && (
+                        <a href={job.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-muted-foreground hover:text-primary">
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
+            <Search className="h-10 w-10 mb-4 opacity-40" />
+            <p className="font-medium">Ready to search</p>
+            <p className="text-sm">Click "Search Jobs" to find opportunities matching your profile</p>
+          </div>
+        </>
       )}
 
       {/* Search History Section */}
