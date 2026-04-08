@@ -51,6 +51,8 @@ export default function Jobs({
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<"list" | "kanban">("list");
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const highlightedJobId = searchParams.get("jobId");
+  const highlightedRef = useRef<HTMLDivElement | null>(null);
   const companyFilter = searchParams.get("company");
   const [searchQuery, setSearchQuery] = useState(companyFilter || "");
 
