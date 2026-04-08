@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe, Settings2, XCircle, History, Trash2, RotateCcw } from "lucide-react";
+import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe, Settings2, XCircle, History, Trash2, RotateCcw, Sparkles } from "lucide-react";
 import { GatedBoardsNotice } from "@/components/jobsearch/GatedBoardsNotice";
 import { GatedBoardScrape } from "@/components/jobsearch/GatedBoardScrape";
 import { Slider } from "@/components/ui/slider";
@@ -10,7 +10,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import type { Job } from "@/types/jobTracker";
+import { Badge } from "@/components/ui/badge";
+import CompanyAvatar from "@/components/CompanyAvatar";
+import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import { companiesMatch } from "@/stores/jobTrackerStore";
+import type { Job, Contact, TargetCompany } from "@/types/jobTracker";
 
 interface SearchParams {
   resultCount: number;
