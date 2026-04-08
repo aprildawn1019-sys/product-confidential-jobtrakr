@@ -65,7 +65,7 @@ export default function Jobs({
     };
   }, [targetCompanies]);
   const [statusFilter, setStatusFilter] = useState<string>(() => searchParams.get("status") || "all");
-  const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [targetFilter, setTargetFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("all");
