@@ -210,7 +210,7 @@ export function useJobTrackerStore() {
       description: job.description || null, contact_id: job.contactId || null,
       poster_name: job.posterName || null, poster_email: job.posterEmail || null,
       poster_phone: job.posterPhone || null, poster_role: job.posterRole || null,
-      fit_score: job.fitScore || null, urgency: job.urgency || null,
+      fit_score: job.fitScore || null, urgency: job.priority || null,
     }));
     const { data } = await supabase.from("jobs").insert(rows).select();
     if (data) {
