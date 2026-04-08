@@ -1,6 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { TrendingUp, Info } from "lucide-react";
 import { formatSkillLabel, TREND_LINE_COLORS } from "./skillsInsightsUtils";
@@ -26,19 +26,10 @@ export function SkillsTrendChart({ trendData, trendSkills, trendScale, onScaleCh
               <Info className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
             <TooltipContent side="right" className="max-w-xs text-sm">
-              Tracks how often the top 5 most demanded skills appear in job descriptions over time, grouped by week or month. Helps you spot rising or declining skill requirements in the market.
+              Tracks how often the top 5 most demanded skills appear in job descriptions over time, grouped by month. Helps you spot rising or declining skill requirements in the market.
             </TooltipContent>
           </Tooltip>
         </CardTitle>
-        <Select value={trendScale} onValueChange={(v) => onScaleChange(v as "weeks" | "months")}>
-          <SelectTrigger className="w-28 h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="weeks">Weeks</SelectItem>
-            <SelectItem value="months">Months</SelectItem>
-          </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent>
         <div className="h-[350px]">

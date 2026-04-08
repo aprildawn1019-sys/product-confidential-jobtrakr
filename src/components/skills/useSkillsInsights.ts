@@ -14,7 +14,7 @@ export function useSkillsInsights() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [addingSkill, setAddingSkill] = useState<string | null>(null);
   const [removingSkill, setRemovingSkill] = useState<string | null>(null);
-  const [trendScale, setTrendScale] = useState<"weeks" | "months">("weeks");
+  const [trendScale, setTrendScale] = useState<"weeks" | "months">("months");
   const [aiResumeKeywords, setAiResumeKeywords] = useState<string | null>(null);
   const [aiLinkedInHeadline, setAiLinkedInHeadline] = useState<string | null>(null);
   const [generatingResume, setGeneratingResume] = useState(false);
