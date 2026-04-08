@@ -159,7 +159,7 @@ export default function Jobs({
       }
       return true;
     });
-  }, [jobs, searchQuery, statusFilter, urgencyFilter, typeFilter, targetFilter, getTargetForJob]);
+  }, [jobs, searchQuery, statusFilter, priorityFilter, typeFilter, targetFilter, getTargetForJob]);
 
   const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all" || targetFilter !== "all";
 
