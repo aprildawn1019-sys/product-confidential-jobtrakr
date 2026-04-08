@@ -88,6 +88,7 @@ export default function SkillsInsights() {
               aiResumeKeywords={aiResumeKeywords}
               generatingResume={generatingResume}
               copiedField={copiedField}
+              demandData={allSkillsRanked}
               onGenerate={() => handleGenerateAIContent("resume_keywords")}
               onCopy={handleCopy}
             />
