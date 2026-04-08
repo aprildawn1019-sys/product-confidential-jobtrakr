@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Eye, Undo2, ChevronDown, ChevronUp, Globe, Settings2, XCircle, History, Trash2, RotateCcw } from "lucide-react";
+import { Search, Loader2, Star, MapPin, Building2, Plus, CheckCircle2, ExternalLink, Clock, User, EyeOff, Undo2, ChevronDown, ChevronUp, Globe, Settings2, XCircle, History, Trash2, RotateCcw, Sparkles } from "lucide-react";
 import { GatedBoardsNotice } from "@/components/jobsearch/GatedBoardsNotice";
 import { GatedBoardScrape } from "@/components/jobsearch/GatedBoardScrape";
 import { Slider } from "@/components/ui/slider";
@@ -10,7 +10,11 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import type { Job } from "@/types/jobTracker";
+import { Badge } from "@/components/ui/badge";
+import CompanyAvatar from "@/components/CompanyAvatar";
+import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import { companiesMatch } from "@/stores/jobTrackerStore";
+import type { Job, Contact, TargetCompany } from "@/types/jobTracker";
 
 interface SearchParams {
   resultCount: number;
@@ -53,9 +57,11 @@ interface SearchHistoryEntry {
 interface JobSearchProps {
   onAddJob: (job: Omit<Job, "id" | "createdAt">) => void;
   existingJobs: Job[];
+  contacts: Contact[];
+  targetCompanies: TargetCompany[];
 }
 
-export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
+export default function JobSearch({ onAddJob, existingJobs, contacts, targetCompanies }: JobSearchProps) {
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [addedJobs, setAddedJobs] = useState<Set<string>>(new Set());
@@ -72,6 +78,7 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [showRecommendations, setShowRecommendations] = useState(true);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     resultCount: 10,
     minMatchScore: 60,
@@ -80,6 +87,45 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
     creativityLevel: "balanced",
     focusKeywords: "",
   });
+
+  // Recommendations: score tracked jobs by target company, fit, urgency, contacts
+  const recommendations = useMemo(() => {
+    interface ScoredJob { job: Job; score: number; reasons: string[]; target?: TargetCompany; }
+    const scored: ScoredJob[] = existingJobs
+      .filter(j => !["rejected", "withdrawn", "closed"].includes(j.status))
+      .map(job => {
+        let score = 50;
+        const reasons: string[] = [];
+        const target = targetCompanies.find(tc => tc.status !== "archived" && companiesMatch(tc.name, job.company));
+        if (target) {
+          const boost = target.priority === "dream" ? 20 : target.priority === "strong" ? 15 : 10;
+          score += boost;
+          reasons.push(`${target.priority === "dream" ? "🌟 Dream" : target.priority === "strong" ? "💪 Strong" : "👀 Interested"} target`);
+        }
+        if (job.fitScore) { score += job.fitScore * 4; if (job.fitScore >= 4) reasons.push("High fit score"); }
+        if (job.urgency === "high") { score += 10; reasons.push("High urgency"); }
+        else if (job.urgency === "medium") { score += 5; }
+        if (["applied", "screening", "interviewing"].includes(job.status)) { score += 8; reasons.push("Active in pipeline"); }
+        if (job.status === "offer") { score += 15; reasons.push("Has offer"); }
+        const companyContacts = contacts.filter(c => companiesMatch(c.company, job.company));
+        if (companyContacts.length > 0) { score += 5 * Math.min(companyContacts.length, 3); reasons.push(`${companyContacts.length} contact${companyContacts.length > 1 ? "s" : ""}`); }
+        if (job.type === "remote") score += 3;
+        if (job.description) score += 2;
+        score = Math.min(score, 99);
+        if (reasons.length === 0) reasons.push("Matches your criteria");
+        return { job, score, reasons, target };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8);
+    return scored;
+  }, [existingJobs, contacts, targetCompanies]);
+
+  const getRecommendationScoreColor = (score: number) => {
+    if (score >= 85) return "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700";
+    if (score >= 70) return "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700";
+    if (score >= 55) return "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700";
+    return "bg-muted text-muted-foreground";
+  };
 
   useEffect(() => {
     loadProfile();
@@ -650,11 +696,62 @@ export default function JobSearch({ onAddJob, existingJobs }: JobSearchProps) {
       )}
 
       {!searching && results.length === 0 && !viewingHistoryId && (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
-          <Search className="h-10 w-10 mb-4 opacity-40" />
-          <p className="font-medium">Ready to search</p>
-          <p className="text-sm">Click "Search Jobs" to find opportunities matching your profile</p>
-        </div>
+        <>
+          {/* Recommended for You */}
+          {recommendations.length > 0 && (
+            <div className="rounded-xl border border-border bg-card">
+              <button
+                onClick={() => setShowRecommendations(prev => !prev)}
+                className="flex items-center justify-between w-full p-4 text-left hover:bg-muted/50 transition-colors rounded-t-xl"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-amber-500" />
+                  <span className="font-semibold text-sm">Recommended for You</span>
+                  <span className="text-xs text-muted-foreground">— top tracked jobs by fit, urgency &amp; network</span>
+                </div>
+                {showRecommendations ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </button>
+              {showRecommendations && (
+                <div className="border-t border-border divide-y divide-border">
+                  {recommendations.map(({ job, score, reasons, target }) => (
+                    <div key={job.id} className="flex items-start gap-3 p-4 hover:bg-muted/30 transition-colors">
+                      <CompanyAvatar company={job.company} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-sm">{job.title}</span>
+                          <Badge variant="outline" className={`text-[10px] ${getRecommendationScoreColor(score)}`}>{score}%</Badge>
+                          <TargetCompanyBadge target={target} size="sm" />
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                          <span>{job.company}</span>
+                          {job.location && <><span>·</span><span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{job.location}</span></>}
+                          <span>·</span>
+                          <span className="capitalize">{job.status}</span>
+                        </div>
+                        <div className="flex gap-1 mt-1 flex-wrap">
+                          {reasons.map(r => (
+                            <span key={r} className="text-[10px] text-muted-foreground bg-muted rounded px-1.5 py-0.5">{r}</span>
+                          ))}
+                        </div>
+                      </div>
+                      {job.url && (
+                        <a href={job.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-muted-foreground hover:text-primary">
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-xl">
+            <Search className="h-10 w-10 mb-4 opacity-40" />
+            <p className="font-medium">Ready to search</p>
+            <p className="text-sm">Click "Search Jobs" to find opportunities matching your profile</p>
+          </div>
+        </>
       )}
 
       {/* Search History Section */}
