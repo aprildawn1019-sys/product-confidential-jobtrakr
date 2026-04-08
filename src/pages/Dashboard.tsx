@@ -180,77 +180,7 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
           )}
         </div>
 
-        {/* Follow-up Reminders */}
-        <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-info" />Follow-up Reminders
-            {overdueCount > 0 && (
-              <Badge variant="destructive" className="text-xs">{overdueCount} overdue</Badge>
-            )}
-            <Link to="/interviews?filter=followups" className="ml-auto text-xs font-normal text-muted-foreground hover:text-primary transition-colors">View all →</Link>
-          </h2>
-          {followUpContacts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-info/10 mb-3">
-                <CalendarDays className="h-6 w-6 text-info" />
-              </div>
-              <p className="text-sm text-muted-foreground">No follow-ups scheduled</p>
-              <Link to="/contacts" className="text-xs text-primary hover:underline mt-1">Set a follow-up on a contact →</Link>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {followUpContacts.map(contact => {
-                const d = new Date(contact.followUpDate!);
-                const overdue = isPast(d) && !isToday(d);
-                const today = isToday(d);
-                return (
-                  <div key={contact.id} className={cn("flex items-center justify-between rounded-lg border p-3 group", overdue ? "border-destructive/40 bg-destructive/5" : today ? "border-warning/40 bg-warning/5" : "border-border")}>
-                    <button
-                      onClick={() => navigate(`/contacts?highlight=${contact.id}`)}
-                      className="min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
-                    >
-                      <p className="font-medium text-sm">{contact.name}</p>
-                      <p className="text-xs text-muted-foreground">{contact.role} at {contact.company}</p>
-                    </button>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Badge variant="outline" className={cn("text-xs", overdue ? "text-destructive border-destructive/30" : today ? "text-warning border-warning/30" : "text-info border-info/30")}>
-                        {overdue ? `Overdue ${formatDistanceToNow(d)}` : today ? "Today" : `In ${formatDistanceToNow(d)}`}
-                      </Badge>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="end">
-                          <Calendar
-                            mode="single"
-                            selected={d}
-                            onSelect={newDate => {
-                              if (newDate && onUpdateContact) {
-                                onUpdateContact(contact.id, { followUpDate: format(newDate, "yyyy-MM-dd") });
-                              }
-                            }}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
-                        onClick={() => onUpdateContact?.(contact.id, { followUpDate: undefined })}
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        {/* High Urgency Jobs */}
 
         {/* Upcoming Interviews */}
         <div className="rounded-xl border border-border bg-card p-6">
