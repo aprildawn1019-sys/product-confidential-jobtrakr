@@ -222,15 +222,25 @@ export function useSkillsInsights() {
     const setContent = isResume ? setAiResumeKeywords : setAiLinkedInHeadline;
     setGenerating(true);
     try {
-      const topSkills = type === "linkedin_headline"
-        ? [
-            ...(profileSkills?.skills || []),
-            ...(profileSkills?.technical_skills || []),
-            ...(profileSkills?.soft_skills || []),
-            ...(profileSkills?.tools_platforms || []),
-            ...(profileSkills?.certifications || []),
-          ].map(s => formatSkillLabel(s.trim())).filter(Boolean).slice(0, 25)
-        : allSkillsRanked.slice(0, 20).map(s => s.label);
+      let topSkills: string[];
+      if (type === "linkedin_headline") {
+        topSkills = [
+          ...(profileSkills?.skills || []),
+          ...(profileSkills?.technical_skills || []),
+          ...(profileSkills?.soft_skills || []),
+          ...(profileSkills?.tools_platforms || []),
+          ...(profileSkills?.certifications || []),
+        ].map(s => formatSkillLabel(s.trim())).filter(Boolean).slice(0, 25);
+      } else {
+        // resume_keywords: only skills that overlap between profile and job demand
+        const mySkills = new Set(
+          [...(profileSkills?.skills || []), ...(profileSkills?.technical_skills || []),
+           ...(profileSkills?.soft_skills || []), ...(profileSkills?.tools_platforms || []),
+           ...(profileSkills?.certifications || [])]
+            .map(s => s.trim().toLowerCase()).filter(Boolean)
+        );
+        topSkills = allSkillsRanked.filter(s => mySkills.has(s.skill)).slice(0, 25).map(s => s.label);
+      }
       const { data, error } = await supabase.functions.invoke("generate-skills-content", {
         body: { type, topSkills, profileSummary: profileSkills?.skills?.join(", ") || "", targetRoles: profileSkills?.target_roles || [] },
       });
