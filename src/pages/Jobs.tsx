@@ -161,7 +161,7 @@ export default function Jobs({
     });
   }, [jobs, searchQuery, statusFilter, priorityFilter, typeFilter, targetFilter, getTargetForJob]);
 
-  const hasFilters = searchQuery || statusFilter !== "all" || urgencyFilter !== "all" || typeFilter !== "all" || targetFilter !== "all";
+  const hasFilters = searchQuery || statusFilter !== "all" || priorityFilter !== "all" || typeFilter !== "all" || targetFilter !== "all";
 
   const feedSteps = [
     { label: "Searching job boards…", icon: SearchCheck },
