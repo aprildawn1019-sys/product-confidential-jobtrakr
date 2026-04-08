@@ -33,12 +33,12 @@ Deno.serve(async (req) => {
     let userPrompt: string;
 
     if (type === "resume_keywords") {
-      systemPrompt = `You are an expert resume writer and ATS optimization specialist. Generate a highly optimized, comma-separated list of resume keywords that will maximize ATS match rates. Include variations (e.g. both acronyms and full terms). Order by relevance and impact. Return ONLY the comma-separated keywords, nothing else.`;
-      userPrompt = `Based on these top in-demand skills from job descriptions: ${topSkills.join(", ")}
+      systemPrompt = `You are an expert resume writer and ATS optimization specialist. Generate a highly optimized, comma-separated list of resume keywords based on the candidate's own skills that are also in demand by employers. Include variations (e.g. both acronyms and full terms). Order by relevance and impact. Return ONLY the comma-separated keywords, nothing else.`;
+      userPrompt = `These are the candidate's skills that overlap with current job market demand: ${topSkills.join(", ")}
 ${profileSummary ? `\nCandidate summary: ${profileSummary}` : ""}
 ${targetRoles?.length ? `\nTarget roles: ${targetRoles.join(", ")}` : ""}
 
-Generate an optimized, ATS-friendly comma-separated keyword list (25-35 keywords). Include the most relevant skills plus related competencies, methodologies, and tools that would strengthen a resume for these types of roles.`;
+Generate an optimized, ATS-friendly comma-separated keyword list (25-35 keywords). Expand on the provided overlapping skills with related variations, synonyms, and phrasing that recruiters search for. Do NOT add skills the candidate doesn't have.`;
     } else if (type === "linkedin_headline") {
       systemPrompt = `You are a LinkedIn branding expert. Create a compelling, keyword-rich LinkedIn headline that maximizes profile visibility and recruiter interest. The headline should be professional, impactful, and under 120 characters. Return ONLY the headline text, nothing else.`;
       userPrompt = `Based on the candidate's own skills and competencies: ${topSkills.join(", ")}
