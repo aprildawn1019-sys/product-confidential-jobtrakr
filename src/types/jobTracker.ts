@@ -31,6 +31,28 @@ export interface SkillsSnapshot {
   capturedAt: string;
 }
 
+export type NetworkRole = "referral_source" | "hiring_manager" | "advocate" | "recruiter" | "peer" | "mentor" | "cold_lead";
+
+export const NETWORK_ROLES: { value: NetworkRole; label: string; emoji: string }[] = [
+  { value: "referral_source", label: "Referral Source", emoji: "🔗" },
+  { value: "hiring_manager", label: "Hiring Manager", emoji: "👔" },
+  { value: "advocate", label: "Advocate", emoji: "📣" },
+  { value: "recruiter", label: "Recruiter", emoji: "🎯" },
+  { value: "peer", label: "Peer", emoji: "🤝" },
+  { value: "mentor", label: "Mentor", emoji: "🧭" },
+  { value: "cold_lead", label: "Cold Lead", emoji: "❄️" },
+];
+
+export type RelationshipLabel = "introduced_by" | "referred_to" | "works_with" | "reports_to" | "former_colleague";
+
+export const RELATIONSHIP_LABELS: { value: RelationshipLabel; label: string }[] = [
+  { value: "introduced_by", label: "Introduced by" },
+  { value: "referred_to", label: "Referred to" },
+  { value: "works_with", label: "Works with" },
+  { value: "reports_to", label: "Reports to" },
+  { value: "former_colleague", label: "Former colleague" },
+];
+
 export interface Contact {
   id: string;
   name: string;
@@ -45,6 +67,7 @@ export interface Contact {
   relationshipWarmth?: string;
   followUpDate?: string;
   conversationLog?: string;
+  networkRole?: NetworkRole;
 }
 
 export interface Interview {
@@ -71,6 +94,7 @@ export interface ContactConnection {
   connectionType: string;
   notes?: string;
   createdAt: string;
+  relationshipLabel?: RelationshipLabel;
 }
 
 export interface ContactActivity {
