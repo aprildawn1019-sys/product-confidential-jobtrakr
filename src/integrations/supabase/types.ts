@@ -183,6 +183,7 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          relationship_label: string | null
           user_id: string | null
         }
         Insert: {
@@ -192,6 +193,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          relationship_label?: string | null
           user_id?: string | null
         }
         Update: {
@@ -201,6 +203,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          relationship_label?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -231,6 +234,7 @@ export type Database = {
           last_contacted_at: string | null
           linkedin: string | null
           name: string
+          network_role: string | null
           notes: string | null
           phone: string | null
           relationship_warmth: string | null
@@ -247,6 +251,7 @@ export type Database = {
           last_contacted_at?: string | null
           linkedin?: string | null
           name: string
+          network_role?: string | null
           notes?: string | null
           phone?: string | null
           relationship_warmth?: string | null
@@ -263,6 +268,7 @@ export type Database = {
           last_contacted_at?: string | null
           linkedin?: string | null
           name?: string
+          network_role?: string | null
           notes?: string | null
           phone?: string | null
           relationship_warmth?: string | null
