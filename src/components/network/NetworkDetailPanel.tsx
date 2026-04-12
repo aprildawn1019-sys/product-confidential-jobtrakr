@@ -28,8 +28,8 @@ interface NetworkDetailPanelProps {
 }
 
 export default function NetworkDetailPanel({
-  type, data, _contacts, _jobs, activities, connections, recommendations, linkedJobs, linkedContacts, onClose, onNavigate,
-}: NetworkDetailPanelProps) {
+  type, data, activities, connections, recommendations, linkedJobs, linkedContacts, onClose, onNavigate,
+}: Omit<NetworkDetailPanelProps, "contacts" | "jobs">) {
   if (!data) return null;
 
   return (
@@ -46,7 +46,9 @@ export default function NetworkDetailPanel({
           <>
             <div className="space-y-1">
               <p className="text-muted-foreground">{data.role} at {data.company}</p>
-              {data.warmth && <WarmthBadge warmth={data.warmth} />}
+              {data.warmth && warmthConfig[data.warmth] && (
+                <Badge variant="outline" className={`text-[10px] ${warmthConfig[data.warmth].className}`}>{warmthConfig[data.warmth].label}</Badge>
+              )}
               {data.networkRole && (
                 <Badge variant="outline" className="text-[10px]">
                   {NETWORK_ROLES.find(r => r.value === data.networkRole)?.emoji}{" "}
