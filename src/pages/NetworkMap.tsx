@@ -8,7 +8,7 @@ import {
   useNodesState,
   useEdgesState,
   type NodeMouseHandler,
-  type Node,
+  
   ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -111,8 +111,8 @@ function NetworkMapInner(props: NetworkMapProps) {
   const onNodeMouseEnter: NodeMouseHandler = useCallback((_event, node) => {
     const d = node.data as any;
     const rect = containerRef.current?.getBoundingClientRect();
-    const x = (_event as MouseEvent).clientX - (rect?.left || 0);
-    const y = (_event as MouseEvent).clientY - (rect?.top || 0);
+    const x = (_event as unknown as MouseEvent).clientX - (rect?.left || 0);
+    const y = (_event as unknown as MouseEvent).clientY - (rect?.top || 0);
 
     let content: React.ReactNode = null;
     if (node.type === "contactNode") {
