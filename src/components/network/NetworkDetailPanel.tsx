@@ -2,9 +2,15 @@ import { X, ExternalLink, Calendar, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NETWORK_ROLES, RELATIONSHIP_LABELS } from "@/types/jobTracker";
-import WarmthBadge from "@/components/WarmthBadge";
 import type { Contact, Job, TargetCompany, ContactActivity, ContactConnection, RecommendationRequest } from "@/types/jobTracker";
 import { format } from "date-fns";
+
+const warmthConfig: Record<string, { label: string; className: string }> = {
+  cold: { label: "❄️ Cold", className: "bg-info/20 text-info border-info/30" },
+  warm: { label: "🌤️ Warm", className: "bg-warning/20 text-warning border-warning/30" },
+  hot: { label: "🔥 Hot", className: "bg-destructive/20 text-destructive border-destructive/30" },
+  champion: { label: "🏆 Champion", className: "bg-success/20 text-success border-success/30" },
+};
 
 interface NetworkDetailPanelProps {
   type: "contact" | "company" | "job";
@@ -22,7 +28,7 @@ interface NetworkDetailPanelProps {
 }
 
 export default function NetworkDetailPanel({
-  type, data, contacts, jobs, activities, connections, recommendations, linkedJobs, linkedContacts, onClose, onNavigate,
+  type, data, _contacts, _jobs, activities, connections, recommendations, linkedJobs, linkedContacts, onClose, onNavigate,
 }: NetworkDetailPanelProps) {
   if (!data) return null;
 
