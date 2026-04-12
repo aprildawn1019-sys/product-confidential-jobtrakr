@@ -9,6 +9,7 @@ import { Plus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import type { Contact } from "@/types/jobTracker";
+import { NETWORK_ROLES } from "@/types/jobTracker";
 
 interface AddContactDialogProps {
   onAdd: (contact: Omit<Contact, "id" | "createdAt">) => void;
@@ -19,7 +20,7 @@ export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
   const [fetchingLinkedin, setFetchingLinkedin] = useState(false);
   const [form, setForm] = useState({
     name: "", company: "", role: "", email: "", phone: "", linkedin: "", notes: "",
-    relationshipWarmth: "", conversationLog: "",
+    relationshipWarmth: "", conversationLog: "", networkRole: "",
   });
 
   const handleLinkedinFetch = async () => {
@@ -53,8 +54,9 @@ export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
       ...form,
       relationshipWarmth: form.relationshipWarmth || undefined,
       conversationLog: form.conversationLog || undefined,
+      networkRole: (form.networkRole || undefined) as any,
     });
-    setForm({ name: "", company: "", role: "", email: "", phone: "", linkedin: "", notes: "", relationshipWarmth: "", conversationLog: "" });
+    setForm({ name: "", company: "", role: "", email: "", phone: "", linkedin: "", notes: "", relationshipWarmth: "", conversationLog: "", networkRole: "" });
     setOpen(false);
   };
 
@@ -107,6 +109,19 @@ export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
                   <SelectItem value="warm">🌤️ Warm</SelectItem>
                   <SelectItem value="hot">🔥 Hot</SelectItem>
                   <SelectItem value="champion">🏆 Champion</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Network Role</Label>
+              <Select value={form.networkRole} onValueChange={v => setForm(f => ({ ...f, networkRole: v }))}>
+                <SelectTrigger><SelectValue placeholder="Select role..." /></SelectTrigger>
+                <SelectContent>
+                  {NETWORK_ROLES.map(r => (
+                    <SelectItem key={r.value} value={r.value}>{r.emoji} {r.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

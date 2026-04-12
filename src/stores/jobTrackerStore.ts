@@ -49,6 +49,7 @@ function mapContact(row: any): Contact {
     relationshipWarmth: row.relationship_warmth ?? undefined,
     followUpDate: row.follow_up_date ?? undefined,
     conversationLog: row.conversation_log ?? undefined,
+    networkRole: row.network_role ?? undefined,
   };
 }
 
@@ -67,6 +68,7 @@ function mapContactConnection(row: any): ContactConnection {
   return {
     id: row.id, contactId1: row.contact_id_1, contactId2: row.contact_id_2,
     connectionType: row.connection_type, notes: row.notes ?? undefined, createdAt: row.created_at,
+    relationshipLabel: row.relationship_label ?? undefined,
   };
 }
 
@@ -300,6 +302,7 @@ export function useJobTrackerStore() {
       relationship_warmth: contact.relationshipWarmth || null,
       follow_up_date: contact.followUpDate || null,
       conversation_log: contact.conversationLog || null,
+      network_role: contact.networkRole || null,
     }).select().single();
     if (data) setContacts(prev => [mapContact(data), ...prev]);
   };
@@ -330,6 +333,7 @@ export function useJobTrackerStore() {
     if (updates.followUpDate !== undefined) dbUpdates.follow_up_date = updates.followUpDate || null;
     if (updates.conversationLog !== undefined) dbUpdates.conversation_log = updates.conversationLog || null;
     if (updates.lastContactedAt !== undefined) dbUpdates.last_contacted_at = updates.lastContactedAt || null;
+    if (updates.networkRole !== undefined) dbUpdates.network_role = updates.networkRole || null;
     await supabase.from("contacts").update(dbUpdates).eq("id", id);
     setContacts(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
   };
@@ -407,12 +411,13 @@ export function useJobTrackerStore() {
   };
 
   // === CONTACT CONNECTIONS ===
-  const addContactConnection = async (contactId1: string, contactId2: string, connectionType = "linkedin", notes?: string) => {
+  const addContactConnection = async (contactId1: string, contactId2: string, connectionType = "linkedin", notes?: string, relationshipLabel?: string) => {
     const userId = await getUserId();
     if (!userId) return;
     const { data } = await supabase.from("contact_connections").insert({
       user_id: userId, contact_id_1: contactId1, contact_id_2: contactId2,
       connection_type: connectionType, notes: notes || null,
+      relationship_label: relationshipLabel || null,
     }).select().single();
     if (data) setContactConnections(prev => [...prev, mapContactConnection(data)]);
   };

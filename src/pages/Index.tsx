@@ -7,7 +7,7 @@ import Jobs from "@/pages/Jobs";
 import JobCRM from "@/pages/JobCRM";
 import Contacts from "@/pages/Contacts";
 
-
+import NetworkMap from "@/pages/NetworkMap";
 import JobSearch from "@/pages/JobSearch";
 import ProfileEditor from "@/pages/ProfileEditor";
 import JobBoards from "@/pages/JobBoards";
@@ -150,6 +150,22 @@ export default function Index() {
             />
           } />
           <Route path="cover-letters" element={<CoverLetters jobs={store.jobs} />} />
+          <Route path="network-map" element={
+            <NetworkMap
+              contacts={store.contacts}
+              jobs={store.jobs}
+              targetCompanies={store.targetCompanies}
+              contactConnections={store.contactConnections}
+              jobContacts={store.jobContacts}
+              recommendationRequests={store.recommendationRequests}
+              contactActivities={store.contactActivities}
+              getConnectionsForContact={store.getConnectionsForContact}
+              getRecommendationRequestsForContact={store.getRecommendationRequestsForContact}
+              getActivitiesForContact={store.getActivitiesForContact}
+              getContactsForJob={store.getContactsForJob}
+              getJobsForContact={store.getJobsForContact}
+            />
+          } />
         </Routes>
       </main>
     </div>
