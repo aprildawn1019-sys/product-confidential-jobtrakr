@@ -18,13 +18,31 @@ interface UseNetworkGraphParams {
   filterRole: string;
 }
 
-function getLayout(nodes: Node[], edges: Edge[], direction = "TB") {
-  const g = new dagre.graphlib.Graph();
+function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, string[]>, direction = "TB") {
+  const g = new dagre.graphlib.Graph({ compound: true });
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: direction, nodesep: 80, ranksep: 100 });
+  g.setGraph({ rankdir: direction, nodesep: 40, ranksep: 80, marginx: 20, marginy: 20 });
 
-  nodes.forEach(n => g.setNode(n.id, { width: 120, height: 80 }));
-  edges.forEach(e => g.setEdge(e.source, e.target));
+  nodes.forEach(n => {
+    const isCompany = n.type === "companyNode";
+    g.setNode(n.id, { width: isCompany ? 140 : 110, height: isCompany ? 60 : 70 });
+  });
+
+  // Group contact/job nodes under their company parent for clustering
+  companyNodeMap.forEach((childIds, companyId) => {
+    childIds.forEach(childId => {
+      if (g.hasNode(childId) && g.hasNode(companyId)) {
+        g.setParent(childId, companyId);
+      }
+    });
+  });
+
+  edges.forEach(e => {
+    // Skip edges that go from child to its compound parent (dagre handles these internally)
+    if (companyNodeMap.get(e.target)?.includes(e.source)) return;
+    if (companyNodeMap.get(e.source)?.includes(e.target)) return;
+    g.setEdge(e.source, e.target);
+  });
 
   dagre.layout(g);
 
