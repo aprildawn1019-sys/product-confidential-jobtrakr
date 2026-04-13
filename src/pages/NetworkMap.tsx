@@ -185,7 +185,7 @@ function NetworkMapInner(props: NetworkMapProps) {
     if (!pendingConnection) return;
     props.onAddConnection(pendingConnection.sourceId, pendingConnection.targetId, "linkedin", "", relationshipLabel);
     setPendingConnection(null);
-  }, [pendingConnection, props.onAddConnection]);
+  }, [pendingConnection, props]);
 
 
   // Detail panel data
@@ -242,6 +242,7 @@ function NetworkMapInner(props: NetworkMapProps) {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
             nodeTypes={nodeTypes}
             onNodeClick={onNodeClick}
             onNodeDoubleClick={onNodeDoubleClick}
