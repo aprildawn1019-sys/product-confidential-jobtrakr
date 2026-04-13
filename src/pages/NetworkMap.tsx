@@ -305,7 +305,7 @@ function NetworkMapInner(props: NetworkMapProps) {
           <span className="inline-block w-3 h-3 rotate-45 rounded-sm border-2 border-info bg-card" /> Job
         </div>
         <span className="text-border">|</span>
-        <span>Click node for details · Double-click to navigate · Scroll to zoom</span>
+        <span>Click node for details · Double-click to navigate · Drag between contacts to connect · Scroll to zoom</span>
       </div>
     </div>
   );
