@@ -18,13 +18,31 @@ interface UseNetworkGraphParams {
   filterRole: string;
 }
 
-function getLayout(nodes: Node[], edges: Edge[], direction = "TB") {
-  const g = new dagre.graphlib.Graph();
+function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, string[]>, direction = "TB") {
+  const g = new dagre.graphlib.Graph({ compound: true });
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: direction, nodesep: 80, ranksep: 100 });
+  g.setGraph({ rankdir: direction, nodesep: 40, ranksep: 80, marginx: 20, marginy: 20 });
 
-  nodes.forEach(n => g.setNode(n.id, { width: 120, height: 80 }));
-  edges.forEach(e => g.setEdge(e.source, e.target));
+  nodes.forEach(n => {
+    const isCompany = n.type === "companyNode";
+    g.setNode(n.id, { width: isCompany ? 140 : 110, height: isCompany ? 60 : 70 });
+  });
+
+  // Group contact/job nodes under their company parent for clustering
+  companyNodeMap.forEach((childIds, companyId) => {
+    childIds.forEach(childId => {
+      if (g.hasNode(childId) && g.hasNode(companyId)) {
+        g.setParent(childId, companyId);
+      }
+    });
+  });
+
+  edges.forEach(e => {
+    // Skip edges that go from child to its compound parent (dagre handles these internally)
+    if (companyNodeMap.get(e.target)?.includes(e.source)) return;
+    if (companyNodeMap.get(e.source)?.includes(e.target)) return;
+    g.setEdge(e.source, e.target);
+  });
 
   dagre.layout(g);
 
@@ -41,6 +59,7 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
     const companyNodes = new Map<string, string>(); // normalized name → node id
+    const companyChildMap = new Map<string, string[]>(); // company node id → child node ids
 
     // Determine focused/matching node IDs
     const focusedIds = new Set<string>();
@@ -91,9 +110,12 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
       // Contact → Company edge
       if (c.company) {
         const compId = getCompanyNodeId(c.company);
+        const contactNodeId = `contact-${c.id}`;
+        if (!companyChildMap.has(compId)) companyChildMap.set(compId, []);
+        companyChildMap.get(compId)!.push(contactNodeId);
         edges.push({
           id: `works-${c.id}`,
-          source: `contact-${c.id}`,
+          source: contactNodeId,
           target: compId,
           type: "default",
           style: { strokeDasharray: "5,5", stroke: "hsl(var(--muted-foreground))" },
@@ -137,6 +159,9 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
         // Job → Company
         if (j.company) {
           const compId = getCompanyNodeId(j.company);
+          const jobNodeId = `job-${j.id}`;
+          if (!companyChildMap.has(compId)) companyChildMap.set(compId, []);
+          companyChildMap.get(compId)!.push(jobNodeId);
           edges.push({
             id: `jobco-${j.id}`,
             source: `job-${j.id}`,
@@ -247,7 +272,7 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
     }
 
     // Layout
-    const layoutNodes = getLayout(nodes, edges);
+    const layoutNodes = getLayout(nodes, edges, companyChildMap);
 
     return { nodes: layoutNodes, edges };
   }, [contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole]);
