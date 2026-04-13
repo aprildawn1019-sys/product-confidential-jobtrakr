@@ -144,7 +144,7 @@ export default function Contacts({
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
-  const [pendingConnection, setPendingConnection] = useState<{ contactId: string } | null>(null);
+  const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; contactId: string } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "compact" | "detailed">("grid");
   const [searchQuery, setSearchQuery] = useState(companyFilter || "");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
@@ -687,11 +687,11 @@ export default function Contacts({
 
       {availableToConnect.length > 0 && (
         <div className="space-y-1.5">
-          <Select onValueChange={v => setPendingConnection({ contactId: v })}>
+          <Select onValueChange={v => setPendingConnection({ sourceId: contact.id, contactId: v })}>
             <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Add a connection..." /></SelectTrigger>
             <SelectContent>{availableToConnect.map(c => <SelectItem key={c.id} value={c.id}>{c.name} — {c.company}</SelectItem>)}</SelectContent>
           </Select>
-          {pendingConnection && (
+          {pendingConnection && pendingConnection.sourceId === contact.id && (
             <div className="flex items-center gap-1.5">
               <Select onValueChange={v => {
                 onAddConnection(contact.id, pendingConnection.contactId, "linkedin", undefined, v);
