@@ -165,6 +165,7 @@ export default function Index() {
               getActivitiesForContact={store.getActivitiesForContact}
               getContactsForJob={store.getContactsForJob}
               getJobsForContact={store.getJobsForContact}
+              onAddConnection={store.addContactConnection}
             />
           } />
         </Routes>

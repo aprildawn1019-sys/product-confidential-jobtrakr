@@ -8,7 +8,7 @@ import {
   useNodesState,
   useEdgesState,
   type NodeMouseHandler,
-  
+  type OnConnect,
   ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -20,6 +20,7 @@ import NetworkFilters from "@/components/network/NetworkFilters";
 import NetworkDetailPanel from "@/components/network/NetworkDetailPanel";
 import NetworkTooltip from "@/components/network/NetworkTooltip";
 import { useNetworkGraph } from "@/components/network/useNetworkGraph";
+import ConnectionDialog from "@/components/network/ConnectionDialog";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest, ContactActivity } from "@/types/jobTracker";
 
 const nodeTypes = {
@@ -41,6 +42,7 @@ interface NetworkMapProps {
   getActivitiesForContact: (id: string) => ContactActivity[];
   getContactsForJob: (jobId: string) => Contact[];
   getJobsForContact: (contactId: string) => Job[];
+  onAddConnection: (contactId1: string, contactId2: string, type?: string, notes?: string, relationshipLabel?: string) => void;
 }
 
 function NetworkMapInner(props: NetworkMapProps) {
@@ -52,6 +54,7 @@ function NetworkMapInner(props: NetworkMapProps) {
   const [showJobs, setShowJobs] = useState(true);
   const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any } | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
+  const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; targetId: string; sourceName: string; targetName: string } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const graphData = useNetworkGraph({
@@ -159,6 +162,32 @@ function NetworkMapInner(props: NetworkMapProps) {
     setTooltip(t => ({ ...t, visible: false }));
   }, []);
 
+  const onConnect: OnConnect = useCallback((connection) => {
+    const sourceId = connection.source;
+    const targetId = connection.target;
+    if (!sourceId || !targetId) return;
+    // Only allow contact-to-contact connections
+    if (!sourceId.startsWith("contact-") || !targetId.startsWith("contact-")) return;
+    const sId = sourceId.replace("contact-", "");
+    const tId = targetId.replace("contact-", "");
+    if (sId === tId) return;
+    // Check if connection already exists
+    const exists = props.contactConnections.some(
+      cc => (cc.contactId1 === sId && cc.contactId2 === tId) || (cc.contactId1 === tId && cc.contactId2 === sId)
+    );
+    if (exists) return;
+    const sourceName = props.contacts.find(c => c.id === sId)?.name || "Contact";
+    const targetName = props.contacts.find(c => c.id === tId)?.name || "Contact";
+    setPendingConnection({ sourceId: sId, targetId: tId, sourceName, targetName });
+  }, [props.contacts, props.contactConnections]);
+
+  const handleConfirmConnection = useCallback((relationshipLabel: string) => {
+    if (!pendingConnection) return;
+    props.onAddConnection(pendingConnection.sourceId, pendingConnection.targetId, "linkedin", "", relationshipLabel);
+    setPendingConnection(null);
+  }, [pendingConnection, props]);
+
+
   // Detail panel data
   const detailActivities = selectedNode?.type === "contact" ? props.getActivitiesForContact(selectedNode.data.id) : [];
   const detailConnections = selectedNode?.type === "contact" ? props.getConnectionsForContact(selectedNode.data.id) : [];
@@ -213,6 +242,7 @@ function NetworkMapInner(props: NetworkMapProps) {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
             nodeTypes={nodeTypes}
             onNodeClick={onNodeClick}
             onNodeDoubleClick={onNodeDoubleClick}
@@ -253,6 +283,14 @@ function NetworkMapInner(props: NetworkMapProps) {
             onNavigate={(path) => navigate(path)}
           />
         )}
+
+        <ConnectionDialog
+          open={!!pendingConnection}
+          sourceName={pendingConnection?.sourceName || ""}
+          targetName={pendingConnection?.targetName || ""}
+          onConfirm={handleConfirmConnection}
+          onCancel={() => setPendingConnection(null)}
+        />
       </div>
 
       {/* Legend */}
@@ -267,7 +305,7 @@ function NetworkMapInner(props: NetworkMapProps) {
           <span className="inline-block w-3 h-3 rotate-45 rounded-sm border-2 border-info bg-card" /> Job
         </div>
         <span className="text-border">|</span>
-        <span>Click node for details · Double-click to navigate · Scroll to zoom</span>
+        <span>Click node for details · Double-click to navigate · Drag between contacts to connect · Scroll to zoom</span>
       </div>
     </div>
   );
