@@ -422,6 +422,15 @@ export function useJobTrackerStore() {
     if (data) setContactConnections(prev => [...prev, mapContactConnection(data)]);
   };
 
+  const updateContactConnection = async (id: string, updates: { relationshipLabel?: string; notes?: string; connectionType?: string }) => {
+    const mapped: Record<string, unknown> = {};
+    if (updates.relationshipLabel !== undefined) mapped.relationship_label = updates.relationshipLabel || null;
+    if (updates.notes !== undefined) mapped.notes = updates.notes || null;
+    if (updates.connectionType !== undefined) mapped.connection_type = updates.connectionType;
+    const { data } = await supabase.from("contact_connections").update(mapped).eq("id", id).select().single();
+    if (data) setContactConnections(prev => prev.map(cc => cc.id === id ? mapContactConnection(data) : cc));
+  };
+
   const removeContactConnection = async (id: string) => {
     await supabase.from("contact_connections").delete().eq("id", id);
     setContactConnections(prev => prev.filter(cc => cc.id !== id));
@@ -628,7 +637,7 @@ export function useJobTrackerStore() {
     addContact, addContactsBulk, updateContact, deleteContact,
     addInterview, updateInterview, deleteInterview,
     linkContactToJob, unlinkContactFromJob, getContactsForJob, getNetworkMatchesForJob, getJobsForContact,
-    addContactConnection, removeContactConnection, getConnectionsForContact, getContactsAtSameOrg,
+    addContactConnection, updateContactConnection, removeContactConnection, getConnectionsForContact, getContactsAtSameOrg,
     addContactActivity, deleteContactActivity, getActivitiesForContact,
     addCampaign, updateCampaign, deleteCampaign, toggleContactCampaign, getCampaignsForContact, getContactsForCampaign,
     addRecommendationRequest, updateRecommendationRequest, deleteRecommendationRequest, getRecommendationRequestsForContact,
