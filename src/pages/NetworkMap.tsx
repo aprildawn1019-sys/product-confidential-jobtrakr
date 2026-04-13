@@ -20,10 +20,7 @@ import NetworkFilters from "@/components/network/NetworkFilters";
 import NetworkDetailPanel from "@/components/network/NetworkDetailPanel";
 import NetworkTooltip from "@/components/network/NetworkTooltip";
 import { useNetworkGraph } from "@/components/network/useNetworkGraph";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { RELATIONSHIP_LABELS } from "@/types/jobTracker";
+import ConnectionDialog from "@/components/network/ConnectionDialog";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest, ContactActivity } from "@/types/jobTracker";
 
 const nodeTypes = {
