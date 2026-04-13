@@ -59,6 +59,7 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
     const companyNodes = new Map<string, string>(); // normalized name → node id
+    const companyChildMap = new Map<string, string[]>(); // company node id → child node ids
 
     // Determine focused/matching node IDs
     const focusedIds = new Set<string>();
