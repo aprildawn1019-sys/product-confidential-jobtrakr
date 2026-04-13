@@ -18,6 +18,7 @@ import ContactCampaignSelect from "@/components/ContactCampaignSelect";
 import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
 import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact } from "@/types/jobTracker";
+import { RELATIONSHIP_LABELS } from "@/types/jobTracker";
 
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,7 +35,7 @@ interface ContactsProps {
   onDelete: (id: string) => void;
   getConnectionsForContact: (contactId: string) => (ContactConnection & { contact?: Contact })[];
   getContactsAtSameOrg: (contactId: string) => Contact[];
-  onAddConnection: (contactId1: string, contactId2: string, type?: string) => void;
+  onAddConnection: (contactId1: string, contactId2: string, type?: string, notes?: string, relationshipLabel?: string) => void;
   onRemoveConnection: (id: string) => void;
   getActivitiesForContact: (contactId: string) => ContactActivity[];
   onAddActivity: (activity: Omit<ContactActivity, "id" | "createdAt">) => void;
@@ -142,6 +143,7 @@ export default function Contacts({
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
+  const [pendingConnection, setPendingConnection] = useState<{ contactId: string } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "compact" | "detailed">("grid");
   const [searchQuery, setSearchQuery] = useState(companyFilter || "");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
@@ -650,7 +652,7 @@ export default function Contacts({
           {sameOrgContacts.map(c => (
             <div key={c.id} className="flex items-center justify-between rounded-md bg-muted/50 px-2.5 py-1.5 text-sm mb-1">
               <span>{c.name} · {c.role}</span>
-              {!connectedIds.has(c.id) && <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => onAddConnection(contact.id, c.id, "colleague")}><Link2 className="h-3 w-3 mr-1" />Link</Button>}
+              {!connectedIds.has(c.id) && <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => onAddConnection(contact.id, c.id, "colleague", undefined, undefined)}><Link2 className="h-3 w-3 mr-1" />Link</Button>}
             </div>
           ))}
         </div>
@@ -660,23 +662,46 @@ export default function Contacts({
       {connections.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-muted-foreground mb-1.5 flex items-center gap-1"><Link2 className="h-3 w-3" />Connections</p>
-          {connections.map(conn => (
+          {connections.map(conn => {
+            const relLabel = RELATIONSHIP_LABELS.find(r => r.value === conn.relationshipLabel);
+            return (
             <div key={conn.id} className="flex items-center justify-between rounded-md bg-muted/50 px-2.5 py-1.5 text-sm mb-1">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span>{conn.contact?.name || "Unknown"}</span>
                 <Badge variant="secondary" className="text-[10px] capitalize">{conn.connectionType}</Badge>
+                {relLabel && <Badge variant="outline" className="text-[10px]">{relLabel.label}</Badge>}
               </div>
               <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onRemoveConnection(conn.id)}><Unlink className="h-3 w-3 text-destructive" /></Button>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
       {availableToConnect.length > 0 && (
-        <Select onValueChange={v => onAddConnection(contact.id, v, "linkedin")}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Add a connection..." /></SelectTrigger>
-          <SelectContent>{availableToConnect.map(c => <SelectItem key={c.id} value={c.id}>{c.name} — {c.company}</SelectItem>)}</SelectContent>
-        </Select>
+        <div className="space-y-1.5">
+          <Select onValueChange={v => setPendingConnection({ contactId: v })}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Add a connection..." /></SelectTrigger>
+            <SelectContent>{availableToConnect.map(c => <SelectItem key={c.id} value={c.id}>{c.name} — {c.company}</SelectItem>)}</SelectContent>
+          </Select>
+          {pendingConnection && (
+            <div className="flex items-center gap-1.5">
+              <Select onValueChange={v => {
+                onAddConnection(contact.id, pendingConnection.contactId, "linkedin", undefined, v);
+                setPendingConnection(null);
+              }}>
+                <SelectTrigger className="h-7 text-xs flex-1"><SelectValue placeholder="Relationship..." /></SelectTrigger>
+                <SelectContent>
+                  {RELATIONSHIP_LABELS.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => {
+                onAddConnection(contact.id, pendingConnection.contactId, "linkedin");
+                setPendingConnection(null);
+              }}>Skip</Button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
