@@ -144,7 +144,7 @@ export default function Contacts({
   const [loggingActivity, setLoggingActivity] = useState<string | null>(null);
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
-  const [pendingConnection, setPendingConnection] = useState<{ contactId: string } | null>(null);
+  const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; contactId: string } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "compact" | "detailed">("grid");
   const [searchQuery, setSearchQuery] = useState(companyFilter || "");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
