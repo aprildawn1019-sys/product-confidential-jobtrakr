@@ -8,7 +8,7 @@ import {
   useNodesState,
   useEdgesState,
   type NodeMouseHandler,
-  type Connection,
+  type OnConnect,
   ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -54,6 +54,7 @@ function NetworkMapInner(props: NetworkMapProps) {
   const [showJobs, setShowJobs] = useState(true);
   const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any } | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
+  const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; targetId: string; sourceName: string; targetName: string } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const graphData = useNetworkGraph({
@@ -160,6 +161,32 @@ function NetworkMapInner(props: NetworkMapProps) {
     setSelectedNode(null);
     setTooltip(t => ({ ...t, visible: false }));
   }, []);
+
+  const onConnect: OnConnect = useCallback((connection) => {
+    const sourceId = connection.source;
+    const targetId = connection.target;
+    if (!sourceId || !targetId) return;
+    // Only allow contact-to-contact connections
+    if (!sourceId.startsWith("contact-") || !targetId.startsWith("contact-")) return;
+    const sId = sourceId.replace("contact-", "");
+    const tId = targetId.replace("contact-", "");
+    if (sId === tId) return;
+    // Check if connection already exists
+    const exists = props.contactConnections.some(
+      cc => (cc.contactId1 === sId && cc.contactId2 === tId) || (cc.contactId1 === tId && cc.contactId2 === sId)
+    );
+    if (exists) return;
+    const sourceName = props.contacts.find(c => c.id === sId)?.name || "Contact";
+    const targetName = props.contacts.find(c => c.id === tId)?.name || "Contact";
+    setPendingConnection({ sourceId: sId, targetId: tId, sourceName, targetName });
+  }, [props.contacts, props.contactConnections]);
+
+  const handleConfirmConnection = useCallback((relationshipLabel: string) => {
+    if (!pendingConnection) return;
+    props.onAddConnection(pendingConnection.sourceId, pendingConnection.targetId, "linkedin", "", relationshipLabel);
+    setPendingConnection(null);
+  }, [pendingConnection, props.onAddConnection]);
+
 
   // Detail panel data
   const detailActivities = selectedNode?.type === "contact" ? props.getActivitiesForContact(selectedNode.data.id) : [];
