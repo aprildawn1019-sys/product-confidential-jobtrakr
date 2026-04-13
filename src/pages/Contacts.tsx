@@ -687,11 +687,11 @@ export default function Contacts({
 
       {availableToConnect.length > 0 && (
         <div className="space-y-1.5">
-          <Select onValueChange={v => setPendingConnection({ contactId: v })}>
+          <Select onValueChange={v => setPendingConnection({ sourceId: contact.id, contactId: v })}>
             <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Add a connection..." /></SelectTrigger>
             <SelectContent>{availableToConnect.map(c => <SelectItem key={c.id} value={c.id}>{c.name} — {c.company}</SelectItem>)}</SelectContent>
           </Select>
-          {pendingConnection && (
+          {pendingConnection && pendingConnection.sourceId === contact.id && (
             <div className="flex items-center gap-1.5">
               <Select onValueChange={v => {
                 onAddConnection(contact.id, pendingConnection.contactId, "linkedin", undefined, v);
