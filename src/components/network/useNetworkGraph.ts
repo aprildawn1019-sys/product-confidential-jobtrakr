@@ -110,9 +110,12 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
       // Contact → Company edge
       if (c.company) {
         const compId = getCompanyNodeId(c.company);
+        const contactNodeId = `contact-${c.id}`;
+        if (!companyChildMap.has(compId)) companyChildMap.set(compId, []);
+        companyChildMap.get(compId)!.push(contactNodeId);
         edges.push({
           id: `works-${c.id}`,
-          source: `contact-${c.id}`,
+          source: contactNodeId,
           target: compId,
           type: "default",
           style: { strokeDasharray: "5,5", stroke: "hsl(var(--muted-foreground))" },
@@ -156,6 +159,9 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
         // Job → Company
         if (j.company) {
           const compId = getCompanyNodeId(j.company);
+          const jobNodeId = `job-${j.id}`;
+          if (!companyChildMap.has(compId)) companyChildMap.set(compId, []);
+          companyChildMap.get(compId)!.push(jobNodeId);
           edges.push({
             id: `jobco-${j.id}`,
             source: `job-${j.id}`,
@@ -266,7 +272,7 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
     }
 
     // Layout
-    const layoutNodes = getLayout(nodes, edges);
+    const layoutNodes = getLayout(nodes, edges, companyChildMap);
 
     return { nodes: layoutNodes, edges };
   }, [contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole]);
