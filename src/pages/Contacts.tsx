@@ -152,6 +152,7 @@ export default function Contacts({
   const [campaignFilter, setCampaignFilter] = useState<string>("all");
   const [showCampaigns, setShowCampaigns] = useState(false);
   const [recRequestContact, setRecRequestContact] = useState<string | null>(null);
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"first" | "last" | "company" | "recent">("first");
 
   const jobFilterLabel = useMemo(() => {
@@ -202,6 +203,13 @@ export default function Contacts({
           if (!contactCampaignIds.includes(campaignFilter)) return false;
         }
       }
+      if (roleFilter !== "all") {
+        if (roleFilter === "none") {
+          if (c.networkRole) return false;
+        } else {
+          if (c.networkRole !== roleFilter) return false;
+        }
+      }
       return true;
     });
 
@@ -223,9 +231,9 @@ export default function Contacts({
           return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
       }
     });
-  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, contactCampaigns, sortBy, jobIdFilter, jobs, getContactsForJob, getNetworkMatchesForJob]);
+  }, [contacts, searchQuery, warmthFilter, followUpFilter, campaignFilter, roleFilter, contactCampaigns, sortBy, jobIdFilter, jobs, getContactsForJob, getNetworkMatchesForJob]);
 
-  const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all" || campaignFilter !== "all" || !!jobIdFilter;
+  const hasFilters = searchQuery || warmthFilter !== "all" || followUpFilter !== "all" || campaignFilter !== "all" || roleFilter !== "all" || !!jobIdFilter;
 
   const renderCampaignBadges = (contactId: string) => {
     const cmpgns = getCampaignsForContact(contactId);
@@ -790,6 +798,20 @@ export default function Contacts({
             <SelectItem value="today">Today</SelectItem>
             <SelectItem value="upcoming">Upcoming</SelectItem>
             <SelectItem value="none">No Follow-up</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-40 h-9"><SelectValue placeholder="Role" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Roles</SelectItem>
+            <SelectItem value="none">No Role</SelectItem>
+            <SelectItem value="referral_source">Referral Source</SelectItem>
+            <SelectItem value="hiring_manager">Hiring Manager</SelectItem>
+            <SelectItem value="advocate">Advocate</SelectItem>
+            <SelectItem value="recruiter">Recruiter</SelectItem>
+            <SelectItem value="mentor">Mentor</SelectItem>
+            <SelectItem value="peer">Peer</SelectItem>
+            <SelectItem value="informational">Informational</SelectItem>
           </SelectContent>
         </Select>
         <Select value={campaignFilter} onValueChange={setCampaignFilter}>
