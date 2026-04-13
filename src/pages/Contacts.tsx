@@ -672,7 +672,8 @@ export default function Contacts({
               </div>
               <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onRemoveConnection(conn.id)}><Unlink className="h-3 w-3 text-destructive" /></Button>
             </div>
-          )}}
+            );
+          })}
         </div>
       )}
 
