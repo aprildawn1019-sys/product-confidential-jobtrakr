@@ -664,7 +664,6 @@ export default function Contacts({
         <div>
           <p className="text-xs font-semibold text-muted-foreground mb-1.5 flex items-center gap-1"><Link2 className="h-3 w-3" />Connections</p>
           {connections.map(conn => {
-            const relLabel = RELATIONSHIP_LABELS.find(r => r.value === conn.relationshipLabel);
             return (
             <div key={conn.id} className="flex items-center justify-between rounded-md bg-muted/50 px-2.5 py-1.5 text-sm mb-1">
               <div className="flex items-center gap-2 flex-wrap">
