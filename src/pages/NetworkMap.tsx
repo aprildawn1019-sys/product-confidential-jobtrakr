@@ -283,6 +283,14 @@ function NetworkMapInner(props: NetworkMapProps) {
             onNavigate={(path) => navigate(path)}
           />
         )}
+
+        <ConnectionDialog
+          open={!!pendingConnection}
+          sourceName={pendingConnection?.sourceName || ""}
+          targetName={pendingConnection?.targetName || ""}
+          onConfirm={handleConfirmConnection}
+          onCancel={() => setPendingConnection(null)}
+        />
       </div>
 
       {/* Legend */}
