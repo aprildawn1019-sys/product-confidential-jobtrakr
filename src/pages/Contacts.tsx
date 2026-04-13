@@ -36,6 +36,7 @@ interface ContactsProps {
   getConnectionsForContact: (contactId: string) => (ContactConnection & { contact?: Contact })[];
   getContactsAtSameOrg: (contactId: string) => Contact[];
   onAddConnection: (contactId1: string, contactId2: string, type?: string, notes?: string, relationshipLabel?: string) => void;
+  onUpdateConnection: (id: string, updates: { relationshipLabel?: string }) => void;
   onRemoveConnection: (id: string) => void;
   getActivitiesForContact: (contactId: string) => ContactActivity[];
   onAddActivity: (activity: Omit<ContactActivity, "id" | "createdAt">) => void;
@@ -118,7 +119,7 @@ const activityIcons: Record<string, string> = {
 export default function Contacts({
   contacts, jobs, campaigns, contactCampaigns, jobContacts, contactConnections,
   onAdd, onAddBulk, onUpdate, onDelete,
-  getConnectionsForContact, getContactsAtSameOrg, onAddConnection, onRemoveConnection,
+  getConnectionsForContact, getContactsAtSameOrg, onAddConnection, onUpdateConnection, onRemoveConnection,
   getActivitiesForContact, onAddActivity, onDeleteActivity,
   getJobsForContact, getContactsForJob, getNetworkMatchesForJob, onLinkContactToJob, onUnlinkContactFromJob,
   onAddCampaign, onUpdateCampaign, onDeleteCampaign, onToggleContactCampaign, getCampaignsForContact,
@@ -663,13 +664,19 @@ export default function Contacts({
         <div>
           <p className="text-xs font-semibold text-muted-foreground mb-1.5 flex items-center gap-1"><Link2 className="h-3 w-3" />Connections</p>
           {connections.map(conn => {
-            const relLabel = RELATIONSHIP_LABELS.find(r => r.value === conn.relationshipLabel);
             return (
             <div key={conn.id} className="flex items-center justify-between rounded-md bg-muted/50 px-2.5 py-1.5 text-sm mb-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span>{conn.contact?.name || "Unknown"}</span>
                 <Badge variant="secondary" className="text-[10px] capitalize">{conn.connectionType}</Badge>
-                {relLabel && <Badge variant="outline" className="text-[10px]">{relLabel.label}</Badge>}
+                <Select value={conn.relationshipLabel || ""} onValueChange={v => onUpdateConnection(conn.id, { relationshipLabel: v })}>
+                  <SelectTrigger className="h-5 text-[10px] w-auto min-w-[90px] border-dashed">
+                    <SelectValue placeholder="+ label" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RELATIONSHIP_LABELS.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onRemoveConnection(conn.id)}><Unlink className="h-3 w-3 text-destructive" /></Button>
             </div>

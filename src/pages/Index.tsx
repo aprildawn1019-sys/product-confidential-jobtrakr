@@ -102,6 +102,7 @@ export default function Index() {
               getConnectionsForContact={store.getConnectionsForContact}
               getContactsAtSameOrg={store.getContactsAtSameOrg}
               onAddConnection={store.addContactConnection}
+              onUpdateConnection={store.updateContactConnection}
               onRemoveConnection={store.removeContactConnection}
               getActivitiesForContact={store.getActivitiesForContact}
               onAddActivity={store.addContactActivity}
