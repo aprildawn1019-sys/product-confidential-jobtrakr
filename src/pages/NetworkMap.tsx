@@ -8,7 +8,7 @@ import {
   useNodesState,
   useEdgesState,
   type NodeMouseHandler,
-  
+  type Connection,
   ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -20,6 +20,10 @@ import NetworkFilters from "@/components/network/NetworkFilters";
 import NetworkDetailPanel from "@/components/network/NetworkDetailPanel";
 import NetworkTooltip from "@/components/network/NetworkTooltip";
 import { useNetworkGraph } from "@/components/network/useNetworkGraph";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { RELATIONSHIP_LABELS } from "@/types/jobTracker";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest, ContactActivity } from "@/types/jobTracker";
 
 const nodeTypes = {
@@ -41,6 +45,7 @@ interface NetworkMapProps {
   getActivitiesForContact: (id: string) => ContactActivity[];
   getContactsForJob: (jobId: string) => Contact[];
   getJobsForContact: (contactId: string) => Job[];
+  onAddConnection: (contactId1: string, contactId2: string, type?: string, notes?: string, relationshipLabel?: string) => void;
 }
 
 function NetworkMapInner(props: NetworkMapProps) {
