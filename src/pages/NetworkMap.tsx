@@ -21,6 +21,7 @@ import NetworkDetailPanel from "@/components/network/NetworkDetailPanel";
 import NetworkTooltip from "@/components/network/NetworkTooltip";
 import { useNetworkGraph } from "@/components/network/useNetworkGraph";
 import ConnectionDialog from "@/components/network/ConnectionDialog";
+import NetworkSearch from "@/components/network/NetworkSearch";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest, ContactActivity } from "@/types/jobTracker";
 
 const nodeTypes = {
@@ -264,6 +265,13 @@ function NetworkMapInner(props: NetworkMapProps) {
               }}
               className="!bg-card !border-border"
             />
+            <div className="absolute top-3 left-3 z-10">
+              <NetworkSearch
+                contacts={props.contacts}
+                companies={props.contacts.map(c => c.company)}
+                jobs={props.jobs}
+              />
+            </div>
           </ReactFlow>
         )}
 
