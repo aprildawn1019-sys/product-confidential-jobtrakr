@@ -265,6 +265,13 @@ function NetworkMapInner(props: NetworkMapProps) {
               }}
               className="!bg-card !border-border"
             />
+            <div className="absolute top-3 left-3 z-10">
+              <NetworkSearch
+                contacts={props.contacts}
+                companies={props.contacts.map(c => c.company)}
+                jobs={props.jobs}
+              />
+            </div>
           </ReactFlow>
         )}
 
