@@ -56,6 +56,7 @@ function NetworkMapInner(props: NetworkMapProps) {
   const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any } | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; targetId: string; sourceName: string; targetName: string } | null>(null);
+  const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const graphData = useNetworkGraph({
@@ -82,6 +83,11 @@ function NetworkMapInner(props: NetworkMapProps) {
     setNodes(graphData.nodes);
     setEdges(graphData.edges);
   }
+
+  // Apply highlight to nodes
+  const nodesWithHighlight = highlightedNodeId
+    ? nodes.map(n => n.id === highlightedNodeId ? { ...n, data: { ...n.data, highlighted: true } } : { ...n, data: { ...n.data, highlighted: false } })
+    : nodes;
 
   const handleReset = () => {
     setFocusCompany("all");
@@ -239,7 +245,7 @@ function NetworkMapInner(props: NetworkMapProps) {
           </div>
         ) : (
           <ReactFlow
-            nodes={nodes}
+            nodes={nodesWithHighlight}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
@@ -270,6 +276,7 @@ function NetworkMapInner(props: NetworkMapProps) {
                 contacts={props.contacts}
                 companies={props.contacts.map(c => c.company)}
                 jobs={props.jobs}
+                onHighlightNode={setHighlightedNodeId}
               />
             </div>
           </ReactFlow>
