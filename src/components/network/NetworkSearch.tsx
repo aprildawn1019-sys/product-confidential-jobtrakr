@@ -15,9 +15,10 @@ interface NetworkSearchProps {
   contacts: { id: string; name: string; company: string }[];
   companies: string[];
   jobs: { id: string; title: string; company: string }[];
+  onHighlightNode?: (nodeId: string | null) => void;
 }
 
-export default function NetworkSearch({ contacts, companies, jobs }: NetworkSearchProps) {
+export default function NetworkSearch({ contacts, companies, jobs, onHighlightNode }: NetworkSearchProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -66,6 +67,8 @@ export default function NetworkSearch({ contacts, companies, jobs }: NetworkSear
     if (node && node.position) {
       setCenter(node.position.x + 50, node.position.y + 30, { zoom: 1.5, duration: 600 });
     }
+    onHighlightNode?.(result.nodeId);
+    setTimeout(() => onHighlightNode?.(null), 4600);
     setQuery("");
     setOpen(false);
   };
