@@ -94,6 +94,10 @@ export default {
           from: { opacity: "0", transform: "translateY(8px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "ping-ring": {
+          "0%, 100%": { boxShadow: "0 0 0 0 hsl(var(--primary) / 0.7)" },
+          "50%": { boxShadow: "0 0 0 8px hsl(var(--primary) / 0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
