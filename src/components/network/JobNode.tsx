@@ -20,7 +20,7 @@ function JobNode({ data, selected }: NodeProps) {
     <div className="relative flex flex-col items-center" style={{ minWidth: 100 }}>
       <Handle type="target" position={Position.Top} className="!bg-muted-foreground !w-2 !h-2" />
       <div
-        className={`flex items-center justify-center transition-all ${selected ? "ring-2 ring-ring ring-offset-2" : ""}`}
+        className={`flex items-center justify-center transition-all ${selected ? "ring-2 ring-ring ring-offset-2" : ""} ${d.highlighted ? "ring-3 ring-primary animate-[ping-ring_1.5s_ease-in-out_3]" : ""}`}
         style={{
           width: 48,
           height: 48,
