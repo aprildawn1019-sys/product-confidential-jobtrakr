@@ -626,6 +626,54 @@ export function useJobTrackerStore() {
     return targetCompanies.find(tc => companiesMatch(tc.name, companyName));
   };
 
+  /**
+   * Merge duplicate target companies. Updates the primary record with merged fields,
+   * renames matching jobs/contacts to the primary name, then deletes the duplicate rows.
+   */
+  const mergeTargetCompanies = async (
+    primaryId: string,
+    duplicateIds: string[],
+    mergedFields: Partial<TargetCompany>,
+    duplicateNames: string[],
+  ) => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const primary = targetCompanies.find(tc => tc.id === primaryId);
+    if (!primary) return;
+    const finalName = mergedFields.name?.trim() || primary.name;
+
+    // 1. Update the primary row with merged values
+    const dbUpdates: any = { name: finalName };
+    if (mergedFields.website !== undefined) dbUpdates.website = mergedFields.website || null;
+    if (mergedFields.careersUrl !== undefined) dbUpdates.careers_url = mergedFields.careersUrl || null;
+    if (mergedFields.industry !== undefined) dbUpdates.industry = mergedFields.industry || null;
+    if (mergedFields.size !== undefined) dbUpdates.size = mergedFields.size || null;
+    if (mergedFields.priority !== undefined) dbUpdates.priority = mergedFields.priority;
+    if (mergedFields.status !== undefined) dbUpdates.status = mergedFields.status;
+    if (mergedFields.notes !== undefined) dbUpdates.notes = mergedFields.notes || null;
+    await supabase.from("target_companies").update(dbUpdates).eq("id", primaryId);
+
+    // 2. Rename jobs/contacts whose company name matches any duplicate (or the primary's old name)
+    //    to the new finalName. Match by exact name (case-insensitive) for safety.
+    const namesToRename = Array.from(
+      new Set([primary.name, ...duplicateNames].filter(n => n && n !== finalName)),
+    );
+    if (namesToRename.length > 0) {
+      await Promise.all([
+        supabase.from("jobs").update({ company: finalName }).eq("user_id", userId).in("company", namesToRename),
+        supabase.from("contacts").update({ company: finalName }).eq("user_id", userId).in("company", namesToRename),
+      ]);
+    }
+
+    // 3. Delete duplicate target_companies rows
+    if (duplicateIds.length > 0) {
+      await supabase.from("target_companies").delete().in("id", duplicateIds);
+    }
+
+    // 4. Refresh local state
+    await fetchAll();
+  };
+
   // === HELPERS ===
   const getJobsByStatus = (status: JobStatus) => jobs.filter(j => j.status === status);
   const getContactForJob = (contactId?: string) => contacts.find(c => c.id === contactId);
