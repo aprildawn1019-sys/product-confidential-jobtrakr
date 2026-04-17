@@ -203,76 +203,42 @@ export default function GettingStarted({
   return (
     <div className="mx-auto max-w-7xl space-y-8 animate-fade-in">
       <section className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-sm">
-        <div className="grid lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="relative overflow-hidden border-b border-border bg-gradient-to-br from-background via-card to-accent/10 p-6 sm:p-8 lg:border-b-0 lg:border-r lg:p-10">
-            <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-gradient-to-l from-primary/5 to-transparent lg:block" />
-            <div className="relative max-w-3xl">
-              <Badge variant="outline" className="mb-4 gap-1.5 border-accent/40 bg-accent/10 text-accent-foreground">
-                <Sparkles className="h-3 w-3" /> Getting Started Prototype
-              </Badge>
-              <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-                Choose the job-search path that matches how you actually work.
-              </h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-                This prototype turns Getting Started into a deliberate front door: one bold overview, four clear persona cards, and a progress rail that shows what to do next.
-              </p>
+        <div className="relative overflow-hidden bg-gradient-to-br from-background via-card to-accent/10 p-6 sm:p-8 lg:p-10">
+          <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-gradient-to-l from-primary/5 to-transparent lg:block" />
+          <div className="relative max-w-3xl">
+            <Badge variant="outline" className="mb-4 gap-1.5 border-accent/40 bg-accent/10 text-accent-foreground">
+              <Sparkles className="h-3 w-3" /> Getting Started
+            </Badge>
+            <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+              Choose the job-search path that matches how you actually work.
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+              Pick a starting point below — your profile, live roles, your network, or your target companies. Every path feeds the same unified pipeline.
+            </p>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                {quickStats.map((stat) => (
-                  <div key={stat.label} className="rounded-2xl border border-border bg-background/80 p-4 backdrop-blur-sm">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                      {stat.label}
-                    </div>
-                    <div className={`mt-2 font-display text-2xl font-bold tracking-tight ${stat.tone}`}>
-                      {stat.value}
-                    </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {quickStats.map((stat) => (
+                <div key={stat.label} className="rounded-2xl border border-border bg-background/80 p-4 backdrop-blur-sm">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                    {stat.label}
                   </div>
-                ))}
-              </div>
+                  <div className={`mt-2 font-display text-2xl font-bold tracking-tight ${stat.tone}`}>
+                    {stat.value}
+                  </div>
+                </div>
+              ))}
+            </div>
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Button onClick={startTour} className="gap-2">
-                  <Sparkles className="h-4 w-4" /> Take the tour
-                </Button>
-                <Button variant="outline" onClick={() => navigate("/profile")} className="gap-2">
-                  Complete profile
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button onClick={startTour} className="gap-2">
+                <Sparkles className="h-4 w-4" /> Take the tour
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/profile")} className="gap-2">
+                Complete profile
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
-
-          <aside className="bg-muted/40 p-6 sm:p-8 lg:p-10">
-            <div className="rounded-[1.5rem] border border-border bg-card p-6 shadow-sm">
-              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Info className="h-4 w-4 text-accent" />
-                What this prototype is showing
-              </div>
-              <ul className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
-                <li>• A more editorial hero instead of a plain checklist-first page.</li>
-                <li>• 4 large persona cards as the primary interaction pattern.</li>
-                <li>• Profile completeness surfaced as a prominent action banner.</li>
-                <li>• Progress and quick links moved below the choice architecture.</li>
-              </ul>
-            </div>
-
-            {profileScore !== null && !allDone && (
-              <div className="mt-4 rounded-[1.5rem] border border-border bg-background p-6">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                  Momentum
-                </div>
-                <div className="mt-2 font-display text-3xl font-bold tracking-tight text-foreground">
-                  {completedCount} / {milestones.length}
-                </div>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  You already have the foundation for a guided workflow — now make the next action obvious.
-                </p>
-                <div className="mt-4">
-                  <Progress value={progressPct} className="h-2" />
-                </div>
-              </div>
-            )}
-          </aside>
         </div>
       </section>
 
@@ -281,15 +247,13 @@ export default function GettingStarted({
       )}
 
       <section>
-        <div className="mb-4 flex items-end justify-between gap-4">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-              Entry paths
-            </div>
-            <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              The page should feel like a choice board, not a settings screen.
-            </h2>
+        <div className="mb-4">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+            Entry paths
           </div>
+          <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Where do you want to start?
+          </h2>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
@@ -304,10 +268,10 @@ export default function GettingStarted({
           <div className="flex items-end justify-between gap-4">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                Progress rail
+                Your progress
               </div>
               <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground">
-                Keep the setup momentum visible.
+                Setup checklist
               </h3>
             </div>
             <span className="text-sm text-muted-foreground">{progressPct}% complete</span>
@@ -362,10 +326,10 @@ export default function GettingStarted({
             Quick launchers
           </div>
           <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground">
-            Direct access to the tools beneath the prototype.
+            Jump straight to a tool
           </h3>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            If someone already knows what they want, they should still be able to jump straight into execution from this screen.
+            Already know what you need? Open the tracker, your schedule, or skills insights directly.
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
