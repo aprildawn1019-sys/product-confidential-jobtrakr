@@ -366,7 +366,7 @@ function EntryCard({
   tourId,
 }: EntryCardProps) {
   const accentClasses: Record<string, string> = {
-    neutral: "bg-muted text-muted-foreground border-border",
+    neutral: "bg-muted/60 text-muted-foreground border-border",
     info: "bg-info/10 text-info border-info/30",
     success: "bg-success/10 text-success border-success/30",
     warning: "bg-warning/15 text-warning-foreground border-warning/40",
@@ -377,32 +377,34 @@ function EntryCard({
       type="button"
       onClick={onClick}
       data-tour={tourId}
-      className="group relative flex flex-col rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      className="group relative flex flex-col rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-accent/55 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >
       <div className="flex items-start justify-between mb-3">
-        <div className={`flex h-11 w-11 items-center justify-center rounded-lg border ${accentClasses[accent]}`}>
+        <div className={`flex h-[42px] w-[42px] items-center justify-center rounded-[10px] border ${accentClasses[accent]}`}>
           <Icon className="h-5 w-5" />
         </div>
-        <span className="font-display text-2xl font-bold text-muted-foreground/30">0{number}</span>
+        <span className="font-serif text-[1.75rem] font-bold leading-none text-muted-foreground/35 tabular-nums">
+          0{number}
+        </span>
       </div>
-      <h3 className="font-display text-base font-semibold tracking-tight">{title}</h3>
-      <div className="mt-0.5 text-xs font-medium text-muted-foreground">{persona}</div>
-      <p className="mt-2 text-sm text-muted-foreground leading-relaxed flex-1">{description}</p>
+      <h3 className="text-[1.05rem] font-semibold tracking-tight leading-snug">{title}</h3>
+      <div className="mt-0.5 text-[0.78rem] font-medium text-muted-foreground">{persona}</div>
+      <p className="mt-2 text-[0.85rem] text-muted-foreground leading-relaxed flex-1">{description}</p>
       <ul className="mt-4 space-y-1.5">
         {steps.map((step) => (
-          <li key={step} className="flex items-center gap-2 text-xs text-foreground/80">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent/70" />
+          <li key={step} className="flex items-center gap-2 text-[0.82rem] text-foreground/85">
+            <span className="h-[5px] w-[5px] rounded-full bg-accent/70" />
             {step}
           </li>
         ))}
       </ul>
       {tip && (
-        <div className="mt-3 flex items-start gap-1.5 text-[11px] text-warning-foreground">
+        <div className="mt-3 inline-flex items-start gap-1.5 text-[11px] text-warning-foreground">
           <Info className="h-3 w-3 mt-0.5 shrink-0" />
           <span>{tip}</span>
         </div>
       )}
-      <span className="mt-4 flex items-center justify-between border-t border-dashed border-border pt-3 text-sm font-semibold group-hover:text-accent">
+      <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground/90 group-hover:text-accent">
         {cta}
         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
       </span>
