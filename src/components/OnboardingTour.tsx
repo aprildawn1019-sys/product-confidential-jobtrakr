@@ -71,15 +71,6 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       route: "/getting-started",
     },
     {
-      target: '[data-tour="page-job-search"]',
-      title: "AI Job Search in action",
-      content:
-        "Tune your profile and Jobtrakr surfaces matching roles. Add the ones you like to your pipeline with one click.",
-      placement: "bottom",
-      disableBeacon: true,
-      route: "/job-search",
-    },
-    {
       target: '[data-tour="entry-network"]',
       title: "Have a strong network?",
       content:
@@ -89,15 +80,6 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       route: "/getting-started",
     },
     {
-      target: '[data-tour="page-network"]',
-      title: "Your Network Map",
-      content:
-        "Visualize how your contacts cluster around companies and jobs. Spot warm intros and find gaps to bridge.",
-      placement: "bottom",
-      disableBeacon: true,
-      route: "/network-map",
-    },
-    {
       target: '[data-tour="entry-target-companies"]',
       title: "Land your dream company",
       content:
@@ -105,15 +87,6 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       placement: "bottom",
       disableBeacon: true,
       route: "/getting-started",
-    },
-    {
-      target: '[data-tour="page-target-companies"]',
-      title: "Target Companies",
-      content:
-        "Track your pipeline per company. Every job you save and every contact you add gets linked back here automatically.",
-      placement: "bottom",
-      disableBeacon: true,
-      route: "/target-companies",
     },
     {
       target: "body",
