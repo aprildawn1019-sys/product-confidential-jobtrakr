@@ -268,10 +268,10 @@ export default function GettingStarted({
           <div className="flex items-end justify-between gap-4">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                Progress rail
+                Your progress
               </div>
               <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground">
-                Keep the setup momentum visible.
+                Setup checklist
               </h3>
             </div>
             <span className="text-sm text-muted-foreground">{progressPct}% complete</span>
@@ -326,10 +326,10 @@ export default function GettingStarted({
             Quick launchers
           </div>
           <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground">
-            Direct access to the tools beneath the prototype.
+            Jump straight to a tool
           </h3>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            If someone already knows what they want, they should still be able to jump straight into execution from this screen.
+            Already know what you need? Open the tracker, your schedule, or skills insights directly.
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
