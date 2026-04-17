@@ -1,24 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
+import { type ComponentType, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Search,
-  Users,
-  Star,
-  CalendarCheck,
-  Trophy,
   ArrowRight,
-  Sparkles,
+  CalendarCheck,
   Check,
   Circle,
   Compass,
-  UserCog,
   Info,
+  Search,
+  Sparkles,
+  Star,
+  Trophy,
+  UserCog,
+  Users,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import type { Job, Contact, TargetCompany, Interview } from "@/types/jobTracker";
+import type { Contact, Interview, Job, TargetCompany } from "@/types/jobTracker";
 
 interface GettingStartedProps {
   jobs?: Job[];
@@ -28,10 +28,20 @@ interface GettingStartedProps {
   coverLetterCount?: number;
 }
 
-/**
- * Getting Started — persona-driven entry points (prototype v2).
- * Keeps the session-progress checklist so returning users still see momentum.
- */
+interface EntryPath {
+  number: string;
+  title: string;
+  persona: string;
+  description: string;
+  steps: string[];
+  cta: string;
+  route: string;
+  icon: ComponentType<{ className?: string }>;
+  tone: "neutral" | "info" | "success" | "warning";
+  featured?: boolean;
+  note?: string;
+}
+
 export default function GettingStarted({
   jobs = [],
   contacts = [],
@@ -43,15 +53,19 @@ export default function GettingStarted({
 
   const startTour = () => window.dispatchEvent(new Event("jobtrakr:start-tour"));
 
-  /* ── Compute profile completeness (5 key fields) ──────────────── */
   useEffect(() => {
     let cancelled = false;
+
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         if (!cancelled) setProfileScore(0);
         return;
       }
+
       const { data } = await supabase
         .from("job_search_profile")
         .select("target_roles, locations, skills, summary, min_base_salary")
@@ -59,27 +73,86 @@ export default function GettingStarted({
         .maybeSingle();
 
       if (cancelled) return;
+
       if (!data) {
         setProfileScore(0);
         return;
       }
+
       let score = 0;
-      if (data.target_roles?.length) score++;
-      if (data.locations?.length) score++;
-      if (data.skills?.length) score++;
-      if (data.summary && data.summary.trim().length > 0) score++;
-      if (data.min_base_salary && data.min_base_salary > 0) score++;
+      if (data.target_roles?.length) score += 1;
+      if (data.locations?.length) score += 1;
+      if (data.skills?.length) score += 1;
+      if (data.summary?.trim()) score += 1;
+      if (data.min_base_salary && data.min_base_salary > 0) score += 1;
+
       setProfileScore(score);
     })();
+
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const profileComplete = profileScore !== null && profileScore >= 5;
   const profileIncomplete = profileScore !== null && profileScore < 5;
 
-  /* ── Session milestones (kept from previous version) ──────────── */
+  const entryPaths = useMemo<EntryPath[]>(
+    () => [
+      {
+        number: "01",
+        title: "Build your foundation",
+        persona: "Beginner Bob",
+        description:
+          "Start by defining the roles, locations, and skills you care about so every downstream tool feels personalized.",
+        steps: ["Complete profile", "Choose boards", "Run first search"],
+        cta: "Open Profile",
+        route: "/profile",
+        icon: Compass,
+        tone: "neutral",
+        featured: profileIncomplete,
+        note: profileIncomplete ? "Best first step if your search profile is still incomplete." : undefined,
+      },
+      {
+        number: "02",
+        title: "Search for live roles",
+        persona: "Searcher Sam",
+        description:
+          "Use AI-powered role discovery, curated job boards, and imports when you already know what kind of opportunity you want.",
+        steps: ["AI Job Search", "Browse boards", "Import openings"],
+        cta: "Open Job Search",
+        route: "/job-search",
+        icon: Search,
+        tone: "info",
+        note: profileIncomplete ? "Results sharpen when your profile is fully filled out." : undefined,
+      },
+      {
+        number: "03",
+        title: "Lead with relationships",
+        persona: "Networker Nora",
+        description:
+          "Track warm contacts, follow-ups, and introductions so your search grows through conversations instead of cold applications.",
+        steps: ["Add contacts", "Log activity", "View network map"],
+        cta: "Open Contacts",
+        route: "/contacts",
+        icon: Users,
+        tone: "success",
+      },
+      {
+        number: "04",
+        title: "Target dream companies",
+        persona: "Targeter Tara",
+        description:
+          "Create a focused company list, assign priority, and work backward from the organizations you care about most.",
+        steps: ["Add companies", "Set priority", "Track roles & people"],
+        cta: "Open Targets",
+        route: "/target-companies",
+        icon: Star,
+        tone: "warning",
+      },
+    ],
+    [profileIncomplete],
+  );
+
   const milestones = useMemo(
     () => [
       {
@@ -102,8 +175,8 @@ export default function GettingStarted({
       },
       {
         label: "Applied to a role",
-        done: jobs.some((j) => ["applied", "screening", "interviewing", "offer"].includes(j.status)),
-        cta: "Mark as applied",
+        done: jobs.some((job) => ["applied", "screening", "interviewing", "offer"].includes(job.status)),
+        cta: "Update pipeline",
         onClick: () => navigate("/jobs"),
       },
       {
@@ -116,298 +189,369 @@ export default function GettingStarted({
     [jobs, contacts, targetCompanies, interviews, navigate],
   );
 
-  const completedCount = milestones.filter((m) => m.done).length;
+  const completedCount = milestones.filter((milestone) => milestone.done).length;
   const progressPct = Math.round((completedCount / milestones.length) * 100);
   const allDone = completedCount === milestones.length;
 
+  const quickStats = [
+    { label: "Profile", value: profileScore === null ? "—" : `${profileScore}/5`, tone: "text-info" },
+    { label: "Jobs", value: String(jobs.length), tone: "text-foreground" },
+    { label: "Contacts", value: String(contacts.length), tone: "text-success" },
+    { label: "Targets", value: String(targetCompanies.length), tone: "text-warning-foreground" },
+  ];
+
   return (
-    <div className="space-y-8 animate-fade-in max-w-6xl">
-      {/* Header */}
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Badge variant="outline" className="mb-3 gap-1.5 border-accent/40 bg-accent/10 text-accent-foreground">
-            <Sparkles className="h-3 w-3" /> Getting Started
-          </Badge>
-          <h1 className="font-display text-3xl font-bold tracking-tight">
-            Pick the way you want to start your search
-          </h1>
-          <p className="mt-2 text-muted-foreground max-w-2xl">
-            Jobtrakr isn't linear. Choose the entry point that matches where you are today —
-            every path feeds into the same unified pipeline.
-          </p>
-        </div>
-        <Button onClick={startTour} className="gap-2">
-          <Sparkles className="h-4 w-4" /> Take the tour
-        </Button>
-      </header>
+    <div className="mx-auto max-w-7xl space-y-8 animate-fade-in">
+      <section className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-sm">
+        <div className="grid lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="relative overflow-hidden border-b border-border bg-gradient-to-br from-background via-card to-accent/10 p-6 sm:p-8 lg:border-b-0 lg:border-r lg:p-10">
+            <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-gradient-to-l from-primary/5 to-transparent lg:block" />
+            <div className="relative max-w-3xl">
+              <Badge variant="outline" className="mb-4 gap-1.5 border-accent/40 bg-accent/10 text-accent-foreground">
+                <Sparkles className="h-3 w-3" /> Getting Started Prototype
+              </Badge>
+              <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+                Choose the job-search path that matches how you actually work.
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+                This prototype turns Getting Started into a deliberate front door: one bold overview, four clear persona cards, and a progress rail that shows what to do next.
+              </p>
 
-      {/* Profile completeness banner */}
-      {profileScore !== null && !profileComplete && (
-        <ProfileCompletenessBanner
-          score={profileScore}
-          onAction={() => navigate("/profile")}
-        />
-      )}
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {quickStats.map((stat) => (
+                  <div key={stat.label} className="rounded-2xl border border-border bg-background/80 p-4 backdrop-blur-sm">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                      {stat.label}
+                    </div>
+                    <div className={`mt-2 font-display text-2xl font-bold tracking-tight ${stat.tone}`}>
+                      {stat.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-      {/* Persona entry cards */}
-      <section>
-        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
-          Choose your entry point
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <EntryCard
-            number={1}
-            icon={Compass}
-            title="I'm just getting started"
-            persona="Beginner Bob"
-            description="No roles in mind yet? Set up your profile, pick the job boards you want to monitor, and we'll surface roles that fit."
-            steps={["Set up your profile", "Add job boards to monitor", "Run your first search"]}
-            cta="Start setup"
-            onClick={() => navigate("/profile")}
-            accent="neutral"
-            tip={profileIncomplete ? "Recommended — your profile isn't complete yet" : undefined}
-            tourId="entry-beginner"
-          />
-          <EntryCard
-            number={2}
-            icon={Search}
-            title="Search for jobs"
-            persona="Searcher Sam"
-            description="Already know the role you want? Start with AI-powered search, browse curated boards, or bulk-import a list of openings."
-            steps={["AI Job Search", "Job Boards", "Bulk Import"]}
-            cta="Open AI Job Search"
-            onClick={() => navigate("/job-search")}
-            accent="info"
-            tip={profileIncomplete ? "Tip: a complete profile improves results" : undefined}
-            tourId="entry-job-search"
-          />
-          <EntryCard
-            number={3}
-            icon={Users}
-            title="Network first"
-            persona="Networker Nora"
-            description="Prefer relationship-driven searches? Add contacts, log conversations, and let opportunities surface from your network."
-            steps={["Add Contacts", "Log Activity & Warmth", "Network Map"]}
-            cta="Open Connections"
-            onClick={() => navigate("/contacts")}
-            accent="success"
-            tip={profileIncomplete ? "Tip: a complete profile improves results" : undefined}
-            tourId="entry-network"
-          />
-          <EntryCard
-            number={4}
-            icon={Star}
-            title="Start with target companies"
-            persona="Targeter Tara"
-            description="Have a dream-employer shortlist? Add them, set priorities, then discover roles and contacts within each company."
-            steps={["Add Companies", "Set Priority", "Find Jobs & Contacts"]}
-            cta="Open Target Companies"
-            onClick={() => navigate("/target-companies")}
-            accent="warning"
-            tip={profileIncomplete ? "Tip: a complete profile improves results" : undefined}
-            tourId="entry-target-companies"
-          />
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button onClick={startTour} className="gap-2">
+                  <Sparkles className="h-4 w-4" /> Take the tour
+                </Button>
+                <Button variant="outline" onClick={() => navigate("/profile")} className="gap-2">
+                  Complete profile
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <aside className="bg-muted/40 p-6 sm:p-8 lg:p-10">
+            <div className="rounded-[1.5rem] border border-border bg-card p-6 shadow-sm">
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <Info className="h-4 w-4 text-accent" />
+                What this prototype is showing
+              </div>
+              <ul className="mt-4 space-y-3 text-sm leading-6 text-muted-foreground">
+                <li>• A more editorial hero instead of a plain checklist-first page.</li>
+                <li>• 4 large persona cards as the primary interaction pattern.</li>
+                <li>• Profile completeness surfaced as a prominent action banner.</li>
+                <li>• Progress and quick links moved below the choice architecture.</li>
+              </ul>
+            </div>
+
+            {profileScore !== null && !allDone && (
+              <div className="mt-4 rounded-[1.5rem] border border-border bg-background p-6">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                  Momentum
+                </div>
+                <div className="mt-2 font-display text-3xl font-bold tracking-tight text-foreground">
+                  {completedCount} / {milestones.length}
+                </div>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  You already have the foundation for a guided workflow — now make the next action obvious.
+                </p>
+                <div className="mt-4">
+                  <Progress value={progressPct} className="h-2" />
+                </div>
+              </div>
+            )}
+          </aside>
         </div>
       </section>
 
-      {/* Session progress checklist (kept — useful for returning users) */}
+      {profileScore !== null && profileScore < 5 && (
+        <ProfileCompletenessBanner score={profileScore} onAction={() => navigate("/profile")} />
+      )}
+
       <section>
-        <div className="flex items-end justify-between mb-4 gap-4 flex-wrap">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            Your progress
-          </h2>
-          <span className="text-xs text-muted-foreground">
-            {completedCount} of {milestones.length} complete
-          </span>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-          <div className="flex items-center gap-4 mb-5">
-            <Progress value={progressPct} className="h-2 flex-1" />
-            <span className="font-display text-sm font-semibold tabular-nums w-10 text-right">
-              {progressPct}%
-            </span>
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              Entry paths
+            </div>
+            <h2 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              The page should feel like a choice board, not a settings screen.
+            </h2>
           </div>
-          <ul className="space-y-2">
-            {milestones.map((m) => (
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          {entryPaths.map((path) => (
+            <EntryPrototypeCard key={path.number} path={path} onClick={() => navigate(path.route)} />
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+        <div className="rounded-[1.75rem] border border-border bg-card p-6 shadow-sm sm:p-8">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                Progress rail
+              </div>
+              <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground">
+                Keep the setup momentum visible.
+              </h3>
+            </div>
+            <span className="text-sm text-muted-foreground">{progressPct}% complete</span>
+          </div>
+
+          <div className="mt-5">
+            <Progress value={progressPct} className="h-2" />
+          </div>
+
+          <ul className="mt-6 space-y-3">
+            {milestones.map((milestone) => (
               <li
-                key={m.label}
-                className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
-                  m.done
+                key={milestone.label}
+                className={`flex items-center gap-3 rounded-2xl border p-4 transition-colors ${
+                  milestone.done
                     ? "border-success/30 bg-success/5"
-                    : "border-border bg-background hover:border-primary/30"
+                    : "border-border bg-background hover:border-primary/25"
                 }`}
               >
                 <div
-                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                    m.done ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                    milestone.done ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"
                   }`}
                 >
-                  {m.done ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-3 w-3" />}
+                  {milestone.done ? <Check className="h-4 w-4" /> : <Circle className="h-3.5 w-3.5" />}
                 </div>
-                <span
-                  className={`flex-1 text-sm ${
-                    m.done ? "text-foreground/70 line-through" : "text-foreground font-medium"
-                  }`}
-                >
-                  {m.label}
-                </span>
-                {!m.done && (
-                  <Button variant="ghost" size="sm" onClick={m.onClick} className="gap-1 text-xs">
-                    {m.cta}
-                    <ArrowRight className="h-3 w-3" />
+                <div className="min-w-0 flex-1">
+                  <div className={`text-sm ${milestone.done ? "text-foreground/65 line-through" : "font-medium text-foreground"}`}>
+                    {milestone.label}
+                  </div>
+                </div>
+                {!milestone.done && (
+                  <Button variant="ghost" size="sm" onClick={milestone.onClick} className="gap-1 text-xs">
+                    {milestone.cta}
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </Button>
                 )}
               </li>
             ))}
           </ul>
+
           {allDone && (
-            <div className="mt-5 flex items-center gap-2 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm">
+            <div className="mt-5 flex items-center gap-2 rounded-2xl border border-accent/40 bg-accent/10 p-4 text-sm font-medium text-foreground">
               <Trophy className="h-4 w-4 text-accent-foreground" />
-              <span className="font-medium">You're all set up — happy hunting!</span>
+              You’re fully set up — move straight into search, outreach, and tracking.
             </div>
           )}
         </div>
-      </section>
 
-      {/* Quick actions footer */}
-      <section className="rounded-2xl border border-border bg-gradient-to-br from-card to-muted/40 p-6 sm:p-8 text-center">
-        <h3 className="font-display text-xl font-bold tracking-tight">Need a different door in?</h3>
-        <p className="mt-2 text-muted-foreground">Jump straight to a specific tool, or take the guided tour.</p>
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-          <Button variant="outline" onClick={() => navigate("/jobs")} className="gap-1.5">
-            <CalendarCheck className="h-4 w-4" /> Job Tracker
-          </Button>
-          <Button variant="outline" onClick={() => navigate("/interviews")} className="gap-1.5">
-            <CalendarCheck className="h-4 w-4" /> Schedule
-          </Button>
-          <Button variant="outline" onClick={() => navigate("/skills-insights")} className="gap-1.5">
-            <Sparkles className="h-4 w-4" /> Skills Insights
-          </Button>
-          <Button onClick={startTour} className="gap-2">
-            <Sparkles className="h-4 w-4" /> Take the tour
-          </Button>
+        <div className="rounded-[1.75rem] border border-border bg-gradient-to-br from-card to-muted/50 p-6 shadow-sm sm:p-8">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+            Quick launchers
+          </div>
+          <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground">
+            Direct access to the tools beneath the prototype.
+          </h3>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            If someone already knows what they want, they should still be able to jump straight into execution from this screen.
+          </p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <QuickActionCard
+              title="Job Tracker"
+              description="Manage applications, statuses, and notes."
+              icon={CalendarCheck}
+              onClick={() => navigate("/jobs")}
+            />
+            <QuickActionCard
+              title="Schedule"
+              description="Review interviews and upcoming follow-ups."
+              icon={CalendarCheck}
+              onClick={() => navigate("/interviews")}
+            />
+            <QuickActionCard
+              title="Skills Insights"
+              description="See the skills showing up across roles."
+              icon={Sparkles}
+              onClick={() => navigate("/skills-insights")}
+            />
+            <QuickActionCard
+              title="Take the Tour"
+              description="Walk through the app with guided callouts."
+              icon={Sparkles}
+              onClick={startTour}
+            />
+          </div>
         </div>
       </section>
     </div>
   );
 }
-
-/* ─── Sub-components ─────────────────────────────────────────────── */
 
 function ProfileCompletenessBanner({ score, onAction }: { score: number; onAction: () => void }) {
   const pct = (score / 5) * 100;
-  const isWarn = score < 3;
+  const isEarly = score < 3;
 
-  let title: string;
-  let sub: string;
-  if (score === 0) {
-    title = "Set up your search profile";
-    sub = "Add your target roles, locations, and skills so we can match jobs and contacts to what you actually want.";
-  } else if (score < 3) {
-    title = `Your profile is ${score} of 5 complete`;
-    sub = "A complete profile improves match quality across search, recommendations, and cover letters.";
-  } else {
-    title = `Sharpen your profile (${score} of 5)`;
-    sub = "Just a couple more fields and your matches and AI suggestions get noticeably sharper.";
-  }
+  const title =
+    score === 0
+      ? "Set up your search profile"
+      : score < 3
+        ? `Your profile is ${score} of 5 complete`
+        : `Sharpen your profile (${score} of 5)`;
 
-  const tone = isWarn
-    ? "border-warning/55 bg-warning/10"
-    : "border-info/45 bg-info/10";
-  const iconTone = isWarn
-    ? "bg-warning/20 text-warning-foreground"
-    : "bg-info/15 text-info";
+  const description =
+    score === 0
+      ? "Add your target roles, preferred locations, skills, and salary floor so the product can tailor search and writing assistance."
+      : score < 3
+        ? "A fuller profile improves your search suggestions, job summaries, and generated materials."
+        : "Just a couple more fields will noticeably improve the quality of matches and AI suggestions.";
 
   return (
-    <div className={`flex flex-wrap items-center gap-4 rounded-2xl border p-4 sm:p-5 shadow-sm ${tone}`}>
-      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconTone}`}>
-        <UserCog className="h-5 w-5" />
-      </div>
-      <div className="flex-1 min-w-[200px]">
-        <div className="font-semibold text-sm">{title}</div>
-        <div className="mt-0.5 text-xs text-muted-foreground">{sub}</div>
-        <div className="mt-2 max-w-xs">
-          <Progress value={pct} className="h-1.5" />
+    <section
+      className={`rounded-[1.75rem] border p-5 shadow-sm sm:p-6 ${
+        isEarly ? "border-warning/45 bg-warning/10" : "border-info/35 bg-info/10"
+      }`}
+    >
+      <div className="flex flex-wrap items-center gap-4">
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
+            isEarly ? "bg-warning/20 text-warning-foreground" : "bg-info/15 text-info"
+          }`}
+        >
+          <UserCog className="h-5 w-5" />
         </div>
+
+        <div className="min-w-[240px] flex-1">
+          <div className="text-sm font-semibold text-foreground">{title}</div>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>
+          <div className="mt-3 max-w-md">
+            <Progress value={pct} className="h-2" />
+          </div>
+        </div>
+
+        <Button onClick={onAction} className="gap-2">
+          Complete profile
+          <ArrowRight className="h-4 w-4" />
+        </Button>
       </div>
-      <Button onClick={onAction} className="gap-1.5">
-        Complete profile
-        <ArrowRight className="h-3.5 w-3.5" />
-      </Button>
-    </div>
+    </section>
   );
 }
 
-interface EntryCardProps {
-  number: number;
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  persona: string;
-  description: string;
-  steps: string[];
-  cta: string;
-  onClick: () => void;
-  accent: "neutral" | "info" | "success" | "warning";
-  tip?: string;
-  tourId?: string;
-}
-
-function EntryCard({
-  number,
-  icon: Icon,
-  title,
-  persona,
-  description,
-  steps,
-  cta,
-  onClick,
-  accent,
-  tip,
-  tourId,
-}: EntryCardProps) {
-  const accentClasses: Record<string, string> = {
-    neutral: "bg-muted/60 text-muted-foreground border-border",
-    info: "bg-info/10 text-info border-info/30",
-    success: "bg-success/10 text-success border-success/30",
-    warning: "bg-warning/15 text-warning-foreground border-warning/40",
+function EntryPrototypeCard({ path, onClick }: { path: EntryPath; onClick: () => void }) {
+  const toneClasses: Record<EntryPath["tone"], string> = {
+    neutral: "border-border bg-card",
+    info: "border-info/25 bg-info/5",
+    success: "border-success/25 bg-success/5",
+    warning: "border-warning/35 bg-warning/10",
   };
+
+  const iconClasses: Record<EntryPath["tone"], string> = {
+    neutral: "border-border bg-muted text-foreground",
+    info: "border-info/25 bg-info/10 text-info",
+    success: "border-success/25 bg-success/10 text-success",
+    warning: "border-warning/35 bg-warning/15 text-warning-foreground",
+  };
+
+  const numberClasses: Record<EntryPath["tone"], string> = {
+    neutral: "text-muted-foreground/35",
+    info: "text-info/25",
+    success: "text-success/25",
+    warning: "text-warning-foreground/25",
+  };
+
+  const Icon = path.icon;
 
   return (
     <button
       type="button"
       onClick={onClick}
-      data-tour={tourId}
-      className="group relative flex flex-col rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-accent/55 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      className={`group relative overflow-hidden rounded-[1.75rem] border p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:p-7 ${toneClasses[path.tone]}`}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className={`flex h-[42px] w-[42px] items-center justify-center rounded-[10px] border ${accentClasses[accent]}`}>
+      <div className="absolute right-5 top-4 font-serif text-[3rem] font-bold leading-none tracking-tight sm:text-[4rem] ${numberClasses[path.tone]}" />
+      <div className="flex items-start justify-between gap-4">
+        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${iconClasses[path.tone]}`}>
           <Icon className="h-5 w-5" />
         </div>
-        <span className="font-serif text-[1.75rem] font-bold leading-none text-muted-foreground/35 tabular-nums">
-          0{number}
-        </span>
+        <div className={`font-serif text-[3rem] font-bold leading-none tracking-tight sm:text-[4rem] ${numberClasses[path.tone]}`}>
+          {path.number}
+        </div>
       </div>
-      <h3 className="text-[1.05rem] font-semibold tracking-tight leading-snug">{title}</h3>
-      <div className="mt-0.5 text-[0.78rem] font-medium text-muted-foreground">{persona}</div>
-      <p className="mt-2 text-[0.85rem] text-muted-foreground leading-relaxed flex-1">{description}</p>
-      <ul className="mt-4 space-y-1.5">
-        {steps.map((step) => (
-          <li key={step} className="flex items-center gap-2 text-[0.82rem] text-foreground/85">
-            <span className="h-[5px] w-[5px] rounded-full bg-accent/70" />
+
+      <div className="mt-6">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+          {path.persona}
+        </div>
+        <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground">
+          {path.title}
+        </h3>
+        <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">{path.description}</p>
+      </div>
+
+      <ul className="mt-5 space-y-2">
+        {path.steps.map((step) => (
+          <li key={step} className="flex items-center gap-2 text-sm text-foreground/85">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
             {step}
           </li>
         ))}
       </ul>
-      {tip && (
-        <div className="mt-3 inline-flex items-start gap-1.5 text-[11px] text-warning-foreground">
-          <Info className="h-3 w-3 mt-0.5 shrink-0" />
-          <span>{tip}</span>
+
+      {path.note && (
+        <div className="mt-5 flex items-start gap-2 rounded-2xl border border-accent/30 bg-accent/10 p-3 text-sm text-foreground">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent-foreground" />
+          <span>{path.note}</span>
         </div>
       )}
-      <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground/90 group-hover:text-accent">
-        {cta}
+
+      {path.featured && (
+        <div className="mt-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-accent-foreground">
+          Recommended first move
+        </div>
+      )}
+
+      <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-foreground transition-colors group-hover:text-accent-foreground">
+        {path.cta}
         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-      </span>
+      </div>
+    </button>
+  );
+}
+
+function QuickActionCard({
+  title,
+  description,
+  icon: Icon,
+  onClick,
+}: {
+  title: string;
+  description: string;
+  icon: ComponentType<{ className?: string }>;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-2xl border border-border bg-background p-4 text-left transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    >
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted text-foreground">
+        <Icon className="h-4 w-4" />
+      </div>
+      <h4 className="mt-4 text-base font-semibold tracking-tight text-foreground">{title}</h4>
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
     </button>
   );
 }
