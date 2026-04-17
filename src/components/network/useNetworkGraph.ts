@@ -214,6 +214,7 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
           priority: tc?.priority,
           targetId: tc?.id,
           dimmed: false,
+          clusterHue: clusterHue(companyName),
         },
       });
       return id;
