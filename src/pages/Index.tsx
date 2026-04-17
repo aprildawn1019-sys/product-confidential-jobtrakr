@@ -16,6 +16,7 @@ import SkillsInsights from "@/pages/SkillsInsights";
 import InterviewsPage from "@/pages/Interviews";
 import TargetCompanies from "@/pages/TargetCompanies";
 import CoverLetters from "@/pages/CoverLetters";
+import GettingStarted from "@/pages/GettingStarted";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -172,6 +173,7 @@ export default function Index() {
             />
           } />
           <Route path="cover-letters" element={<CoverLetters jobs={store.jobs} />} />
+          <Route path="getting-started" element={<GettingStarted />} />
           <Route path="network-map" element={
             <NetworkMap
               contacts={store.contacts}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Briefcase, Users, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, FileText, Network, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, FileText, Network, Sparkles, LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -104,6 +104,17 @@ function SidebarContent({ jobs, onNavigate }: { jobs: { id: string; title: strin
         }>
           <LayoutDashboard className="h-4 w-4" />
           Dashboard
+        </NavLink>
+        <NavLink to="/getting-started" onClick={handleNavClick} className={({ isActive }) =>
+          cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+            isActive
+              ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+              : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+          )
+        }>
+          <Sparkles className="h-4 w-4" />
+          Getting Started
         </NavLink>
 
         {groups.map((group) => {
