@@ -3,14 +3,11 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   CalendarCheck,
-  Check,
-  Circle,
   Compass,
   Info,
   Search,
   Sparkles,
   Star,
-  Trophy,
   UserCog,
   Users,
 } from "lucide-react";
