@@ -20,13 +20,18 @@ interface UseNetworkGraphParams {
 /**
  * Radial cluster layout.
  *
- * Companies are placed on a large outer ring (sorted by cluster size so the
- * biggest hubs are spaced evenly). Each company's contacts and jobs orbit it
- * on a small ring centred on the company. Orphan nodes (no company) wrap on
- * an inner concentric ring at the canvas centre.
+ * Each company sits at the centre of its own cluster, with contacts and jobs
+ * distributed evenly around it on a ring. Cluster centres are placed on a
+ * larger outer ring (or packed in a grid for many clusters) so that text
+ * never overlaps. Orphan nodes (no company) wrap on an inner ring at (0,0).
  */
 function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, string[]>) {
   const positions = new Map<string, { x: number; y: number }>();
+
+  // Approximate visual footprint of each node type (width × height incl. labels)
+  const NODE_W = { company: 120, child: 110 };
+  const NODE_H = { company: 70, child: 90 };
+  const LABEL_PAD = 24; // breathing room between adjacent labels
 
   const companyIds = new Set<string>();
   nodes.forEach(n => { if (n.type === "companyNode") companyIds.add(n.id); });
@@ -45,14 +50,31 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
     return sb - sa;
   });
 
+  /**
+   * Child ring radius: must be large enough that adjacent children, placed at
+   * 2π/count spacing, don't visually collide. Required radius ≈ chord/2sin(π/n)
+   * where chord = node width + padding.
+   */
+  function childRingRadius(count: number) {
+    if (count <= 1) return 0;
+    const chord = NODE_W.child + LABEL_PAD;
+    const minByChord = chord / (2 * Math.sin(Math.PI / count));
+    // Floor + gentle linear growth so even small clusters look airy
+    return Math.max(110, minByChord, 90 + count * 6);
+  }
+
+  // Cluster footprint = child ring + child node radius (so labels clear the centre)
+  function clusterRadius(count: number) {
+    return childRingRadius(count) + Math.max(NODE_W.child, NODE_H.child) / 2;
+  }
+
   const n = sortedCompanies.length;
-  const childRadius = (count: number) => 90 + Math.max(0, count - 4) * 14;
-  // Outer ring sized to fit every cluster's local ring without collision
+  // Outer ring sized so each cluster's footprint fits along its arc
   const totalDemand = sortedCompanies.reduce(
-    (sum, id) => sum + 2 * (childRadius(companyNodeMap.get(id)?.length ?? 0) + 30),
+    (sum, id) => sum + 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD),
     0,
   );
-  const outerRadius = Math.max(320, totalDemand / (2 * Math.PI) + 120);
+  const outerRadius = Math.max(360, totalDemand / (2 * Math.PI) + 80);
 
   sortedCompanies.forEach((compId, i) => {
     const cx = n <= 1 ? 0 : Math.cos((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
@@ -60,9 +82,11 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
     positions.set(compId, { x: cx, y: cy });
 
     const children = companyNodeMap.get(compId) ?? [];
-    const r = childRadius(children.length);
+    const r = childRingRadius(children.length);
+    // Start angle offset so a single child sits below centre (avoids overlap with company label)
+    const startAngle = Math.PI / 2;
     children.forEach((childId, j) => {
-      const angle = (2 * Math.PI * j) / Math.max(1, children.length);
+      const angle = startAngle + (2 * Math.PI * j) / Math.max(1, children.length);
       positions.set(childId, {
         x: cx + Math.cos(angle) * r,
         y: cy + Math.sin(angle) * r,
@@ -70,9 +94,11 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
     });
   });
 
-  // Orphans on a small inner ring at (0,0)
+  // Orphans on a small inner ring at (0,0), spaced enough to read labels
   if (orphans.length > 0) {
-    const orphanRadius = Math.min(200, 60 + orphans.length * 10);
+    const orphanRadius = orphans.length === 1
+      ? 0
+      : Math.max(120, (NODE_W.child + LABEL_PAD) / (2 * Math.sin(Math.PI / orphans.length)));
     orphans.forEach((id, i) => {
       const angle = (2 * Math.PI * i) / orphans.length - Math.PI / 2;
       positions.set(id, {
@@ -86,7 +112,9 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
     const pos = positions.get(node.id) ?? { x: 0, y: 0 };
     const isCompany = node.type === "companyNode";
     // xyflow positions the top-left corner — offset to centre the node visually
-    return { ...node, position: { x: pos.x - (isCompany ? 70 : 55), y: pos.y - (isCompany ? 30 : 35) } };
+    const w = isCompany ? NODE_W.company : NODE_W.child;
+    const h = isCompany ? NODE_H.company : NODE_H.child;
+    return { ...node, position: { x: pos.x - w / 2, y: pos.y - h / 2 } };
   });
 }
 
