@@ -60,6 +60,10 @@ function NetworkMapInner(props: NetworkMapProps) {
   const filterRole = searchParams.get("r") ?? "all";
   const showJobs = searchParams.get("jobs") !== "0"; // default true
   const hideDimmed = searchParams.get("hd") === "1"; // default false
+  const layoutMode: NetworkLayoutMode = (() => {
+    const v = searchParams.get("layout");
+    return v === "hierarchical" || v === "grid" ? v : "radial";
+  })();
 
   const updateParam = useCallback((key: string, value: string, defaultValue: string) => {
     setSearchParams(prev => {
