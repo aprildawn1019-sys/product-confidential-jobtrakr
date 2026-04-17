@@ -1,16 +1,20 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe } from "lucide-react";
+import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe, AlertTriangle, GitMerge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import CompanyAvatar from "@/components/CompanyAvatar";
+import DuplicateCompaniesDialog from "@/components/targetcompanies/DuplicateCompaniesDialog";
+import { detectDuplicateClusters } from "@/components/targetcompanies/duplicateDetection";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact } from "@/types/jobTracker";
 
@@ -21,6 +25,12 @@ interface TargetCompaniesProps {
   onAdd: (company: Omit<TargetCompany, "id" | "createdAt">) => Promise<void>;
   onUpdate: (id: string, updates: Partial<TargetCompany>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onMerge: (
+    primaryId: string,
+    duplicateIds: string[],
+    mergedFields: Partial<TargetCompany>,
+    duplicateNames: string[],
+  ) => Promise<void>;
 }
 
 const priorityConfig: Record<TargetCompanyPriority, { label: string; color: string }> = {
