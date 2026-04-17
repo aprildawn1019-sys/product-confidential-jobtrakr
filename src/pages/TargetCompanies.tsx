@@ -51,7 +51,7 @@ const emptyForm = {
   priority: "interested" as TargetCompanyPriority, status: "researching" as TargetCompanyStatus, notes: "",
 };
 
-export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd, onUpdate, onDelete }: TargetCompaniesProps) {
+export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd, onUpdate, onDelete, onMerge }: TargetCompaniesProps) {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterPriority, setFilterPriority] = useState<string>("all");
@@ -59,6 +59,10 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [duplicatesDialogOpen, setDuplicatesDialogOpen] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  const duplicateClusters = useMemo(() => detectDuplicateClusters(targetCompanies), [targetCompanies]);
 
   const filtered = useMemo(() => {
     return targetCompanies.filter(tc => {
@@ -76,6 +80,16 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
     const matchedContacts = contacts.filter(c => companiesMatch(c.company, companyName));
     const activeApps = matchedJobs.filter(j => activeStatuses.includes(j.status));
     return { jobCount: matchedJobs.length, contactCount: matchedContacts.length, activeApps: activeApps.length };
+  };
+
+  const handleMerge = async (
+    primaryId: string,
+    duplicateIds: string[],
+    mergedFields: Partial<TargetCompany>,
+    duplicateNames: string[],
+  ) => {
+    await onMerge(primaryId, duplicateIds, mergedFields, duplicateNames);
+    toast.success(`Merged ${duplicateIds.length + 1} companies into "${mergedFields.name}"`);
   };
 
   const openAdd = () => { setForm(emptyForm); setEditingId(null); setDialogOpen(true); };
