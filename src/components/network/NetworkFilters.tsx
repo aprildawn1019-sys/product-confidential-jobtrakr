@@ -1,7 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RotateCcw, Eye, EyeOff } from "lucide-react";
+import { RotateCcw, Eye, EyeOff, Download } from "lucide-react";
 import { NETWORK_ROLES } from "@/types/jobTracker";
 import type { Contact, TargetCompany } from "@/types/jobTracker";
 
@@ -22,6 +22,7 @@ interface NetworkFiltersProps {
   matchingContactCount: number;
   totalContactCount: number;
   isFiltered: boolean;
+  onExport: () => void;
 }
 
 export default function NetworkFilters(props: NetworkFiltersProps) {
@@ -83,6 +84,10 @@ export default function NetworkFilters(props: NetworkFiltersProps) {
 
       <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={props.onReset}>
         <RotateCcw className="h-3 w-3" /> Reset
+      </Button>
+
+      <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={props.onExport}>
+        <Download className="h-3 w-3" /> Export PNG
       </Button>
 
       <Badge variant={props.isFiltered ? "default" : "secondary"} className="h-7 text-xs font-medium ml-auto">

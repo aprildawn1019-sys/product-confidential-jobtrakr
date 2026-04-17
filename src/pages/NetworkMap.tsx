@@ -23,6 +23,8 @@ import NetworkTooltip from "@/components/network/NetworkTooltip";
 import { useNetworkGraph } from "@/components/network/useNetworkGraph";
 import ConnectionDialog from "@/components/network/ConnectionDialog";
 import NetworkSearch from "@/components/network/NetworkSearch";
+import { toPng } from "html-to-image";
+import { toast } from "sonner";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest, ContactActivity } from "@/types/jobTracker";
 
 const nodeTypes = {
@@ -121,6 +123,40 @@ function NetworkMapInner(props: NetworkMapProps) {
     setShowJobs(true);
     setSelectedNode(null);
   };
+
+  const handleExport = useCallback(async () => {
+    const viewport = containerRef.current?.querySelector(".react-flow__viewport") as HTMLElement | null;
+    const flowEl = containerRef.current?.querySelector(".react-flow") as HTMLElement | null;
+    const target = flowEl ?? viewport;
+    if (!target) {
+      toast.error("Could not find network map to export");
+      return;
+    }
+    try {
+      const dataUrl = await toPng(target, {
+        backgroundColor: "hsl(var(--card))",
+        pixelRatio: 2,
+        filter: (node) => {
+          // Exclude controls, minimap, search bar, attribution from export
+          if (!(node instanceof HTMLElement)) return true;
+          const cls = node.className?.toString() ?? "";
+          if (cls.includes("react-flow__minimap")) return false;
+          if (cls.includes("react-flow__controls")) return false;
+          if (cls.includes("react-flow__attribution")) return false;
+          if (node.dataset?.networkExportExclude === "true") return false;
+          return true;
+        },
+      });
+      const link = document.createElement("a");
+      link.download = `network-map-${new Date().toISOString().slice(0, 10)}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("Network map exported");
+    } catch (err) {
+      console.error("Export failed:", err);
+      toast.error("Failed to export network map");
+    }
+  }, []);
 
   const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
     const d = node.data as any;
@@ -260,6 +296,7 @@ function NetworkMapInner(props: NetworkMapProps) {
         matchingContactCount={graphData.nodes.filter(n => n.type === "contactNode" && !(n.data as any).dimmed).length}
         totalContactCount={props.contacts.length}
         isFiltered={isFiltered}
+        onExport={handleExport}
       />
 
       <div ref={containerRef} className="relative rounded-xl border border-border bg-card overflow-hidden" style={{ height: "calc(100vh - 220px)" }}>
@@ -298,7 +335,7 @@ function NetworkMapInner(props: NetworkMapProps) {
               }}
               className="!bg-card !border-border"
             />
-            <div className="absolute top-3 left-3 z-10">
+            <div className="absolute top-3 left-3 z-10" data-network-export-exclude="true">
               <NetworkSearch
                 contacts={props.contacts}
                 companies={props.contacts.map(c => c.company)}
