@@ -1,59 +1,44 @@
 
-## Add a Profile step to the onboarding tour
+## Refresh the Profile Completeness banner
 
-### Recommendation
+Refine the `ProfileCompletenessBanner` on `/getting-started` so it visually pops, uses the navy/amber palette intentionally, and makes the % ↔ progress bar relationship obvious.
 
-**Where to put it:** Insert as **Step 2**, immediately after the "Welcome to Jobtrakr 👋" intro and before the three entry-path steps.
+### Visual changes (in `src/pages/GettingStarted.tsx`)
 
-**Why this position:**
-- Profile info (target roles, skills, location, comp) powers every downstream feature — AI Job Search match scoring, Recommendations, Skill Gap analysis, and Cover Letter generation.
-- Front-loading it frames profile completion as the foundation, not an afterthought.
-- The existing Getting Started page already shows a `ProfileCompletenessBanner` when the profile is incomplete, so the tour reinforces a UI element the user is already seeing.
-- It keeps the tour on `/getting-started` (no route change), consistent with the recently consolidated 5-step flow.
+**1. Container — add depth and a clear hierarchy**
+- Keep the warning/info tonal background but add a subtle gradient (`bg-gradient-to-br from-warning/15 via-card to-warning/5`) plus a thicker left accent border (`border-l-4 border-l-accent`) so the banner reads as an actionable callout, not a passive note.
+- Slightly bump shadow (`shadow-md`) and rounded corners stay at `rounded-[1.75rem]`.
 
-**Recommended title:** **"Start with your profile"**
+**2. Icon tile — stronger amber emphasis**
+- Use the brand accent (amber) for the icon tile when the profile is incomplete: `bg-accent/15 text-accent-foreground border border-accent/30`. This pulls the eye to the call-to-action immediately.
 
-Alternatives, in case you prefer a different tone:
-- "Tell us what you're looking for" (conversational, matches existing tour voice)
-- "Set your search foundation" (purposeful, ties to downstream features)
-- "Your profile powers everything" (benefit-led)
+**3. Title & percentage — make the % the hero**
+- Restructure the header so the percentage is its own large, bold display element next to the title:
+  - Big number (e.g. `text-3xl font-display font-bold text-accent-foreground`) reading "60%"
+  - Smaller label underneath: "complete"
+  - Title moves to the right of the % block.
+- This makes the link between the displayed % and the progress bar visually direct.
 
-**Recommended body copy:**
-> "Add your target roles, skills, locations, and comp expectations. Your profile powers job matching, recommendations, and AI-generated cover letters across Jobtrakr."
+**4. Progress bar — clearer % ↔ fill mapping**
+Replace the default `Progress` with a custom inline implementation so we can:
+- Use the **amber/accent color** for the filled portion (`bg-accent`) on a navy-tinted track (`bg-primary/10`), matching the brand palette.
+- Make the bar taller (`h-3`) with rounded ends.
+- Add **5 segment dividers** (one per profile field) as thin vertical lines across the track so users see "filled 3 of 5 segments = 60%".
+- Show the percentage label sitting directly above the right edge of the filled portion (a small floating badge that moves with progress), reinforcing that the % corresponds to the bar fill.
+- Add tick labels under the bar: `0%`, `20%`, `40%`, `60%`, `80%`, `100%`.
 
-### Anchor target
+**5. Field checklist — show what drives the %**
+Below the bar, add 5 compact pill chips, one per field (Target roles, Locations, Skills, Summary, Salary floor). Filled fields get a check icon + `bg-success/10 text-success border-success/25`; unfilled get muted styling. This makes the score transparent and shows exactly what to fill next.
 
-Two viable anchors on `/getting-started`:
-1. **`ProfileCompletenessBanner`** — only renders when profile is incomplete, so it's not a reliable anchor for returning users who replay the tour.
-2. **A dedicated "Complete your profile" quick-launcher card** in the Quick launchers grid — always present, always visible.
+**6. CTA — stronger affordance**
+Promote the "Complete profile" button to use the accent color (`bg-accent text-accent-foreground hover:bg-accent/90`) so it's the dominant action in the banner.
 
-I'll add `data-tour="profile-setup"` to the profile-related quick launcher card (or the completeness banner, falling back to the launcher when the banner is hidden). If neither exists reliably, I'll add a small always-visible "Profile" anchor near the hero CTA.
+### Data needed
+The banner currently only receives the numeric `score`. To render per-field chips, pass a small `fields` object (or an array of `{ label, filled }`) from the parent `GettingStarted` component, derived from the same Supabase query that already runs in `useEffect`. Minimal change — just store the per-field booleans alongside the score in component state.
 
-### Changes
+### Files touched
+- `src/pages/GettingStarted.tsx` — restructure `ProfileCompletenessBanner`, update the score `useEffect` to also store per-field filled flags, render the new bar + chip checklist.
 
-1. **`src/pages/GettingStarted.tsx`**
-   - Add `data-tour="profile-setup"` to the profile-related card (Quick launcher for Profile Editor, or the completeness banner — whichever is always rendered).
-
-2. **`src/components/OnboardingTour.tsx`**
-   - Insert a new step at index 1:
-     ```ts
-     {
-       target: '[data-tour="profile-setup"]',
-       title: "Start with your profile",
-       content: "Add your target roles, skills, locations, and comp expectations. Your profile powers job matching, recommendations, and AI-generated cover letters across Jobtrakr.",
-       placement: "bottom",
-       disableBeacon: true,
-       route: "/getting-started",
-     }
-     ```
-   - Final 6-step sequence:
-     1. Welcome to Jobtrakr 👋
-     2. **Start with your profile** ← new
-     3. Know the role you want?
-     4. Have a strong network?
-     5. Land your dream company
-     6. It all converges 🎯
-
-### Open question
-
-Before I implement, confirm the title — "Start with your profile" is my pick, but I listed three alternatives above if you'd like a different tone.
+### Out of scope
+- No changes to the shared `Progress` component (custom inline bar lives in the banner only, so other usages are untouched).
+- No changes to the underlying scoring logic (still 5 fields, still equal weight).
