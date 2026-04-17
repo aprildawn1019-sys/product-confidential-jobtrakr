@@ -160,7 +160,7 @@ export default function GettingStarted({
               <Sparkles className="h-3 w-3" /> Getting Started
             </Badge>
             <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-              Choose the job-search path that matches how you actually work.
+              Choose the job search path that matches how you actually work.
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
               Pick a starting point below — your profile, live roles, your network, or your target companies. Every path feeds the same unified pipeline.
