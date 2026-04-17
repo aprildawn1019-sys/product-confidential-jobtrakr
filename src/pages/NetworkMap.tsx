@@ -124,7 +124,7 @@ function NetworkMapInner(props: NetworkMapProps) {
         duration: 600,
         padding: 0.25,
         maxZoom: 1.2,
-        minZoom: 0.3,
+        minZoom: 0.01,
       });
     }, 50);
     return () => window.clearTimeout(t);
@@ -347,7 +347,7 @@ function NetworkMapInner(props: NetworkMapProps) {
             onNodeMouseLeave={onNodeMouseLeave}
             onPaneClick={onPaneClick}
             fitView
-            minZoom={0.2}
+            minZoom={0.01}
             maxZoom={2}
             proOptions={{ hideAttribution: true }}
           >
