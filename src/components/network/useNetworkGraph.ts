@@ -126,16 +126,17 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
   const USE_GRID_THRESHOLD = 12;
 
   if (n > USE_GRID_THRESHOLD) {
-    // Pack clusters in a grid sized by largest cluster footprint
-    const maxClusterDiameter = Math.max(
-      ...sortedCompanies.map(id => 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD)),
-    );
-    const cellSize = Math.max(260, maxClusterDiameter);
+    // Use a uniform cell size based on the median (not max) cluster footprint,
+    // so a single huge cluster doesn't blow up the entire grid. Large clusters
+    // will spill across cells but remain visible.
+    const footprints = sortedCompanies.map(id => 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD));
+    const sorted = [...footprints].sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)] || 260;
+    const cellSize = Math.max(260, Math.min(420, median));
     const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
     sortedCompanies.forEach((compId, i) => {
       const row = Math.floor(i / cols);
       const col = i % cols;
-      // Center the grid around (0,0)
       const cx = (col - (cols - 1) / 2) * cellSize;
       const rows = Math.ceil(n / cols);
       const cy = (row - (rows - 1) / 2) * cellSize;
