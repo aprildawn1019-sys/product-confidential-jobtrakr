@@ -1,7 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RotateCcw, Eye, EyeOff, Download } from "lucide-react";
+import { RotateCcw, Eye, EyeOff, Download, Filter, FilterX } from "lucide-react";
 import { NETWORK_ROLES } from "@/types/jobTracker";
 import type { Contact, TargetCompany } from "@/types/jobTracker";
 
