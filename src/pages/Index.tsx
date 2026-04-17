@@ -45,6 +45,7 @@ export default function Index() {
 
   return (
     <div className="flex min-h-screen bg-background">
+      <OnboardingTour run={tourRunning} onFinish={() => setTourRunning(false)} />
       <AppSidebar jobs={store.jobs} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
       {/* Mobile header */}
