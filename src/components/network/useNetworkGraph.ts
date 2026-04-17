@@ -69,30 +69,65 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
   }
 
   const n = sortedCompanies.length;
-  // Outer ring sized so each cluster's footprint fits along its arc
-  const totalDemand = sortedCompanies.reduce(
-    (sum, id) => sum + 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD),
-    0,
-  );
-  const outerRadius = Math.max(360, totalDemand / (2 * Math.PI) + 80);
 
-  sortedCompanies.forEach((compId, i) => {
-    const cx = n <= 1 ? 0 : Math.cos((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
-    const cy = n <= 1 ? 0 : Math.sin((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
-    positions.set(compId, { x: cx, y: cy });
+  // For large numbers of clusters, a single outer ring becomes enormous and
+  // unreadable. Switch to a grid layout once we exceed a threshold so the
+  // viewport stays compact and fitView can show everything at once.
+  const USE_GRID_THRESHOLD = 12;
 
-    const children = companyNodeMap.get(compId) ?? [];
-    const r = childRingRadius(children.length);
-    // Start angle offset so a single child sits below centre (avoids overlap with company label)
-    const startAngle = Math.PI / 2;
-    children.forEach((childId, j) => {
-      const angle = startAngle + (2 * Math.PI * j) / Math.max(1, children.length);
-      positions.set(childId, {
-        x: cx + Math.cos(angle) * r,
-        y: cy + Math.sin(angle) * r,
+  if (n > USE_GRID_THRESHOLD) {
+    // Pack clusters in a grid sized by largest cluster footprint
+    const maxClusterDiameter = Math.max(
+      ...sortedCompanies.map(id => 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD)),
+    );
+    const cellSize = Math.max(260, maxClusterDiameter);
+    const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
+    sortedCompanies.forEach((compId, i) => {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      // Center the grid around (0,0)
+      const cx = (col - (cols - 1) / 2) * cellSize;
+      const rows = Math.ceil(n / cols);
+      const cy = (row - (rows - 1) / 2) * cellSize;
+      positions.set(compId, { x: cx, y: cy });
+
+      const children = companyNodeMap.get(compId) ?? [];
+      const r = childRingRadius(children.length);
+      const startAngle = Math.PI / 2;
+      children.forEach((childId, j) => {
+        const angle = startAngle + (2 * Math.PI * j) / Math.max(1, children.length);
+        positions.set(childId, {
+          x: cx + Math.cos(angle) * r,
+          y: cy + Math.sin(angle) * r,
+        });
       });
     });
-  });
+  } else {
+    // Outer ring sized so each cluster's footprint fits along its arc
+    const totalDemand = sortedCompanies.reduce(
+      (sum, id) => sum + 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD),
+      0,
+    );
+    const outerRadius = Math.max(360, totalDemand / (2 * Math.PI) + 80);
+
+    sortedCompanies.forEach((compId, i) => {
+      const cx = n <= 1 ? 0 : Math.cos((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
+      const cy = n <= 1 ? 0 : Math.sin((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
+      positions.set(compId, { x: cx, y: cy });
+
+      const children = companyNodeMap.get(compId) ?? [];
+      const r = childRingRadius(children.length);
+      // Start angle offset so a single child sits below centre
+      const startAngle = Math.PI / 2;
+      children.forEach((childId, j) => {
+        const angle = startAngle + (2 * Math.PI * j) / Math.max(1, children.length);
+        positions.set(childId, {
+          x: cx + Math.cos(angle) * r,
+          y: cy + Math.sin(angle) * r,
+        });
+      });
+    });
+  }
 
   // Orphans on a small inner ring at (0,0), spaced enough to read labels
   if (orphans.length > 0) {
