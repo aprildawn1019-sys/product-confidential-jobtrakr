@@ -84,6 +84,18 @@ export default function NetworkFilters(props: NetworkFiltersProps) {
         Jobs
       </Button>
 
+      <Button
+        variant={props.hideDimmed ? "default" : "outline"}
+        size="sm"
+        className="h-8 text-xs gap-1"
+        onClick={props.onToggleHideDimmed}
+        disabled={!props.isFiltered}
+        title={props.isFiltered ? "Hide non-matching nodes" : "Apply a filter to enable"}
+      >
+        {props.hideDimmed ? <FilterX className="h-3 w-3" /> : <Filter className="h-3 w-3" />}
+        Hide dimmed
+      </Button>
+
       <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={props.onReset}>
         <RotateCcw className="h-3 w-3" /> Reset
       </Button>
