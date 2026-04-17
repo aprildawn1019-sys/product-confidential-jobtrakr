@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { NETWORK_ROLES } from "@/types/jobTracker";
+import { clusterTintBg } from "./clusterColor";
 
 const warmthColors: Record<string, string> = {
   hot: "hsl(var(--destructive))",
