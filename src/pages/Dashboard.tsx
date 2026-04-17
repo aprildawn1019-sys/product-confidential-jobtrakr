@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PipelineFunnel from "@/components/PipelineFunnel";
 import { Link, useNavigate } from "react-router-dom";
 import { Briefcase, CalendarCheck, Clock, Send, Star, CalendarDays, ExternalLink, X, Pencil, Sparkles } from "lucide-react";
@@ -39,6 +39,20 @@ const allPriorities = ["low", "medium", "high"];
 
 export default function Dashboard({ jobs, contacts, interviews, jobContacts, targetCompanies = [], onUpdateStatus, onUpdateJob, onUpdateContact }: DashboardProps) {
   const navigate = useNavigate();
+
+  // First-login redirect: brand-new users (no jobs, contacts, or target companies)
+  // are sent to the Getting Started page instead of an empty Dashboard.
+  // Uses sessionStorage so the redirect fires at most once per browser session,
+  // letting users navigate back to the Dashboard manually without being bounced.
+  useEffect(() => {
+    const isEmpty = jobs.length === 0 && contacts.length === 0 && targetCompanies.length === 0;
+    const REDIRECT_KEY = "jobtrakr.gettingStarted.redirected";
+    if (isEmpty && !sessionStorage.getItem(REDIRECT_KEY)) {
+      sessionStorage.setItem(REDIRECT_KEY, "true");
+      navigate("/getting-started", { replace: true });
+    }
+  }, [jobs.length, contacts.length, targetCompanies.length, navigate]);
+
   const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
   const upcoming = interviews.filter(i => i.status === "scheduled");
 
