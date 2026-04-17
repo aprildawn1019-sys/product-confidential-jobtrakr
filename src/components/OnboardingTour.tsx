@@ -99,7 +99,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
     },
     {
       target: '[data-tour="entry-target-companies"]',
-      title: "Got a dream-employer list?",
+      title: "Land your dream company",
       content:
         "Have a dream-employer shortlist? Add them here, set priorities, then discover roles and contacts within each company.",
       placement: "bottom",
