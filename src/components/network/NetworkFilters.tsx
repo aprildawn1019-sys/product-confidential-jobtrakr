@@ -34,6 +34,24 @@ interface NetworkFiltersProps {
 export default function NetworkFilters(props: NetworkFiltersProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <ToggleGroup
+        type="single"
+        size="sm"
+        value={props.layoutMode}
+        onValueChange={(v) => v && props.onLayoutModeChange(v as NetworkLayoutMode)}
+        className="h-8 rounded-md border border-border bg-card"
+      >
+        <ToggleGroupItem value="radial" className="h-7 px-2 text-xs gap-1" title="Radial layout">
+          <CircleDot className="h-3 w-3" /> Radial
+        </ToggleGroupItem>
+        <ToggleGroupItem value="hierarchical" className="h-7 px-2 text-xs gap-1" title="Hierarchical (top-down) layout">
+          <Network className="h-3 w-3" /> Tree
+        </ToggleGroupItem>
+        <ToggleGroupItem value="grid" className="h-7 px-2 text-xs gap-1" title="Grid layout">
+          <Grid3x3 className="h-3 w-3" /> Grid
+        </ToggleGroupItem>
+      </ToggleGroup>
+
       <Select value={props.focusCompany} onValueChange={props.onFocusCompanyChange}>
         <SelectTrigger className="w-[160px] h-8 text-xs">
           <SelectValue placeholder="Focus company..." />
