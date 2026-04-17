@@ -86,6 +86,10 @@ export default function NetworkFilters(props: NetworkFiltersProps) {
         <RotateCcw className="h-3 w-3" /> Reset
       </Button>
 
+      <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={props.onExport}>
+        <Download className="h-3 w-3" /> Export PNG
+      </Button>
+
       <Badge variant={props.isFiltered ? "default" : "secondary"} className="h-7 text-xs font-medium ml-auto">
         {props.isFiltered
           ? `${props.matchingContactCount} of ${props.totalContactCount} contacts`
