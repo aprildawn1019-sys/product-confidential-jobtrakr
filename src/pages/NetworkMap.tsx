@@ -20,7 +20,7 @@ import JobNode from "@/components/network/JobNode";
 import NetworkFilters from "@/components/network/NetworkFilters";
 import NetworkDetailPanel from "@/components/network/NetworkDetailPanel";
 import NetworkTooltip from "@/components/network/NetworkTooltip";
-import { useNetworkGraph } from "@/components/network/useNetworkGraph";
+import { useNetworkGraph, type NetworkLayoutMode } from "@/components/network/useNetworkGraph";
 import ConnectionDialog from "@/components/network/ConnectionDialog";
 import NetworkSearch from "@/components/network/NetworkSearch";
 import { toPng } from "html-to-image";
