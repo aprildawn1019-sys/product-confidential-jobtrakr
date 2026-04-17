@@ -347,7 +347,7 @@ function NetworkMapInner(props: NetworkMapProps) {
             onNodeMouseLeave={onNodeMouseLeave}
             onPaneClick={onPaneClick}
             fitView
-            minZoom={0.2}
+            minZoom={0.01}
             maxZoom={2}
             proOptions={{ hideAttribution: true }}
           >
