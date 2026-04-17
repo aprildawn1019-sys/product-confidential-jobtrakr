@@ -105,6 +105,17 @@ function SidebarContent({ jobs, onNavigate }: { jobs: { id: string; title: strin
           <LayoutDashboard className="h-4 w-4" />
           Dashboard
         </NavLink>
+        <NavLink to="/getting-started" onClick={handleNavClick} className={({ isActive }) =>
+          cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+            isActive
+              ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+              : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+          )
+        }>
+          <Sparkles className="h-4 w-4" />
+          Getting Started
+        </NavLink>
 
         {groups.map((group) => {
           const GroupIcon = group.icon;
