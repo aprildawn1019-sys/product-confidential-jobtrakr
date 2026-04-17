@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import DOMPurify from "dompurify";
 import { FileText, Copy, Check, Trash2, ChevronDown, ChevronUp, ExternalLink, Loader2, Plus, Globe, Sparkles, Pencil, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -71,8 +72,11 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
   };
 
   const textToHtml = (text: string) => {
-    if (text.startsWith("<")) return text; // already HTML
-    return text.split("\n\n").map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+    const raw = text.startsWith("<")
+      ? text
+      : text.split("\n\n").map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+    // Sanitize to prevent stored XSS from AI-generated or user-edited HTML.
+    return DOMPurify.sanitize(raw, { USE_PROFILES: { html: true } });
   };
 
   const htmlToPlainText = (html: string) => {
