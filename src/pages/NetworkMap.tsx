@@ -7,6 +7,7 @@ import {
   Background,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   type NodeMouseHandler,
   type OnConnect,
   ReactFlowProvider,
