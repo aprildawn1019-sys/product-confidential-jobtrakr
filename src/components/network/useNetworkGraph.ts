@@ -287,6 +287,7 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
             appliedDate: j.appliedDate,
             id: j.id,
             dimmed: false,
+            clusterHue: clusterHue(j.company),
           },
         });
 
