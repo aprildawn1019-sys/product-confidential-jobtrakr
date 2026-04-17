@@ -18,6 +18,8 @@ interface NetworkFiltersProps {
   onFilterRoleChange: (v: string) => void;
   showJobs: boolean;
   onToggleJobs: () => void;
+  hideDimmed: boolean;
+  onToggleHideDimmed: () => void;
   onReset: () => void;
   matchingContactCount: number;
   totalContactCount: number;
