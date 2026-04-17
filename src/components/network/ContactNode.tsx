@@ -15,6 +15,7 @@ function ContactNode({ data, selected }: NodeProps) {
   const borderColor = warmthColors[d.warmth] || "hsl(var(--border))";
   const roleInfo = NETWORK_ROLES.find(r => r.value === d.networkRole);
   const hasReferral = d.hasReferral;
+  const tint = clusterTintBg(d.clusterHue);
 
   return (
     <div
@@ -28,7 +29,7 @@ function ContactNode({ data, selected }: NodeProps) {
           width: 56,
           height: 56,
           border: `3px solid ${borderColor}`,
-          background: "hsl(var(--card))",
+          background: tint || "hsl(var(--card))",
           boxShadow: hasReferral ? `0 0 12px ${warmthColors.champion || "hsl(var(--success))"}` : undefined,
           opacity: d.dimmed ? 0.1 : 1,
         }}
