@@ -61,10 +61,6 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
     const companyNodes = new Map<string, string>(); // normalized name → node id
     const companyChildMap = new Map<string, string[]>(); // company node id → child node ids
 
-    // Determine focused/matching node IDs
-    const focusedIds = new Set<string>();
-    let hasFocus = false;
-
     // Helper: get or create company node
     function getCompanyNodeId(companyName: string) {
       const normalized = companyName.toLowerCase().trim();
