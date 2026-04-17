@@ -115,6 +115,7 @@ export default function GettingStarted({
             cta="Open AI Job Search"
             onClick={() => navigate("/job-search")}
             accent="info"
+            tourId="entry-job-search"
           />
           <EntryCard
             number={2}
@@ -125,6 +126,7 @@ export default function GettingStarted({
             cta="Open Connections"
             onClick={() => navigate("/contacts")}
             accent="success"
+            tourId="entry-network"
           />
           <EntryCard
             number={3}
@@ -135,6 +137,7 @@ export default function GettingStarted({
             cta="Open Target Companies"
             onClick={() => navigate("/target-companies")}
             accent="warning"
+            tourId="entry-target-companies"
           />
         </div>
       </section>
@@ -290,9 +293,10 @@ interface EntryCardProps {
   cta: string;
   onClick: () => void;
   accent: "info" | "success" | "warning";
+  tourId?: string;
 }
 
-function EntryCard({ number, icon: Icon, title, description, steps, cta, onClick, accent }: EntryCardProps) {
+function EntryCard({ number, icon: Icon, title, description, steps, cta, onClick, accent, tourId }: EntryCardProps) {
   const accentClasses: Record<string, string> = {
     info: "bg-info/10 text-info border-info/30",
     success: "bg-success/10 text-success border-success/30",
@@ -300,7 +304,10 @@ function EntryCard({ number, icon: Icon, title, description, steps, cta, onClick
   };
 
   return (
-    <div className="group relative flex flex-col rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/40 hover:shadow-md">
+    <div
+      data-tour={tourId}
+      className="group relative flex flex-col rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/40 hover:shadow-md"
+    >
       <div className="flex items-start justify-between mb-4">
         <div className={`flex h-11 w-11 items-center justify-center rounded-lg border ${accentClasses[accent]}`}>
           <Icon className="h-5 w-5" />
