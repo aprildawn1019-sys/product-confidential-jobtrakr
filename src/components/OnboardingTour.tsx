@@ -57,7 +57,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       placement: "center",
       title: "Welcome to Jobtrakr 👋",
       content:
-        "Your job search isn't linear — and neither is Jobtrakr. There are three natural starting points. Let's walk through each so you can pick the one that fits how you're approaching your search today.",
+        "Quick intro before we dive in: your job search isn't linear, so Jobtrakr gives you four ways to start. We'll point them out — pick whichever matches how you're working today.",
       disableBeacon: true,
       route: "/getting-started",
     },
@@ -100,9 +100,9 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
     {
       target: "body",
       placement: "center",
-      title: "It all converges 🎯",
+      title: "Everything flows into one pipeline 🎯",
       content:
-        "Whichever entry point you choose, jobs land in your Pipeline, contacts in your Network, and interviews on your Schedule. Pick a starting point and dive in!",
+        "No matter where you start, the data lands in the same place: roles become Jobs in your Pipeline, people become Contacts in your Network, employers roll up under Target Companies, and scheduled conversations appear on your Schedule. One unified view of your search — pick a starting point and go.",
       disableBeacon: true,
       route: "/getting-started",
     },
