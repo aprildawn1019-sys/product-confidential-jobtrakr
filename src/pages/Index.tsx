@@ -173,6 +173,7 @@ export default function Index() {
             />
           } />
           <Route path="cover-letters" element={<CoverLetters jobs={store.jobs} />} />
+          <Route path="getting-started" element={<GettingStarted />} />
           <Route path="network-map" element={
             <NetworkMap
               contacts={store.contacts}
