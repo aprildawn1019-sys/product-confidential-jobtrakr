@@ -56,6 +56,7 @@ function NetworkMapInner(props: NetworkMapProps) {
   const [filterWarmth, setFilterWarmth] = useState("all");
   const [filterRole, setFilterRole] = useState("all");
   const [showJobs, setShowJobs] = useState(true);
+  const [hideDimmed, setHideDimmed] = useState(false);
   const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any } | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; targetId: string; sourceName: string; targetName: string } | null>(null);
