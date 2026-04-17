@@ -57,7 +57,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       placement: "center",
       title: "Welcome to Jobtrakr 👋",
       content:
-        "Your job search isn't linear — and neither is Jobtrakr. There are three natural starting points. Let's walk through each so you can pick the one that fits how you're approaching your search today.",
+        "Quick intro before we dive in: your job search isn't linear, so Jobtrakr gives you four ways to start. We'll point them out — pick whichever matches how you're working today.",
       disableBeacon: true,
       route: "/getting-started",
     },
