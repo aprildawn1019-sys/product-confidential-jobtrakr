@@ -329,6 +329,8 @@ function NetworkMapInner(props: NetworkMapProps) {
         totalContactCount={props.contacts.length}
         isFiltered={isFiltered}
         onExport={handleExport}
+        layoutMode={layoutMode}
+        onLayoutModeChange={setLayoutMode}
       />
 
       <div ref={containerRef} className="relative rounded-xl border border-border bg-card overflow-hidden" style={{ height: "calc(100vh - 220px)" }}>
