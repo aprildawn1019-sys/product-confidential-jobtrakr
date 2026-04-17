@@ -198,7 +198,11 @@ export default function GettingStarted({
       </section>
 
       {profileScore !== null && profileScore < 5 && (
-        <ProfileCompletenessBanner score={profileScore} onAction={() => navigate("/profile")} />
+        <ProfileCompletenessBanner
+          score={profileScore}
+          fields={profileFields}
+          onAction={() => navigate("/profile")}
+        />
       )}
 
       <section>
