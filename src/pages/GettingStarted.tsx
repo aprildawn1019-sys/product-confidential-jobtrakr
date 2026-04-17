@@ -355,26 +355,6 @@ function ProfileCompletenessBanner({
             </div>
           </div>
 
-          {/* Field checklist */}
-          <div className="mt-5 flex flex-wrap gap-2">
-            {fields.map((f) => (
-              <div
-                key={f.label}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${
-                  f.filled
-                    ? "border-success/25 bg-success/10 text-success"
-                    : "border-border bg-muted/40 text-muted-foreground"
-                }`}
-              >
-                {f.filled ? (
-                  <Check className="h-3 w-3" />
-                ) : (
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
-                )}
-                {f.label}
-              </div>
-            ))}
-          </div>
         </div>
 
         <Button
