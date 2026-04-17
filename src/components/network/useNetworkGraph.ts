@@ -142,15 +142,7 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
       positions.set(compId, { x: cx, y: cy });
 
       const children = companyNodeMap.get(compId) ?? [];
-      const r = childRingRadius(children.length);
-      const startAngle = Math.PI / 2;
-      children.forEach((childId, j) => {
-        const angle = startAngle + (2 * Math.PI * j) / Math.max(1, children.length);
-        positions.set(childId, {
-          x: cx + Math.cos(angle) * r,
-          y: cy + Math.sin(angle) * r,
-        });
-      });
+      placeChildren(cx, cy, children);
     });
   } else {
     // Outer ring sized so each cluster's footprint fits along its arc
