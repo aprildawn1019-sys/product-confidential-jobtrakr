@@ -4,6 +4,8 @@ import { companiesMatch } from "@/stores/jobTrackerStore";
 import { clusterHue } from "./clusterColor";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest } from "@/types/jobTracker";
 
+export type NetworkLayoutMode = "radial" | "hierarchical" | "grid";
+
 interface UseNetworkGraphParams {
   contacts: Contact[];
   jobs: Job[];
@@ -16,6 +18,7 @@ interface UseNetworkGraphParams {
   focusContact: string;
   filterWarmth: string;
   filterRole: string;
+  layoutMode?: NetworkLayoutMode;
 }
 
 /**
@@ -26,7 +29,7 @@ interface UseNetworkGraphParams {
  * larger outer ring (or packed in a grid for many clusters) so that text
  * never overlaps. Orphan nodes (no company) wrap on an inner ring at (0,0).
  */
-function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, string[]>) {
+function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, string[]>, mode: NetworkLayoutMode = "radial") {
   const positions = new Map<string, { x: number; y: number }>();
 
   // Approximate visual footprint of each node type (width × height incl. labels)
@@ -121,20 +124,52 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
 
   const n = sortedCompanies.length;
 
-  // For large numbers of clusters, a single outer ring becomes enormous and
-  // unreadable. Switch to a grid layout once we exceed a threshold so the
-  // viewport stays compact and fitView can show everything at once.
-  const USE_GRID_THRESHOLD = 12;
+  // -------- Hierarchical (top-down tree) --------
+  if (mode === "hierarchical") {
+    // Each company is a row root; children laid out as an arc/row below it.
+    // Companies are arranged horizontally, sized by their child-row width.
+    const COMPANY_GAP_Y = 220; // vertical gap company → children row
+    const ROW_GAP = 140; // gap between successive child rows for big clusters
+    const CHILD_GAP = NODE_W.child + LABEL_PAD;
+    const COL_GAP = 80; // gap between adjacent companies
+    const MAX_PER_ROW = 12; // wrap children onto multiple rows
 
-  if (n > USE_GRID_THRESHOLD) {
-    // Use a uniform cell size based on the median (not max) cluster footprint,
-    // so a single huge cluster doesn't blow up the entire grid. Large clusters
-    // will spill across cells but remain visible.
+    // Pre-compute footprint width per company so we can space them out.
+    const widths = sortedCompanies.map(id => {
+      const count = companyNodeMap.get(id)?.length ?? 0;
+      const perRow = Math.min(MAX_PER_ROW, Math.max(1, count));
+      return Math.max(NODE_W.company + 40, perRow * CHILD_GAP);
+    });
+    const totalWidth = widths.reduce((s, w) => s + w, 0) + Math.max(0, n - 1) * COL_GAP;
+    let cursorX = -totalWidth / 2;
+    sortedCompanies.forEach((compId, i) => {
+      const w = widths[i];
+      const cx = cursorX + w / 2;
+      const cy = 0;
+      positions.set(compId, { x: cx, y: cy });
+
+      const children = companyNodeMap.get(compId) ?? [];
+      const perRow = Math.min(MAX_PER_ROW, Math.max(1, children.length));
+      children.forEach((childId, j) => {
+        const row = Math.floor(j / perRow);
+        const col = j % perRow;
+        const rowCount = row === Math.floor((children.length - 1) / perRow)
+          ? ((children.length - 1) % perRow) + 1
+          : perRow;
+        const x = cx + (col - (rowCount - 1) / 2) * CHILD_GAP;
+        const y = cy + COMPANY_GAP_Y + row * ROW_GAP;
+        positions.set(childId, { x, y });
+      });
+      cursorX += w + COL_GAP;
+    });
+  }
+  // -------- Grid (uniform cells) --------
+  else if (mode === "grid") {
     const footprints = sortedCompanies.map(id => 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD));
     const sorted = [...footprints].sort((a, b) => a - b);
     const median = sorted[Math.floor(sorted.length / 2)] || 260;
     const cellSize = Math.max(260, Math.min(420, median));
-    const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
+    const cols = Math.max(1, Math.ceil(Math.sqrt(Math.max(1, n))));
     sortedCompanies.forEach((compId, i) => {
       const row = Math.floor(i / cols);
       const col = i % cols;
@@ -142,26 +177,44 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
       const rows = Math.ceil(n / cols);
       const cy = (row - (rows - 1) / 2) * cellSize;
       positions.set(compId, { x: cx, y: cy });
-
       const children = companyNodeMap.get(compId) ?? [];
       placeChildren(cx, cy, children);
     });
-  } else {
-    // Outer ring sized so each cluster's footprint fits along its arc
-    const totalDemand = sortedCompanies.reduce(
-      (sum, id) => sum + 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD),
-      0,
-    );
-    const outerRadius = Math.max(360, totalDemand / (2 * Math.PI) + 80);
-
-    sortedCompanies.forEach((compId, i) => {
-      const cx = n <= 1 ? 0 : Math.cos((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
-      const cy = n <= 1 ? 0 : Math.sin((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
-      positions.set(compId, { x: cx, y: cy });
-
-      const children = companyNodeMap.get(compId) ?? [];
-      placeChildren(cx, cy, children);
-    });
+  }
+  // -------- Radial (default) — single outer ring with auto-fallback to grid for huge graphs --------
+  else {
+    const USE_GRID_THRESHOLD = 12;
+    if (n > USE_GRID_THRESHOLD) {
+      // Large datasets: radial single ring becomes unreadable → fall back to grid.
+      const footprints = sortedCompanies.map(id => 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD));
+      const sorted = [...footprints].sort((a, b) => a - b);
+      const median = sorted[Math.floor(sorted.length / 2)] || 260;
+      const cellSize = Math.max(260, Math.min(420, median));
+      const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
+      sortedCompanies.forEach((compId, i) => {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const cx = (col - (cols - 1) / 2) * cellSize;
+        const rows = Math.ceil(n / cols);
+        const cy = (row - (rows - 1) / 2) * cellSize;
+        positions.set(compId, { x: cx, y: cy });
+        const children = companyNodeMap.get(compId) ?? [];
+        placeChildren(cx, cy, children);
+      });
+    } else {
+      const totalDemand = sortedCompanies.reduce(
+        (sum, id) => sum + 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD),
+        0,
+      );
+      const outerRadius = Math.max(360, totalDemand / (2 * Math.PI) + 80);
+      sortedCompanies.forEach((compId, i) => {
+        const cx = n <= 1 ? 0 : Math.cos((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
+        const cy = n <= 1 ? 0 : Math.sin((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
+        positions.set(compId, { x: cx, y: cy });
+        const children = companyNodeMap.get(compId) ?? [];
+        placeChildren(cx, cy, children);
+      });
+    }
   }
 
   // Orphans on a small inner ring at (0,0), spaced enough to read labels
@@ -189,7 +242,7 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
 }
 
 export function useNetworkGraph(params: UseNetworkGraphParams) {
-  const { contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole } = params;
+  const { contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode = "radial" } = params;
 
   return useMemo(() => {
     const nodes: Node[] = [];
@@ -439,8 +492,8 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
     }
 
     // Layout
-    const layoutNodes = getLayout(nodes, edges, companyChildMap);
+    const layoutNodes = getLayout(nodes, edges, companyChildMap, layoutMode);
 
     return { nodes: layoutNodes, edges };
-  }, [contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole]);
+  }, [contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode]);
 }

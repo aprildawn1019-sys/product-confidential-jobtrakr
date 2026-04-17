@@ -20,7 +20,7 @@ import JobNode from "@/components/network/JobNode";
 import NetworkFilters from "@/components/network/NetworkFilters";
 import NetworkDetailPanel from "@/components/network/NetworkDetailPanel";
 import NetworkTooltip from "@/components/network/NetworkTooltip";
-import { useNetworkGraph } from "@/components/network/useNetworkGraph";
+import { useNetworkGraph, type NetworkLayoutMode } from "@/components/network/useNetworkGraph";
 import ConnectionDialog from "@/components/network/ConnectionDialog";
 import NetworkSearch from "@/components/network/NetworkSearch";
 import { toPng } from "html-to-image";
@@ -60,6 +60,10 @@ function NetworkMapInner(props: NetworkMapProps) {
   const filterRole = searchParams.get("r") ?? "all";
   const showJobs = searchParams.get("jobs") !== "0"; // default true
   const hideDimmed = searchParams.get("hd") === "1"; // default false
+  const layoutMode: NetworkLayoutMode = (() => {
+    const v = searchParams.get("layout");
+    return v === "hierarchical" || v === "grid" ? v : "radial";
+  })();
 
   const updateParam = useCallback((key: string, value: string, defaultValue: string) => {
     setSearchParams(prev => {
@@ -76,6 +80,7 @@ function NetworkMapInner(props: NetworkMapProps) {
   const setFilterRole = useCallback((v: string) => updateParam("r", v, "all"), [updateParam]);
   const toggleShowJobs = useCallback(() => updateParam("jobs", showJobs ? "0" : "1", "1"), [updateParam, showJobs]);
   const toggleHideDimmed = useCallback(() => updateParam("hd", hideDimmed ? "0" : "1", "0"), [updateParam, hideDimmed]);
+  const setLayoutMode = useCallback((m: NetworkLayoutMode) => updateParam("layout", m, "radial"), [updateParam]);
 
   const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any } | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
@@ -95,6 +100,7 @@ function NetworkMapInner(props: NetworkMapProps) {
     focusContact,
     filterWarmth,
     filterRole,
+    layoutMode,
   });
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
@@ -323,6 +329,8 @@ function NetworkMapInner(props: NetworkMapProps) {
         totalContactCount={props.contacts.length}
         isFiltered={isFiltered}
         onExport={handleExport}
+        layoutMode={layoutMode}
+        onLayoutModeChange={setLayoutMode}
       />
 
       <div ref={containerRef} className="relative rounded-xl border border-border bg-card overflow-hidden" style={{ height: "calc(100vh - 220px)" }}>
