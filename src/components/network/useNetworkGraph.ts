@@ -50,22 +50,72 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
     return sb - sa;
   });
 
-  /**
-   * Child ring radius: must be large enough that adjacent children, placed at
-   * 2π/count spacing, don't visually collide. Required radius ≈ chord/2sin(π/n)
-   * where chord = node width + padding.
-   */
-  function childRingRadius(count: number) {
+  // Cap children per ring so a single huge cluster doesn't blow up the layout.
+  // Larger clusters wrap onto multiple concentric rings.
+  const MAX_PER_RING = 18;
+  const RING_GAP = 50; // gap between concentric rings within a cluster
+
+  /** Single ring radius for `count` children placed evenly around it. */
+  function singleRingRadius(count: number) {
     if (count <= 1) return 0;
     const chord = NODE_W.child + LABEL_PAD;
     const minByChord = chord / (2 * Math.sin(Math.PI / count));
-    // Floor + gentle linear growth so even small clusters look airy
-    return Math.max(110, minByChord, 90 + count * 6);
+    return Math.max(110, minByChord);
   }
 
-  // Cluster footprint = child ring + child node radius (so labels clear the centre)
+  // Distribute children across concentric rings (inner rings smaller).
+  function ringPlan(total: number): number[] {
+    if (total <= 0) return [];
+    const rings: number[] = [];
+    let remaining = total;
+    let idx = 0;
+    while (remaining > 0) {
+      const cap = Math.min(MAX_PER_RING, 6 + idx * 6);
+      const take = Math.min(cap, remaining);
+      rings.push(take);
+      remaining -= take;
+      idx++;
+    }
+    return rings;
+  }
+
+  // Compute radii for each concentric ring (cumulative outward).
+  function ringRadii(plan: number[]): number[] {
+    const radii: number[] = [];
+    plan.forEach((c, i) => {
+      const baseR = singleRingRadius(c);
+      const prev = i === 0 ? 0 : radii[i - 1];
+      radii.push(Math.max(baseR, prev + RING_GAP));
+    });
+    return radii;
+  }
+
+  // Cluster footprint = outermost ring radius + child node radius
   function clusterRadius(count: number) {
-    return childRingRadius(count) + Math.max(NODE_W.child, NODE_H.child) / 2;
+    const plan = ringPlan(count);
+    if (plan.length === 0) return 0;
+    const radii = ringRadii(plan);
+    return radii[radii.length - 1] + Math.max(NODE_W.child, NODE_H.child) / 2;
+  }
+
+  // Place children for a cluster across one or more concentric rings.
+  function placeChildren(cx: number, cy: number, children: string[]) {
+    const plan = ringPlan(children.length);
+    const radii = ringRadii(plan);
+    let cursor = 0;
+    plan.forEach((count, i) => {
+      const r = radii[i];
+      // Offset start angle slightly per ring so labels don't stack radially.
+      const startAngle = Math.PI / 2 + (i % 2 === 0 ? 0 : Math.PI / count);
+      for (let j = 0; j < count; j++) {
+        const angle = startAngle + (2 * Math.PI * j) / count;
+        const childId = children[cursor++];
+        positions.set(childId, {
+          x: cx + Math.cos(angle) * r,
+          y: cy + Math.sin(angle) * r,
+        });
+      }
+    });
   }
 
   const n = sortedCompanies.length;
