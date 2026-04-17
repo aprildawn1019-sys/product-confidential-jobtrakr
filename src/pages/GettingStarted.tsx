@@ -266,48 +266,121 @@ export default function GettingStarted({
   );
 }
 
-function ProfileCompletenessBanner({ score, onAction }: { score: number; onAction: () => void }) {
+function ProfileCompletenessBanner({
+  score,
+  fields,
+  onAction,
+}: {
+  score: number;
+  fields: { label: string; filled: boolean }[];
+  onAction: () => void;
+}) {
   const pct = Math.round((score / 5) * 100);
-  const isEarly = score < 3;
 
   const title =
     score === 0
       ? "Set up your search profile"
       : score < 3
-        ? `Your profile is ${pct}% complete`
-        : `Sharpen your profile — ${pct}% complete`;
+        ? "Your profile needs a few more details"
+        : "Sharpen your profile";
 
   const description =
     score === 0
       ? "Add your target roles, preferred locations, skills, summary, and salary floor so the product can tailor search and writing assistance."
       : score < 3
-        ? `You've filled ${score} of 5 key fields (target roles, locations, skills, summary, salary floor). A fuller profile improves search suggestions, job summaries, and generated materials.`
-        : `${score} of 5 key fields filled (target roles, locations, skills, summary, salary floor). Just a couple more will noticeably improve match quality and AI suggestions.`;
+        ? "A fuller profile improves search suggestions, job summaries, and generated materials. Each field below adds 20%."
+        : "Just a couple more fields will noticeably improve match quality and AI suggestions. Each field adds 20%.";
+
+  const ticks = [0, 20, 40, 60, 80, 100];
 
   return (
-    <section
-      className={`rounded-[1.75rem] border p-5 shadow-sm sm:p-6 ${
-        isEarly ? "border-warning/45 bg-warning/10" : "border-info/35 bg-info/10"
-      }`}
-    >
-      <div className="flex flex-wrap items-center gap-4">
-        <div
-          className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
-            isEarly ? "bg-warning/20 text-warning-foreground" : "bg-info/15 text-info"
-          }`}
-        >
-          <UserCog className="h-5 w-5" />
+    <section className="rounded-[1.75rem] border border-l-4 border-warning/40 border-l-accent bg-gradient-to-br from-warning/15 via-card to-warning/5 p-5 shadow-md sm:p-6">
+      <div className="flex flex-wrap items-start gap-5">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-accent/30 bg-accent/15 text-accent-foreground">
+          <UserCog className="h-6 w-6" />
         </div>
 
-        <div className="min-w-[240px] flex-1">
-          <div className="text-sm font-semibold text-foreground">{title}</div>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>
-          <div className="mt-3 max-w-md">
-            <Progress value={pct} className="h-2" />
+        <div className="min-w-[260px] flex-1">
+          {/* Hero: percentage + title */}
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center leading-none">
+              <span className="font-display text-4xl font-bold text-accent-foreground">{pct}%</span>
+              <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                complete
+              </span>
+            </div>
+            <div className="flex-1">
+              <div className="text-base font-semibold text-foreground">{title}</div>
+              <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">{description}</p>
+            </div>
+          </div>
+
+          {/* Custom progress bar */}
+          <div className="mt-5 max-w-xl">
+            <div className="relative h-3 w-full overflow-visible rounded-full bg-primary/10">
+              {/* Filled portion */}
+              <div
+                className="absolute left-0 top-0 h-full rounded-full bg-accent transition-all"
+                style={{ width: `${pct}%` }}
+              />
+              {/* Segment dividers (4 internal dividers between 5 segments) */}
+              {[20, 40, 60, 80].map((pos) => (
+                <div
+                  key={pos}
+                  className="absolute top-0 h-full w-px bg-card"
+                  style={{ left: `${pos}%` }}
+                />
+              ))}
+              {/* Floating % badge above filled edge */}
+              {pct > 0 && (
+                <div
+                  className="absolute -top-7 -translate-x-1/2 rounded-md border border-accent/40 bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-foreground shadow-sm"
+                  style={{ left: `${pct}%` }}
+                >
+                  {pct}%
+                </div>
+              )}
+            </div>
+            {/* Tick labels */}
+            <div className="relative mt-1.5 h-4 w-full">
+              {ticks.map((t) => (
+                <span
+                  key={t}
+                  className="absolute -translate-x-1/2 text-[10px] font-medium text-muted-foreground"
+                  style={{ left: `${t}%` }}
+                >
+                  {t}%
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Field checklist */}
+          <div className="mt-5 flex flex-wrap gap-2">
+            {fields.map((f) => (
+              <div
+                key={f.label}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${
+                  f.filled
+                    ? "border-success/25 bg-success/10 text-success"
+                    : "border-border bg-muted/40 text-muted-foreground"
+                }`}
+              >
+                {f.filled ? (
+                  <Check className="h-3 w-3" />
+                ) : (
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
+                )}
+                {f.label}
+              </div>
+            ))}
           </div>
         </div>
 
-        <Button onClick={onAction} className="gap-2">
+        <Button
+          onClick={onAction}
+          className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90"
+        >
           Complete profile
           <ArrowRight className="h-4 w-4" />
         </Button>
