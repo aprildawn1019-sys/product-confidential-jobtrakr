@@ -248,22 +248,22 @@ export default function GettingStarted({
 }
 
 function ProfileCompletenessBanner({ score, onAction }: { score: number; onAction: () => void }) {
-  const pct = (score / 5) * 100;
+  const pct = Math.round((score / 5) * 100);
   const isEarly = score < 3;
 
   const title =
     score === 0
       ? "Set up your search profile"
       : score < 3
-        ? `Your profile is ${score} of 5 complete`
-        : `Sharpen your profile (${score} of 5)`;
+        ? `Your profile is ${pct}% complete`
+        : `Sharpen your profile — ${pct}% complete`;
 
   const description =
     score === 0
-      ? "Add your target roles, preferred locations, skills, and salary floor so the product can tailor search and writing assistance."
+      ? "Add your target roles, preferred locations, skills, summary, and salary floor so the product can tailor search and writing assistance."
       : score < 3
-        ? "A fuller profile improves your search suggestions, job summaries, and generated materials."
-        : "Just a couple more fields will noticeably improve the quality of matches and AI suggestions.";
+        ? `You've filled ${score} of 5 key fields (target roles, locations, skills, summary, salary floor). A fuller profile improves search suggestions, job summaries, and generated materials.`
+        : `${score} of 5 key fields filled (target roles, locations, skills, summary, salary floor). Just a couple more will noticeably improve match quality and AI suggestions.`;
 
   return (
     <section
