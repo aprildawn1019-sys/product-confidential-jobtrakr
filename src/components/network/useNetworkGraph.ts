@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { Node, Edge } from "@xyflow/react";
 import { companiesMatch } from "@/stores/jobTrackerStore";
+import { clusterHue } from "./clusterColor";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest } from "@/types/jobTracker";
 
 interface UseNetworkGraphParams {
