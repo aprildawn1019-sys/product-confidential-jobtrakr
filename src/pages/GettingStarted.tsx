@@ -168,13 +168,9 @@ export default function GettingStarted({
 
 
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8">
               <Button onClick={startTour} className="gap-2">
                 <Sparkles className="h-4 w-4" /> Take the tour
-              </Button>
-              <Button variant="outline" onClick={() => navigate("/profile")} className="gap-2">
-                Complete profile
-                <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
