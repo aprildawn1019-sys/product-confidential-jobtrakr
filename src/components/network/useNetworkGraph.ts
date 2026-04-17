@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import dagre from "dagre";
 import type { Node, Edge } from "@xyflow/react";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest } from "@/types/jobTracker";
@@ -18,37 +17,76 @@ interface UseNetworkGraphParams {
   filterRole: string;
 }
 
-function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, string[]>, direction = "TB") {
-  const g = new dagre.graphlib.Graph({ compound: true });
-  g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: direction, nodesep: 40, ranksep: 80, marginx: 20, marginy: 20 });
+/**
+ * Radial cluster layout.
+ *
+ * Companies are placed on a large outer ring (sorted by cluster size so the
+ * biggest hubs are spaced evenly). Each company's contacts and jobs orbit it
+ * on a small ring centred on the company. Orphan nodes (no company) wrap on
+ * an inner concentric ring at the canvas centre.
+ */
+function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, string[]>) {
+  const positions = new Map<string, { x: number; y: number }>();
 
+  const companyIds = new Set<string>();
+  nodes.forEach(n => { if (n.type === "companyNode") companyIds.add(n.id); });
+
+  const childOf = new Set<string>();
+  companyNodeMap.forEach(children => children.forEach(c => childOf.add(c)));
+  const orphans: string[] = [];
   nodes.forEach(n => {
-    const isCompany = n.type === "companyNode";
-    g.setNode(n.id, { width: isCompany ? 140 : 110, height: isCompany ? 60 : 70 });
+    if (n.type !== "companyNode" && !childOf.has(n.id)) orphans.push(n.id);
   });
 
-  // Group contact/job nodes under their company parent for clustering
-  companyNodeMap.forEach((childIds, companyId) => {
-    childIds.forEach(childId => {
-      if (g.hasNode(childId) && g.hasNode(companyId)) {
-        g.setParent(childId, companyId);
-      }
+  // Sort companies by cluster size (largest first) for even visual weight
+  const sortedCompanies = Array.from(companyIds).sort((a, b) => {
+    const sa = companyNodeMap.get(a)?.length ?? 0;
+    const sb = companyNodeMap.get(b)?.length ?? 0;
+    return sb - sa;
+  });
+
+  const n = sortedCompanies.length;
+  const childRadius = (count: number) => 90 + Math.max(0, count - 4) * 14;
+  // Outer ring sized to fit every cluster's local ring without collision
+  const totalDemand = sortedCompanies.reduce(
+    (sum, id) => sum + 2 * (childRadius(companyNodeMap.get(id)?.length ?? 0) + 30),
+    0,
+  );
+  const outerRadius = Math.max(320, totalDemand / (2 * Math.PI) + 120);
+
+  sortedCompanies.forEach((compId, i) => {
+    const cx = n <= 1 ? 0 : Math.cos((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
+    const cy = n <= 1 ? 0 : Math.sin((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
+    positions.set(compId, { x: cx, y: cy });
+
+    const children = companyNodeMap.get(compId) ?? [];
+    const r = childRadius(children.length);
+    children.forEach((childId, j) => {
+      const angle = (2 * Math.PI * j) / Math.max(1, children.length);
+      positions.set(childId, {
+        x: cx + Math.cos(angle) * r,
+        y: cy + Math.sin(angle) * r,
+      });
     });
   });
 
-  edges.forEach(e => {
-    // Skip edges that go from child to its compound parent (dagre handles these internally)
-    if (companyNodeMap.get(e.target)?.includes(e.source)) return;
-    if (companyNodeMap.get(e.source)?.includes(e.target)) return;
-    g.setEdge(e.source, e.target);
-  });
+  // Orphans on a small inner ring at (0,0)
+  if (orphans.length > 0) {
+    const orphanRadius = Math.min(200, 60 + orphans.length * 10);
+    orphans.forEach((id, i) => {
+      const angle = (2 * Math.PI * i) / orphans.length - Math.PI / 2;
+      positions.set(id, {
+        x: Math.cos(angle) * orphanRadius,
+        y: Math.sin(angle) * orphanRadius,
+      });
+    });
+  }
 
-  dagre.layout(g);
-
-  return nodes.map(n => {
-    const pos = g.node(n.id);
-    return { ...n, position: { x: pos.x - 60, y: pos.y - 40 } };
+  return nodes.map(node => {
+    const pos = positions.get(node.id) ?? { x: 0, y: 0 };
+    const isCompany = node.type === "companyNode";
+    // xyflow positions the top-left corner — offset to centre the node visually
+    return { ...node, position: { x: pos.x - (isCompany ? 70 : 55), y: pos.y - (isCompany ? 30 : 35) } };
   });
 }
 
