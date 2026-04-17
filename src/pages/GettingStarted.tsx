@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -12,18 +13,75 @@ import {
   ClipboardList,
   Send,
   RefreshCw,
+  Check,
+  Circle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import type { Job, Contact, TargetCompany, Interview } from "@/types/jobTracker";
+
+interface GettingStartedProps {
+  jobs?: Job[];
+  contacts?: Contact[];
+  targetCompanies?: TargetCompany[];
+  interviews?: Interview[];
+  coverLetterCount?: number;
+}
 
 /**
  * Getting Started — visual map of the (non-linear) Jobtrakr workflow.
  * Three entry points converge into the unified application pipeline.
  */
-export default function GettingStarted() {
+export default function GettingStarted({
+  jobs = [],
+  contacts = [],
+  targetCompanies = [],
+  interviews = [],
+}: GettingStartedProps) {
   const navigate = useNavigate();
 
   const startTour = () => window.dispatchEvent(new Event("jobtrakr:start-tour"));
+
+  const milestones = useMemo(
+    () => [
+      {
+        label: "Added your first job",
+        done: jobs.length > 0,
+        cta: "Add a job",
+        onClick: () => navigate("/jobs"),
+      },
+      {
+        label: "Added a contact",
+        done: contacts.length > 0,
+        cta: "Add a contact",
+        onClick: () => navigate("/contacts"),
+      },
+      {
+        label: "Set a target company",
+        done: targetCompanies.length > 0,
+        cta: "Add a company",
+        onClick: () => navigate("/target-companies"),
+      },
+      {
+        label: "Applied to a role",
+        done: jobs.some((j) => ["applied", "screening", "interviewing", "offer"].includes(j.status)),
+        cta: "Mark as applied",
+        onClick: () => navigate("/jobs"),
+      },
+      {
+        label: "Scheduled an interview",
+        done: interviews.length > 0,
+        cta: "Schedule one",
+        onClick: () => navigate("/interviews"),
+      },
+    ],
+    [jobs, contacts, targetCompanies, interviews, navigate],
+  );
+
+  const completedCount = milestones.filter((m) => m.done).length;
+  const progressPct = Math.round((completedCount / milestones.length) * 100);
+  const allDone = completedCount === milestones.length;
 
   return (
     <div className="space-y-10 animate-fade-in max-w-6xl">
