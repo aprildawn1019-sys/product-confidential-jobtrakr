@@ -303,7 +303,7 @@ function NetworkMapInner(props: NetworkMapProps) {
   const isEmpty = props.contacts.length === 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-tour="page-network">
       <div>
         <h1 className="text-2xl font-display font-bold tracking-tight text-foreground">Network Map</h1>
         <p className="text-sm text-muted-foreground mt-1">Visualize your professional network, trace referral paths, and find connections to target companies.</p>

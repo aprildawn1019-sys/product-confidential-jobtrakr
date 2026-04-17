@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Menu, Briefcase } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
+import OnboardingTour, { hasCompletedTour } from "@/components/OnboardingTour";
 import Dashboard from "@/pages/Dashboard";
 import Jobs from "@/pages/Jobs";
 import JobCRM from "@/pages/JobCRM";
@@ -23,9 +24,28 @@ export default function Index() {
   const store = useJobTrackerStore();
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [tourRunning, setTourRunning] = useState(false);
+
+  // Auto-start tour for first-time desktop visitors (Joyride targets the
+  // sidebar which is hidden behind a sheet on mobile).
+  useEffect(() => {
+    if (isMobile) return;
+    if (!hasCompletedTour()) {
+      const t = setTimeout(() => setTourRunning(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, [isMobile]);
+
+  // Allow any page to request the tour (e.g. the Dashboard "Take the tour" button).
+  useEffect(() => {
+    const handler = () => setTourRunning(true);
+    window.addEventListener("jobtrakr:start-tour", handler);
+    return () => window.removeEventListener("jobtrakr:start-tour", handler);
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-background">
+      <OnboardingTour run={tourRunning} onFinish={() => setTourRunning(false)} />
       <AppSidebar jobs={store.jobs} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
       {/* Mobile header */}

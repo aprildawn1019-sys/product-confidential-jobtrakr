@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import PipelineFunnel from "@/components/PipelineFunnel";
 import { Link, useNavigate } from "react-router-dom";
-import { Briefcase, CalendarCheck, Clock, Send, Star, CalendarDays, ExternalLink, X, Pencil } from "lucide-react";
+import { Briefcase, CalendarCheck, Clock, Send, Star, CalendarDays, ExternalLink, X, Pencil, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -88,9 +88,19 @@ export default function Dashboard({ jobs, contacts, interviews, jobContacts, tar
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="mt-1 text-muted-foreground">Your job search at a glance</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="mt-1 text-muted-foreground">Your job search at a glance</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => window.dispatchEvent(new Event("jobtrakr:start-tour"))}
+        >
+          <Sparkles className="h-4 w-4" /> Take the tour
+        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

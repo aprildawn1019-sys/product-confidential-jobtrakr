@@ -16,12 +16,14 @@ interface AppSidebarProps {
   onMobileClose?: () => void;
 }
 
-const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
+type LinkItemWithTour = LinkItem & { tourId?: string };
+
+const groups: { label: string; icon: LucideIcon; items: LinkItemWithTour[] }[] = [
   {
     label: "Discover",
     icon: Compass,
     items: [
-      { to: "/job-search", icon: Search, label: "AI Job Search" },
+      { to: "/job-search", icon: Search, label: "AI Job Search", tourId: "entry-job-search" },
       { to: "/job-boards", icon: Globe, label: "Job Boards" },
       { to: "/profile", icon: UserCog, label: "Search Profile" },
       { to: "/skills-insights", icon: TrendingUp, label: "Skills Insights" },
@@ -32,7 +34,7 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
     icon: ClipboardList,
     items: [
       { to: "/jobs", icon: Briefcase, label: "Job Pipeline" },
-      { to: "/target-companies", icon: Star, label: "Target Companies" },
+      { to: "/target-companies", icon: Star, label: "Target Companies", tourId: "entry-target-companies" },
       { to: "/interviews", icon: CalendarDays, label: "Schedule" },
       { to: "/cover-letters", icon: FileText, label: "Cover Letters" },
     ],
@@ -41,7 +43,7 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
     label: "Networking",
     icon: Handshake,
     items: [
-      { to: "/contacts", icon: Users, label: "Connections" },
+      { to: "/contacts", icon: Users, label: "Connections", tourId: "entry-network" },
       { to: "/network-map", icon: Network, label: "Network Map" },
     ],
   },
@@ -142,8 +144,8 @@ function SidebarContent({ jobs, onNavigate }: { jobs: { id: string; title: strin
               </CollapsibleTrigger>
 
               <CollapsibleContent className="space-y-0.5 pt-0.5">
-                {group.items.map(({ to, icon: Icon, label }) => (
-                  <div key={to}>
+                {group.items.map(({ to, icon: Icon, label, tourId }) => (
+                  <div key={to} data-tour={tourId}>
                     {to === "/jobs" ? (
                       <>
                         <div className="flex items-center">
