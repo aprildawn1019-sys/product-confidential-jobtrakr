@@ -100,6 +100,7 @@ function NetworkMapInner(props: NetworkMapProps) {
     focusContact,
     filterWarmth,
     filterRole,
+    layoutMode,
   });
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
