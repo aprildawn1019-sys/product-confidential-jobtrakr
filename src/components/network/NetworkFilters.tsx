@@ -1,9 +1,11 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RotateCcw, Eye, EyeOff, Download, Filter, FilterX } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { RotateCcw, Eye, EyeOff, Download, Filter, FilterX, CircleDot, Network, Grid3x3 } from "lucide-react";
 import { NETWORK_ROLES } from "@/types/jobTracker";
 import type { Contact, TargetCompany } from "@/types/jobTracker";
+import type { NetworkLayoutMode } from "./useNetworkGraph";
 
 interface NetworkFiltersProps {
   contacts: Contact[];
@@ -25,6 +27,8 @@ interface NetworkFiltersProps {
   totalContactCount: number;
   isFiltered: boolean;
   onExport: () => void;
+  layoutMode: NetworkLayoutMode;
+  onLayoutModeChange: (mode: NetworkLayoutMode) => void;
 }
 
 export default function NetworkFilters(props: NetworkFiltersProps) {
