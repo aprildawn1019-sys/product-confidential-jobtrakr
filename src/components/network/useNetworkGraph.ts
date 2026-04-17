@@ -242,7 +242,7 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
 }
 
 export function useNetworkGraph(params: UseNetworkGraphParams) {
-  const { contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole } = params;
+  const { contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode = "radial" } = params;
 
   return useMemo(() => {
     const nodes: Node[] = [];
