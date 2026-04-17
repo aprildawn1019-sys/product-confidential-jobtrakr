@@ -339,6 +339,17 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Duplicate companies dialog */}
+      <DuplicateCompaniesDialog
+        open={duplicatesDialogOpen}
+        onOpenChange={setDuplicatesDialogOpen}
+        clusters={duplicateClusters}
+        jobs={jobs}
+        contacts={contacts}
+        onMerge={handleMerge}
+      />
     </div>
   );
 }
+
