@@ -16,6 +16,7 @@ import SkillsInsights from "@/pages/SkillsInsights";
 import InterviewsPage from "@/pages/Interviews";
 import TargetCompanies from "@/pages/TargetCompanies";
 import CoverLetters from "@/pages/CoverLetters";
+import GettingStarted from "@/pages/GettingStarted";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
