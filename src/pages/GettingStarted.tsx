@@ -197,14 +197,6 @@ export default function GettingStarted({
         </div>
       </section>
 
-      {profileScore !== null && profileScore < 5 && (
-        <ProfileCompletenessBanner
-          score={profileScore}
-          fields={profileFields}
-          onAction={() => navigate("/profile")}
-        />
-      )}
-
       <section>
         <div className="mb-4">
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
@@ -221,6 +213,14 @@ export default function GettingStarted({
           ))}
         </div>
       </section>
+
+      {profileScore !== null && profileScore < 5 && (
+        <ProfileCompletenessBanner
+          score={profileScore}
+          fields={profileFields}
+          onAction={() => navigate("/profile")}
+        />
+      )}
 
       <section>
         <div className="rounded-[1.75rem] border border-border bg-gradient-to-br from-card to-muted/50 p-6 shadow-sm sm:p-8">
