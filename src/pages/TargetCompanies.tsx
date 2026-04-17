@@ -128,6 +128,27 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
         </Button>
       </div>
 
+      {/* Duplicate detection banner */}
+      {duplicateClusters.length > 0 && !bannerDismissed && (
+        <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900">
+          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertTitle className="text-amber-900 dark:text-amber-200">
+            {duplicateClusters.length} potential duplicate group{duplicateClusters.length === 1 ? "" : "s"} detected
+          </AlertTitle>
+          <AlertDescription className="text-amber-800 dark:text-amber-300/90 flex items-center justify-between gap-3 flex-wrap mt-1">
+            <span className="text-sm">
+              {duplicateClusters.reduce((sum, c) => sum + c.length, 0)} target companies look like duplicates. Review and merge to keep your pipeline clean.
+            </span>
+            <div className="flex gap-2 shrink-0">
+              <Button size="sm" variant="ghost" onClick={() => setBannerDismissed(true)}>Dismiss</Button>
+              <Button size="sm" onClick={() => setDuplicatesDialogOpen(true)} className="gap-1.5">
+                <GitMerge className="h-3.5 w-3.5" /> Review duplicates
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
