@@ -63,7 +63,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
     },
     {
       target: '[data-tour="entry-job-search"]',
-      title: "Entry 1 — Search for jobs",
+      title: "Know the role you want?",
       content:
         "Start here if you already know the kind of role you want. AI Job Search, Job Boards, and Bulk Import all feed directly into your tracker.",
       placement: "bottom",
@@ -81,7 +81,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
     },
     {
       target: '[data-tour="entry-network"]',
-      title: "Entry 2 — Network first",
+      title: "Have a strong network?",
       content:
         "Prefer relationship-driven searches? Add contacts, log conversations, and let opportunities surface from your network.",
       placement: "bottom",
@@ -99,7 +99,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
     },
     {
       target: '[data-tour="entry-target-companies"]',
-      title: "Entry 3 — Start with target companies",
+      title: "Got a dream-employer list?",
       content:
         "Have a dream-employer shortlist? Add them here, set priorities, then discover roles and contacts within each company.",
       placement: "bottom",
