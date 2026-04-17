@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getAIConfig } from "../_shared/ai-config.ts";
+import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +14,10 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: require auth — this function consumes AI tokens.
+    const auth = await requireUser(req, corsHeaders);
+    if (auth.errorResponse) return auth.errorResponse;
+
     const { resumeText } = await req.json();
     if (!resumeText || typeof resumeText !== "string" || resumeText.trim().length < 20) {
       return new Response(JSON.stringify({ error: "Resume text is required (min 20 characters)" }), {

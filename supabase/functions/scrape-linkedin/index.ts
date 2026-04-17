@@ -1,4 +1,5 @@
 import { getAIConfig } from "../_shared/ai-config.ts";
+import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,6 +10,10 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // SECURITY: require auth — Firecrawl scrapes consume credits and the function fetches arbitrary URLs.
+    const auth = await requireUser(req, corsHeaders);
+    if (auth.errorResponse) return auth.errorResponse;
+
     const { url } = await req.json();
     if (!url) throw new Error("Missing LinkedIn URL");
 

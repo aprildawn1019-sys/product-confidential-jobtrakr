@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getAIConfig } from "../_shared/ai-config.ts";
+import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +14,11 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: verify the JWT signature before trusting any user identity.
+    const auth = await requireUser(req, corsHeaders);
+    if (auth.errorResponse) return auth.errorResponse;
+    const userId = auth.user.id;
+
     const { jobTitle, company, jobDescription } = await req.json();
 
     if (!jobDescription) {
@@ -22,8 +28,7 @@ serve(async (req) => {
       });
     }
 
-    // Get user's profile for resume/skills
-    const authHeader = req.headers.get("Authorization");
+    // Get user's profile for resume/skills (server-trusted userId from verified JWT)
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -31,27 +36,20 @@ serve(async (req) => {
     let skills: string[] = [];
     let summary = "";
 
-    if (authHeader) {
-      const token = authHeader.replace("Bearer ", "");
-      // Decode JWT to get user ID
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const userId = payload.sub;
-
-      const profileRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/job_search_profile?user_id=eq.${userId}&select=resume_text,skills,summary&limit=1`,
-        {
-          headers: {
-            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-            apikey: SUPABASE_SERVICE_ROLE_KEY,
-          },
-        }
-      );
-      const profiles = await profileRes.json();
-      if (profiles?.[0]) {
-        resumeText = profiles[0].resume_text || "";
-        skills = profiles[0].skills || [];
-        summary = profiles[0].summary || "";
+    const profileRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/job_search_profile?user_id=eq.${userId}&select=resume_text,skills,summary&limit=1`,
+      {
+        headers: {
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
+        },
       }
+    );
+    const profiles = await profileRes.json();
+    if (profiles?.[0]) {
+      resumeText = profiles[0].resume_text || "";
+      skills = profiles[0].skills || [];
+      summary = profiles[0].summary || "";
     }
 
     const ai = getAIConfig("google/gemini-3-flash-preview");
