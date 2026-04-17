@@ -136,16 +136,33 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run, stepIndex]);
 
+  const finishTour = () => {
+    markTourCompleted();
+    setStepIndex(0);
+    onFinish();
+  };
+
   const handleCallback = (data: CallBackProps) => {
     const { status, type, action, index } = data;
 
+    // Joyride fires FINISHED/SKIPPED on terminal status — close the modal.
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-      markTourCompleted();
-      onFinish();
+      finishTour();
+      return;
+    }
+
+    // User clicked Close (X) at any point.
+    if (action === ACTIONS.CLOSE) {
+      finishTour();
       return;
     }
 
     if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+      // If we just finished the last step by clicking Next/Finish, end the tour.
+      if (action === ACTIONS.NEXT && index === steps.length - 1) {
+        finishTour();
+        return;
+      }
       const next = action === ACTIONS.PREV ? index - 1 : index + 1;
       setStepIndex(Math.max(0, Math.min(next, steps.length - 1)));
     }
