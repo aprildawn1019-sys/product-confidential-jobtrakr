@@ -29,7 +29,7 @@ interface GettingStartedProps {
 }
 
 /**
- * Getting Started — persona-driven entry points (prototype v2 integration).
+ * Getting Started — persona-driven entry points (prototype v2).
  * Keeps the session-progress checklist so returning users still see momentum.
  */
 export default function GettingStarted({
