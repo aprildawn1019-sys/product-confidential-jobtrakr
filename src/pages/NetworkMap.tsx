@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ReactFlow,
@@ -77,12 +77,10 @@ function NetworkMapInner(props: NetworkMapProps) {
   const [edges, setEdges, onEdgesChange] = useEdgesState(graphData.edges);
 
   // Sync graph data when filters change
-  const prevGraphRef = useRef(graphData);
-  if (prevGraphRef.current !== graphData) {
-    prevGraphRef.current = graphData;
+  useEffect(() => {
     setNodes(graphData.nodes);
     setEdges(graphData.edges);
-  }
+  }, [graphData, setNodes, setEdges]);
 
   // Apply highlight to nodes
   const nodesWithHighlight = highlightedNodeId
