@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ReactFlow,
   MiniMap,
@@ -51,12 +51,32 @@ interface NetworkMapProps {
 
 function NetworkMapInner(props: NetworkMapProps) {
   const navigate = useNavigate();
-  const [focusCompany, setFocusCompany] = useState("all");
-  const [focusContact, setFocusContact] = useState("all");
-  const [filterWarmth, setFilterWarmth] = useState("all");
-  const [filterRole, setFilterRole] = useState("all");
-  const [showJobs, setShowJobs] = useState(true);
-  const [hideDimmed, setHideDimmed] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL-backed filter state — short keys for cleaner URLs
+  const focusCompany = searchParams.get("co") ?? "all";
+  const focusContact = searchParams.get("ct") ?? "all";
+  const filterWarmth = searchParams.get("w") ?? "all";
+  const filterRole = searchParams.get("r") ?? "all";
+  const showJobs = searchParams.get("jobs") !== "0"; // default true
+  const hideDimmed = searchParams.get("hd") === "1"; // default false
+
+  const updateParam = useCallback((key: string, value: string, defaultValue: string) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value === defaultValue) next.delete(key);
+      else next.set(key, value);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  const setFocusCompany = useCallback((v: string) => updateParam("co", v, "all"), [updateParam]);
+  const setFocusContact = useCallback((v: string) => updateParam("ct", v, "all"), [updateParam]);
+  const setFilterWarmth = useCallback((v: string) => updateParam("w", v, "all"), [updateParam]);
+  const setFilterRole = useCallback((v: string) => updateParam("r", v, "all"), [updateParam]);
+  const toggleShowJobs = useCallback(() => updateParam("jobs", showJobs ? "0" : "1", "1"), [updateParam, showJobs]);
+  const toggleHideDimmed = useCallback(() => updateParam("hd", hideDimmed ? "0" : "1", "0"), [updateParam, hideDimmed]);
+
   const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any } | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; targetId: string; sourceName: string; targetName: string } | null>(null);
