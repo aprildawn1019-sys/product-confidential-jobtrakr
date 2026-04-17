@@ -694,4 +694,4 @@ export function useJobTrackerStore() {
     getJobsByStatus, getContactForJob, getInterviewsForJob,
   };
 }
-}
+
