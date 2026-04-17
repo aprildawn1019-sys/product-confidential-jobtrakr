@@ -136,6 +136,40 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run, stepIndex]);
 
+  // Hold Joyride in a paused state until the expected route is mounted AND
+  // the target selector exists. This avoids the "Target not mounted" race
+  // where Joyride evaluates a selector before the new route renders.
+  const currentStep = steps[stepIndex];
+  const expectedRoute = currentStep?.route;
+  const onExpectedRoute = !expectedRoute || expectedRoute === location.pathname;
+  const targetSelector =
+    typeof currentStep?.target === "string" ? currentStep.target : null;
+  const [targetReady, setTargetReady] = useState(false);
+
+  useEffect(() => {
+    if (!run) {
+      setTargetReady(false);
+      return;
+    }
+    setTargetReady(false);
+    if (!onExpectedRoute) return;
+    if (!targetSelector || targetSelector === "body") {
+      setTargetReady(true);
+      return;
+    }
+    let attempts = 0;
+    const poll = window.setInterval(() => {
+      attempts += 1;
+      if (document.querySelector(targetSelector)) {
+        window.clearInterval(poll);
+        setTargetReady(true);
+      } else if (attempts > 40) {
+        window.clearInterval(poll);
+      }
+    }, 100);
+    return () => window.clearInterval(poll);
+  }, [run, stepIndex, onExpectedRoute, targetSelector]);
+
   const finishTour = () => {
     markTourCompleted();
     setStepIndex(0);
@@ -145,43 +179,23 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
   const handleCallback = (data: CallBackProps) => {
     const { status, type, action, index } = data;
 
-    // Joyride fires FINISHED/SKIPPED on terminal status — close the modal.
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
       finishTour();
       return;
     }
 
-    // User clicked Close (X) at any point.
     if (action === ACTIONS.CLOSE) {
       finishTour();
       return;
     }
 
     if (type === EVENTS.STEP_AFTER) {
-      // Last step + Next click → finish.
       if (action === ACTIONS.NEXT && index === steps.length - 1) {
         finishTour();
         return;
       }
       const next = action === ACTIONS.PREV ? index - 1 : index + 1;
       setStepIndex(Math.max(0, Math.min(next, steps.length - 1)));
-    }
-
-    // If the target isn't in the DOM yet (route still mounting), don't skip —
-    // poll until it appears, then let Joyride re-render the same step.
-    if (type === EVENTS.TARGET_NOT_FOUND) {
-      const step = steps[index];
-      const selector = typeof step?.target === "string" ? step.target : null;
-      if (!selector || selector === "body") return;
-      let attempts = 0;
-      const poll = window.setInterval(() => {
-        attempts += 1;
-        if (document.querySelector(selector) || attempts > 20) {
-          window.clearInterval(poll);
-          // Force Joyride to re-evaluate by nudging stepIndex.
-          setStepIndex((i) => i);
-        }
-      }, 150);
     }
   };
 
