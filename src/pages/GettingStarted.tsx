@@ -37,6 +37,7 @@ interface EntryPath {
   tone: "neutral" | "info" | "success" | "warning";
   featured?: boolean;
   note?: string;
+  tourId?: string;
 }
 
 export default function GettingStarted({
@@ -120,6 +121,7 @@ export default function GettingStarted({
         route: "/job-search",
         icon: Search,
         tone: "info",
+        tourId: "entry-job-search",
         note: profileIncomplete ? "Results sharpen when your profile is fully filled out." : undefined,
       },
       {
@@ -133,6 +135,7 @@ export default function GettingStarted({
         route: "/contacts",
         icon: Users,
         tone: "success",
+        tourId: "entry-network",
       },
       {
         number: "04",
@@ -145,6 +148,7 @@ export default function GettingStarted({
         route: "/target-companies",
         icon: Star,
         tone: "warning",
+        tourId: "entry-target-companies",
       },
     ],
     [profileIncomplete],
@@ -320,6 +324,7 @@ function EntryPrototypeCard({ path, onClick }: { path: EntryPath; onClick: () =>
     <button
       type="button"
       onClick={onClick}
+      data-tour={path.tourId}
       className={`group relative overflow-hidden rounded-[1.75rem] border p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:p-7 ${toneClasses[path.tone]}`}
     >
       <div className="absolute right-5 top-4 font-serif text-[3rem] font-bold leading-none tracking-tight sm:text-[4rem] ${numberClasses[path.tone]}" />
