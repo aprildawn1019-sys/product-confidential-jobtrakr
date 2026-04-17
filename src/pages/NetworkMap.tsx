@@ -109,7 +109,7 @@ function NetworkMapInner(props: NetworkMapProps) {
     }, 50);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graphData, isFiltered]);
+  }, [graphData, isFiltered, hideDimmed]);
 
   // Apply highlight to nodes, optionally filtering out dimmed ones
   const visibleNodes = (hideDimmed && isFiltered)
