@@ -59,16 +59,16 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       content:
         "Your job search isn't linear — and neither is Jobtrakr. There are three natural starting points. Let's walk through each so you can pick the one that fits how you're approaching your search today.",
       disableBeacon: true,
-      route: "/",
+      route: "/getting-started",
     },
     {
       target: '[data-tour="entry-job-search"]',
       title: "Entry 1 — Search for jobs",
       content:
         "Start here if you already know the kind of role you want. AI Job Search, Job Boards, and Bulk Import all feed directly into your tracker.",
-      placement: "right",
+      placement: "bottom",
       disableBeacon: true,
-      route: "/",
+      route: "/getting-started",
     },
     {
       target: '[data-tour="page-job-search"]',
@@ -84,9 +84,9 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       title: "Entry 2 — Network first",
       content:
         "Prefer relationship-driven searches? Add contacts, log conversations, and let opportunities surface from your network.",
-      placement: "right",
+      placement: "bottom",
       disableBeacon: true,
-      route: "/",
+      route: "/getting-started",
     },
     {
       target: '[data-tour="page-network"]',
@@ -102,9 +102,9 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       title: "Entry 3 — Start with target companies",
       content:
         "Have a dream-employer shortlist? Add them here, set priorities, then discover roles and contacts within each company.",
-      placement: "right",
+      placement: "bottom",
       disableBeacon: true,
-      route: "/",
+      route: "/getting-started",
     },
     {
       target: '[data-tour="page-target-companies"]',
@@ -122,7 +122,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       content:
         "Whichever entry point you choose, jobs land in your Pipeline, contacts in your Network, and interviews on your Schedule. Pick a starting point and dive in!",
       disableBeacon: true,
-      route: "/",
+      route: "/getting-started",
     },
   ];
 
