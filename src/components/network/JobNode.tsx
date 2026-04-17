@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { clusterTintBg } from "./clusterColor";
 
 const statusColors: Record<string, string> = {
   saved: "hsl(var(--muted-foreground))",
@@ -15,6 +16,7 @@ const statusColors: Record<string, string> = {
 function JobNode({ data, selected }: NodeProps) {
   const d = data as any;
   const color = statusColors[d.status] || "hsl(var(--border))";
+  const tint = clusterTintBg(d.clusterHue);
 
   return (
     <div className="relative flex flex-col items-center" style={{ minWidth: 100 }}>
@@ -25,7 +27,7 @@ function JobNode({ data, selected }: NodeProps) {
           width: 48,
           height: 48,
           border: `3px solid ${color}`,
-          background: "hsl(var(--card))",
+          background: tint || "hsl(var(--card))",
           transform: "rotate(45deg)",
           borderRadius: 6,
           opacity: d.dimmed ? 0.1 : 1,

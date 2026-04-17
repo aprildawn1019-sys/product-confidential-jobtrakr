@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { Node, Edge } from "@xyflow/react";
 import { companiesMatch } from "@/stores/jobTrackerStore";
+import { clusterHue } from "./clusterColor";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest } from "@/types/jobTracker";
 
 interface UseNetworkGraphParams {
@@ -213,6 +214,7 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
           priority: tc?.priority,
           targetId: tc?.id,
           dimmed: false,
+          clusterHue: clusterHue(companyName),
         },
       });
       return id;
@@ -235,6 +237,7 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
           role: c.role,
           id: c.id,
           dimmed: false,
+          clusterHue: clusterHue(c.company),
         },
       });
 
@@ -284,6 +287,7 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
             appliedDate: j.appliedDate,
             id: j.id,
             dimmed: false,
+            clusterHue: clusterHue(j.company),
           },
         });
 
