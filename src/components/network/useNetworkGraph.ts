@@ -61,10 +61,6 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
     const companyNodes = new Map<string, string>(); // normalized name → node id
     const companyChildMap = new Map<string, string[]>(); // company node id → child node ids
 
-    // Determine focused/matching node IDs
-    const focusedIds = new Set<string>();
-    let hasFocus = false;
-
     // Helper: get or create company node
     function getCompanyNodeId(companyName: string) {
       const normalized = companyName.toLowerCase().trim();
@@ -206,68 +202,100 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
     }
 
     // Apply filters — determine which nodes match
+    let hasAnyFilter = false;
+    const matchingNodeIds = new Set<string>();
+
+    // Focus company: include company + 1-hop neighbors
     if (focusCompany && focusCompany !== "all") {
-      hasFocus = true;
-      const compId = Array.from(companyNodes.entries()).find(([k]) => k === focusCompany.toLowerCase().trim())?.[1];
+      hasAnyFilter = true;
+      const compId = companyNodes.get(focusCompany.toLowerCase().trim());
       if (compId) {
-        focusedIds.add(compId);
+        matchingNodeIds.add(compId);
         edges.forEach(e => {
-          if (e.source === compId || e.target === compId) {
-            focusedIds.add(e.source);
-            focusedIds.add(e.target);
-            // 2-hop
-            edges.forEach(e2 => {
-              if (focusedIds.has(e2.source) || focusedIds.has(e2.target)) {
-                focusedIds.add(e2.source);
-                focusedIds.add(e2.target);
-              }
-            });
-          }
+          if (e.source === compId) matchingNodeIds.add(e.target);
+          if (e.target === compId) matchingNodeIds.add(e.source);
         });
       }
     }
 
+    // Focus contact: include contact + 1-hop neighbors
     if (focusContact && focusContact !== "all") {
-      hasFocus = true;
+      hasAnyFilter = true;
       const cId = `contact-${focusContact}`;
-      focusedIds.add(cId);
+      const contactSet = new Set<string>([cId]);
       edges.forEach(e => {
-        if (e.source === cId || e.target === cId) {
-          focusedIds.add(e.source);
-          focusedIds.add(e.target);
-          edges.forEach(e2 => {
-            if (focusedIds.has(e2.source) || focusedIds.has(e2.target)) {
-              focusedIds.add(e2.source);
-              focusedIds.add(e2.target);
-            }
+        if (e.source === cId) contactSet.add(e.target);
+        if (e.target === cId) contactSet.add(e.source);
+      });
+      // Intersect with prior filter if present, else seed
+      if (matchingNodeIds.size > 0) {
+        const inter = new Set<string>();
+        contactSet.forEach(id => { if (matchingNodeIds.has(id)) inter.add(id); });
+        matchingNodeIds.clear();
+        inter.forEach(id => matchingNodeIds.add(id));
+      } else {
+        contactSet.forEach(id => matchingNodeIds.add(id));
+      }
+    }
+
+    // Filter by warmth — narrow to matching contacts (and their neighbors)
+    if (filterWarmth && filterWarmth !== "all") {
+      hasAnyFilter = true;
+      const warmthMatches = new Set<string>();
+      contacts.forEach(c => {
+        if (c.relationshipWarmth === filterWarmth) {
+          const id = `contact-${c.id}`;
+          warmthMatches.add(id);
+          edges.forEach(e => {
+            if (e.source === id) warmthMatches.add(e.target);
+            if (e.target === id) warmthMatches.add(e.source);
           });
         }
       });
+      if (matchingNodeIds.size > 0) {
+        const inter = new Set<string>();
+        warmthMatches.forEach(id => { if (matchingNodeIds.has(id)) inter.add(id); });
+        matchingNodeIds.clear();
+        inter.forEach(id => matchingNodeIds.add(id));
+      } else {
+        warmthMatches.forEach(id => matchingNodeIds.add(id));
+      }
     }
 
-    // Filter by warmth / role
-    if (filterWarmth && filterWarmth !== "all") {
-      hasFocus = true;
-      contacts.forEach(c => {
-        if (c.relationshipWarmth === filterWarmth) {
-          focusedIds.add(`contact-${c.id}`);
-        }
-      });
-    }
-
+    // Filter by role — narrow to matching contacts (and their neighbors)
     if (filterRole && filterRole !== "all") {
-      hasFocus = true;
+      hasAnyFilter = true;
+      const roleMatches = new Set<string>();
       contacts.forEach(c => {
         if (c.networkRole === filterRole) {
-          focusedIds.add(`contact-${c.id}`);
+          const id = `contact-${c.id}`;
+          roleMatches.add(id);
+          edges.forEach(e => {
+            if (e.source === id) roleMatches.add(e.target);
+            if (e.target === id) roleMatches.add(e.source);
+          });
         }
       });
+      if (matchingNodeIds.size > 0) {
+        const inter = new Set<string>();
+        roleMatches.forEach(id => { if (matchingNodeIds.has(id)) inter.add(id); });
+        matchingNodeIds.clear();
+        inter.forEach(id => matchingNodeIds.add(id));
+      } else {
+        roleMatches.forEach(id => matchingNodeIds.add(id));
+      }
     }
 
-    // Apply dimming
-    if (hasFocus) {
+    // Apply dimming to nodes and edges
+    if (hasAnyFilter) {
       nodes.forEach(n => {
-        (n.data as any).dimmed = !focusedIds.has(n.id);
+        (n.data as any).dimmed = !matchingNodeIds.has(n.id);
+      });
+      edges.forEach(e => {
+        const active = matchingNodeIds.has(e.source) && matchingNodeIds.has(e.target);
+        if (!active) {
+          e.style = { ...(e.style || {}), opacity: 0.1 };
+        }
       });
     }
 
