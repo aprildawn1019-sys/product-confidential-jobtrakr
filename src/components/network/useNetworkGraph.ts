@@ -4,6 +4,8 @@ import { companiesMatch } from "@/stores/jobTrackerStore";
 import { clusterHue } from "./clusterColor";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest } from "@/types/jobTracker";
 
+export type NetworkLayoutMode = "radial" | "hierarchical" | "grid";
+
 interface UseNetworkGraphParams {
   contacts: Contact[];
   jobs: Job[];
@@ -16,6 +18,7 @@ interface UseNetworkGraphParams {
   focusContact: string;
   filterWarmth: string;
   filterRole: string;
+  layoutMode?: NetworkLayoutMode;
 }
 
 /**
