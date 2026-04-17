@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ReactFlow,
@@ -143,15 +143,10 @@ function NetworkMapInner(props: NetworkMapProps) {
     ? visibleNodes.map(n => n.id === highlightedNodeId ? { ...n, data: { ...n.data, highlighted: true } } : { ...n, data: { ...n.data, highlighted: false } })
     : visibleNodes;
 
-  const handleReset = () => {
-    setFocusCompany("all");
-    setFocusContact("all");
-    setFilterWarmth("all");
-    setFilterRole("all");
-    setShowJobs(true);
-    setHideDimmed(false);
+  const handleReset = useCallback(() => {
+    setSearchParams(new URLSearchParams(), { replace: true });
     setSelectedNode(null);
-  };
+  }, [setSearchParams]);
 
   const handleExport = useCallback(async () => {
     const viewport = containerRef.current?.querySelector(".react-flow__viewport") as HTMLElement | null;
