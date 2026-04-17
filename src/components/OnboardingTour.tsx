@@ -157,14 +157,31 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       return;
     }
 
-    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
-      // If we just finished the last step by clicking Next/Finish, end the tour.
+    if (type === EVENTS.STEP_AFTER) {
+      // Last step + Next click → finish.
       if (action === ACTIONS.NEXT && index === steps.length - 1) {
         finishTour();
         return;
       }
       const next = action === ACTIONS.PREV ? index - 1 : index + 1;
       setStepIndex(Math.max(0, Math.min(next, steps.length - 1)));
+    }
+
+    // If the target isn't in the DOM yet (route still mounting), don't skip —
+    // poll until it appears, then let Joyride re-render the same step.
+    if (type === EVENTS.TARGET_NOT_FOUND) {
+      const step = steps[index];
+      const selector = typeof step?.target === "string" ? step.target : null;
+      if (!selector || selector === "body") return;
+      let attempts = 0;
+      const poll = window.setInterval(() => {
+        attempts += 1;
+        if (document.querySelector(selector) || attempts > 20) {
+          window.clearInterval(poll);
+          // Force Joyride to re-evaluate by nudging stepIndex.
+          setStepIndex((i) => i);
+        }
+      }, 150);
     }
   };
 
