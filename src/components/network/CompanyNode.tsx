@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { clusterAccentBg, clusterGlow } from "./clusterColor";
 
 const priorityBorders: Record<string, string> = {
   dream: "hsl(var(--warning))",
@@ -10,6 +11,8 @@ const priorityBorders: Record<string, string> = {
 function CompanyNode({ data, selected }: NodeProps) {
   const d = data as any;
   const borderColor = priorityBorders[d.priority] || "hsl(var(--border))";
+  const tint = clusterAccentBg(d.clusterHue);
+  const glow = clusterGlow(d.clusterHue);
 
   return (
     <div className="relative flex flex-col items-center" style={{ minWidth: 110 }}>
@@ -20,7 +23,8 @@ function CompanyNode({ data, selected }: NodeProps) {
           width: 64,
           height: 48,
           border: `3px solid ${borderColor}`,
-          background: "hsl(var(--card))",
+          background: tint || "hsl(var(--card))",
+          boxShadow: glow,
           opacity: d.dimmed ? 0.1 : 1,
         }}
       >
