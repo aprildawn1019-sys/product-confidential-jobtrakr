@@ -237,6 +237,7 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
           role: c.role,
           id: c.id,
           dimmed: false,
+          clusterHue: clusterHue(c.company),
         },
       });
 
