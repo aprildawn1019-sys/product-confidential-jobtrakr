@@ -139,6 +139,65 @@ export default function GettingStarted({
         </div>
       </section>
 
+      {/* Progress checklist */}
+      <section>
+        <div className="flex items-end justify-between mb-4 gap-4 flex-wrap">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Your progress
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            {completedCount} of {milestones.length} complete
+          </span>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <div className="flex items-center gap-4 mb-5">
+            <Progress value={progressPct} className="h-2 flex-1" />
+            <span className="font-display text-sm font-semibold tabular-nums w-10 text-right">
+              {progressPct}%
+            </span>
+          </div>
+          <ul className="space-y-2">
+            {milestones.map((m) => (
+              <li
+                key={m.label}
+                className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
+                  m.done
+                    ? "border-success/30 bg-success/5"
+                    : "border-border bg-background hover:border-primary/30"
+                }`}
+              >
+                <div
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
+                    m.done ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {m.done ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-3 w-3" />}
+                </div>
+                <span
+                  className={`flex-1 text-sm ${
+                    m.done ? "text-foreground/70 line-through" : "text-foreground font-medium"
+                  }`}
+                >
+                  {m.label}
+                </span>
+                {!m.done && (
+                  <Button variant="ghost" size="sm" onClick={m.onClick} className="gap-1 text-xs">
+                    {m.cta}
+                    <ArrowRight className="h-3 w-3" />
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+          {allDone && (
+            <div className="mt-5 flex items-center gap-2 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm">
+              <Trophy className="h-4 w-4 text-accent-foreground" />
+              <span className="font-medium">You're all set up — happy hunting!</span>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Convergence flow */}
       <section>
         <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">All paths converge</h2>
