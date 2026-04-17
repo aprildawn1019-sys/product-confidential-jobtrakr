@@ -153,53 +153,6 @@ export default function GettingStarted({
     [profileIncomplete],
   );
 
-  const milestones = useMemo(
-    () => [
-      {
-        label: "Added your first job",
-        done: jobs.length > 0,
-        cta: "Add a job",
-        onClick: () => navigate("/jobs"),
-      },
-      {
-        label: "Added a contact",
-        done: contacts.length > 0,
-        cta: "Add a contact",
-        onClick: () => navigate("/contacts"),
-      },
-      {
-        label: "Set a target company",
-        done: targetCompanies.length > 0,
-        cta: "Add a company",
-        onClick: () => navigate("/target-companies"),
-      },
-      {
-        label: "Applied to a role",
-        done: jobs.some((job) => ["applied", "screening", "interviewing", "offer"].includes(job.status)),
-        cta: "Update pipeline",
-        onClick: () => navigate("/jobs"),
-      },
-      {
-        label: "Scheduled an interview",
-        done: interviews.length > 0,
-        cta: "Schedule one",
-        onClick: () => navigate("/interviews"),
-      },
-    ],
-    [jobs, contacts, targetCompanies, interviews, navigate],
-  );
-
-  const completedCount = milestones.filter((milestone) => milestone.done).length;
-  const progressPct = Math.round((completedCount / milestones.length) * 100);
-  const allDone = completedCount === milestones.length;
-
-  const quickStats = [
-    { label: "Profile", value: profileScore === null ? "—" : `${profileScore}/5`, tone: "text-info" },
-    { label: "Jobs", value: String(jobs.length), tone: "text-foreground" },
-    { label: "Contacts", value: String(contacts.length), tone: "text-success" },
-    { label: "Targets", value: String(targetCompanies.length), tone: "text-warning-foreground" },
-  ];
-
   return (
     <div className="mx-auto max-w-7xl space-y-8 animate-fade-in">
       <section className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-sm">
@@ -216,18 +169,7 @@ export default function GettingStarted({
               Pick a starting point below — your profile, live roles, your network, or your target companies. Every path feeds the same unified pipeline.
             </p>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {quickStats.map((stat) => (
-                <div key={stat.label} className="rounded-2xl border border-border bg-background/80 p-4 backdrop-blur-sm">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                    {stat.label}
-                  </div>
-                  <div className={`mt-2 font-display text-2xl font-bold tracking-tight ${stat.tone}`}>
-                    {stat.value}
-                  </div>
-                </div>
-              ))}
-            </div>
+
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Button onClick={startTour} className="gap-2">
@@ -263,64 +205,7 @@ export default function GettingStarted({
         </div>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="rounded-[1.75rem] border border-border bg-card p-6 shadow-sm sm:p-8">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                Your progress
-              </div>
-              <h3 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground">
-                Setup checklist
-              </h3>
-            </div>
-            <span className="text-sm text-muted-foreground">{progressPct}% complete</span>
-          </div>
-
-          <div className="mt-5">
-            <Progress value={progressPct} className="h-2" />
-          </div>
-
-          <ul className="mt-6 space-y-3">
-            {milestones.map((milestone) => (
-              <li
-                key={milestone.label}
-                className={`flex items-center gap-3 rounded-2xl border p-4 transition-colors ${
-                  milestone.done
-                    ? "border-success/30 bg-success/5"
-                    : "border-border bg-background hover:border-primary/25"
-                }`}
-              >
-                <div
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                    milestone.done ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {milestone.done ? <Check className="h-4 w-4" /> : <Circle className="h-3.5 w-3.5" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className={`text-sm ${milestone.done ? "text-foreground/65 line-through" : "font-medium text-foreground"}`}>
-                    {milestone.label}
-                  </div>
-                </div>
-                {!milestone.done && (
-                  <Button variant="ghost" size="sm" onClick={milestone.onClick} className="gap-1 text-xs">
-                    {milestone.cta}
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
-
-          {allDone && (
-            <div className="mt-5 flex items-center gap-2 rounded-2xl border border-accent/40 bg-accent/10 p-4 text-sm font-medium text-foreground">
-              <Trophy className="h-4 w-4 text-accent-foreground" />
-              You’re fully set up — move straight into search, outreach, and tracking.
-            </div>
-          )}
-        </div>
-
+      <section>
         <div className="rounded-[1.75rem] border border-border bg-gradient-to-br from-card to-muted/50 p-6 shadow-sm sm:p-8">
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
             Quick launchers
