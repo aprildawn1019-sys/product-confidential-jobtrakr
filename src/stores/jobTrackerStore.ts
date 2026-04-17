@@ -690,7 +690,8 @@ export function useJobTrackerStore() {
     addCampaign, updateCampaign, deleteCampaign, toggleContactCampaign, getCampaignsForContact, getContactsForCampaign,
     addRecommendationRequest, updateRecommendationRequest, deleteRecommendationRequest, getRecommendationRequestsForContact,
     addJobActivity, deleteJobActivity, getJobActivitiesForJob,
-    addTargetCompany, updateTargetCompany, deleteTargetCompany, isTargetCompany, getTargetCompanyMatch,
+    addTargetCompany, updateTargetCompany, deleteTargetCompany, isTargetCompany, getTargetCompanyMatch, mergeTargetCompanies,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
   };
+}
 }
