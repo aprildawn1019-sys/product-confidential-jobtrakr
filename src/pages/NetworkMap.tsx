@@ -319,7 +319,7 @@ function NetworkMapInner(props: NetworkMapProps) {
         ) : (
           <ReactFlow
             nodes={nodesWithHighlight}
-            edges={edges}
+            edges={visibleEdges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
