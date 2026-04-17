@@ -301,6 +301,8 @@ function NetworkMapInner(props: NetworkMapProps) {
         onFilterRoleChange={setFilterRole}
         showJobs={showJobs}
         onToggleJobs={() => setShowJobs(!showJobs)}
+        hideDimmed={hideDimmed}
+        onToggleHideDimmed={() => setHideDimmed(!hideDimmed)}
         onReset={handleReset}
         matchingContactCount={graphData.nodes.filter(n => n.type === "contactNode" && !(n.data as any).dimmed).length}
         totalContactCount={props.contacts.length}
