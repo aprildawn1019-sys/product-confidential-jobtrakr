@@ -203,9 +203,10 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
 
   return (
     <Joyride
+      key={`${stepIndex}-${targetReady ? "ready" : "wait"}`}
       steps={steps}
       stepIndex={stepIndex}
-      run={run}
+      run={run && targetReady}
       continuous
       showProgress
       showSkipButton
