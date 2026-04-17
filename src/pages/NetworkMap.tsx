@@ -56,6 +56,7 @@ function NetworkMapInner(props: NetworkMapProps) {
   const [filterWarmth, setFilterWarmth] = useState("all");
   const [filterRole, setFilterRole] = useState("all");
   const [showJobs, setShowJobs] = useState(true);
+  const [hideDimmed, setHideDimmed] = useState(false);
   const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any } | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; targetId: string; sourceName: string; targetName: string } | null>(null);
@@ -108,12 +109,19 @@ function NetworkMapInner(props: NetworkMapProps) {
     }, 50);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graphData, isFiltered]);
+  }, [graphData, isFiltered, hideDimmed]);
 
-  // Apply highlight to nodes
-  const nodesWithHighlight = highlightedNodeId
-    ? nodes.map(n => n.id === highlightedNodeId ? { ...n, data: { ...n.data, highlighted: true } } : { ...n, data: { ...n.data, highlighted: false } })
+  // Apply highlight to nodes, optionally filtering out dimmed ones
+  const visibleNodes = (hideDimmed && isFiltered)
+    ? nodes.filter(n => !(n.data as any).dimmed)
     : nodes;
+  const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
+  const visibleEdges = (hideDimmed && isFiltered)
+    ? edges.filter(e => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target))
+    : edges;
+  const nodesWithHighlight = highlightedNodeId
+    ? visibleNodes.map(n => n.id === highlightedNodeId ? { ...n, data: { ...n.data, highlighted: true } } : { ...n, data: { ...n.data, highlighted: false } })
+    : visibleNodes;
 
   const handleReset = () => {
     setFocusCompany("all");
@@ -121,6 +129,7 @@ function NetworkMapInner(props: NetworkMapProps) {
     setFilterWarmth("all");
     setFilterRole("all");
     setShowJobs(true);
+    setHideDimmed(false);
     setSelectedNode(null);
   };
 
@@ -292,6 +301,8 @@ function NetworkMapInner(props: NetworkMapProps) {
         onFilterRoleChange={setFilterRole}
         showJobs={showJobs}
         onToggleJobs={() => setShowJobs(!showJobs)}
+        hideDimmed={hideDimmed}
+        onToggleHideDimmed={() => setHideDimmed(!hideDimmed)}
         onReset={handleReset}
         matchingContactCount={graphData.nodes.filter(n => n.type === "contactNode" && !(n.data as any).dimmed).length}
         totalContactCount={props.contacts.length}
@@ -310,7 +321,7 @@ function NetworkMapInner(props: NetworkMapProps) {
         ) : (
           <ReactFlow
             nodes={nodesWithHighlight}
-            edges={edges}
+            edges={visibleEdges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}

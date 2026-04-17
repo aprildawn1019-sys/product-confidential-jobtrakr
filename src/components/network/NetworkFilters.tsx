@@ -1,7 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RotateCcw, Eye, EyeOff, Download } from "lucide-react";
+import { RotateCcw, Eye, EyeOff, Download, Filter, FilterX } from "lucide-react";
 import { NETWORK_ROLES } from "@/types/jobTracker";
 import type { Contact, TargetCompany } from "@/types/jobTracker";
 
@@ -18,6 +18,8 @@ interface NetworkFiltersProps {
   onFilterRoleChange: (v: string) => void;
   showJobs: boolean;
   onToggleJobs: () => void;
+  hideDimmed: boolean;
+  onToggleHideDimmed: () => void;
   onReset: () => void;
   matchingContactCount: number;
   totalContactCount: number;
@@ -80,6 +82,18 @@ export default function NetworkFilters(props: NetworkFiltersProps) {
       <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={props.onToggleJobs}>
         {props.showJobs ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
         Jobs
+      </Button>
+
+      <Button
+        variant={props.hideDimmed ? "default" : "outline"}
+        size="sm"
+        className="h-8 text-xs gap-1"
+        onClick={props.onToggleHideDimmed}
+        disabled={!props.isFiltered}
+        title={props.isFiltered ? "Hide non-matching nodes" : "Apply a filter to enable"}
+      >
+        {props.hideDimmed ? <FilterX className="h-3 w-3" /> : <Filter className="h-3 w-3" />}
+        Hide dimmed
       </Button>
 
       <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={props.onReset}>
