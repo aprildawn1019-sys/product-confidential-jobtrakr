@@ -111,10 +111,17 @@ function NetworkMapInner(props: NetworkMapProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graphData, isFiltered]);
 
-  // Apply highlight to nodes
-  const nodesWithHighlight = highlightedNodeId
-    ? nodes.map(n => n.id === highlightedNodeId ? { ...n, data: { ...n.data, highlighted: true } } : { ...n, data: { ...n.data, highlighted: false } })
+  // Apply highlight to nodes, optionally filtering out dimmed ones
+  const visibleNodes = (hideDimmed && isFiltered)
+    ? nodes.filter(n => !(n.data as any).dimmed)
     : nodes;
+  const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
+  const visibleEdges = (hideDimmed && isFiltered)
+    ? edges.filter(e => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target))
+    : edges;
+  const nodesWithHighlight = highlightedNodeId
+    ? visibleNodes.map(n => n.id === highlightedNodeId ? { ...n, data: { ...n.data, highlighted: true } } : { ...n, data: { ...n.data, highlighted: false } })
+    : visibleNodes;
 
   const handleReset = () => {
     setFocusCompany("all");
@@ -122,6 +129,7 @@ function NetworkMapInner(props: NetworkMapProps) {
     setFilterWarmth("all");
     setFilterRole("all");
     setShowJobs(true);
+    setHideDimmed(false);
     setSelectedNode(null);
   };
 
