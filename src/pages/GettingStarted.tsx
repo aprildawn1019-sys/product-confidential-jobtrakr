@@ -37,6 +37,7 @@ interface EntryPath {
   tone: "neutral" | "info" | "success" | "warning";
   featured?: boolean;
   note?: string;
+  tourId?: string;
 }
 
 export default function GettingStarted({
