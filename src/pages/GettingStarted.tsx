@@ -121,6 +121,7 @@ export default function GettingStarted({
         route: "/job-search",
         icon: Search,
         tone: "info",
+        tourId: "entry-job-search",
         note: profileIncomplete ? "Results sharpen when your profile is fully filled out." : undefined,
       },
       {
@@ -134,6 +135,7 @@ export default function GettingStarted({
         route: "/contacts",
         icon: Users,
         tone: "success",
+        tourId: "entry-network",
       },
       {
         number: "04",
@@ -146,6 +148,7 @@ export default function GettingStarted({
         route: "/target-companies",
         icon: Star,
         tone: "warning",
+        tourId: "entry-target-companies",
       },
     ],
     [profileIncomplete],
