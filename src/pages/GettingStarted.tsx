@@ -109,6 +109,7 @@ export default function GettingStarted({
         tone: "neutral",
         featured: profileIncomplete,
         note: profileIncomplete ? "Best first step if your search profile is still incomplete." : undefined,
+        tourId: "entry-profile",
       },
       {
         number: "02",

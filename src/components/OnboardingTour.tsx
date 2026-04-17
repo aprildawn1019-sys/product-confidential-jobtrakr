@@ -62,6 +62,15 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       route: "/getting-started",
     },
     {
+      target: '[data-tour="entry-profile"]',
+      title: "Start with your profile",
+      content:
+        "Add your target roles, skills, locations, and comp expectations. Your profile powers job matching, recommendations, and AI-generated cover letters across Jobtrakr.",
+      placement: "bottom",
+      disableBeacon: true,
+      route: "/getting-started",
+    },
+    {
       target: '[data-tour="entry-job-search"]',
       title: "Know the role you want?",
       content:
