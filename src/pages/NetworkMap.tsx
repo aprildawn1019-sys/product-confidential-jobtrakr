@@ -76,12 +76,37 @@ function NetworkMapInner(props: NetworkMapProps) {
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(graphData.edges);
+  const { fitView } = useReactFlow();
+
+  const isFiltered = focusCompany !== "all" || focusContact !== "all" || filterWarmth !== "all" || filterRole !== "all";
 
   // Sync graph data when filters change
   useEffect(() => {
     setNodes(graphData.nodes);
     setEdges(graphData.edges);
   }, [graphData, setNodes, setEdges]);
+
+  // Auto-fit viewport to matching nodes when filters change
+  useEffect(() => {
+    if (graphData.nodes.length === 0) return;
+    const matchingIds = isFiltered
+      ? graphData.nodes.filter(n => !(n.data as any).dimmed).map(n => n.id)
+      : undefined;
+    // Don't fit to empty matches
+    if (matchingIds && matchingIds.length === 0) return;
+    // Defer to next frame so React Flow has rendered the new nodes/positions
+    const t = window.setTimeout(() => {
+      fitView({
+        nodes: matchingIds?.map(id => ({ id })),
+        duration: 600,
+        padding: 0.25,
+        maxZoom: 1.2,
+        minZoom: 0.3,
+      });
+    }, 50);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graphData, isFiltered]);
 
   // Apply highlight to nodes
   const nodesWithHighlight = highlightedNodeId
