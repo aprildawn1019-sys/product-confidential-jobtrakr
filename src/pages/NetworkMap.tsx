@@ -231,6 +231,9 @@ function NetworkMapInner(props: NetworkMapProps) {
         showJobs={showJobs}
         onToggleJobs={() => setShowJobs(!showJobs)}
         onReset={handleReset}
+        matchingContactCount={graphData.nodes.filter(n => n.type === "contactNode" && !(n.data as any).dimmed).length}
+        totalContactCount={props.contacts.length}
+        isFiltered={focusCompany !== "all" || focusContact !== "all" || filterWarmth !== "all" || filterRole !== "all"}
       />
 
       <div ref={containerRef} className="relative rounded-xl border border-border bg-card overflow-hidden" style={{ height: "calc(100vh - 220px)" }}>
