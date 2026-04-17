@@ -111,6 +111,10 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: require auth — runs AI + Firecrawl searches (high cost).
+    const auth = await requireUser(req, corsHeaders);
+    if (auth.errorResponse) return auth.errorResponse;
+
     const { profile, dismissed, activeBoards, searchParams } = await req.json();
     if (!profile) {
       return new Response(JSON.stringify({ error: "Profile is required" }), {
