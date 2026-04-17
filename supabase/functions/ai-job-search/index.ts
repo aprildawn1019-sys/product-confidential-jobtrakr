@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getAIConfig } from "../_shared/ai-config.ts";
+import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -110,6 +111,10 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: require auth — runs AI + Firecrawl searches (high cost).
+    const auth = await requireUser(req, corsHeaders);
+    if (auth.errorResponse) return auth.errorResponse;
+
     const { profile, dismissed, activeBoards, searchParams } = await req.json();
     if (!profile) {
       return new Response(JSON.stringify({ error: "Profile is required" }), {

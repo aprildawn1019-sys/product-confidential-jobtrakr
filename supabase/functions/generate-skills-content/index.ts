@@ -1,4 +1,5 @@
 import { getAIConfig } from "../_shared/ai-config.ts";
+import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +13,10 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // SECURITY: require auth — this function consumes AI tokens.
+    const auth = await requireUser(req, corsHeaders);
+    if (auth.errorResponse) return auth.errorResponse;
+
     const { type, topSkills, profileSummary, targetRoles } = await req.json();
 
     if (!type || !topSkills?.length) {

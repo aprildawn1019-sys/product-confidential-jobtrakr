@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getAIConfig } from "../_shared/ai-config.ts";
+import { requireUser } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // SECURITY: require auth — this function consumes AI tokens.
+    const auth = await requireUser(req, corsHeaders);
+    if (auth.errorResponse) return auth.errorResponse;
+
     const { headers, sampleRows } = await req.json();
 
     if (!headers || !Array.isArray(headers)) {
