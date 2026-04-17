@@ -492,8 +492,8 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
     }
 
     // Layout
-    const layoutNodes = getLayout(nodes, edges, companyChildMap);
+    const layoutNodes = getLayout(nodes, edges, companyChildMap, layoutMode);
 
     return { nodes: layoutNodes, edges };
-  }, [contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole]);
+  }, [contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode]);
 }
