@@ -1,16 +1,20 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe } from "lucide-react";
+import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe, AlertTriangle, GitMerge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import CompanyAvatar from "@/components/CompanyAvatar";
+import DuplicateCompaniesDialog from "@/components/targetcompanies/DuplicateCompaniesDialog";
+import { detectDuplicateClusters } from "@/components/targetcompanies/duplicateDetection";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact } from "@/types/jobTracker";
 
@@ -21,6 +25,12 @@ interface TargetCompaniesProps {
   onAdd: (company: Omit<TargetCompany, "id" | "createdAt">) => Promise<void>;
   onUpdate: (id: string, updates: Partial<TargetCompany>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onMerge: (
+    primaryId: string,
+    duplicateIds: string[],
+    mergedFields: Partial<TargetCompany>,
+    duplicateNames: string[],
+  ) => Promise<void>;
 }
 
 const priorityConfig: Record<TargetCompanyPriority, { label: string; color: string }> = {
@@ -41,7 +51,7 @@ const emptyForm = {
   priority: "interested" as TargetCompanyPriority, status: "researching" as TargetCompanyStatus, notes: "",
 };
 
-export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd, onUpdate, onDelete }: TargetCompaniesProps) {
+export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd, onUpdate, onDelete, onMerge }: TargetCompaniesProps) {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterPriority, setFilterPriority] = useState<string>("all");
@@ -49,6 +59,10 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
+  const [duplicatesDialogOpen, setDuplicatesDialogOpen] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  const duplicateClusters = useMemo(() => detectDuplicateClusters(targetCompanies), [targetCompanies]);
 
   const filtered = useMemo(() => {
     return targetCompanies.filter(tc => {
@@ -66,6 +80,16 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
     const matchedContacts = contacts.filter(c => companiesMatch(c.company, companyName));
     const activeApps = matchedJobs.filter(j => activeStatuses.includes(j.status));
     return { jobCount: matchedJobs.length, contactCount: matchedContacts.length, activeApps: activeApps.length };
+  };
+
+  const handleMerge = async (
+    primaryId: string,
+    duplicateIds: string[],
+    mergedFields: Partial<TargetCompany>,
+    duplicateNames: string[],
+  ) => {
+    await onMerge(primaryId, duplicateIds, mergedFields, duplicateNames);
+    toast.success(`Merged ${duplicateIds.length + 1} companies into "${mergedFields.name}"`);
   };
 
   const openAdd = () => { setForm(emptyForm); setEditingId(null); setDialogOpen(true); };
@@ -103,6 +127,27 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
           <Plus className="h-4 w-4" /> Add Company
         </Button>
       </div>
+
+      {/* Duplicate detection banner */}
+      {duplicateClusters.length > 0 && !bannerDismissed && (
+        <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900">
+          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertTitle className="text-amber-900 dark:text-amber-200">
+            {duplicateClusters.length} potential duplicate group{duplicateClusters.length === 1 ? "" : "s"} detected
+          </AlertTitle>
+          <AlertDescription className="text-amber-800 dark:text-amber-300/90 flex items-center justify-between gap-3 flex-wrap mt-1">
+            <span className="text-sm">
+              {duplicateClusters.reduce((sum, c) => sum + c.length, 0)} target companies look like duplicates. Review and merge to keep your pipeline clean.
+            </span>
+            <div className="flex gap-2 shrink-0">
+              <Button size="sm" variant="ghost" onClick={() => setBannerDismissed(true)}>Dismiss</Button>
+              <Button size="sm" onClick={() => setDuplicatesDialogOpen(true)} className="gap-1.5">
+                <GitMerge className="h-3.5 w-3.5" /> Review duplicates
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -294,6 +339,17 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Duplicate companies dialog */}
+      <DuplicateCompaniesDialog
+        open={duplicatesDialogOpen}
+        onOpenChange={setDuplicatesDialogOpen}
+        clusters={duplicateClusters}
+        jobs={jobs}
+        contacts={contacts}
+        onMerge={handleMerge}
+      />
     </div>
   );
 }
+

@@ -148,6 +148,7 @@ export default function Index() {
               onAdd={store.addTargetCompany}
               onUpdate={store.updateTargetCompany}
               onDelete={store.deleteTargetCompany}
+              onMerge={store.mergeTargetCompanies}
             />
           } />
           <Route path="cover-letters" element={<CoverLetters jobs={store.jobs} />} />
