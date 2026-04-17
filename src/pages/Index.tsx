@@ -173,7 +173,15 @@ export default function Index() {
             />
           } />
           <Route path="cover-letters" element={<CoverLetters jobs={store.jobs} />} />
-          <Route path="getting-started" element={<GettingStarted />} />
+          <Route path="getting-started" element={
+            <GettingStarted
+              jobs={store.jobs}
+              contacts={store.contacts}
+              targetCompanies={store.targetCompanies}
+              interviews={store.interviews}
+              coverLetterCount={store.jobs.filter(j => j.status === "applied" || j.status === "screening" || j.status === "interviewing" || j.status === "offer").length}
+            />
+          } />
           <Route path="network-map" element={
             <NetworkMap
               contacts={store.contacts}

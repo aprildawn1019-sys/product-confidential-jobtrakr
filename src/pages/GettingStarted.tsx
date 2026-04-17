@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -12,18 +13,75 @@ import {
   ClipboardList,
   Send,
   RefreshCw,
+  Check,
+  Circle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import type { Job, Contact, TargetCompany, Interview } from "@/types/jobTracker";
+
+interface GettingStartedProps {
+  jobs?: Job[];
+  contacts?: Contact[];
+  targetCompanies?: TargetCompany[];
+  interviews?: Interview[];
+  coverLetterCount?: number;
+}
 
 /**
  * Getting Started — visual map of the (non-linear) Jobtrakr workflow.
  * Three entry points converge into the unified application pipeline.
  */
-export default function GettingStarted() {
+export default function GettingStarted({
+  jobs = [],
+  contacts = [],
+  targetCompanies = [],
+  interviews = [],
+}: GettingStartedProps) {
   const navigate = useNavigate();
 
   const startTour = () => window.dispatchEvent(new Event("jobtrakr:start-tour"));
+
+  const milestones = useMemo(
+    () => [
+      {
+        label: "Added your first job",
+        done: jobs.length > 0,
+        cta: "Add a job",
+        onClick: () => navigate("/jobs"),
+      },
+      {
+        label: "Added a contact",
+        done: contacts.length > 0,
+        cta: "Add a contact",
+        onClick: () => navigate("/contacts"),
+      },
+      {
+        label: "Set a target company",
+        done: targetCompanies.length > 0,
+        cta: "Add a company",
+        onClick: () => navigate("/target-companies"),
+      },
+      {
+        label: "Applied to a role",
+        done: jobs.some((j) => ["applied", "screening", "interviewing", "offer"].includes(j.status)),
+        cta: "Mark as applied",
+        onClick: () => navigate("/jobs"),
+      },
+      {
+        label: "Scheduled an interview",
+        done: interviews.length > 0,
+        cta: "Schedule one",
+        onClick: () => navigate("/interviews"),
+      },
+    ],
+    [jobs, contacts, targetCompanies, interviews, navigate],
+  );
+
+  const completedCount = milestones.filter((m) => m.done).length;
+  const progressPct = Math.round((completedCount / milestones.length) * 100);
+  const allDone = completedCount === milestones.length;
 
   return (
     <div className="space-y-10 animate-fade-in max-w-6xl">
@@ -78,6 +136,65 @@ export default function GettingStarted() {
             onClick={() => navigate("/target-companies")}
             accent="warning"
           />
+        </div>
+      </section>
+
+      {/* Progress checklist */}
+      <section>
+        <div className="flex items-end justify-between mb-4 gap-4 flex-wrap">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Your progress
+          </h2>
+          <span className="text-xs text-muted-foreground">
+            {completedCount} of {milestones.length} complete
+          </span>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+          <div className="flex items-center gap-4 mb-5">
+            <Progress value={progressPct} className="h-2 flex-1" />
+            <span className="font-display text-sm font-semibold tabular-nums w-10 text-right">
+              {progressPct}%
+            </span>
+          </div>
+          <ul className="space-y-2">
+            {milestones.map((m) => (
+              <li
+                key={m.label}
+                className={`flex items-center gap-3 rounded-lg border p-3 transition-colors ${
+                  m.done
+                    ? "border-success/30 bg-success/5"
+                    : "border-border bg-background hover:border-primary/30"
+                }`}
+              >
+                <div
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
+                    m.done ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {m.done ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-3 w-3" />}
+                </div>
+                <span
+                  className={`flex-1 text-sm ${
+                    m.done ? "text-foreground/70 line-through" : "text-foreground font-medium"
+                  }`}
+                >
+                  {m.label}
+                </span>
+                {!m.done && (
+                  <Button variant="ghost" size="sm" onClick={m.onClick} className="gap-1 text-xs">
+                    {m.cta}
+                    <ArrowRight className="h-3 w-3" />
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+          {allDone && (
+            <div className="mt-5 flex items-center gap-2 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm">
+              <Trophy className="h-4 w-4 text-accent-foreground" />
+              <span className="font-medium">You're all set up — happy hunting!</span>
+            </div>
+          )}
         </div>
       </section>
 
