@@ -108,6 +108,19 @@ function NetworkMapInner(props: NetworkMapProps) {
     return null;
   }, [searchQuery, props.contacts, props.jobs]);
 
+  // Manual center (set via context menu or detail panel) wins over search-derived center.
+  const effectiveCenterId = manualCenterId ?? searchCenterId;
+
+  // Promote to Focus mode whenever the user explicitly centers on a node.
+  const centerOnNode = useCallback((nodeId: string) => {
+    setManualCenterId(nodeId);
+    setContextMenu(null);
+    if (layoutMode !== "focus") {
+      updateParam("layout", "focus", "overview");
+    }
+    toast.success("Centered on node — Focus mode active");
+  }, [layoutMode, updateParam]);
+
   const graphData = useNetworkGraph({
     contacts: props.contacts,
     jobs: props.jobs,
@@ -121,7 +134,7 @@ function NetworkMapInner(props: NetworkMapProps) {
     filterWarmth,
     filterRole,
     layoutMode,
-    centerNodeId: searchCenterId,
+    centerNodeId: effectiveCenterId,
   });
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
@@ -244,16 +257,28 @@ function NetworkMapInner(props: NetworkMapProps) {
 
   const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
     const d = node.data as any;
+    setContextMenu(null);
     if (node.type === "contactNode") {
       const contact = props.contacts.find(c => c.id === d.id);
-      setSelectedNode({ type: "contact", data: { ...d, ...contact } });
+      setSelectedNode({ type: "contact", data: { ...d, ...contact }, nodeId: node.id });
     } else if (node.type === "companyNode") {
-      setSelectedNode({ type: "company", data: d });
+      setSelectedNode({ type: "company", data: d, nodeId: node.id });
     } else if (node.type === "jobNode") {
       const job = props.jobs.find(j => j.id === d.id);
-      setSelectedNode({ type: "job", data: { ...d, ...job } });
+      setSelectedNode({ type: "job", data: { ...d, ...job }, nodeId: node.id });
     }
   }, [props.contacts, props.jobs]);
+
+  // Right-click on a node → custom context menu anchored at cursor.
+  const onNodeContextMenu = useCallback((event: React.MouseEvent, node: { id: string; data: unknown }) => {
+    event.preventDefault();
+    const rect = containerRef.current?.getBoundingClientRect();
+    const x = event.clientX - (rect?.left ?? 0);
+    const y = event.clientY - (rect?.top ?? 0);
+    const d = node.data as any;
+    const label = d?.label ?? "this node";
+    setContextMenu({ x, y, nodeId: node.id, label });
+  }, []);
 
   const onNodeDoubleClick: NodeMouseHandler = useCallback((_event, node) => {
     const d = node.data as any;
@@ -310,6 +335,7 @@ function NetworkMapInner(props: NetworkMapProps) {
 
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
+    setContextMenu(null);
     setTooltip(t => ({ ...t, visible: false }));
   }, []);
 
