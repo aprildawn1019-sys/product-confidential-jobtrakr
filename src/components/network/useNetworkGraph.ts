@@ -4,7 +4,12 @@ import { companiesMatch } from "@/stores/jobTrackerStore";
 import { clusterHue } from "./clusterColor";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest } from "@/types/jobTracker";
 
-export type NetworkLayoutMode = "radial" | "hierarchical" | "grid";
+/**
+ * Network Map layout modes.
+ * - `focus`   — radial layout centered on a search/filter target, with neighbors radiating outward by hop distance.
+ * - `overview` — auto-picked cluster layout: ringed radial for small graphs, grid for larger ones.
+ */
+export type NetworkLayoutMode = "focus" | "overview";
 
 interface UseNetworkGraphParams {
   contacts: Contact[];
@@ -31,7 +36,7 @@ interface UseNetworkGraphParams {
  * larger outer ring (or packed in a grid for many clusters) so that text
  * never overlaps. Orphan nodes (no company) wrap on an inner ring at (0,0).
  */
-function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, string[]>, mode: NetworkLayoutMode = "radial", centerNodeId: string | null = null) {
+function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, string[]>, mode: NetworkLayoutMode = "overview", centerNodeId: string | null = null) {
   const positions = new Map<string, { x: number; y: number }>();
 
   // Approximate visual footprint of each node type (width × height incl. labels)
@@ -126,47 +131,8 @@ function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, str
 
   const n = sortedCompanies.length;
 
-  // -------- Hierarchical (top-down tree) --------
-  if (mode === "hierarchical") {
-    // Each company is a row root; children laid out as an arc/row below it.
-    // Companies are arranged horizontally, sized by their child-row width.
-    const COMPANY_GAP_Y = 220; // vertical gap company → children row
-    const ROW_GAP = 140; // gap between successive child rows for big clusters
-    const CHILD_GAP = NODE_W.child + LABEL_PAD;
-    const COL_GAP = 80; // gap between adjacent companies
-    const MAX_PER_ROW = 12; // wrap children onto multiple rows
-
-    // Pre-compute footprint width per company so we can space them out.
-    const widths = sortedCompanies.map(id => {
-      const count = companyNodeMap.get(id)?.length ?? 0;
-      const perRow = Math.min(MAX_PER_ROW, Math.max(1, count));
-      return Math.max(NODE_W.company + 40, perRow * CHILD_GAP);
-    });
-    const totalWidth = widths.reduce((s, w) => s + w, 0) + Math.max(0, n - 1) * COL_GAP;
-    let cursorX = -totalWidth / 2;
-    sortedCompanies.forEach((compId, i) => {
-      const w = widths[i];
-      const cx = cursorX + w / 2;
-      const cy = 0;
-      positions.set(compId, { x: cx, y: cy });
-
-      const children = companyNodeMap.get(compId) ?? [];
-      const perRow = Math.min(MAX_PER_ROW, Math.max(1, children.length));
-      children.forEach((childId, j) => {
-        const row = Math.floor(j / perRow);
-        const col = j % perRow;
-        const rowCount = row === Math.floor((children.length - 1) / perRow)
-          ? ((children.length - 1) % perRow) + 1
-          : perRow;
-        const x = cx + (col - (rowCount - 1) / 2) * CHILD_GAP;
-        const y = cy + COMPANY_GAP_Y + row * ROW_GAP;
-        positions.set(childId, { x, y });
-      });
-      cursorX += w + COL_GAP;
-    });
-  }
-  // -------- Grid (uniform cells) --------
-  else if (mode === "grid") {
+  // Helper: pack company clusters into a uniform grid (used for large overviews).
+  function placeAsGrid() {
     const footprints = sortedCompanies.map(id => 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD));
     const sorted = [...footprints].sort((a, b) => a - b);
     const median = sorted[Math.floor(sorted.length / 2)] || 260;
@@ -183,92 +149,81 @@ function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, str
       placeChildren(cx, cy, children);
     });
   }
-  // -------- Radial (default) — single outer ring with auto-fallback to grid for huge graphs --------
+
+  // Helper: arrange company clusters on a single outer ring (used for small overviews).
+  function placeAsRing() {
+    const totalDemand = sortedCompanies.reduce(
+      (sum, id) => sum + 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD),
+      0,
+    );
+    const outerRadius = Math.max(360, totalDemand / (2 * Math.PI) + 80);
+    sortedCompanies.forEach((compId, i) => {
+      const cx = n <= 1 ? 0 : Math.cos((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
+      const cy = n <= 1 ? 0 : Math.sin((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
+      positions.set(compId, { x: cx, y: cy });
+      const children = companyNodeMap.get(compId) ?? [];
+      placeChildren(cx, cy, children);
+    });
+  }
+
+  // -------- Focus (radial centered on a search/filter target) --------
+  // Center node at origin, 1-hop neighbors on inner ring, 2-hop on outer ring, others on far ring.
+  // If no center is resolvable, gracefully fall back to overview so the canvas still renders.
+  if (mode === "focus" && centerNodeId && nodes.some(n => n.id === centerNodeId)) {
+    const adjacency = new Map<string, Set<string>>();
+    nodes.forEach(n => adjacency.set(n.id, new Set()));
+    edges.forEach(e => {
+      adjacency.get(e.source)?.add(e.target);
+      adjacency.get(e.target)?.add(e.source);
+    });
+
+    // BFS to assign hop distances from center
+    const hop = new Map<string, number>();
+    hop.set(centerNodeId, 0);
+    const queue: string[] = [centerNodeId];
+    while (queue.length) {
+      const cur = queue.shift()!;
+      const d = hop.get(cur)!;
+      adjacency.get(cur)?.forEach(nbr => {
+        if (!hop.has(nbr)) {
+          hop.set(nbr, d + 1);
+          queue.push(nbr);
+        }
+      });
+    }
+
+    // Group by hop level (cap at 3; everything further goes on outer ring)
+    const rings: string[][] = [[], [], [], []];
+    nodes.forEach(n => {
+      if (n.id === centerNodeId) return;
+      const d = hop.get(n.id);
+      const lvl = d == null ? 3 : Math.min(3, d);
+      rings[lvl].push(n.id);
+    });
+
+    positions.set(centerNodeId, { x: 0, y: 0 });
+
+    const BASE_R = 220;
+    const RING_STEP = 200;
+    for (let lvl = 1; lvl <= 3; lvl++) {
+      const ids = rings[lvl];
+      if (ids.length === 0) continue;
+      const chord = NODE_W.child + LABEL_PAD;
+      const minR = ids.length === 1 ? 0 : chord / (2 * Math.sin(Math.PI / ids.length));
+      const r = Math.max(BASE_R + (lvl - 1) * RING_STEP, minR);
+      ids.forEach((id, i) => {
+        const angle = (2 * Math.PI * i) / ids.length - Math.PI / 2;
+        positions.set(id, { x: Math.cos(angle) * r, y: Math.sin(angle) * r });
+      });
+    }
+  }
+  // -------- Overview (auto-pick ring vs grid based on cluster count) --------
   else {
-    // If a center node is specified (from search/focus), build a focus-centered radial layout:
-    // center node at origin, 1-hop neighbors on inner ring, 2-hop on outer ring, others on far ring.
-    if (centerNodeId && nodes.some(n => n.id === centerNodeId)) {
-      const adjacency = new Map<string, Set<string>>();
-      nodes.forEach(n => adjacency.set(n.id, new Set()));
-      edges.forEach(e => {
-        adjacency.get(e.source)?.add(e.target);
-        adjacency.get(e.target)?.add(e.source);
-      });
-
-      // BFS to assign hop distances from center
-      const hop = new Map<string, number>();
-      hop.set(centerNodeId, 0);
-      const queue: string[] = [centerNodeId];
-      while (queue.length) {
-        const cur = queue.shift()!;
-        const d = hop.get(cur)!;
-        adjacency.get(cur)?.forEach(nbr => {
-          if (!hop.has(nbr)) {
-            hop.set(nbr, d + 1);
-            queue.push(nbr);
-          }
-        });
-      }
-
-      // Group by hop level (cap at 3; everything further goes on outer ring)
-      const rings: string[][] = [[], [], [], []];
-      nodes.forEach(n => {
-        if (n.id === centerNodeId) return;
-        const d = hop.get(n.id);
-        const lvl = d == null ? 3 : Math.min(3, d);
-        rings[lvl].push(n.id);
-      });
-
-      // Place center
-      positions.set(centerNodeId, { x: 0, y: 0 });
-
-      // Place each ring at increasing radius, evenly spaced
-      const BASE_R = 220;
-      const RING_STEP = 200;
-      for (let lvl = 1; lvl <= 3; lvl++) {
-        const ids = rings[lvl];
-        if (ids.length === 0) continue;
-        const chord = NODE_W.child + LABEL_PAD;
-        const minR = ids.length === 1 ? 0 : chord / (2 * Math.sin(Math.PI / ids.length));
-        const r = Math.max(BASE_R + (lvl - 1) * RING_STEP, minR);
-        ids.forEach((id, i) => {
-          const angle = (2 * Math.PI * i) / ids.length - Math.PI / 2;
-          positions.set(id, { x: Math.cos(angle) * r, y: Math.sin(angle) * r });
-        });
-      }
+    const USE_GRID_THRESHOLD = 12;
+    if (n > USE_GRID_THRESHOLD) {
+      placeAsGrid();
     } else {
-      const USE_GRID_THRESHOLD = 12;
-      if (n > USE_GRID_THRESHOLD) {
-        // Large datasets: radial single ring becomes unreadable → fall back to grid.
-        const footprints = sortedCompanies.map(id => 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD));
-        const sorted = [...footprints].sort((a, b) => a - b);
-        const median = sorted[Math.floor(sorted.length / 2)] || 260;
-        const cellSize = Math.max(260, Math.min(420, median));
-        const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
-        sortedCompanies.forEach((compId, i) => {
-          const row = Math.floor(i / cols);
-          const col = i % cols;
-          const cx = (col - (cols - 1) / 2) * cellSize;
-          const rows = Math.ceil(n / cols);
-          const cy = (row - (rows - 1) / 2) * cellSize;
-          positions.set(compId, { x: cx, y: cy });
-          const children = companyNodeMap.get(compId) ?? [];
-          placeChildren(cx, cy, children);
-        });
-      } else {
-        const totalDemand = sortedCompanies.reduce(
-          (sum, id) => sum + 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD),
-          0,
-        );
-        const outerRadius = Math.max(360, totalDemand / (2 * Math.PI) + 80);
-        sortedCompanies.forEach((compId, i) => {
-          const cx = n <= 1 ? 0 : Math.cos((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
-          const cy = n <= 1 ? 0 : Math.sin((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
-          positions.set(compId, { x: cx, y: cy });
-          const children = companyNodeMap.get(compId) ?? [];
-          placeChildren(cx, cy, children);
-        });
-      }
+      placeAsRing();
     }
   }
 
@@ -297,7 +252,7 @@ function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, str
 }
 
 export function useNetworkGraph(params: UseNetworkGraphParams) {
-  const { contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode = "radial", centerNodeId = null } = params;
+  const { contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode = "overview", centerNodeId = null } = params;
 
   return useMemo(() => {
     const nodes: Node[] = [];
@@ -546,9 +501,9 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
       });
     }
 
-    // Layout — derive a center node id for radial mode from explicit param or focus filters.
+    // Layout — in focus mode, derive a center node id from explicit param or focus filters.
     let resolvedCenter: string | null = centerNodeId;
-    if (!resolvedCenter && layoutMode === "radial") {
+    if (!resolvedCenter && layoutMode === "focus") {
       if (focusContact && focusContact !== "all") {
         resolvedCenter = `contact-${focusContact}`;
       } else if (focusCompany && focusCompany !== "all") {

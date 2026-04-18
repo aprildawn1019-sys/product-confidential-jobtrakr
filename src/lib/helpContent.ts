@@ -134,11 +134,15 @@ We deliberately don’t use AI to auto-score matches because fit involves tradeo
     relatedRoutes: ["/network-map"],
     body: `The Network Map visualizes contacts, the companies they work at, and the jobs you’re tracking — so you can spot referral paths.
 
+## Layout modes
+- **Focus** — radial layout centered on a search/filter target (contact, company, or job). Direct connections sit on the inner ring; second-degree connections radiate outward. Great for asking "who can introduce me to X?"
+- **Overview** — cluster layout that shows the whole network at once. Auto-switches between a single outer ring (small networks) and a packed grid (large networks) for readability.
+
 ## Interactions
 - Click a node to open its detail panel.
 - Double-click to navigate to its full record.
 - Drag from one contact to another to record a connection between them.
-- Use the filter bar to focus on a company, warmth level, or role.
+- Use the filter bar to focus on a company, warmth level, or role — Focus mode will recenter on the chosen target.
 
 ## Tips
 - Add relationship warmth (cold / warm / hot / champion) on each contact to color-code the graph.

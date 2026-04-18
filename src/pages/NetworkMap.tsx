@@ -63,7 +63,7 @@ function NetworkMapInner(props: NetworkMapProps) {
   const hideDimmed = searchParams.get("hd") === "1"; // default false
   const layoutMode: NetworkLayoutMode = (() => {
     const v = searchParams.get("layout");
-    return v === "hierarchical" || v === "grid" ? v : "radial";
+    return v === "focus" ? "focus" : "overview";
   })();
 
   const updateParam = useCallback((key: string, value: string, defaultValue: string) => {
@@ -81,7 +81,7 @@ function NetworkMapInner(props: NetworkMapProps) {
   const setFilterRole = useCallback((v: string) => updateParam("r", v, "all"), [updateParam]);
   const toggleShowJobs = useCallback(() => updateParam("jobs", showJobs ? "0" : "1", "1"), [updateParam, showJobs]);
   const toggleHideDimmed = useCallback(() => updateParam("hd", hideDimmed ? "0" : "1", "0"), [updateParam, hideDimmed]);
-  const setLayoutMode = useCallback((m: NetworkLayoutMode) => updateParam("layout", m, "radial"), [updateParam]);
+  const setLayoutMode = useCallback((m: NetworkLayoutMode) => updateParam("layout", m, "overview"), [updateParam]);
 
   const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any } | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
