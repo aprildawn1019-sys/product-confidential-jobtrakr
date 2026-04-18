@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   CalendarCheck,
-  Check,
   Compass,
   Info,
   Search,
@@ -48,7 +47,6 @@ export default function GettingStarted({
 }: GettingStartedProps) {
   const navigate = useNavigate();
   const [profileScore, setProfileScore] = useState<number | null>(null);
-  const [profileFields, setProfileFields] = useState<{ label: string; filled: boolean }[]>([]);
 
   const startTour = () => window.dispatchEvent(new Event("jobtrakr:start-tour"));
 
@@ -60,19 +58,8 @@ export default function GettingStarted({
         data: { user },
       } = await supabase.auth.getUser();
 
-      const emptyFields = [
-        { label: "Target roles", filled: false },
-        { label: "Locations", filled: false },
-        { label: "Skills", filled: false },
-        { label: "Summary", filled: false },
-        { label: "Salary floor", filled: false },
-      ];
-
       if (!user) {
-        if (!cancelled) {
-          setProfileScore(0);
-          setProfileFields(emptyFields);
-        }
+        if (!cancelled) setProfileScore(0);
         return;
       }
 
@@ -86,20 +73,17 @@ export default function GettingStarted({
 
       if (!data) {
         setProfileScore(0);
-        setProfileFields(emptyFields);
         return;
       }
 
-      const fields = [
-        { label: "Target roles", filled: !!data.target_roles?.length },
-        { label: "Locations", filled: !!data.locations?.length },
-        { label: "Skills", filled: !!data.skills?.length },
-        { label: "Summary", filled: !!data.summary?.trim() },
-        { label: "Salary floor", filled: !!(data.min_base_salary && data.min_base_salary > 0) },
-      ];
+      let score = 0;
+      if (data.target_roles?.length) score += 1;
+      if (data.locations?.length) score += 1;
+      if (data.skills?.length) score += 1;
+      if (data.summary?.trim()) score += 1;
+      if (data.min_base_salary && data.min_base_salary > 0) score += 1;
 
-      setProfileFields(fields);
-      setProfileScore(fields.filter((f) => f.filled).length);
+      setProfileScore(score);
     })();
 
     return () => {
@@ -197,14 +181,6 @@ export default function GettingStarted({
         </div>
       </section>
 
-      {profileScore !== null && profileScore < 5 && (
-        <ProfileCompletenessBanner
-          score={profileScore}
-          fields={profileFields}
-          onAction={() => navigate("/profile")}
-        />
-      )}
-
       <section>
         <div className="mb-4">
           <div className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
@@ -221,6 +197,13 @@ export default function GettingStarted({
           ))}
         </div>
       </section>
+
+      {profileScore !== null && profileScore < 5 && (
+        <ProfileCompletenessBanner
+          score={profileScore}
+          onAction={() => navigate("/profile")}
+        />
+      )}
 
       <section>
         <div className="rounded-[1.75rem] border border-border bg-gradient-to-br from-card to-muted/50 p-6 shadow-sm sm:p-8">
@@ -268,11 +251,9 @@ export default function GettingStarted({
 
 function ProfileCompletenessBanner({
   score,
-  fields,
   onAction,
 }: {
   score: number;
-  fields: { label: string; filled: boolean }[];
   onAction: () => void;
 }) {
   const pct = Math.round((score / 5) * 100);
@@ -355,26 +336,6 @@ function ProfileCompletenessBanner({
             </div>
           </div>
 
-          {/* Field checklist */}
-          <div className="mt-5 flex flex-wrap gap-2">
-            {fields.map((f) => (
-              <div
-                key={f.label}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${
-                  f.filled
-                    ? "border-success/25 bg-success/10 text-success"
-                    : "border-border bg-muted/40 text-muted-foreground"
-                }`}
-              >
-                {f.filled ? (
-                  <Check className="h-3 w-3" />
-                ) : (
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
-                )}
-                {f.label}
-              </div>
-            ))}
-          </div>
         </div>
 
         <Button
