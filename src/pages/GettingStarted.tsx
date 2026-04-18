@@ -131,7 +131,7 @@ export default function GettingStarted({
         route: "/job-search",
         icon: Search,
         tone: "info",
-        tourId: "entry-job-search",
+        tourId: "entry-card-job-search",
         note: profileIncomplete ? "Results sharpen when your profile is fully filled out." : undefined,
       },
       {
