@@ -16,14 +16,21 @@ interface NetworkSearchProps {
   companies: string[];
   jobs: { id: string; title: string; company: string }[];
   onHighlightNode?: (nodeId: string | null) => void;
+  /** Called whenever the search query changes so the parent can filter visible nodes. */
+  onQueryChange?: (query: string) => void;
 }
 
-export default function NetworkSearch({ contacts, companies, jobs, onHighlightNode }: NetworkSearchProps) {
+export default function NetworkSearch({ contacts, companies, jobs, onHighlightNode, onQueryChange }: NetworkSearchProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { setCenter, getNodes } = useReactFlow();
+
+  // Notify parent on query change so it can filter the graph in real time.
+  useEffect(() => {
+    onQueryChange?.(query);
+  }, [query, onQueryChange]);
 
   const results = useMemo<SearchResult[]>(() => {
     const q = query.toLowerCase().trim();
