@@ -365,14 +365,6 @@ function NetworkMapInner(props: NetworkMapProps) {
           >
             <Background color="hsl(var(--border))" gap={24} />
             <Controls className="!bg-card !border-border !shadow-sm [&>button]:!bg-card [&>button]:!border-border [&>button]:!text-foreground" />
-            <MiniMap
-              nodeColor={(n) => {
-                if (n.type === "contactNode") return "hsl(var(--primary))";
-                if (n.type === "companyNode") return "hsl(var(--warning))";
-                return "hsl(var(--info))";
-              }}
-              className="!bg-card !border-border"
-            />
             <div className="absolute top-3 left-3 z-10" data-network-export-exclude="true">
               <NetworkSearch
                 contacts={props.contacts}
