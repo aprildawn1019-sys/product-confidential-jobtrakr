@@ -440,7 +440,7 @@ function NetworkMapInner(props: NetworkMapProps) {
       {/* Legend */}
       <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-4 rounded-full border-2 border-primary bg-card" /> Contact
+          <span className="inline-block w-4 h-4 rounded-full border-2 border-muted-foreground bg-card" /> Contact <span className="text-[10px] text-muted-foreground">(border = warmth)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="inline-block w-4 h-3 rounded border-2 border-warning bg-card" /> Company
