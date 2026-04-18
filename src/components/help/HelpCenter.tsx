@@ -133,6 +133,20 @@ export default function HelpCenter({ open, initialArticleId, initialRoute, onOpe
 
         <ScrollArea className="flex-1">
           <div className="space-y-2 px-6 py-5">
+            {routeFilterActive && (
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2">
+                <p className="text-xs text-foreground/80">
+                  Showing articles for this page.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setRouteFilter(null)}
+                  className="text-xs font-medium text-accent-foreground underline-offset-2 hover:underline"
+                >
+                  Show all articles
+                </button>
+              </div>
+            )}
             {filtered.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
                 <p className="text-sm font-medium text-foreground">No matching articles</p>
