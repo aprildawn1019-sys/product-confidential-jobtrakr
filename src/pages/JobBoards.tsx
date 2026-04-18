@@ -426,6 +426,68 @@ export default function JobBoards() {
           ))}
         </div>
       )}
+
+      {/* Link board to target company dialog */}
+      <Dialog
+        open={!!linkingBoard}
+        onOpenChange={(open) => {
+          if (!open) {
+            setLinkingBoard(null);
+            setLinkSelection("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              Flag as a careers page
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Link <span className="font-medium text-foreground">{linkingBoard?.name}</span> to a target company so it shows up as that company's careers page across the app.
+            </p>
+            {targetCompanies.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+                You don't have any target companies yet. Add some on the <span className="font-medium text-foreground">Target Companies</span> page first.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>Target company</Label>
+                <Select value={linkSelection} onValueChange={setLinkSelection}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a target company" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {targetCompanies.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setLinkingBoard(null);
+                  setLinkSelection("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmLink}
+                disabled={!linkSelection || targetCompanies.length === 0}
+              >
+                Save link
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
