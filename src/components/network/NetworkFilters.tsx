@@ -2,7 +2,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { RotateCcw, Eye, EyeOff, Download, Filter, FilterX, CircleDot, Network, Grid3x3 } from "lucide-react";
+import { RotateCcw, Eye, EyeOff, Download, Filter, FilterX, Crosshair, LayoutGrid } from "lucide-react";
 import { NETWORK_ROLES } from "@/types/jobTracker";
 import type { Contact, TargetCompany } from "@/types/jobTracker";
 import type { NetworkLayoutMode } from "./useNetworkGraph";
@@ -41,14 +41,19 @@ export default function NetworkFilters(props: NetworkFiltersProps) {
         onValueChange={(v) => v && props.onLayoutModeChange(v as NetworkLayoutMode)}
         className="h-8 rounded-md border border-border bg-card"
       >
-        <ToggleGroupItem value="radial" className="h-7 px-2 text-xs gap-1" title="Radial layout">
-          <CircleDot className="h-3 w-3" /> Radial
+        <ToggleGroupItem
+          value="focus"
+          className="h-7 px-2 text-xs gap-1"
+          title="Focus: radial layout centered on a search or filter target"
+        >
+          <Crosshair className="h-3 w-3" /> Focus
         </ToggleGroupItem>
-        <ToggleGroupItem value="hierarchical" className="h-7 px-2 text-xs gap-1" title="Hierarchical (top-down) layout">
-          <Network className="h-3 w-3" /> Tree
-        </ToggleGroupItem>
-        <ToggleGroupItem value="grid" className="h-7 px-2 text-xs gap-1" title="Grid layout">
-          <Grid3x3 className="h-3 w-3" /> Grid
+        <ToggleGroupItem
+          value="overview"
+          className="h-7 px-2 text-xs gap-1"
+          title="Overview: cluster layout (auto-picks ring vs grid by company count)"
+        >
+          <LayoutGrid className="h-3 w-3" /> Overview
         </ToggleGroupItem>
       </ToggleGroup>
 
