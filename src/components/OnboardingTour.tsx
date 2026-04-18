@@ -217,20 +217,36 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
 
   const finishTour = () => {
     markTourCompleted();
+    clearTourProgress();
     setStepIndex(0);
+    onFinish();
+  };
+
+  const pauseTour = () => {
+    // Save current position so a resume banner can pick it up.
+    if (stepIndex > 0 && stepIndex < steps.length - 1) {
+      saveTourProgress({ step: stepIndex + 1, total: steps.length });
+    } else {
+      clearTourProgress();
+    }
     onFinish();
   };
 
   const handleCallback = (data: CallBackProps) => {
     const { status, type, action, index } = data;
 
-    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+    if (status === STATUS.SKIPPED) {
+      finishTour();
+      return;
+    }
+
+    if (status === STATUS.FINISHED) {
       finishTour();
       return;
     }
 
     if (action === ACTIONS.CLOSE) {
-      finishTour();
+      pauseTour();
       return;
     }
 
