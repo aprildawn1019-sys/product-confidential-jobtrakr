@@ -47,8 +47,18 @@ export default function GettingStarted({
 }: GettingStartedProps) {
   const navigate = useNavigate();
   const [profileScore, setProfileScore] = useState<number | null>(null);
+  const [tourProgress, setTourProgress] = useState<{ step: number; total: number } | null>(null);
 
   const startTour = () => window.dispatchEvent(new Event("jobtrakr:start-tour"));
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { step: number; total: number } | null;
+      setTourProgress(detail);
+    };
+    window.addEventListener("jobtrakr:tour-progress", handler);
+    return () => window.removeEventListener("jobtrakr:tour-progress", handler);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
