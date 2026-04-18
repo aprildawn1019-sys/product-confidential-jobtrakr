@@ -155,17 +155,20 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
   ];
 
   // Broadcast tour progress so other parts of the app (e.g. Getting Started
-  // header) can show a step indicator.
+  // header) can show a step indicator. Also persist to storage so the
+  // "Resume tour" banner can recover after the user navigates away.
   useEffect(() => {
     if (!run) {
       window.dispatchEvent(new CustomEvent("jobtrakr:tour-progress", { detail: null }));
       return;
     }
-    window.dispatchEvent(
-      new CustomEvent("jobtrakr:tour-progress", {
-        detail: { step: stepIndex + 1, total: steps.length },
-      }),
-    );
+    const detail = { step: stepIndex + 1, total: steps.length };
+    window.dispatchEvent(new CustomEvent("jobtrakr:tour-progress", { detail }));
+    // Persist only mid-tour positions; the first step doesn't need a resume
+    // banner since the user just opened the tour.
+    if (stepIndex > 0 && stepIndex < steps.length - 1) {
+      saveTourProgress(detail);
+    }
   }, [run, stepIndex, steps.length]);
 
   // Navigate to the route a step expects before showing it.
