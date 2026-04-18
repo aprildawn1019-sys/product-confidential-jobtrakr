@@ -89,9 +89,12 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
   const location = useLocation();
   const [stepIndex, setStepIndex] = useState(0);
 
-  // Reset to first step whenever the tour is (re)started.
+  // When tour is (re)started, resume from saved progress if present.
   useEffect(() => {
-    if (run) setStepIndex(0);
+    if (run) {
+      const saved = getTourProgress();
+      setStepIndex(saved ? Math.max(0, saved.step - 1) : 0);
+    }
   }, [run]);
 
   const steps: (Step & { route?: string })[] = [
