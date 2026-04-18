@@ -145,7 +145,7 @@ export default function GettingStarted({
         route: "/contacts",
         icon: Users,
         tone: "success",
-        tourId: "entry-network",
+        tourId: "entry-card-network",
       },
       {
         number: "04",
