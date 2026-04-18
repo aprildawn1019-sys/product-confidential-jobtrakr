@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert, Building2, FileText } from "lucide-react";
+import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert, Building2, FileText, Download } from "lucide-react";
+import { downloadJobsCsv } from "@/lib/jobsCsvExport";
 import HelpHint from "@/components/help/HelpHint";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import MatchScoreStars from "@/components/MatchScoreStars";
@@ -19,7 +20,7 @@ import JobDetailPanel from "@/components/JobDetailPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { Job, Contact, JobStatus, Interview, TargetCompany } from "@/types/jobTracker";
+import type { Job, Contact, JobStatus, Interview, TargetCompany, JobActivity } from "@/types/jobTracker";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import PipelineFunnel from "@/components/PipelineFunnel";
@@ -40,13 +41,14 @@ interface JobsProps {
   onAddInterview: (interview: Omit<Interview, "id">) => void;
   onUpdateInterview: (id: string, updates: Partial<Interview>) => void;
   onDeleteInterview: (id: string) => void;
+  getJobActivitiesForJob?: (jobId: string) => JobActivity[];
   targetCompanies?: TargetCompany[];
 }
 
 export default function Jobs({
   jobs, contacts, interviews, onAdd, onAddBulk, onUpdateStatus, onUpdateJob, onDelete,
   onLinkContact, onUnlinkContact, getContactsForJob, getNetworkMatchesForJob,
-  onAddInterview, onUpdateInterview, onDeleteInterview, targetCompanies = [],
+  onAddInterview, onUpdateInterview, onDeleteInterview, getJobActivitiesForJob, targetCompanies = [],
 }: JobsProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -336,6 +338,28 @@ export default function Jobs({
                   <Kanban className="h-4 w-4" />
                 </Button>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-1.5"
+                onClick={() => {
+                  if (filteredJobs.length === 0) {
+                    toast({ title: "No jobs to export", description: "Adjust filters to include at least one job." });
+                    return;
+                  }
+                  const count = downloadJobsCsv({
+                    jobs: filteredJobs,
+                    interviews,
+                    getContactsForJob,
+                    getJobActivitiesForJob,
+                    getTargetForJob,
+                  });
+                  toast({ title: "Export ready", description: `${count} job${count === 1 ? "" : "s"} exported to CSV.` });
+                }}
+              >
+                <Download className="h-4 w-4" />
+                Export CSV
+              </Button>
               <BulkJobUploadDialog onAddJobs={onAddBulk} existingJobs={jobs} />
               <AddJobDialog onAdd={onAdd} contacts={contacts} />
             </div>

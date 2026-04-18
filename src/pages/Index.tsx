@@ -88,6 +88,7 @@ export default function Index() {
               onAddInterview={store.addInterview}
               onUpdateInterview={store.updateInterview}
               onDeleteInterview={store.deleteInterview}
+              getJobActivitiesForJob={store.getJobActivitiesForJob}
               targetCompanies={store.targetCompanies}
             />
           } />
