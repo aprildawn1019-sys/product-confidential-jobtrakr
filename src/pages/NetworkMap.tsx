@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ReactFlow,
@@ -87,6 +87,7 @@ function NetworkMapInner(props: NetworkMapProps) {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; targetId: string; sourceName: string; targetName: string } | null>(null);
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
   const graphData = useNetworkGraph({
@@ -116,34 +117,67 @@ function NetworkMapInner(props: NetworkMapProps) {
     setEdges(graphData.edges);
   }, [graphData, setNodes, setEdges]);
 
-  // Auto-fit viewport to matching nodes when filters change
+  // Compute IDs of nodes that match the active search query (across contacts, companies, jobs).
+  // Empty query → null (means "no search filter active").
+  const searchMatchedIds = useMemo<Set<string> | null>(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return null;
+    const ids = new Set<string>();
+    for (const c of props.contacts) {
+      if (c.name.toLowerCase().includes(q) || c.company.toLowerCase().includes(q)) {
+        ids.add(`contact-${c.id}`);
+      }
+    }
+    const seenCompanies = new Set<string>();
+    for (const c of props.contacts) {
+      const key = c.company.toLowerCase().trim();
+      if (!seenCompanies.has(key) && key.includes(q)) {
+        seenCompanies.add(key);
+        ids.add(`company-${key}`);
+      }
+    }
+    for (const j of props.jobs) {
+      if (j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q)) {
+        ids.add(`job-${j.id}`);
+      }
+    }
+    return ids;
+  }, [searchQuery, props.contacts, props.jobs]);
+
+  const isSearching = searchMatchedIds !== null && searchMatchedIds.size > 0;
+
+  // Auto-fit viewport to matching nodes when filters or search change
   useEffect(() => {
     if (graphData.nodes.length === 0) return;
-    const matchingIds = isFiltered
-      ? graphData.nodes.filter(n => !(n.data as any).dimmed).map(n => n.id)
-      : undefined;
-    // Don't fit to empty matches
+    let matchingIds: string[] | undefined;
+    if (isSearching) {
+      matchingIds = Array.from(searchMatchedIds!);
+    } else if (isFiltered) {
+      matchingIds = graphData.nodes.filter(n => !(n.data as any).dimmed).map(n => n.id);
+    }
     if (matchingIds && matchingIds.length === 0) return;
-    // Defer to next frame so React Flow has rendered the new nodes/positions
     const t = window.setTimeout(() => {
       fitView({
         nodes: matchingIds?.map(id => ({ id })),
         duration: 600,
         padding: 0.25,
-        maxZoom: 1.2,
+        maxZoom: isSearching ? 1.5 : 1.2,
         minZoom: 0.01,
       });
     }, 50);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graphData, isFiltered, hideDimmed]);
+  }, [graphData, isFiltered, hideDimmed, isSearching, searchQuery]);
 
-  // Apply highlight to nodes, optionally filtering out dimmed ones
-  const visibleNodes = (hideDimmed && isFiltered)
-    ? nodes.filter(n => !(n.data as any).dimmed)
-    : nodes;
+  // Apply search filter first, then dimmed-hide, then highlight.
+  let visibleNodes = nodes;
+  if (isSearching) {
+    visibleNodes = visibleNodes.filter(n => searchMatchedIds!.has(n.id));
+  } else if (hideDimmed && isFiltered) {
+    visibleNodes = visibleNodes.filter(n => !(n.data as any).dimmed);
+  }
   const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
-  const visibleEdges = (hideDimmed && isFiltered)
+  const visibleEdges = (isSearching || (hideDimmed && isFiltered))
     ? edges.filter(e => visibleNodeIds.has(e.source) && visibleNodeIds.has(e.target))
     : edges;
   const nodesWithHighlight = highlightedNodeId
@@ -371,6 +405,7 @@ function NetworkMapInner(props: NetworkMapProps) {
                 companies={props.contacts.map(c => c.company)}
                 jobs={props.jobs}
                 onHighlightNode={setHighlightedNodeId}
+                onQueryChange={setSearchQuery}
               />
             </div>
           </ReactFlow>
