@@ -268,11 +268,9 @@ export default function GettingStarted({
 
 function ProfileCompletenessBanner({
   score,
-  fields,
   onAction,
 }: {
   score: number;
-  fields: { label: string; filled: boolean }[];
   onAction: () => void;
 }) {
   const pct = Math.round((score / 5) * 100);
