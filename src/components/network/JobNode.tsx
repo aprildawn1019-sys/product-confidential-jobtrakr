@@ -17,23 +17,24 @@ function JobNode({ data, selected }: NodeProps) {
   const d = data as any;
   const color = statusColors[d.status] || "hsl(var(--border))";
   const tint = clusterTintBg(d.clusterHue);
+  const isCenter = !!d.isCenter;
 
   return (
     <div className="relative flex flex-col items-center" style={{ minWidth: 100 }}>
       <Handle type="target" position={Position.Top} className="!bg-muted-foreground !w-2 !h-2" />
       <div
-        className={`flex items-center justify-center transition-all ${selected ? "ring-2 ring-ring ring-offset-2" : ""} ${d.highlighted ? "ring-3 ring-primary animate-[ping-ring_1.5s_ease-in-out_3]" : ""}`}
+        className={`flex items-center justify-center transition-all ${selected ? "ring-2 ring-ring ring-offset-2" : ""} ${d.highlighted ? "ring-3 ring-primary animate-[ping-ring_1.5s_ease-in-out_3]" : ""} ${isCenter ? "animate-focus-pulse" : ""}`}
         style={{
-          width: 48,
-          height: 48,
-          border: `3px solid ${color}`,
+          width: isCenter ? 68 : 48,
+          height: isCenter ? 68 : 48,
+          border: isCenter ? `4px solid hsl(var(--primary))` : `3px solid ${color}`,
           background: tint || "hsl(var(--card))",
           transform: "rotate(45deg)",
           borderRadius: 6,
           opacity: d.dimmed ? 0.1 : 1,
         }}
       >
-        <span className="text-sm" style={{ transform: "rotate(-45deg)" }}>💼</span>
+        <span className={isCenter ? "text-lg" : "text-sm"} style={{ transform: "rotate(-45deg)" }}>💼</span>
       </div>
       <span className="mt-2 text-[10px] font-medium text-foreground max-w-[90px] truncate text-center">
         {d.label}

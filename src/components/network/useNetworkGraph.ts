@@ -241,13 +241,20 @@ function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, str
     });
   }
 
+  const activeCenterId = mode === "focus" && centerNodeId && nodes.some(n => n.id === centerNodeId) ? centerNodeId : null;
+
   return nodes.map(node => {
     const pos = positions.get(node.id) ?? { x: 0, y: 0 };
     const isCompany = node.type === "companyNode";
     // xyflow positions the top-left corner — offset to centre the node visually
     const w = isCompany ? NODE_W.company : NODE_W.child;
     const h = isCompany ? NODE_H.company : NODE_H.child;
-    return { ...node, position: { x: pos.x - w / 2, y: pos.y - h / 2 } };
+    const isCenter = node.id === activeCenterId;
+    return {
+      ...node,
+      position: { x: pos.x - w / 2, y: pos.y - h / 2 },
+      data: { ...(node.data as object), isCenter },
+    };
   });
 }
 

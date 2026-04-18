@@ -16,6 +16,7 @@ function ContactNode({ data, selected }: NodeProps) {
   const roleInfo = NETWORK_ROLES.find(r => r.value === d.networkRole);
   const hasReferral = d.hasReferral;
   const tint = clusterTintBg(d.clusterHue);
+  const isCenter = !!d.isCenter;
 
   return (
     <div
@@ -24,13 +25,13 @@ function ContactNode({ data, selected }: NodeProps) {
     >
       <Handle type="target" position={Position.Top} className="!bg-muted-foreground !w-2 !h-2" />
       <div
-        className={`relative flex items-center justify-center rounded-full transition-all ${selected ? "ring-2 ring-ring ring-offset-2" : ""} ${d.highlighted ? "ring-3 ring-primary animate-[ping-ring_1.5s_ease-in-out_3]" : ""}`}
+        className={`relative flex items-center justify-center rounded-full transition-all ${selected ? "ring-2 ring-ring ring-offset-2" : ""} ${d.highlighted ? "ring-3 ring-primary animate-[ping-ring_1.5s_ease-in-out_3]" : ""} ${isCenter ? "animate-focus-pulse" : ""}`}
         style={{
-          width: 56,
-          height: 56,
-          border: `3px solid ${borderColor}`,
+          width: isCenter ? 76 : 56,
+          height: isCenter ? 76 : 56,
+          border: isCenter ? `4px solid hsl(var(--primary))` : `3px solid ${borderColor}`,
           background: tint || "hsl(var(--card))",
-          boxShadow: hasReferral ? `0 0 12px ${warmthColors.champion || "hsl(var(--success))"}` : undefined,
+          boxShadow: !isCenter && hasReferral ? `0 0 12px ${warmthColors.champion || "hsl(var(--success))"}` : undefined,
           opacity: d.dimmed ? 0.1 : 1,
         }}
       >
