@@ -131,6 +131,7 @@ export default function NetworkDetailPanel({
               </div>
             )}
 
+            {centerButton}
             <Button size="sm" variant="outline" className="w-full text-xs gap-1" onClick={() => onNavigate(`/contacts?highlight=${data.id}`)}>
               <ExternalLink className="h-3 w-3" /> View Full Profile
             </Button>
@@ -168,6 +169,7 @@ export default function NetworkDetailPanel({
               </div>
             )}
 
+            {centerButton}
             {data.targetId && (
               <Button size="sm" variant="outline" className="w-full text-xs gap-1" onClick={() => onNavigate("/target-companies")}>
                 <ExternalLink className="h-3 w-3" /> View Target Company
@@ -198,6 +200,7 @@ export default function NetworkDetailPanel({
               </div>
             )}
 
+            {centerButton}
             <Button size="sm" variant="outline" className="w-full text-xs gap-1" onClick={() => onNavigate(`/jobs/${data.id}`)}>
               <ExternalLink className="h-3 w-3" /> View Job CRM
             </Button>
