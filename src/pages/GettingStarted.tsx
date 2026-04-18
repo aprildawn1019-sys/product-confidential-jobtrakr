@@ -47,7 +47,6 @@ export default function GettingStarted({
 }: GettingStartedProps) {
   const navigate = useNavigate();
   const [profileScore, setProfileScore] = useState<number | null>(null);
-  const [profileFields, setProfileFields] = useState<{ label: string; filled: boolean }[]>([]);
 
   const startTour = () => window.dispatchEvent(new Event("jobtrakr:start-tour"));
 
@@ -59,19 +58,8 @@ export default function GettingStarted({
         data: { user },
       } = await supabase.auth.getUser();
 
-      const emptyFields = [
-        { label: "Target roles", filled: false },
-        { label: "Locations", filled: false },
-        { label: "Skills", filled: false },
-        { label: "Summary", filled: false },
-        { label: "Salary floor", filled: false },
-      ];
-
       if (!user) {
-        if (!cancelled) {
-          setProfileScore(0);
-          setProfileFields(emptyFields);
-        }
+        if (!cancelled) setProfileScore(0);
         return;
       }
 
@@ -85,20 +73,17 @@ export default function GettingStarted({
 
       if (!data) {
         setProfileScore(0);
-        setProfileFields(emptyFields);
         return;
       }
 
-      const fields = [
-        { label: "Target roles", filled: !!data.target_roles?.length },
-        { label: "Locations", filled: !!data.locations?.length },
-        { label: "Skills", filled: !!data.skills?.length },
-        { label: "Summary", filled: !!data.summary?.trim() },
-        { label: "Salary floor", filled: !!(data.min_base_salary && data.min_base_salary > 0) },
-      ];
+      let score = 0;
+      if (data.target_roles?.length) score += 1;
+      if (data.locations?.length) score += 1;
+      if (data.skills?.length) score += 1;
+      if (data.summary?.trim()) score += 1;
+      if (data.min_base_salary && data.min_base_salary > 0) score += 1;
 
-      setProfileFields(fields);
-      setProfileScore(fields.filter((f) => f.filled).length);
+      setProfileScore(score);
     })();
 
     return () => {
