@@ -4,7 +4,12 @@ import { companiesMatch } from "@/stores/jobTrackerStore";
 import { clusterHue } from "./clusterColor";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest } from "@/types/jobTracker";
 
-export type NetworkLayoutMode = "radial" | "hierarchical" | "grid";
+/**
+ * Network Map layout modes.
+ * - `focus`   — radial layout centered on a search/filter target, with neighbors radiating outward by hop distance.
+ * - `overview` — auto-picked cluster layout: ringed radial for small graphs, grid for larger ones.
+ */
+export type NetworkLayoutMode = "focus" | "overview";
 
 interface UseNetworkGraphParams {
   contacts: Contact[];
@@ -31,7 +36,7 @@ interface UseNetworkGraphParams {
  * larger outer ring (or packed in a grid for many clusters) so that text
  * never overlaps. Orphan nodes (no company) wrap on an inner ring at (0,0).
  */
-function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, string[]>, mode: NetworkLayoutMode = "radial", centerNodeId: string | null = null) {
+function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, string[]>, mode: NetworkLayoutMode = "overview", centerNodeId: string | null = null) {
   const positions = new Map<string, { x: number; y: number }>();
 
   // Approximate visual footprint of each node type (width × height incl. labels)
