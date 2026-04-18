@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
-import { ArrowUp, ArrowDown, ArrowUpDown, Trash2, Megaphone, Star, ChevronDown } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Trash2, Megaphone, ChevronDown } from "lucide-react";
+import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -434,14 +435,7 @@ export default function ContactsSpreadsheet({
                   </td>
                   <td className="px-2 align-middle">
                     {target ? (
-                      <Badge
-                        variant="outline"
-                        className="gap-1 border-amber-300 bg-amber-50 px-1.5 py-0 text-[10px] text-amber-700"
-                        title={`${target.priority} target`}
-                      >
-                        <Star className="h-2.5 w-2.5" />
-                        Target
-                      </Badge>
+                      <TargetCompanyBadge target={target} />
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
