@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
-import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown } from "lucide-react";
+import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown, Sheet } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import ContactCampaignSelect from "@/components/ContactCampaignSelect";
 import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import ContactsSpreadsheet from "@/components/ContactsSpreadsheet";
 import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact, TargetCompany } from "@/types/jobTracker";
 import { RELATIONSHIP_LABELS } from "@/types/jobTracker";
 
@@ -150,7 +151,7 @@ export default function Contacts({
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; contactId: string } | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "compact" | "detailed">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "compact" | "detailed" | "spreadsheet">("grid");
   const [searchQuery, setSearchQuery] = useState(companyFilter || "");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
   const [followUpFilter, setFollowUpFilter] = useState<string>("all");
@@ -751,6 +752,9 @@ export default function Contacts({
             <Button variant={viewMode === "detailed" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("detailed")} title="Detailed list">
               <LayoutList className="h-4 w-4" />
             </Button>
+            <Button variant={viewMode === "spreadsheet" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("spreadsheet")} title="Spreadsheet">
+              <Sheet className="h-4 w-4" />
+            </Button>
           </div>
           <Button variant={showCampaigns ? "secondary" : "outline"} size="sm" onClick={() => setShowCampaigns(!showCampaigns)}>
             <Megaphone className="h-4 w-4 mr-1" />Campaigns
@@ -863,6 +867,18 @@ export default function Contacts({
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredContacts.map(renderContactCard)}
         </div>
+      ) : viewMode === "spreadsheet" ? (
+        <ContactsSpreadsheet
+          contacts={filteredContacts}
+          campaigns={campaigns}
+          contactCampaigns={contactCampaigns}
+          targetCompanies={targetCompanies}
+          getTargetCompanyMatch={getTargetCompanyMatch}
+          getCampaignsForContact={getCampaignsForContact}
+          onUpdate={onUpdate}
+          onDelete={onDelete}
+          onToggleContactCampaign={onToggleContactCampaign}
+        />
       ) : (
         <div className="space-y-2">
           {filteredContacts.map(viewMode === "compact" ? renderCompactRow : renderDetailedRow)}
