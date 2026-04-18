@@ -396,9 +396,12 @@ export default function JobBoards() {
             key={board.id}
             board={board}
             categoryLabels={CATEGORY_LABELS}
+            targetCompanyNames={targetCompanyNames}
             onToggle={toggleActive}
             onDelete={handleDelete}
             onUsePublicUrl={handleUsePublicUrl}
+            onLinkTargetCompany={openLinkDialog}
+            onUnlinkTargetCompany={handleUnlinkTargetCompany}
           />
         ))}
       </div>
