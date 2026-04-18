@@ -108,6 +108,20 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
     },
   ];
 
+  // Broadcast tour progress so other parts of the app (e.g. Getting Started
+  // header) can show a step indicator.
+  useEffect(() => {
+    if (!run) {
+      window.dispatchEvent(new CustomEvent("jobtrakr:tour-progress", { detail: null }));
+      return;
+    }
+    window.dispatchEvent(
+      new CustomEvent("jobtrakr:tour-progress", {
+        detail: { step: stepIndex + 1, total: steps.length },
+      }),
+    );
+  }, [run, stepIndex, steps.length]);
+
   // Navigate to the route a step expects before showing it.
   useEffect(() => {
     if (!run) return;

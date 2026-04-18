@@ -47,8 +47,18 @@ export default function GettingStarted({
 }: GettingStartedProps) {
   const navigate = useNavigate();
   const [profileScore, setProfileScore] = useState<number | null>(null);
+  const [tourProgress, setTourProgress] = useState<{ step: number; total: number } | null>(null);
 
   const startTour = () => window.dispatchEvent(new Event("jobtrakr:start-tour"));
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { step: number; total: number } | null;
+      setTourProgress(detail);
+    };
+    window.addEventListener("jobtrakr:tour-progress", handler);
+    return () => window.removeEventListener("jobtrakr:tour-progress", handler);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -160,9 +170,20 @@ export default function GettingStarted({
         <div className="relative overflow-hidden bg-gradient-to-br from-background via-card to-accent/10 p-6 sm:p-8 lg:p-10">
           <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-gradient-to-l from-primary/5 to-transparent lg:block" />
           <div className="relative max-w-3xl">
-            <Badge variant="outline" className="mb-4 gap-1.5 border-accent/40 bg-accent/10 text-accent-foreground">
-              <Sparkles className="h-3 w-3" /> Getting Started
-            </Badge>
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="gap-1.5 border-accent/40 bg-accent/10 text-accent-foreground">
+                <Sparkles className="h-3 w-3" /> Getting Started
+              </Badge>
+              {tourProgress && (
+                <Badge
+                  variant="outline"
+                  className="gap-1.5 border-primary/30 bg-primary/10 text-primary animate-fade-in"
+                  aria-live="polite"
+                >
+                  Tour · Step {tourProgress.step} of {tourProgress.total}
+                </Badge>
+              )}
+            </div>
             <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               Choose the job search path that matches how you actually work.
             </h1>
