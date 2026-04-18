@@ -31,7 +31,7 @@ interface UseNetworkGraphParams {
  * larger outer ring (or packed in a grid for many clusters) so that text
  * never overlaps. Orphan nodes (no company) wrap on an inner ring at (0,0).
  */
-function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, string[]>, mode: NetworkLayoutMode = "radial") {
+function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, string[]>, mode: NetworkLayoutMode = "radial", centerNodeId: string | null = null) {
   const positions = new Map<string, { x: number; y: number }>();
 
   // Approximate visual footprint of each node type (width × height incl. labels)
