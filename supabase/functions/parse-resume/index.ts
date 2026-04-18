@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getAIConfig } from "../_shared/ai-config.ts";
 import { requireUser } from "../_shared/auth.ts";
+import { checkRateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +18,16 @@ serve(async (req) => {
     // SECURITY: require auth — this function consumes AI tokens.
     const auth = await requireUser(req, corsHeaders);
     if (auth.errorResponse) return auth.errorResponse;
+
+    // Per-user rate limit: 10 resume parses per hour.
+    const rl = await checkRateLimit({
+      userId: auth.user.id,
+      functionName: "parse-resume",
+      maxCalls: 10,
+      windowMinutes: 60,
+      corsHeaders,
+    });
+    if (rl.errorResponse) return rl.errorResponse;
 
     const { resumeText } = await req.json();
     if (!resumeText || typeof resumeText !== "string" || resumeText.trim().length < 20) {

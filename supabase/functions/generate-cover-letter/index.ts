@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getAIConfig } from "../_shared/ai-config.ts";
 import { requireUser } from "../_shared/auth.ts";
+import { checkRateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,6 +19,16 @@ serve(async (req) => {
     const auth = await requireUser(req, corsHeaders);
     if (auth.errorResponse) return auth.errorResponse;
     const userId = auth.user.id;
+
+    // Per-user rate limit: 20 cover letters per hour.
+    const rl = await checkRateLimit({
+      userId,
+      functionName: "generate-cover-letter",
+      maxCalls: 20,
+      windowMinutes: 60,
+      corsHeaders,
+    });
+    if (rl.errorResponse) return rl.errorResponse;
 
     const { jobTitle, company, jobDescription } = await req.json();
 
