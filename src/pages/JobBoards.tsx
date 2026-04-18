@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Plus, Sparkles, ShieldCheck, AlertTriangle } from "lucide-react";
 import { BoardCard } from "@/components/jobboards/BoardCard";
+import HelpHint from "@/components/help/HelpHint";
 
 interface JobBoard {
   id: string;
@@ -295,7 +296,7 @@ export default function JobBoards() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Job Boards</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight flex items-center gap-2">Job Boards<HelpHint articleId="gated-job-boards" /></h1>
           <p className="mt-1 text-muted-foreground">
             Manage which job boards the AI searches. {activeBoards.length} active, {inactiveBoards.length} inactive.
           </p>
@@ -351,10 +352,13 @@ export default function JobBoards() {
       {gatedActiveCount > 0 && (
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-destructive">
-              {gatedActiveCount} active board{gatedActiveCount > 1 ? 's' : ''} require{gatedActiveCount === 1 ? 's' : ''} login
-            </p>
+          <div className="flex-1">
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-medium text-destructive">
+                {gatedActiveCount} active board{gatedActiveCount > 1 ? 's' : ''} require{gatedActiveCount === 1 ? 's' : ''} login
+              </p>
+              <HelpHint articleId="gated-job-boards" label="Why are boards gated?" />
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
               Gated boards may return limited or no results during AI searches. Switch to public URLs where available, or deactivate boards you can't access.
             </p>

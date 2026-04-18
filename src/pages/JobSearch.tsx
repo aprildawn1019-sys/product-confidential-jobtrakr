@@ -17,6 +17,7 @@ import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { Job, Contact, TargetCompany } from "@/types/jobTracker";
+import HelpHint from "@/components/help/HelpHint";
 
 interface SearchParams {
   resultCount: number;
@@ -408,7 +409,10 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
     <div className="space-y-6 animate-fade-in" data-tour="page-job-search">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">AI Job Search</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight flex items-center gap-2">
+            AI Job Search
+            <HelpHint articleId="ai-job-search-tips" />
+          </h1>
           <p className="mt-1 text-muted-foreground">
             Find opportunities matching your profile, skills, and preferences
           </p>

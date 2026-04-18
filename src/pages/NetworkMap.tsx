@@ -26,6 +26,7 @@ import NetworkSearch from "@/components/network/NetworkSearch";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest, ContactActivity } from "@/types/jobTracker";
+import HelpHint from "@/components/help/HelpHint";
 
 const nodeTypes = {
   contactNode: ContactNode,
@@ -305,7 +306,10 @@ function NetworkMapInner(props: NetworkMapProps) {
   return (
     <div className="space-y-4" data-tour="page-network">
       <div>
-        <h1 className="text-2xl font-display font-bold tracking-tight text-foreground">Network Map</h1>
+        <h1 className="text-2xl font-display font-bold tracking-tight text-foreground flex items-center gap-2">
+          Network Map
+          <HelpHint articleId="network-map" />
+        </h1>
         <p className="text-sm text-muted-foreground mt-1">Visualize your professional network, trace referral paths, and find connections to target companies.</p>
       </div>
 

@@ -2,6 +2,7 @@ import { type ComponentType, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
+  BookOpen,
   CalendarCheck,
   Compass,
   Info,
@@ -14,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useHelp } from "@/components/help/HelpProvider";
 import type { Contact, Interview, Job, TargetCompany } from "@/types/jobTracker";
 
 interface GettingStartedProps {
@@ -46,6 +48,7 @@ export default function GettingStarted({
   interviews = [],
 }: GettingStartedProps) {
   const navigate = useNavigate();
+  const { openHelp } = useHelp();
   const [profileScore, setProfileScore] = useState<number | null>(null);
   const [tourProgress, setTourProgress] = useState<{ step: number; total: number } | null>(null);
 
@@ -193,9 +196,16 @@ export default function GettingStarted({
 
 
 
-            <div className="mt-8">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button onClick={startTour} className="gap-2">
                 <Sparkles className="h-4 w-4" /> Take the tour
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => openHelp()}
+                className="gap-2"
+              >
+                <BookOpen className="h-4 w-4" /> Browse all help articles
               </Button>
             </div>
           </div>

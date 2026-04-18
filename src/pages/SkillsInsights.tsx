@@ -8,6 +8,7 @@ import { LinkedInHeadlineCard } from "@/components/skills/LinkedInHeadlineCard";
 import { SkillGapCard } from "@/components/skills/SkillGapCard";
 import { TopSkillsChart } from "@/components/skills/TopSkillsChart";
 import { SkillsTrendChart } from "@/components/skills/SkillsTrendChart";
+import HelpHint from "@/components/help/HelpHint";
 
 export default function SkillsInsights() {
   const {
@@ -34,7 +35,7 @@ export default function SkillsInsights() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Skills Insights</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight flex items-center gap-2">Skills Insights<HelpHint articleId="skills-insights" /></h1>
           <p className="mt-1 text-muted-foreground">
             Analyze skills demand across {filteredSnapshots.length} tracked job descriptions
           </p>
