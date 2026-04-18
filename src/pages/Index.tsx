@@ -148,6 +148,8 @@ export default function Index() {
               onAddRecommendationRequest={store.addRecommendationRequest}
               onUpdateRecommendationRequest={store.updateRecommendationRequest}
               onDeleteRecommendationRequest={store.deleteRecommendationRequest}
+              targetCompanies={store.targetCompanies}
+              getTargetCompanyMatch={store.getTargetCompanyMatch}
               getRecommendationRequestsForContact={store.getRecommendationRequestsForContact}
             />
           } />

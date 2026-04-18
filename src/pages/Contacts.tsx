@@ -17,7 +17,8 @@ import CampaignManager from "@/components/CampaignManager";
 import ContactCampaignSelect from "@/components/ContactCampaignSelect";
 import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
-import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact } from "@/types/jobTracker";
+import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact, TargetCompany } from "@/types/jobTracker";
 import { RELATIONSHIP_LABELS } from "@/types/jobTracker";
 
 
@@ -57,6 +58,8 @@ interface ContactsProps {
   onUpdateRecommendationRequest: (id: string, updates: Partial<RecommendationRequest>) => void;
   onDeleteRecommendationRequest: (id: string) => void;
   getRecommendationRequestsForContact: (contactId: string) => RecommendationRequest[];
+  targetCompanies: TargetCompany[];
+  getTargetCompanyMatch: (companyName: string) => TargetCompany | undefined;
 }
 
 function FollowUpIndicator({ date }: { date?: string }) {
@@ -125,6 +128,7 @@ export default function Contacts({
   getJobsForContact, getContactsForJob, getNetworkMatchesForJob, onLinkContactToJob, onUnlinkContactFromJob,
   onAddCampaign, onUpdateCampaign, onDeleteCampaign, onToggleContactCampaign, getCampaignsForContact,
   recommendationRequests, onAddRecommendationRequest, onUpdateRecommendationRequest, onDeleteRecommendationRequest, getRecommendationRequestsForContact,
+  targetCompanies, getTargetCompanyMatch,
 }: ContactsProps) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
