@@ -744,6 +744,30 @@ export default function Contacts({
           <Button variant={showCampaigns ? "secondary" : "outline"} size="sm" onClick={() => setShowCampaigns(!showCampaigns)}>
             <Megaphone className="h-4 w-4 mr-1" />Campaigns
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (filteredContacts.length === 0) {
+                toast({ title: "Nothing to export", description: "No contacts match the current filters." });
+                return;
+              }
+              const count = downloadContactsCsv({
+                contacts: filteredContacts,
+                campaigns,
+                jobs,
+                getConnectionsForContact,
+                getActivitiesForContact,
+                getCampaignsForContact,
+                getJobsForContact,
+                getRecommendationRequestsForContact,
+              });
+              toast({ title: "Export ready", description: `Downloaded ${count} contact${count === 1 ? "" : "s"} as CSV.` });
+            }}
+            title="Download visible contacts as CSV (respects current filters)"
+          >
+            <Download className="h-4 w-4 mr-1" />Export CSV
+          </Button>
           <BulkContactUploadDialog onAddBulk={onAddBulk} existingContacts={contacts} />
           <LinkedInImportDialog onImport={onAddBulk} existingContacts={contacts} />
           <AddContactDialog onAdd={onAdd} />
