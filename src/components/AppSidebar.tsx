@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Briefcase, Users, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, FileText, Network, Sparkles, PlayCircle, LifeBuoy, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, FileText, FileSpreadsheet, Network, Sparkles, PlayCircle, LifeBuoy, LucideIcon } from "lucide-react";
 import { useHelp } from "@/components/help/HelpProvider";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -38,6 +38,7 @@ const groups: { label: string; icon: LucideIcon; items: LinkItemWithTour[] }[] =
       { to: "/target-companies", icon: Star, label: "Target Companies", tourId: "entry-target-companies" },
       { to: "/interviews", icon: CalendarDays, label: "Schedule" },
       { to: "/cover-letters", icon: FileText, label: "Cover Letters" },
+      { to: "/reports", icon: FileSpreadsheet, label: "Reports" },
     ],
   },
   {

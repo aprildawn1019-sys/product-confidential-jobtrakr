@@ -17,6 +17,7 @@ import SkillsInsights from "@/pages/SkillsInsights";
 import InterviewsPage from "@/pages/Interviews";
 import TargetCompanies from "@/pages/TargetCompanies";
 import CoverLetters from "@/pages/CoverLetters";
+import Reports from "@/pages/Reports";
 import GettingStarted from "@/pages/GettingStarted";
 import { HelpProvider } from "@/components/help/HelpProvider";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
@@ -178,6 +179,7 @@ export default function Index() {
             />
           } />
           <Route path="cover-letters" element={<CoverLetters jobs={store.jobs} />} />
+          <Route path="reports" element={<Reports />} />
           <Route path="getting-started" element={
             <GettingStarted
               jobs={store.jobs}
