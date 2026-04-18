@@ -53,18 +53,37 @@ const RECOMMENDED_BOARDS = [
 
 export default function JobBoards() {
   const [boards, setBoards] = useState<JobBoard[]>([]);
+  const [targetCompanies, setTargetCompanies] = useState<TargetCompanyOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [testing, setTesting] = useState(false);
   const [newBoard, setNewBoard] = useState({ name: "", url: "", category: "general", notes: "" });
+  const [linkingBoard, setLinkingBoard] = useState<JobBoard | null>(null);
+  const [linkSelection, setLinkSelection] = useState<string>("");
 
-  useEffect(() => { loadBoards(); }, []);
+  useEffect(() => {
+    loadBoards();
+    loadTargetCompanies();
+  }, []);
 
   const loadBoards = async () => {
     const { data } = await supabase.from("job_boards").select("*").order("is_active", { ascending: false }).order("name");
     if (data) setBoards(data as unknown as JobBoard[]);
     setLoading(false);
   };
+
+  const loadTargetCompanies = async () => {
+    const { data } = await supabase
+      .from("target_companies")
+      .select("id, name, careers_url")
+      .order("name");
+    if (data) setTargetCompanies(data as TargetCompanyOption[]);
+  };
+
+  const targetCompanyNames: Record<string, string> = targetCompanies.reduce(
+    (acc, c) => ({ ...acc, [c.id]: c.name }),
+    {},
+  );
 
   const toggleActive = async (board: JobBoard) => {
     const { error } = await supabase.from("job_boards").update({ is_active: !board.is_active } as any).eq("id", board.id);
