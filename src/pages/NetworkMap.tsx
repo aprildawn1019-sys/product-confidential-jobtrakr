@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ReactFlow,
@@ -405,6 +405,7 @@ function NetworkMapInner(props: NetworkMapProps) {
                 companies={props.contacts.map(c => c.company)}
                 jobs={props.jobs}
                 onHighlightNode={setHighlightedNodeId}
+                onQueryChange={setSearchQuery}
               />
             </div>
           </ReactFlow>
