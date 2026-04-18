@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   CalendarCheck,
-  Check,
   Compass,
   Info,
   Search,
