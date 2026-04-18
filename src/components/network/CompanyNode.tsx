@@ -14,21 +14,23 @@ function CompanyNode({ data, selected }: NodeProps) {
   const tint = clusterAccentBg(d.clusterHue);
   const glow = clusterGlow(d.clusterHue);
 
+  const isCenter = !!d.isCenter;
+
   return (
     <div className="relative flex flex-col items-center" style={{ minWidth: 110 }}>
       <Handle type="target" position={Position.Top} className="!bg-muted-foreground !w-2 !h-2" />
       <div
-        className={`flex items-center justify-center rounded-lg transition-all ${selected ? "ring-2 ring-ring ring-offset-2" : ""} ${d.highlighted ? "ring-3 ring-primary animate-[ping-ring_1.5s_ease-in-out_3]" : ""}`}
+        className={`flex items-center justify-center rounded-lg transition-all ${selected ? "ring-2 ring-ring ring-offset-2" : ""} ${d.highlighted ? "ring-3 ring-primary animate-[ping-ring_1.5s_ease-in-out_3]" : ""} ${isCenter ? "animate-focus-pulse" : ""}`}
         style={{
-          width: 64,
-          height: 48,
-          border: `3px solid ${borderColor}`,
+          width: isCenter ? 84 : 64,
+          height: isCenter ? 64 : 48,
+          border: isCenter ? `4px solid hsl(var(--primary))` : `3px solid ${borderColor}`,
           background: tint || "hsl(var(--card))",
-          boxShadow: glow,
+          boxShadow: isCenter ? undefined : glow,
           opacity: d.dimmed ? 0.1 : 1,
         }}
       >
-        <span className="text-sm font-bold text-foreground">🏢</span>
+        <span className={isCenter ? "text-lg font-bold text-foreground" : "text-sm font-bold text-foreground"}>🏢</span>
       </div>
       <span className="mt-1 text-[10px] font-semibold text-foreground max-w-[100px] truncate text-center">
         {d.label}
