@@ -17,7 +17,8 @@ import CampaignManager from "@/components/CampaignManager";
 import ContactCampaignSelect from "@/components/ContactCampaignSelect";
 import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
-import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact } from "@/types/jobTracker";
+import TargetCompanyBadge from "@/components/TargetCompanyBadge";
+import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact, TargetCompany } from "@/types/jobTracker";
 import { RELATIONSHIP_LABELS } from "@/types/jobTracker";
 
 
@@ -57,6 +58,8 @@ interface ContactsProps {
   onUpdateRecommendationRequest: (id: string, updates: Partial<RecommendationRequest>) => void;
   onDeleteRecommendationRequest: (id: string) => void;
   getRecommendationRequestsForContact: (contactId: string) => RecommendationRequest[];
+  targetCompanies: TargetCompany[];
+  getTargetCompanyMatch: (companyName: string) => TargetCompany | undefined;
 }
 
 function FollowUpIndicator({ date }: { date?: string }) {
@@ -125,6 +128,7 @@ export default function Contacts({
   getJobsForContact, getContactsForJob, getNetworkMatchesForJob, onLinkContactToJob, onUnlinkContactFromJob,
   onAddCampaign, onUpdateCampaign, onDeleteCampaign, onToggleContactCampaign, getCampaignsForContact,
   recommendationRequests, onAddRecommendationRequest, onUpdateRecommendationRequest, onDeleteRecommendationRequest, getRecommendationRequestsForContact,
+  targetCompanies, getTargetCompanyMatch,
 }: ContactsProps) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -280,9 +284,12 @@ export default function Contacts({
               </Button>
             </div>
           </div>
-          <button onClick={() => navigate("/network")} className="mt-3 text-sm font-medium text-foreground hover:text-primary flex items-center gap-1 transition-colors truncate">
-            <Building2 className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{contact.company}</span><ExternalLink className="h-3 w-3 opacity-50 shrink-0" />
-          </button>
+          <div className="mt-3 flex items-center gap-2 min-w-0">
+            <button onClick={() => navigate("/network")} className="text-sm font-medium text-foreground hover:text-primary flex items-center gap-1 transition-colors truncate min-w-0">
+              <Building2 className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{contact.company}</span><ExternalLink className="h-3 w-3 opacity-50 shrink-0" />
+            </button>
+            <TargetCompanyBadge target={getTargetCompanyMatch(contact.company)} />
+          </div>
           <div className="mt-2 flex flex-wrap gap-1.5 min-h-[1.5rem]">
             <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
             <FollowUpIndicator date={contact.followUpDate} />
@@ -340,6 +347,7 @@ export default function Contacts({
               <span className="font-semibold text-sm">{contact.name}</span>
               <span className="text-xs text-muted-foreground">{contact.role} at </span>
               <button onClick={() => navigate("/network")} className="text-xs text-primary hover:underline">{contact.company}</button>
+              <TargetCompanyBadge target={getTargetCompanyMatch(contact.company)} />
             </div>
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
               <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
@@ -398,9 +406,12 @@ export default function Contacts({
                 <span className="font-semibold">{contact.name}</span>
                 <span className="text-sm text-muted-foreground">{contact.role}</span>
               </div>
-              <button onClick={() => navigate("/network")} className="text-sm text-primary hover:underline flex items-center gap-1">
-                <Building2 className="h-3.5 w-3.5" />{contact.company}<ExternalLink className="h-3 w-3 opacity-50" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => navigate("/network")} className="text-sm text-primary hover:underline flex items-center gap-1">
+                  <Building2 className="h-3.5 w-3.5" />{contact.company}<ExternalLink className="h-3 w-3 opacity-50" />
+                </button>
+                <TargetCompanyBadge target={getTargetCompanyMatch(contact.company)} />
+              </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpandedContact(isExpanded ? null : contact.id)}>
