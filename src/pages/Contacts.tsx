@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
-import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown } from "lucide-react";
+import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown, Download } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
 import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact } from "@/types/jobTracker";
 import { RELATIONSHIP_LABELS } from "@/types/jobTracker";
+import { downloadContactsCsv } from "@/lib/contactsCsvExport";
 
 import { useToast } from "@/hooks/use-toast";
 
