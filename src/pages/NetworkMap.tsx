@@ -219,6 +219,8 @@ function NetworkMapInner(props: NetworkMapProps) {
   const handleReset = useCallback(() => {
     setSearchParams(new URLSearchParams(), { replace: true });
     setSelectedNode(null);
+    setManualCenterId(null);
+    setContextMenu(null);
   }, [setSearchParams]);
 
   const handleExport = useCallback(async () => {
