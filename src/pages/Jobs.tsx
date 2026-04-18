@@ -338,6 +338,28 @@ export default function Jobs({
                   <Kanban className="h-4 w-4" />
                 </Button>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-1.5"
+                onClick={() => {
+                  if (filteredJobs.length === 0) {
+                    toast({ title: "No jobs to export", description: "Adjust filters to include at least one job." });
+                    return;
+                  }
+                  const count = downloadJobsCsv({
+                    jobs: filteredJobs,
+                    interviews,
+                    getContactsForJob,
+                    getJobActivitiesForJob,
+                    getTargetForJob,
+                  });
+                  toast({ title: "Export ready", description: `${count} job${count === 1 ? "" : "s"} exported to CSV.` });
+                }}
+              >
+                <Download className="h-4 w-4" />
+                Export CSV
+              </Button>
               <BulkJobUploadDialog onAddJobs={onAddBulk} existingJobs={jobs} />
               <AddJobDialog onAdd={onAdd} contacts={contacts} />
             </div>
