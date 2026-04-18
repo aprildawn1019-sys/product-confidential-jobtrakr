@@ -1,22 +1,68 @@
 
-The user wants the Help icon (currently `HelpCircle` based on `HelpHint.tsx`) changed to a question mark.
+The user wants a spreadsheet view of contacts/connections with bulk edit, sorting, and the new columns (campaign, company, target company). Edits cascade to linked data.
 
-Checking: lucide-react has `HelpCircle` (circle with `?`) and also a plain question mark via `CircleHelp` alias. The user likely means a plain `?` without the circle. The closest plain question mark in lucide-react is... actually lucide doesn't have a bare `?` icon. Options:
-1. Use a styled text `?` character instead of an icon.
-2. Keep `HelpCircle` (which already shows `?` inside a circle) — possibly already what's there.
+Let me think about scope:
 
-Need to check where the Help icon is used. The sidebar likely has a separate Help icon too. Let me scope: `HelpHint.tsx` uses `HelpCircle`, and `AppSidebar.tsx` likely uses `LifeBuoy` or similar for "Help & Resources".
+1. **New view mode**: Add a fourth view mode "spreadsheet" to existing toggle (grid/compact/detailed → + spreadsheet)
+2. **Spreadsheet UI**: Editable table with rows = contacts, columns = key fields
+3. **Columns to include**:
+   - Name
+   - Company
+   - Role
+   - Email
+   - Phone
+   - LinkedIn
+   - Warmth
+   - Campaign(s) — multi-select
+   - Target Company — read-only indicator (derived from company match)
+   - Follow-up date
+4. **Functionality**:
+   - **Inline editing**: click cell → edit → save on blur/enter (calls `onUpdate`)
+   - **Sorting**: click column header to sort asc/desc
+   - **Bulk edit**: row selection with checkboxes, "Apply to selected" panel for warmth, campaign add/remove, delete
+5. **Cascade**: Since contact data is the source of truth (jobs/network/target-company-match all derive from `contact.company` and `contact.id`), updating the contact via `onUpdate` already cascades. Campaign toggling uses `onToggleContactCampaign`.
 
-Plan: replace icon with a plain `?` character (text-based) in both `HelpHint` and the sidebar Help button, since that's the most literal interpretation of "question mark".
+**Approach**: Build a new component `src/components/ContactsSpreadsheet.tsx` to keep `Contacts.tsx` from growing further. Add it as a fourth view mode in the existing view switcher.
+
+Don't need a custom grid library — a styled `<table>` with `<input>` cells is sufficient and matches the existing design system. Keep it lean.
+
+**Out of scope**: Resizable columns, copy/paste of cell ranges, undo/redo, CSV paste import (CSV upload already exists via BulkContactUploadDialog). I'll mention these as follow-ups.
 
 ## Plan
 
-**Files to update:**
-1. `src/components/help/HelpHint.tsx` — replace `<HelpCircle />` icon with a styled `?` text character inside the existing circular button.
-2. `src/components/AppSidebar.tsx` — find the "Help & Resources" entry and swap its icon to a `?` character (or use `HelpCircle` if a glyph is required for sidebar consistency).
+**New file:**
+- `src/components/ContactsSpreadsheet.tsx` — table-based spreadsheet view
 
-**Approach:**
-- For `HelpHint`: drop the lucide import, render `<span aria-hidden>?</span>` with appropriate font weight/size to match the existing 16px icon footprint.
-- For sidebar: keep an icon component for layout consistency but switch to one that reads as a plain question mark, or render a `?` glyph in a small rounded box matching other sidebar icons.
+**Edit:**
+- `src/pages/Contacts.tsx`:
+  - Add `"spreadsheet"` to `viewMode` union
+  - Add a 4th button to the view switcher (Sheet icon)
+  - Render `<ContactsSpreadsheet>` when active
+  - Pass through: `filteredContacts`, `campaigns`, `contactCampaigns`, `targetCompanies`, `getTargetCompanyMatch`, `getCampaignsForContact`, `onUpdate`, `onDelete`, `onToggleContactCampaign`
 
-No other behavior changes. Tooltip text and openHelp logic stay the same.
+**Spreadsheet component features:**
+- Sticky header row
+- Sortable column headers (click to toggle asc/desc, indicator arrow)
+- Row checkboxes + select-all in header
+- Inline editable cells:
+  - **Text fields** (name, company, role, email, phone, linkedin): `<Input>` that commits onBlur/Enter
+  - **Warmth**: `<Select>` (cold/warm/hot/strong/none)
+  - **Follow-up**: `<Input type="date">`
+  - **Campaigns**: small popover with checkboxes (multi-select)
+  - **Target Company**: read-only ⭐ badge (derived)
+- Bulk action bar (appears when rows selected):
+  - "Set warmth" select → applies to all
+  - "Add to campaign" select → applies to all
+  - "Remove from campaign" select → applies to all
+  - "Delete selected" button (with confirm)
+- Sorting works on top of existing filters from parent
+- Horizontal scroll for narrow viewports
+
+**Cascade behavior** — verified:
+- `onUpdate(id, { company: "New" })` → updates contact row → `getTargetCompanyMatch(contact.company)` automatically reflects new match → `getNetworkMatchesForJob` automatically reflects new company on next render → Network Map re-renders.
+- `onToggleContactCampaign` → updates `contact_campaigns` table → all places querying `getCampaignsForContact` reflect change.
+- No additional cascade logic needed; existing store handlers already do the right thing.
+
+**Out of scope for this iteration:**
+- Cell range copy/paste, undo, frozen columns, column resize, CSV paste
+- Editing target-company status from contact row (that requires renaming target_companies, separate concern)
