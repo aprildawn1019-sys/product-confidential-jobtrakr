@@ -168,6 +168,52 @@ export default function JobBoards() {
     }
   };
 
+  const openLinkDialog = (board: JobBoard) => {
+    setLinkingBoard(board);
+    setLinkSelection(board.target_company_id ?? "");
+  };
+
+  const handleConfirmLink = async () => {
+    if (!linkingBoard || !linkSelection) return;
+    const board = linkingBoard;
+    const newId = linkSelection;
+    const { error } = await supabase
+      .from("job_boards")
+      .update({ target_company_id: newId } as any)
+      .eq("id", board.id);
+    if (error) {
+      toast({ title: "Couldn't link board", description: error.message, variant: "destructive" });
+      return;
+    }
+    setBoards(prev =>
+      prev.map(b => (b.id === board.id ? { ...b, target_company_id: newId } : b)),
+    );
+    const company = targetCompanies.find(c => c.id === newId);
+    toast({
+      title: "Board linked",
+      description: company
+        ? `${board.name} flagged as the careers page for ${company.name}.`
+        : `${board.name} linked to a target company.`,
+    });
+    setLinkingBoard(null);
+    setLinkSelection("");
+  };
+
+  const handleUnlinkTargetCompany = async (board: JobBoard) => {
+    const { error } = await supabase
+      .from("job_boards")
+      .update({ target_company_id: null } as any)
+      .eq("id", board.id);
+    if (error) {
+      toast({ title: "Couldn't unlink board", description: error.message, variant: "destructive" });
+      return;
+    }
+    setBoards(prev =>
+      prev.map(b => (b.id === board.id ? { ...b, target_company_id: null } : b)),
+    );
+    toast({ title: "Board unlinked", description: `${board.name} no longer flagged as a careers page.` });
+  };
+
   const handleTestAllBoards = async () => {
     const boardsWithUrls = boards.filter(b => b.url && b.is_active);
     if (boardsWithUrls.length === 0) {
