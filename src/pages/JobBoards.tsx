@@ -19,6 +19,13 @@ interface JobBoard {
   is_gated: boolean;
   public_url: string | null;
   gate_checked_at: string | null;
+  target_company_id: string | null;
+}
+
+interface TargetCompanyOption {
+  id: string;
+  name: string;
+  careers_url: string | null;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
