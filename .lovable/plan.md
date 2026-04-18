@@ -1,44 +1,66 @@
 
-## Refresh the Profile Completeness banner
+## Help & Resources System
 
-Refine the `ProfileCompletenessBanner` on `/getting-started` so it visually pops, uses the navy/amber palette intentionally, and makes the % ↔ progress bar relationship obvious.
+Add a searchable in-app help center accessible from the sidebar plus contextual help triggers embedded throughout the workflow.
 
-### Visual changes (in `src/pages/GettingStarted.tsx`)
+### 1. Help content data source
 
-**1. Container — add depth and a clear hierarchy**
-- Keep the warning/info tonal background but add a subtle gradient (`bg-gradient-to-br from-warning/15 via-card to-warning/5`) plus a thicker left accent border (`border-l-4 border-l-accent`) so the banner reads as an actionable callout, not a passive note.
-- Slightly bump shadow (`shadow-md`) and rounded corners stay at `rounded-[1.75rem]`.
+Create `src/lib/helpContent.ts` — a typed array of help articles. Each article has:
+- `id` (slug, used for deep-linking)
+- `title`
+- `category` (Getting Started, Job Search, Pipeline, Networking, Cover Letters, Profile, Target Companies, Interviews, Skills, Account)
+- `tags` (for search ranking)
+- `body` (markdown-lite: paragraphs + bullet lists)
+- `relatedRoutes` (e.g. `["/job-search"]`) so we can surface contextually
 
-**2. Icon tile — stronger amber emphasis**
-- Use the brand accent (amber) for the icon tile when the profile is incomplete: `bg-accent/15 text-accent-foreground border border-accent/30`. This pulls the eye to the call-to-action immediately.
+Seed ~15-20 articles covering core flows: importing jobs, AI Job Search tips, pipeline stages, match scoring, target companies, network map, cover letter generation, resume parsing, scheduling interviews, password/security, etc.
 
-**3. Title & percentage — make the % the hero**
-- Restructure the header so the percentage is its own large, bold display element next to the title:
-  - Big number (e.g. `text-3xl font-display font-bold text-accent-foreground`) reading "60%"
-  - Smaller label underneath: "complete"
-  - Title moves to the right of the % block.
-- This makes the link between the displayed % and the progress bar visually direct.
+### 2. Global Help Center (`HelpCenter.tsx`)
 
-**4. Progress bar — clearer % ↔ fill mapping**
-Replace the default `Progress` with a custom inline implementation so we can:
-- Use the **amber/accent color** for the filled portion (`bg-accent`) on a navy-tinted track (`bg-primary/10`), matching the brand palette.
-- Make the bar taller (`h-3`) with rounded ends.
-- Add **5 segment dividers** (one per profile field) as thin vertical lines across the track so users see "filled 3 of 5 segments = 60%".
-- Show the percentage label sitting directly above the right edge of the filled portion (a small floating badge that moves with progress), reinforcing that the % corresponds to the bar fill.
-- Add tick labels under the bar: `0%`, `20%`, `40%`, `60%`, `80%`, `100%`.
+A `Sheet` (right-side drawer) component opened via context.
+- Search input at top filters articles by title/tags/body (simple substring + tag boost).
+- Category filter chips.
+- Article list → click expands inline to read full body.
+- Supports opening to a specific `articleId` via a `HelpProvider` context (`openHelp(id?)`).
 
-**5. Field checklist — show what drives the %**
-Below the bar, add 5 compact pill chips, one per field (Target roles, Locations, Skills, Summary, Salary floor). Filled fields get a check icon + `bg-success/10 text-success border-success/25`; unfilled get muted styling. This makes the score transparent and shows exactly what to fill next.
+Mount `HelpProvider` at the top of `Index.tsx` so all pages can call `useHelp()`.
 
-**6. CTA — stronger affordance**
-Promote the "Complete profile" button to use the accent color (`bg-accent text-accent-foreground hover:bg-accent/90`) so it's the dominant action in the banner.
+### 3. Sidebar entry point
 
-### Data needed
-The banner currently only receives the numeric `score`. To render per-field chips, pass a small `fields` object (or an array of `{ label, filled }`) from the parent `GettingStarted` component, derived from the same Supabase query that already runs in `useEffect`. Minimal change — just store the per-field booleans alongside the score in component state.
+In `AppSidebar.tsx`, add a "Help & Resources" button in the bottom action area (above Restart walkthrough / Sign Out). Icon: `LifeBuoy` from lucide. Clicking it calls `openHelp()`.
 
-### Files touched
-- `src/pages/GettingStarted.tsx` — restructure `ProfileCompletenessBanner`, update the score `useEffect` to also store per-field filled flags, render the new bar + chip checklist.
+### 4. Embedded contextual help
+
+Create a small reusable `<HelpHint articleId="..." />` button — a subtle `?` icon (using `HelpCircle`) wrapped in a Tooltip that, when clicked, opens the Help Center to that article. Place at:
+
+- **Job Search page** header → `articleId: "ai-job-search-tips"`
+- **Profile Editor** resume upload card → `articleId: "resume-parsing"`
+- **Cover Letters** generate dialog header → `articleId: "cover-letter-generator"`
+- **Target Companies** page header → `articleId: "target-companies"`
+- **Network Map** page header → `articleId: "network-map"`
+- **Pipeline (Jobs)** page header → `articleId: "pipeline-stages"`
+- **Skills Insights** header → `articleId: "skills-insights"`
+- **Job Boards** page (near gated boards section) → `articleId: "gated-job-boards"`
+- **Schedule (Interviews)** header → `articleId: "scheduling-interviews"`
+- **Getting Started** below the hero → small "Browse all help articles" link calling `openHelp()`
+
+### 5. Mobile
+
+Sheet already responsive. Sidebar Help button works from mobile menu. `HelpHint` icons render inline next to page titles on mobile too.
+
+### Files to create
+- `src/lib/helpContent.ts`
+- `src/components/help/HelpProvider.tsx` (context + provider)
+- `src/components/help/HelpCenter.tsx` (Sheet UI with search)
+- `src/components/help/HelpHint.tsx` (inline `?` trigger)
+
+### Files to edit
+- `src/pages/Index.tsx` — wrap children in `HelpProvider`, render `HelpCenter`
+- `src/components/AppSidebar.tsx` — add "Help & Resources" button
+- 9 page files listed above — add `<HelpHint />` next to relevant headers/sections
+- `src/pages/GettingStarted.tsx` — add "Browse all help articles" link
 
 ### Out of scope
-- No changes to the shared `Progress` component (custom inline bar lives in the banner only, so other usages are untouched).
-- No changes to the underlying scoring logic (still 5 fields, still equal weight).
+- No AI-powered help search (deterministic substring search keeps it fast and offline).
+- No persistence of "viewed articles" — can be added later if useful.
+- No external knowledge base integration; everything lives in code so it ships with the app and stays in version control.
