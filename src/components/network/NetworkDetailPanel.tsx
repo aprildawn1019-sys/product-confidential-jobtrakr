@@ -1,4 +1,4 @@
-import { X, ExternalLink, Calendar, MessageSquare } from "lucide-react";
+import { X, ExternalLink, Calendar, MessageSquare, Crosshair } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NETWORK_ROLES, RELATIONSHIP_LABELS } from "@/types/jobTracker";
@@ -25,12 +25,29 @@ interface NetworkDetailPanelProps {
   linkedContacts: Contact[];
   onClose: () => void;
   onNavigate: (path: string) => void;
+  /** Re-center the radial graph on this node (switches layout to Focus). */
+  onCenterNode?: () => void;
+  /** True when this node is already the active focal point. */
+  isCentered?: boolean;
 }
 
 export default function NetworkDetailPanel({
-  type, data, activities, connections, recommendations, linkedJobs, linkedContacts, onClose, onNavigate,
+  type, data, activities, connections, recommendations, linkedJobs, linkedContacts, onClose, onNavigate, onCenterNode, isCentered,
 }: Omit<NetworkDetailPanelProps, "contacts" | "jobs">) {
   if (!data) return null;
+
+  const centerButton = onCenterNode ? (
+    <Button
+      size="sm"
+      variant={isCentered ? "secondary" : "default"}
+      className="w-full text-xs gap-1"
+      onClick={onCenterNode}
+      disabled={isCentered}
+    >
+      <Crosshair className="h-3 w-3" />
+      {isCentered ? "Centered in Focus mode" : "Center on this node"}
+    </Button>
+  ) : null;
 
   return (
     <div className="absolute right-0 top-0 h-full w-80 border-l border-border bg-card z-20 overflow-y-auto shadow-lg">
@@ -114,6 +131,7 @@ export default function NetworkDetailPanel({
               </div>
             )}
 
+            {centerButton}
             <Button size="sm" variant="outline" className="w-full text-xs gap-1" onClick={() => onNavigate(`/contacts?highlight=${data.id}`)}>
               <ExternalLink className="h-3 w-3" /> View Full Profile
             </Button>
@@ -151,6 +169,7 @@ export default function NetworkDetailPanel({
               </div>
             )}
 
+            {centerButton}
             {data.targetId && (
               <Button size="sm" variant="outline" className="w-full text-xs gap-1" onClick={() => onNavigate("/target-companies")}>
                 <ExternalLink className="h-3 w-3" /> View Target Company
@@ -181,6 +200,7 @@ export default function NetworkDetailPanel({
               </div>
             )}
 
+            {centerButton}
             <Button size="sm" variant="outline" className="w-full text-xs gap-1" onClick={() => onNavigate(`/jobs/${data.id}`)}>
               <ExternalLink className="h-3 w-3" /> View Job CRM
             </Button>

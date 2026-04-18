@@ -27,6 +27,7 @@ import { toPng } from "html-to-image";
 import { toast } from "sonner";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest, ContactActivity } from "@/types/jobTracker";
 import HelpHint from "@/components/help/HelpHint";
+import { Crosshair } from "lucide-react";
 
 const nodeTypes = {
   contactNode: ContactNode,
@@ -83,11 +84,13 @@ function NetworkMapInner(props: NetworkMapProps) {
   const toggleHideDimmed = useCallback(() => updateParam("hd", hideDimmed ? "0" : "1", "0"), [updateParam, hideDimmed]);
   const setLayoutMode = useCallback((m: NetworkLayoutMode) => updateParam("layout", m, "overview"), [updateParam]);
 
-  const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any } | null>(null);
+  const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any; nodeId: string } | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; targetId: string; sourceName: string; targetName: string } | null>(null);
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [manualCenterId, setManualCenterId] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string; label: string } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Pre-compute search-derived center node id (best match) so radial layout can re-center on it.
@@ -106,6 +109,19 @@ function NetworkMapInner(props: NetworkMapProps) {
     return null;
   }, [searchQuery, props.contacts, props.jobs]);
 
+  // Manual center (set via context menu or detail panel) wins over search-derived center.
+  const effectiveCenterId = manualCenterId ?? searchCenterId;
+
+  // Promote to Focus mode whenever the user explicitly centers on a node.
+  const centerOnNode = useCallback((nodeId: string) => {
+    setManualCenterId(nodeId);
+    setContextMenu(null);
+    if (layoutMode !== "focus") {
+      updateParam("layout", "focus", "overview");
+    }
+    toast.success("Centered on node — Focus mode active");
+  }, [layoutMode, updateParam]);
+
   const graphData = useNetworkGraph({
     contacts: props.contacts,
     jobs: props.jobs,
@@ -119,7 +135,7 @@ function NetworkMapInner(props: NetworkMapProps) {
     filterWarmth,
     filterRole,
     layoutMode,
-    centerNodeId: searchCenterId,
+    centerNodeId: effectiveCenterId,
   });
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
@@ -204,6 +220,8 @@ function NetworkMapInner(props: NetworkMapProps) {
   const handleReset = useCallback(() => {
     setSearchParams(new URLSearchParams(), { replace: true });
     setSelectedNode(null);
+    setManualCenterId(null);
+    setContextMenu(null);
   }, [setSearchParams]);
 
   const handleExport = useCallback(async () => {
@@ -242,16 +260,28 @@ function NetworkMapInner(props: NetworkMapProps) {
 
   const onNodeClick: NodeMouseHandler = useCallback((_event, node) => {
     const d = node.data as any;
+    setContextMenu(null);
     if (node.type === "contactNode") {
       const contact = props.contacts.find(c => c.id === d.id);
-      setSelectedNode({ type: "contact", data: { ...d, ...contact } });
+      setSelectedNode({ type: "contact", data: { ...d, ...contact }, nodeId: node.id });
     } else if (node.type === "companyNode") {
-      setSelectedNode({ type: "company", data: d });
+      setSelectedNode({ type: "company", data: d, nodeId: node.id });
     } else if (node.type === "jobNode") {
       const job = props.jobs.find(j => j.id === d.id);
-      setSelectedNode({ type: "job", data: { ...d, ...job } });
+      setSelectedNode({ type: "job", data: { ...d, ...job }, nodeId: node.id });
     }
   }, [props.contacts, props.jobs]);
+
+  // Right-click on a node → custom context menu anchored at cursor.
+  const onNodeContextMenu = useCallback((event: React.MouseEvent, node: { id: string; data: unknown }) => {
+    event.preventDefault();
+    const rect = containerRef.current?.getBoundingClientRect();
+    const x = event.clientX - (rect?.left ?? 0);
+    const y = event.clientY - (rect?.top ?? 0);
+    const d = node.data as any;
+    const label = d?.label ?? "this node";
+    setContextMenu({ x, y, nodeId: node.id, label });
+  }, []);
 
   const onNodeDoubleClick: NodeMouseHandler = useCallback((_event, node) => {
     const d = node.data as any;
@@ -308,6 +338,7 @@ function NetworkMapInner(props: NetworkMapProps) {
 
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
+    setContextMenu(null);
     setTooltip(t => ({ ...t, visible: false }));
   }, []);
 
@@ -406,9 +437,11 @@ function NetworkMapInner(props: NetworkMapProps) {
             nodeTypes={nodeTypes}
             onNodeClick={onNodeClick}
             onNodeDoubleClick={onNodeDoubleClick}
+            onNodeContextMenu={onNodeContextMenu}
             onNodeMouseEnter={onNodeMouseEnter}
             onNodeMouseLeave={onNodeMouseLeave}
             onPaneClick={onPaneClick}
+            onPaneContextMenu={() => setContextMenu(null)}
             fitView
             minZoom={0.01}
             maxZoom={2}
@@ -442,7 +475,39 @@ function NetworkMapInner(props: NetworkMapProps) {
             linkedContacts={detailLinkedContacts}
             onClose={() => setSelectedNode(null)}
             onNavigate={(path) => navigate(path)}
+            onCenterNode={() => centerOnNode(selectedNode.nodeId)}
+            isCentered={effectiveCenterId === selectedNode.nodeId && layoutMode === "focus"}
           />
+        )}
+
+        {contextMenu && (
+          <>
+            {/* Click-away catcher */}
+            <div
+              className="absolute inset-0 z-30"
+              onClick={() => setContextMenu(null)}
+              onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }}
+            />
+            <div
+              className="absolute z-40 min-w-[200px] rounded-md border border-border bg-popover text-popover-foreground shadow-md py-1 animate-in fade-in zoom-in-95"
+              style={{ left: contextMenu.x, top: contextMenu.y }}
+              data-network-export-exclude="true"
+            >
+              <button
+                type="button"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-accent text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={effectiveCenterId === contextMenu.nodeId && layoutMode === "focus"}
+                onClick={() => centerOnNode(contextMenu.nodeId)}
+              >
+                <Crosshair className="h-3.5 w-3.5" />
+                <span className="truncate">
+                  {effectiveCenterId === contextMenu.nodeId && layoutMode === "focus"
+                    ? "Already centered"
+                    : `Center on ${contextMenu.label}`}
+                </span>
+              </button>
+            </div>
+          </>
         )}
 
         <ConnectionDialog
