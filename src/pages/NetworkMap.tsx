@@ -26,6 +26,7 @@ import NetworkSearch from "@/components/network/NetworkSearch";
 import { toPng } from "html-to-image";
 import { toast } from "sonner";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest, ContactActivity } from "@/types/jobTracker";
+import HelpHint from "@/components/help/HelpHint";
 
 const nodeTypes = {
   contactNode: ContactNode,
