@@ -83,11 +83,13 @@ function NetworkMapInner(props: NetworkMapProps) {
   const toggleHideDimmed = useCallback(() => updateParam("hd", hideDimmed ? "0" : "1", "0"), [updateParam, hideDimmed]);
   const setLayoutMode = useCallback((m: NetworkLayoutMode) => updateParam("layout", m, "overview"), [updateParam]);
 
-  const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any } | null>(null);
+  const [selectedNode, setSelectedNode] = useState<{ type: "contact" | "company" | "job"; data: any; nodeId: string } | null>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; targetId: string; sourceName: string; targetName: string } | null>(null);
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [manualCenterId, setManualCenterId] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string; label: string } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Pre-compute search-derived center node id (best match) so radial layout can re-center on it.
