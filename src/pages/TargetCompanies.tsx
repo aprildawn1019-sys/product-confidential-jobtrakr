@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import CompanyAvatar from "@/components/CompanyAvatar";
+import HelpHint from "@/components/help/HelpHint";
 import DuplicateCompaniesDialog from "@/components/targetcompanies/DuplicateCompaniesDialog";
 import { detectDuplicateClusters } from "@/components/targetcompanies/duplicateDetection";
 import { companiesMatch } from "@/stores/jobTrackerStore";
@@ -120,6 +121,7 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <Star className="h-6 w-6 text-amber-500" />
             Target Companies
+            <HelpHint articleId="target-companies" />
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Build your dream employer shortlist and track your pipeline per company.</p>
         </div>

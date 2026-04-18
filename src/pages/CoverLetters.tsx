@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import HelpHint from "@/components/help/HelpHint";
 import CompanyAvatar from "@/components/CompanyAvatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import type { Job } from "@/types/jobTracker";
@@ -224,6 +225,7 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <FileText className="h-6 w-6 text-primary" />
             Cover Letters
+            <HelpHint articleId="cover-letter-generator" />
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Generate, view, and manage all your cover letters.

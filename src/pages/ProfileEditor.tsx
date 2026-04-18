@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Save, Plus, X, Upload, FileText } from "lucide-react";
+import HelpHint from "@/components/help/HelpHint";
 
 function TagInput({ value, onChange, placeholder }: { value: string[]; onChange: (v: string[]) => void; placeholder?: string }) {
   const [input, setInput] = useState("");
@@ -270,6 +271,7 @@ export default function ProfileEditor() {
           <h2 className="font-display font-semibold text-lg flex items-center gap-2">
             <FileText className="h-5 w-5" />
             Resume / CV
+            <HelpHint articleId="resume-parsing" />
           </h2>
           <p className="text-sm text-muted-foreground">Upload your resume or paste the text to auto-fill your profile fields using AI.</p>
 

@@ -17,6 +17,7 @@ import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { Job, Contact, TargetCompany } from "@/types/jobTracker";
+import HelpHint from "@/components/help/HelpHint";
 
 interface SearchParams {
   resultCount: number;
