@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert, Building2, FileText } from "lucide-react";
+import HelpHint from "@/components/help/HelpHint";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import MatchScoreStars from "@/components/MatchScoreStars";
 import PriorityBadge from "@/components/PriorityBadge";
@@ -320,7 +321,10 @@ export default function Jobs({
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
             <div>
-              <h1 className="font-display text-3xl font-bold tracking-tight">Job Pipeline</h1>
+              <h1 className="font-display text-3xl font-bold tracking-tight flex items-center gap-2">
+                Job Pipeline
+                <HelpHint articleId="pipeline-stages" />
+              </h1>
               <p className="mt-1 text-muted-foreground">{filteredJobs.length} of {jobs.length} positions</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
