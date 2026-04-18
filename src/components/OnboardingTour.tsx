@@ -80,7 +80,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       route: "/getting-started",
     },
     {
-      target: '[data-tour="entry-network"]',
+      target: '[data-tour="entry-card-network"]',
       title: "Have a strong network?",
       content:
         "Prefer relationship-driven searches? Add contacts, log conversations, and let opportunities surface from your network.",
