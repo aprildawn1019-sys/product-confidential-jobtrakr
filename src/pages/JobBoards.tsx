@@ -19,6 +19,13 @@ interface JobBoard {
   is_gated: boolean;
   public_url: string | null;
   gate_checked_at: string | null;
+  target_company_id: string | null;
+}
+
+interface TargetCompanyOption {
+  id: string;
+  name: string;
+  careers_url: string | null;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -46,18 +53,37 @@ const RECOMMENDED_BOARDS = [
 
 export default function JobBoards() {
   const [boards, setBoards] = useState<JobBoard[]>([]);
+  const [targetCompanies, setTargetCompanies] = useState<TargetCompanyOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [testing, setTesting] = useState(false);
   const [newBoard, setNewBoard] = useState({ name: "", url: "", category: "general", notes: "" });
+  const [linkingBoard, setLinkingBoard] = useState<JobBoard | null>(null);
+  const [linkSelection, setLinkSelection] = useState<string>("");
 
-  useEffect(() => { loadBoards(); }, []);
+  useEffect(() => {
+    loadBoards();
+    loadTargetCompanies();
+  }, []);
 
   const loadBoards = async () => {
     const { data } = await supabase.from("job_boards").select("*").order("is_active", { ascending: false }).order("name");
     if (data) setBoards(data as unknown as JobBoard[]);
     setLoading(false);
   };
+
+  const loadTargetCompanies = async () => {
+    const { data } = await supabase
+      .from("target_companies")
+      .select("id, name, careers_url")
+      .order("name");
+    if (data) setTargetCompanies(data as TargetCompanyOption[]);
+  };
+
+  const targetCompanyNames: Record<string, string> = targetCompanies.reduce(
+    (acc, c) => ({ ...acc, [c.id]: c.name }),
+    {},
+  );
 
   const toggleActive = async (board: JobBoard) => {
     const { error } = await supabase.from("job_boards").update({ is_active: !board.is_active } as any).eq("id", board.id);
@@ -140,6 +166,52 @@ export default function JobBoards() {
       ));
       toast({ title: "URL updated", description: `${board.name} switched to public URL.` });
     }
+  };
+
+  const openLinkDialog = (board: JobBoard) => {
+    setLinkingBoard(board);
+    setLinkSelection(board.target_company_id ?? "");
+  };
+
+  const handleConfirmLink = async () => {
+    if (!linkingBoard || !linkSelection) return;
+    const board = linkingBoard;
+    const newId = linkSelection;
+    const { error } = await supabase
+      .from("job_boards")
+      .update({ target_company_id: newId } as any)
+      .eq("id", board.id);
+    if (error) {
+      toast({ title: "Couldn't link board", description: error.message, variant: "destructive" });
+      return;
+    }
+    setBoards(prev =>
+      prev.map(b => (b.id === board.id ? { ...b, target_company_id: newId } : b)),
+    );
+    const company = targetCompanies.find(c => c.id === newId);
+    toast({
+      title: "Board linked",
+      description: company
+        ? `${board.name} flagged as the careers page for ${company.name}.`
+        : `${board.name} linked to a target company.`,
+    });
+    setLinkingBoard(null);
+    setLinkSelection("");
+  };
+
+  const handleUnlinkTargetCompany = async (board: JobBoard) => {
+    const { error } = await supabase
+      .from("job_boards")
+      .update({ target_company_id: null } as any)
+      .eq("id", board.id);
+    if (error) {
+      toast({ title: "Couldn't unlink board", description: error.message, variant: "destructive" });
+      return;
+    }
+    setBoards(prev =>
+      prev.map(b => (b.id === board.id ? { ...b, target_company_id: null } : b)),
+    );
+    toast({ title: "Board unlinked", description: `${board.name} no longer flagged as a careers page.` });
   };
 
   const handleTestAllBoards = async () => {
@@ -324,9 +396,12 @@ export default function JobBoards() {
             key={board.id}
             board={board}
             categoryLabels={CATEGORY_LABELS}
+            targetCompanyNames={targetCompanyNames}
             onToggle={toggleActive}
             onDelete={handleDelete}
             onUsePublicUrl={handleUsePublicUrl}
+            onLinkTargetCompany={openLinkDialog}
+            onUnlinkTargetCompany={handleUnlinkTargetCompany}
           />
         ))}
       </div>
@@ -340,14 +415,79 @@ export default function JobBoards() {
               key={board.id}
               board={board}
               categoryLabels={CATEGORY_LABELS}
+              targetCompanyNames={targetCompanyNames}
               onToggle={toggleActive}
               onDelete={handleDelete}
               onUsePublicUrl={handleUsePublicUrl}
+              onLinkTargetCompany={openLinkDialog}
+              onUnlinkTargetCompany={handleUnlinkTargetCompany}
               inactive
             />
           ))}
         </div>
       )}
+
+      {/* Link board to target company dialog */}
+      <Dialog
+        open={!!linkingBoard}
+        onOpenChange={(open) => {
+          if (!open) {
+            setLinkingBoard(null);
+            setLinkSelection("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              Flag as a careers page
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Link <span className="font-medium text-foreground">{linkingBoard?.name}</span> to a target company so it shows up as that company's careers page across the app.
+            </p>
+            {targetCompanies.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+                You don't have any target companies yet. Add some on the <span className="font-medium text-foreground">Target Companies</span> page first.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>Target company</Label>
+                <Select value={linkSelection} onValueChange={setLinkSelection}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a target company" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {targetCompanies.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setLinkingBoard(null);
+                  setLinkSelection("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmLink}
+                disabled={!linkSelection || targetCompanies.length === 0}
+              >
+                Save link
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
