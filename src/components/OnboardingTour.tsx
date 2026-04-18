@@ -62,7 +62,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       route: "/getting-started",
     },
     {
-      target: '[data-tour="entry-profile"]',
+      target: '[data-tour="entry-card-profile"]',
       title: "Start with your profile",
       content:
         "Add your target roles, skills, locations, and comp expectations. Your profile powers job matching, recommendations, and AI-generated cover letters across Jobtrakr.",
@@ -71,7 +71,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       route: "/getting-started",
     },
     {
-      target: '[data-tour="entry-job-search"]',
+      target: '[data-tour="entry-card-job-search"]',
       title: "Know the role you want?",
       content:
         "Start here if you already know the kind of role you want. AI Job Search, Job Boards, and Bulk Import all feed directly into your tracker.",
@@ -80,7 +80,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       route: "/getting-started",
     },
     {
-      target: '[data-tour="entry-network"]',
+      target: '[data-tour="entry-card-network"]',
       title: "Have a strong network?",
       content:
         "Prefer relationship-driven searches? Add contacts, log conversations, and let opportunities surface from your network.",
@@ -89,7 +89,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       route: "/getting-started",
     },
     {
-      target: '[data-tour="entry-target-companies"]',
+      target: '[data-tour="entry-card-target-companies"]',
       title: "Land your dream company",
       content:
         "Have a dream-employer shortlist? Add them here, set priorities, then discover roles and contacts within each company.",

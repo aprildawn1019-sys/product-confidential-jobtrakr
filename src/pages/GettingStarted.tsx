@@ -118,7 +118,7 @@ export default function GettingStarted({
         tone: "neutral",
         featured: profileIncomplete,
         note: profileIncomplete ? "Best first step if your search profile is still incomplete." : undefined,
-        tourId: "entry-profile",
+        tourId: "entry-card-profile",
       },
       {
         number: "02",
@@ -131,7 +131,7 @@ export default function GettingStarted({
         route: "/job-search",
         icon: Search,
         tone: "info",
-        tourId: "entry-job-search",
+        tourId: "entry-card-job-search",
         note: profileIncomplete ? "Results sharpen when your profile is fully filled out." : undefined,
       },
       {
@@ -145,7 +145,7 @@ export default function GettingStarted({
         route: "/contacts",
         icon: Users,
         tone: "success",
-        tourId: "entry-network",
+        tourId: "entry-card-network",
       },
       {
         number: "04",
@@ -158,7 +158,7 @@ export default function GettingStarted({
         route: "/target-companies",
         icon: Star,
         tone: "warning",
-        tourId: "entry-target-companies",
+        tourId: "entry-card-target-companies",
       },
     ],
     [profileIncomplete],
