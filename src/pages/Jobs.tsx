@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert, Building2, FileText, Download } from "lucide-react";
-import { downloadJobsCsv } from "@/lib/jobsCsvExport";
+import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert, Building2, FileText } from "lucide-react";
 import HelpHint from "@/components/help/HelpHint";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import MatchScoreStars from "@/components/MatchScoreStars";
@@ -338,28 +337,6 @@ export default function Jobs({
                   <Kanban className="h-4 w-4" />
                 </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 gap-1.5"
-                onClick={() => {
-                  if (filteredJobs.length === 0) {
-                    toast({ title: "No jobs to export", description: "Adjust filters to include at least one job." });
-                    return;
-                  }
-                  const count = downloadJobsCsv({
-                    jobs: filteredJobs,
-                    interviews,
-                    getContactsForJob,
-                    getJobActivitiesForJob,
-                    getTargetForJob,
-                  });
-                  toast({ title: "Export ready", description: `${count} job${count === 1 ? "" : "s"} exported to CSV.` });
-                }}
-              >
-                <Download className="h-4 w-4" />
-                Export CSV
-              </Button>
               <BulkJobUploadDialog onAddJobs={onAddBulk} existingJobs={jobs} />
               <AddJobDialog onAdd={onAdd} contacts={contacts} />
             </div>

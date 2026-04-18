@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
-import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown, Download } from "lucide-react";
+import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,7 @@ import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
 import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact } from "@/types/jobTracker";
 import { RELATIONSHIP_LABELS } from "@/types/jobTracker";
-import { downloadContactsCsv } from "@/lib/contactsCsvExport";
+
 
 import { useToast } from "@/hooks/use-toast";
 
@@ -743,30 +743,6 @@ export default function Contacts({
           </div>
           <Button variant={showCampaigns ? "secondary" : "outline"} size="sm" onClick={() => setShowCampaigns(!showCampaigns)}>
             <Megaphone className="h-4 w-4 mr-1" />Campaigns
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (filteredContacts.length === 0) {
-                toast({ title: "Nothing to export", description: "No contacts match the current filters." });
-                return;
-              }
-              const count = downloadContactsCsv({
-                contacts: filteredContacts,
-                campaigns,
-                jobs,
-                getConnectionsForContact,
-                getActivitiesForContact,
-                getCampaignsForContact,
-                getJobsForContact,
-                getRecommendationRequestsForContact,
-              });
-              toast({ title: "Export ready", description: `Downloaded ${count} contact${count === 1 ? "" : "s"} as CSV.` });
-            }}
-            title="Download visible contacts as CSV (respects current filters)"
-          >
-            <Download className="h-4 w-4 mr-1" />Export CSV
           </Button>
           <BulkContactUploadDialog onAddBulk={onAddBulk} existingContacts={contacts} />
           <LinkedInImportDialog onImport={onAddBulk} existingContacts={contacts} />
