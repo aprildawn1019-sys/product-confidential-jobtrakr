@@ -71,7 +71,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       route: "/getting-started",
     },
     {
-      target: '[data-tour="entry-job-search"]',
+      target: '[data-tour="entry-card-job-search"]',
       title: "Know the role you want?",
       content:
         "Start here if you already know the kind of role you want. AI Job Search, Job Boards, and Bulk Import all feed directly into your tracker.",
