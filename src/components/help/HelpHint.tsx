@@ -1,4 +1,3 @@
-import { HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useHelp } from "./HelpProvider";
@@ -36,7 +35,7 @@ export default function HelpHint({ articleId, label, className }: HelpHintProps)
               className,
             )}
           >
-            <HelpCircle className="h-4 w-4" />
+            <span aria-hidden="true" className="text-sm font-semibold leading-none">?</span>
           </button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs">
