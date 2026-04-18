@@ -19,6 +19,8 @@ interface UseNetworkGraphParams {
   filterWarmth: string;
   filterRole: string;
   layoutMode?: NetworkLayoutMode;
+  /** Optional explicit center node id for radial mode (overrides focus-derived center). */
+  centerNodeId?: string | null;
 }
 
 /**
@@ -29,7 +31,7 @@ interface UseNetworkGraphParams {
  * larger outer ring (or packed in a grid for many clusters) so that text
  * never overlaps. Orphan nodes (no company) wrap on an inner ring at (0,0).
  */
-function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, string[]>, mode: NetworkLayoutMode = "radial") {
+function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, string[]>, mode: NetworkLayoutMode = "radial", centerNodeId: string | null = null) {
   const positions = new Map<string, { x: number; y: number }>();
 
   // Approximate visual footprint of each node type (width × height incl. labels)
@@ -183,37 +185,90 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
   }
   // -------- Radial (default) — single outer ring with auto-fallback to grid for huge graphs --------
   else {
-    const USE_GRID_THRESHOLD = 12;
-    if (n > USE_GRID_THRESHOLD) {
-      // Large datasets: radial single ring becomes unreadable → fall back to grid.
-      const footprints = sortedCompanies.map(id => 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD));
-      const sorted = [...footprints].sort((a, b) => a - b);
-      const median = sorted[Math.floor(sorted.length / 2)] || 260;
-      const cellSize = Math.max(260, Math.min(420, median));
-      const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
-      sortedCompanies.forEach((compId, i) => {
-        const row = Math.floor(i / cols);
-        const col = i % cols;
-        const cx = (col - (cols - 1) / 2) * cellSize;
-        const rows = Math.ceil(n / cols);
-        const cy = (row - (rows - 1) / 2) * cellSize;
-        positions.set(compId, { x: cx, y: cy });
-        const children = companyNodeMap.get(compId) ?? [];
-        placeChildren(cx, cy, children);
+    // If a center node is specified (from search/focus), build a focus-centered radial layout:
+    // center node at origin, 1-hop neighbors on inner ring, 2-hop on outer ring, others on far ring.
+    if (centerNodeId && nodes.some(n => n.id === centerNodeId)) {
+      const adjacency = new Map<string, Set<string>>();
+      nodes.forEach(n => adjacency.set(n.id, new Set()));
+      edges.forEach(e => {
+        adjacency.get(e.source)?.add(e.target);
+        adjacency.get(e.target)?.add(e.source);
       });
+
+      // BFS to assign hop distances from center
+      const hop = new Map<string, number>();
+      hop.set(centerNodeId, 0);
+      const queue: string[] = [centerNodeId];
+      while (queue.length) {
+        const cur = queue.shift()!;
+        const d = hop.get(cur)!;
+        adjacency.get(cur)?.forEach(nbr => {
+          if (!hop.has(nbr)) {
+            hop.set(nbr, d + 1);
+            queue.push(nbr);
+          }
+        });
+      }
+
+      // Group by hop level (cap at 3; everything further goes on outer ring)
+      const rings: string[][] = [[], [], [], []];
+      nodes.forEach(n => {
+        if (n.id === centerNodeId) return;
+        const d = hop.get(n.id);
+        const lvl = d == null ? 3 : Math.min(3, d);
+        rings[lvl].push(n.id);
+      });
+
+      // Place center
+      positions.set(centerNodeId, { x: 0, y: 0 });
+
+      // Place each ring at increasing radius, evenly spaced
+      const BASE_R = 220;
+      const RING_STEP = 200;
+      for (let lvl = 1; lvl <= 3; lvl++) {
+        const ids = rings[lvl];
+        if (ids.length === 0) continue;
+        const chord = NODE_W.child + LABEL_PAD;
+        const minR = ids.length === 1 ? 0 : chord / (2 * Math.sin(Math.PI / ids.length));
+        const r = Math.max(BASE_R + (lvl - 1) * RING_STEP, minR);
+        ids.forEach((id, i) => {
+          const angle = (2 * Math.PI * i) / ids.length - Math.PI / 2;
+          positions.set(id, { x: Math.cos(angle) * r, y: Math.sin(angle) * r });
+        });
+      }
     } else {
-      const totalDemand = sortedCompanies.reduce(
-        (sum, id) => sum + 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD),
-        0,
-      );
-      const outerRadius = Math.max(360, totalDemand / (2 * Math.PI) + 80);
-      sortedCompanies.forEach((compId, i) => {
-        const cx = n <= 1 ? 0 : Math.cos((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
-        const cy = n <= 1 ? 0 : Math.sin((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
-        positions.set(compId, { x: cx, y: cy });
-        const children = companyNodeMap.get(compId) ?? [];
-        placeChildren(cx, cy, children);
-      });
+      const USE_GRID_THRESHOLD = 12;
+      if (n > USE_GRID_THRESHOLD) {
+        // Large datasets: radial single ring becomes unreadable → fall back to grid.
+        const footprints = sortedCompanies.map(id => 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD));
+        const sorted = [...footprints].sort((a, b) => a - b);
+        const median = sorted[Math.floor(sorted.length / 2)] || 260;
+        const cellSize = Math.max(260, Math.min(420, median));
+        const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
+        sortedCompanies.forEach((compId, i) => {
+          const row = Math.floor(i / cols);
+          const col = i % cols;
+          const cx = (col - (cols - 1) / 2) * cellSize;
+          const rows = Math.ceil(n / cols);
+          const cy = (row - (rows - 1) / 2) * cellSize;
+          positions.set(compId, { x: cx, y: cy });
+          const children = companyNodeMap.get(compId) ?? [];
+          placeChildren(cx, cy, children);
+        });
+      } else {
+        const totalDemand = sortedCompanies.reduce(
+          (sum, id) => sum + 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD),
+          0,
+        );
+        const outerRadius = Math.max(360, totalDemand / (2 * Math.PI) + 80);
+        sortedCompanies.forEach((compId, i) => {
+          const cx = n <= 1 ? 0 : Math.cos((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
+          const cy = n <= 1 ? 0 : Math.sin((2 * Math.PI * i) / n - Math.PI / 2) * outerRadius;
+          positions.set(compId, { x: cx, y: cy });
+          const children = companyNodeMap.get(compId) ?? [];
+          placeChildren(cx, cy, children);
+        });
+      }
     }
   }
 
@@ -242,7 +297,7 @@ function getLayout(nodes: Node[], _edges: Edge[], companyNodeMap: Map<string, st
 }
 
 export function useNetworkGraph(params: UseNetworkGraphParams) {
-  const { contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode = "radial" } = params;
+  const { contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode = "radial", centerNodeId = null } = params;
 
   return useMemo(() => {
     const nodes: Node[] = [];
@@ -491,9 +546,18 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
       });
     }
 
-    // Layout
-    const layoutNodes = getLayout(nodes, edges, companyChildMap, layoutMode);
+    // Layout — derive a center node id for radial mode from explicit param or focus filters.
+    let resolvedCenter: string | null = centerNodeId;
+    if (!resolvedCenter && layoutMode === "radial") {
+      if (focusContact && focusContact !== "all") {
+        resolvedCenter = `contact-${focusContact}`;
+      } else if (focusCompany && focusCompany !== "all") {
+        const compId = companyNodes.get(focusCompany.toLowerCase().trim());
+        if (compId) resolvedCenter = compId;
+      }
+    }
+    const layoutNodes = getLayout(nodes, edges, companyChildMap, layoutMode, resolvedCenter);
 
     return { nodes: layoutNodes, edges };
-  }, [contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode]);
+  }, [contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode, centerNodeId]);
 }

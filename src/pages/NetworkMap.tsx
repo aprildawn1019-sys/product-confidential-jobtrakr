@@ -90,6 +90,22 @@ function NetworkMapInner(props: NetworkMapProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Pre-compute search-derived center node id (best match) so radial layout can re-center on it.
+  const searchCenterId = useMemo<string | null>(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return null;
+    // Prefer exact contact match, then company, then job; fall back to first partial.
+    const contact = props.contacts.find(c => c.name.toLowerCase() === q)
+      ?? props.contacts.find(c => c.name.toLowerCase().includes(q));
+    if (contact) return `contact-${contact.id}`;
+    const companyName = props.contacts.map(c => c.company).find(name => name?.toLowerCase().trim() === q)
+      ?? props.contacts.map(c => c.company).find(name => name?.toLowerCase().includes(q));
+    if (companyName) return `company-${companyName.toLowerCase().trim()}`;
+    const job = props.jobs.find(j => j.title.toLowerCase().includes(q));
+    if (job) return `job-${job.id}`;
+    return null;
+  }, [searchQuery, props.contacts, props.jobs]);
+
   const graphData = useNetworkGraph({
     contacts: props.contacts,
     jobs: props.jobs,
@@ -103,6 +119,7 @@ function NetworkMapInner(props: NetworkMapProps) {
     filterWarmth,
     filterRole,
     layoutMode,
+    centerNodeId: searchCenterId,
   });
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
