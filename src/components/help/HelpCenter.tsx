@@ -17,36 +17,62 @@ import {
 interface HelpCenterProps {
   open: boolean;
   initialArticleId: string | null;
+  initialRoute?: string | null;
   onOpenChange: (open: boolean) => void;
 }
 
-export default function HelpCenter({ open, initialArticleId, onOpenChange }: HelpCenterProps) {
+function routeMatches(article: HelpArticle, pathname: string): boolean {
+  if (!article.relatedRoutes || article.relatedRoutes.length === 0) return false;
+  return article.relatedRoutes.some((route) => {
+    if (route === pathname) return true;
+    // Treat "/jobs" as matching "/jobs/123" etc.
+    return pathname.startsWith(route + "/");
+  });
+}
+
+export default function HelpCenter({ open, initialArticleId, initialRoute, onOpenChange }: HelpCenterProps) {
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<HelpCategory | "All">("All");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [routeFilter, setRouteFilter] = useState<string | null>(null);
   const articleRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // When opened with a specific article, expand it and scroll to it.
+  // When opened with no article but with a route, pre-filter to route-relevant articles.
   useEffect(() => {
     if (!open) return;
     if (initialArticleId) {
       setExpandedId(initialArticleId);
       setQuery("");
       setActiveCategory("All");
+      setRouteFilter(null);
       requestAnimationFrame(() => {
         const node = articleRefs.current[initialArticleId];
         node?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
+    } else if (initialRoute) {
+      // Only apply route pre-filter if at least one article matches; otherwise show all.
+      const hasMatch = HELP_ARTICLES.some((a) => routeMatches(a, initialRoute));
+      setRouteFilter(hasMatch ? initialRoute : null);
+      setQuery("");
+      setActiveCategory("All");
+      setExpandedId(null);
     }
-  }, [open, initialArticleId]);
+  }, [open, initialArticleId, initialRoute]);
 
   const filtered = useMemo<HelpArticle[]>(() => {
     let results = searchHelpArticles(query);
     if (activeCategory !== "All") {
       results = results.filter((a) => a.category === activeCategory);
     }
+    // Route pre-filter only applies when the user hasn't started searching or chosen a category.
+    if (routeFilter && !query.trim() && activeCategory === "All") {
+      results = results.filter((a) => routeMatches(a, routeFilter));
+    }
     return results;
-  }, [query, activeCategory]);
+  }, [query, activeCategory, routeFilter]);
+
+  const routeFilterActive = Boolean(routeFilter) && !query.trim() && activeCategory === "All";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
