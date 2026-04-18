@@ -27,6 +27,7 @@ import { toPng } from "html-to-image";
 import { toast } from "sonner";
 import type { Contact, Job, TargetCompany, ContactConnection, JobContact, RecommendationRequest, ContactActivity } from "@/types/jobTracker";
 import HelpHint from "@/components/help/HelpHint";
+import { Crosshair } from "lucide-react";
 
 const nodeTypes = {
   contactNode: ContactNode,
