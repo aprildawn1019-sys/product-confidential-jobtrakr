@@ -18,6 +18,7 @@ import InterviewsPage from "@/pages/Interviews";
 import TargetCompanies from "@/pages/TargetCompanies";
 import CoverLetters from "@/pages/CoverLetters";
 import GettingStarted from "@/pages/GettingStarted";
+import { HelpProvider } from "@/components/help/HelpProvider";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ export default function Index() {
   }, []);
 
   return (
+    <HelpProvider>
     <div className="flex min-h-screen bg-background">
       <OnboardingTour run={tourRunning} onFinish={() => setTourRunning(false)} />
       <ResumeTourBanner tourRunning={tourRunning} />
@@ -204,5 +206,6 @@ export default function Index() {
         </Routes>
       </main>
     </div>
+    </HelpProvider>
   );
 }
