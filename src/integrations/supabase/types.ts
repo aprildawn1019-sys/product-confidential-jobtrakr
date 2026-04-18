@@ -460,6 +460,7 @@ export type Database = {
           name: string
           notes: string | null
           public_url: string | null
+          target_company_id: string | null
           url: string | null
           user_id: string | null
         }
@@ -473,6 +474,7 @@ export type Database = {
           name: string
           notes?: string | null
           public_url?: string | null
+          target_company_id?: string | null
           url?: string | null
           user_id?: string | null
         }
@@ -486,10 +488,19 @@ export type Database = {
           name?: string
           notes?: string | null
           public_url?: string | null
+          target_company_id?: string | null
           url?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "job_boards_target_company_id_fkey"
+            columns: ["target_company_id"]
+            isOneToOne: false
+            referencedRelation: "target_companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_contacts: {
         Row: {
