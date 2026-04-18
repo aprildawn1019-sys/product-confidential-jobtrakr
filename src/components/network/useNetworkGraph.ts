@@ -501,9 +501,9 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
       });
     }
 
-    // Layout — derive a center node id for radial mode from explicit param or focus filters.
+    // Layout — in focus mode, derive a center node id from explicit param or focus filters.
     let resolvedCenter: string | null = centerNodeId;
-    if (!resolvedCenter && layoutMode === "radial") {
+    if (!resolvedCenter && layoutMode === "focus") {
       if (focusContact && focusContact !== "all") {
         resolvedCenter = `contact-${focusContact}`;
       } else if (focusCompany && focusCompany !== "all") {
