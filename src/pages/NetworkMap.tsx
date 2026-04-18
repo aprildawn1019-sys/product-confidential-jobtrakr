@@ -436,9 +436,11 @@ function NetworkMapInner(props: NetworkMapProps) {
             nodeTypes={nodeTypes}
             onNodeClick={onNodeClick}
             onNodeDoubleClick={onNodeDoubleClick}
+            onNodeContextMenu={onNodeContextMenu}
             onNodeMouseEnter={onNodeMouseEnter}
             onNodeMouseLeave={onNodeMouseLeave}
             onPaneClick={onPaneClick}
+            onPaneContextMenu={() => setContextMenu(null)}
             fitView
             minZoom={0.01}
             maxZoom={2}
@@ -472,7 +474,39 @@ function NetworkMapInner(props: NetworkMapProps) {
             linkedContacts={detailLinkedContacts}
             onClose={() => setSelectedNode(null)}
             onNavigate={(path) => navigate(path)}
+            onCenterNode={() => centerOnNode(selectedNode.nodeId)}
+            isCentered={effectiveCenterId === selectedNode.nodeId && layoutMode === "focus"}
           />
+        )}
+
+        {contextMenu && (
+          <>
+            {/* Click-away catcher */}
+            <div
+              className="absolute inset-0 z-30"
+              onClick={() => setContextMenu(null)}
+              onContextMenu={(e) => { e.preventDefault(); setContextMenu(null); }}
+            />
+            <div
+              className="absolute z-40 min-w-[200px] rounded-md border border-border bg-popover text-popover-foreground shadow-md py-1 animate-in fade-in zoom-in-95"
+              style={{ left: contextMenu.x, top: contextMenu.y }}
+              data-network-export-exclude="true"
+            >
+              <button
+                type="button"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-accent text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={effectiveCenterId === contextMenu.nodeId && layoutMode === "focus"}
+                onClick={() => centerOnNode(contextMenu.nodeId)}
+              >
+                <Crosshair className="h-3.5 w-3.5" />
+                <span className="truncate">
+                  {effectiveCenterId === contextMenu.nodeId && layoutMode === "focus"
+                    ? "Already centered"
+                    : `Center on ${contextMenu.label}`}
+                </span>
+              </button>
+            </div>
+          </>
         )}
 
         <ConnectionDialog
