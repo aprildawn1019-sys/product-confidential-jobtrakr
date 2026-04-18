@@ -19,6 +19,8 @@ interface UseNetworkGraphParams {
   filterWarmth: string;
   filterRole: string;
   layoutMode?: NetworkLayoutMode;
+  /** Optional explicit center node id for radial mode (overrides focus-derived center). */
+  centerNodeId?: string | null;
 }
 
 /**
