@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { Menu, Briefcase } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import OnboardingTour, { hasCompletedTour } from "@/components/OnboardingTour";
+import ResumeTourBanner from "@/components/ResumeTourBanner";
 import Dashboard from "@/pages/Dashboard";
 import Jobs from "@/pages/Jobs";
 import JobCRM from "@/pages/JobCRM";
@@ -47,6 +48,7 @@ export default function Index() {
   return (
     <div className="flex min-h-screen bg-background">
       <OnboardingTour run={tourRunning} onFinish={() => setTourRunning(false)} />
+      <ResumeTourBanner tourRunning={tourRunning} />
       <AppSidebar jobs={store.jobs} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
       {/* Mobile header */}

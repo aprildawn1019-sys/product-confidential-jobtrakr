@@ -3,6 +3,7 @@ import Joyride, { CallBackProps, STATUS, Step, EVENTS, ACTIONS } from "react-joy
 import { useNavigate, useLocation } from "react-router-dom";
 
 const STORAGE_KEY = "jobtrakr.onboardingTour.completed.v1";
+const PROGRESS_KEY = "jobtrakr.onboardingTour.progress.v1";
 
 export function hasCompletedTour() {
   try {
@@ -28,6 +29,48 @@ export function resetTour() {
   }
 }
 
+export interface TourProgress {
+  step: number; // 1-indexed
+  total: number;
+}
+
+export function getTourProgress(): TourProgress | null {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as TourProgress;
+    if (
+      typeof parsed?.step === "number" &&
+      typeof parsed?.total === "number" &&
+      parsed.step >= 1 &&
+      parsed.step < parsed.total
+    ) {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearTourProgress() {
+  try {
+    localStorage.removeItem(PROGRESS_KEY);
+  } catch {
+    // ignore
+  }
+  window.dispatchEvent(new Event("jobtrakr:tour-progress-changed"));
+}
+
+function saveTourProgress(progress: TourProgress) {
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+  } catch {
+    // ignore
+  }
+  window.dispatchEvent(new Event("jobtrakr:tour-progress-changed"));
+}
+
 interface OnboardingTourProps {
   run: boolean;
   onFinish: () => void;
@@ -46,9 +89,12 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
   const location = useLocation();
   const [stepIndex, setStepIndex] = useState(0);
 
-  // Reset to first step whenever the tour is (re)started.
+  // When tour is (re)started, resume from saved progress if present.
   useEffect(() => {
-    if (run) setStepIndex(0);
+    if (run) {
+      const saved = getTourProgress();
+      setStepIndex(saved ? Math.max(0, saved.step - 1) : 0);
+    }
   }, [run]);
 
   const steps: (Step & { route?: string })[] = [
@@ -109,17 +155,20 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
   ];
 
   // Broadcast tour progress so other parts of the app (e.g. Getting Started
-  // header) can show a step indicator.
+  // header) can show a step indicator. Also persist to storage so the
+  // "Resume tour" banner can recover after the user navigates away.
   useEffect(() => {
     if (!run) {
       window.dispatchEvent(new CustomEvent("jobtrakr:tour-progress", { detail: null }));
       return;
     }
-    window.dispatchEvent(
-      new CustomEvent("jobtrakr:tour-progress", {
-        detail: { step: stepIndex + 1, total: steps.length },
-      }),
-    );
+    const detail = { step: stepIndex + 1, total: steps.length };
+    window.dispatchEvent(new CustomEvent("jobtrakr:tour-progress", { detail }));
+    // Persist only mid-tour positions; the first step doesn't need a resume
+    // banner since the user just opened the tour.
+    if (stepIndex > 0 && stepIndex < steps.length - 1) {
+      saveTourProgress(detail);
+    }
   }, [run, stepIndex, steps.length]);
 
   // Navigate to the route a step expects before showing it.
@@ -168,20 +217,36 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
 
   const finishTour = () => {
     markTourCompleted();
+    clearTourProgress();
     setStepIndex(0);
+    onFinish();
+  };
+
+  const pauseTour = () => {
+    // Save current position so a resume banner can pick it up.
+    if (stepIndex > 0 && stepIndex < steps.length - 1) {
+      saveTourProgress({ step: stepIndex + 1, total: steps.length });
+    } else {
+      clearTourProgress();
+    }
     onFinish();
   };
 
   const handleCallback = (data: CallBackProps) => {
     const { status, type, action, index } = data;
 
-    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+    if (status === STATUS.SKIPPED) {
+      finishTour();
+      return;
+    }
+
+    if (status === STATUS.FINISHED) {
       finishTour();
       return;
     }
 
     if (action === ACTIONS.CLOSE) {
-      finishTour();
+      pauseTour();
       return;
     }
 
