@@ -546,9 +546,18 @@ export function useNetworkGraph(params: UseNetworkGraphParams) {
       });
     }
 
-    // Layout
-    const layoutNodes = getLayout(nodes, edges, companyChildMap, layoutMode);
+    // Layout — derive a center node id for radial mode from explicit param or focus filters.
+    let resolvedCenter: string | null = centerNodeId;
+    if (!resolvedCenter && layoutMode === "radial") {
+      if (focusContact && focusContact !== "all") {
+        resolvedCenter = `contact-${focusContact}`;
+      } else if (focusCompany && focusCompany !== "all") {
+        const compId = companyNodes.get(focusCompany.toLowerCase().trim());
+        if (compId) resolvedCenter = compId;
+      }
+    }
+    const layoutNodes = getLayout(nodes, edges, companyChildMap, layoutMode, resolvedCenter);
 
     return { nodes: layoutNodes, edges };
-  }, [contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode]);
+  }, [contacts, jobs, targetCompanies, contactConnections, jobContacts, recommendationRequests, showJobs, focusCompany, focusContact, filterWarmth, filterRole, layoutMode, centerNodeId]);
 }
