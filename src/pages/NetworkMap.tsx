@@ -437,16 +437,21 @@ function NetworkMapInner(props: NetworkMapProps) {
         />
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+      {/* Legend — swatches mirror the actual node shapes */}
+      <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-4 rounded-full border-2 border-muted-foreground bg-card" /> Contact <span className="text-[10px] text-muted-foreground">(border = warmth)</span>
+          <span className="inline-block w-4 h-4 rounded-full border-2 border-muted-foreground bg-card" />
+          Contact <span className="text-[10px] text-muted-foreground/80">(border = warmth)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-3 rounded border-2 border-warning bg-card" /> Company
+          <span className="inline-block w-5 h-3.5 rounded-lg border-2 border-warning bg-card" />
+          Company <span className="text-[10px] text-muted-foreground/80">(border = priority)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rotate-45 rounded-sm border-2 border-info bg-card" /> Job
+          <span className="inline-flex items-center justify-center w-4 h-4">
+            <span className="block w-3 h-3 rotate-45 border-2 border-info bg-card" style={{ borderRadius: 2 }} />
+          </span>
+          Job <span className="text-[10px] text-muted-foreground/80">(border = status)</span>
         </div>
         <span className="text-border">|</span>
         <span>Click node for details · Double-click to navigate · Drag between contacts to connect · Scroll to zoom</span>
