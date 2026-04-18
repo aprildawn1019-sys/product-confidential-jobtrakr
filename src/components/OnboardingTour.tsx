@@ -3,6 +3,7 @@ import Joyride, { CallBackProps, STATUS, Step, EVENTS, ACTIONS } from "react-joy
 import { useNavigate, useLocation } from "react-router-dom";
 
 const STORAGE_KEY = "jobtrakr.onboardingTour.completed.v1";
+const PROGRESS_KEY = "jobtrakr.onboardingTour.progress.v1";
 
 export function hasCompletedTour() {
   try {
@@ -26,6 +27,48 @@ export function resetTour() {
   } catch {
     // ignore
   }
+}
+
+export interface TourProgress {
+  step: number; // 1-indexed
+  total: number;
+}
+
+export function getTourProgress(): TourProgress | null {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as TourProgress;
+    if (
+      typeof parsed?.step === "number" &&
+      typeof parsed?.total === "number" &&
+      parsed.step >= 1 &&
+      parsed.step < parsed.total
+    ) {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearTourProgress() {
+  try {
+    localStorage.removeItem(PROGRESS_KEY);
+  } catch {
+    // ignore
+  }
+  window.dispatchEvent(new Event("jobtrakr:tour-progress-changed"));
+}
+
+function saveTourProgress(progress: TourProgress) {
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+  } catch {
+    // ignore
+  }
+  window.dispatchEvent(new Event("jobtrakr:tour-progress-changed"));
 }
 
 interface OnboardingTourProps {
