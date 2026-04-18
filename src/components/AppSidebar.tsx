@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Briefcase, Users, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, FileText, Network, Sparkles, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, FileText, Network, Sparkles, PlayCircle, LucideIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -211,7 +211,19 @@ function SidebarContent({ jobs, onNavigate }: { jobs: { id: string; title: strin
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-4">
+      <div className="border-t border-sidebar-border p-4 space-y-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+          onClick={() => {
+            handleNavClick();
+            window.dispatchEvent(new Event("jobtrakr:start-tour"));
+          }}
+        >
+          <PlayCircle className="h-4 w-4 mr-2" />
+          Restart walkthrough
+        </Button>
         <Button
           variant="ghost"
           size="sm"
