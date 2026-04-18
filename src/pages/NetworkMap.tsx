@@ -87,6 +87,7 @@ function NetworkMapInner(props: NetworkMapProps) {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: React.ReactNode; visible: boolean }>({ x: 0, y: 0, content: null, visible: false });
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; targetId: string; sourceName: string; targetName: string } | null>(null);
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
   const graphData = useNetworkGraph({
