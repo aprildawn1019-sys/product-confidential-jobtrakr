@@ -158,7 +158,7 @@ export default function GettingStarted({
         route: "/target-companies",
         icon: Star,
         tone: "warning",
-        tourId: "entry-target-companies",
+        tourId: "entry-card-target-companies",
       },
     ],
     [profileIncomplete],
