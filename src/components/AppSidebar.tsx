@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Briefcase, Users, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, FileText, FileSpreadsheet, Network, Sparkles, PlayCircle, LifeBuoy, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, FileText, FileSpreadsheet, Network, Sparkles, PlayCircle, CircleHelp, LucideIcon } from "lucide-react";
 import { useHelp } from "@/components/help/HelpProvider";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -224,7 +224,7 @@ function SidebarContent({ jobs, onNavigate }: { jobs: { id: string; title: strin
             openHelp();
           }}
         >
-          <LifeBuoy className="h-4 w-4 mr-2" />
+          <CircleHelp className="h-4 w-4 mr-2" />
           Help &amp; Resources
         </Button>
         <Button
