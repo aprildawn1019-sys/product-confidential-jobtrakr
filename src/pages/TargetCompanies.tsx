@@ -60,22 +60,50 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
   const [search, setSearch] = useState("");
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterCoverage, setFilterCoverage] = useState<string>("all");
+  const [sortMode, setSortMode] = useState<string>("default");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [duplicatesDialogOpen, setDuplicatesDialogOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [sourcingCompanyId, setSourcingCompanyId] = useState<string | null>(null);
 
   const duplicateClusters = useMemo(() => detectDuplicateClusters(targetCompanies), [targetCompanies]);
 
+  // Compute coverage for every target once per render
+  const withCoverage = useMemo(
+    () => targetCompanies.map(company => ({ company, coverage: getCoverageInfo(company, contacts) })),
+    [targetCompanies, contacts],
+  );
+
+  const coverageCounts = useMemo(() => {
+    const counts: Record<CoverageState, number> = { booster: 0, connector: 0, recruiter: 0, cold: 0 };
+    for (const { company, coverage } of withCoverage) {
+      if (company.status === "archived") continue;
+      counts[coverage.state] += 1;
+    }
+    return counts;
+  }, [withCoverage]);
+  const activeCount = withCoverage.filter(({ company }) => company.status !== "archived").length;
+
   const filtered = useMemo(() => {
-    return targetCompanies.filter(tc => {
-      if (filterPriority !== "all" && tc.priority !== filterPriority) return false;
-      if (filterStatus !== "all" && tc.status !== filterStatus) return false;
-      if (search && !tc.name.toLowerCase().includes(search.toLowerCase())) return false;
+    const list = withCoverage.filter(({ company, coverage }) => {
+      if (filterPriority !== "all" && company.priority !== filterPriority) return false;
+      if (filterStatus !== "all" && company.status !== filterStatus) return false;
+      if (filterCoverage !== "all" && coverage.state !== filterCoverage) return false;
+      if (search && !company.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [targetCompanies, search, filterPriority, filterStatus]);
+    if (sortMode === "coverage_gap") {
+      return [...list].sort(coverageGapComparator);
+    }
+    return list;
+  }, [withCoverage, search, filterPriority, filterStatus, filterCoverage, sortMode]);
+
+  const sourcingTarget = sourcingCompanyId
+    ? withCoverage.find(({ company }) => company.id === sourcingCompanyId) || null
+    : null;
 
   const activeStatuses = ["applied", "screening", "interviewing", "offer"];
 
@@ -84,6 +112,11 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
     const matchedContacts = contacts.filter(c => companiesMatch(c.company, companyName));
     const activeApps = matchedJobs.filter(j => activeStatuses.includes(j.status));
     return { jobCount: matchedJobs.length, contactCount: matchedContacts.length, activeApps: activeApps.length };
+  };
+
+  const handleAddContactFromPanel = (prefill: { company: string; networkRole: NetworkRole }) => {
+    // Hand off to Contacts page with prefill in URL params (existing pattern uses ?company=)
+    navigate(`/contacts?company=${encodeURIComponent(prefill.company)}&role=${prefill.networkRole}&action=add`);
   };
 
   const handleMerge = async (
