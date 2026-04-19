@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe, AlertTriangle, GitMerge } from "lucide-react";
+import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe, AlertTriangle, GitMerge, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +16,11 @@ import CompanyAvatar from "@/components/CompanyAvatar";
 import HelpHint from "@/components/help/HelpHint";
 import DuplicateCompaniesDialog from "@/components/targetcompanies/DuplicateCompaniesDialog";
 import { detectDuplicateClusters } from "@/components/targetcompanies/duplicateDetection";
+import CoverageBadge from "@/components/targetcompanies/CoverageBadge";
+import SourcingPanel from "@/components/targetcompanies/SourcingPanel";
+import { getCoverageInfo, coverageGapComparator, COVERAGE_LABELS, type CoverageState, type CoverageInfo } from "@/components/targetcompanies/coverageUtils";
 import { companiesMatch } from "@/stores/jobTrackerStore";
-import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact } from "@/types/jobTracker";
+import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact, NetworkRole } from "@/types/jobTracker";
 
 interface TargetCompaniesProps {
   targetCompanies: TargetCompany[];
