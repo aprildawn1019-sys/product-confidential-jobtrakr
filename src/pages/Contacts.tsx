@@ -137,7 +137,27 @@ export default function Contacts({
   const jobIdFilter = searchParams.get("jobId");
   const highlightId = searchParams.get("highlight");
   const companyFilter = searchParams.get("company");
+  const actionParam = searchParams.get("action");
+  const roleParam = searchParams.get("role");
   const [expandedContact, setExpandedContact] = useState<string | null>(highlightId);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [addPrefill, setAddPrefill] = useState<{ company?: string; role?: NetworkRole }>({});
+
+  // Open AddContactDialog when arriving with ?action=add (e.g. from sourcing panel handoff)
+  useEffect(() => {
+    if (actionParam === "add") {
+      setAddPrefill({
+        company: companyFilter || undefined,
+        role: (roleParam as NetworkRole) || undefined,
+      });
+      setAddDialogOpen(true);
+      // strip action params so re-renders don't re-trigger; keep ?company= for list context
+      const next = new URLSearchParams(searchParams);
+      next.delete("action");
+      next.delete("role");
+      setSearchParams(next, { replace: true });
+    }
+  }, [actionParam, roleParam, companyFilter, searchParams, setSearchParams]);
 
   // Auto-scroll to highlighted contact
   useEffect(() => {
