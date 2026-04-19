@@ -78,7 +78,7 @@ export default function Dashboard({
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Command Center</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="mt-1 text-muted-foreground">
             {actions.length === 0
               ? "Nothing on your plate. Plan your next move."
