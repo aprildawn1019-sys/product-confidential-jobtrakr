@@ -18,7 +18,7 @@ import DuplicateCompaniesDialog from "@/components/targetcompanies/DuplicateComp
 import { detectDuplicateClusters } from "@/components/targetcompanies/duplicateDetection";
 import CoverageBadge from "@/components/targetcompanies/CoverageBadge";
 import SourcingPanel from "@/components/targetcompanies/SourcingPanel";
-import { getCoverageInfo, coverageGapComparator, COVERAGE_LABELS, type CoverageState, type CoverageInfo } from "@/components/targetcompanies/coverageUtils";
+import { getCoverageInfo, coverageGapComparator, COVERAGE_LABELS, type CoverageState } from "@/components/targetcompanies/coverageUtils";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact, NetworkRole } from "@/types/jobTracker";
 
