@@ -10,6 +10,7 @@ import WeeklyReview from "@/components/dashboard/WeeklyReview";
 import UpcomingInterviewsStrip from "@/components/dashboard/UpcomingInterviewsStrip";
 import ActiveOpportunitiesPanel from "@/components/dashboard/ActiveOpportunitiesPanel";
 import TargetCoverageSnapshot from "@/components/dashboard/TargetCoverageSnapshot";
+import TargetsNeedingSourcing from "@/components/dashboard/TargetsNeedingSourcing";
 import { deriveActions } from "@/lib/actionEngine";
 import { useActionSnoozes } from "@/hooks/useActionSnoozes";
 import { useAiSuggestedActions } from "@/hooks/useAiSuggestedActions";
@@ -122,6 +123,8 @@ export default function Dashboard({
         <ActiveOpportunitiesPanel jobs={jobs} />
         <TargetCoverageSnapshot targetCompanies={targetCompanies} contacts={contacts} />
       </div>
+
+      <TargetsNeedingSourcing targetCompanies={targetCompanies} contacts={contacts} />
 
       <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
