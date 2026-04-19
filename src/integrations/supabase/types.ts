@@ -184,7 +184,7 @@ export type Database = {
           id: string
           notes: string | null
           relationship_label: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           connection_type?: string
@@ -194,7 +194,7 @@ export type Database = {
           id?: string
           notes?: string | null
           relationship_label?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           connection_type?: string
@@ -204,7 +204,7 @@ export type Database = {
           id?: string
           notes?: string | null
           relationship_label?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -239,7 +239,7 @@ export type Database = {
           phone: string | null
           relationship_warmth: string | null
           role: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           company: string
@@ -256,7 +256,7 @@ export type Database = {
           phone?: string | null
           relationship_warmth?: string | null
           role?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           company?: string
@@ -273,7 +273,7 @@ export type Database = {
           phone?: string | null
           relationship_warmth?: string | null
           role?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -321,21 +321,21 @@ export type Database = {
           created_at: string
           id: string
           title: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           company: string
           created_at?: string
           id?: string
           title: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           company?: string
           created_at?: string
           id?: string
           title?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -380,7 +380,7 @@ export type Database = {
           status: string
           time: string | null
           type: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -392,7 +392,7 @@ export type Database = {
           status?: string
           time?: string | null
           type: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -404,7 +404,7 @@ export type Database = {
           status?: string
           time?: string | null
           type?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -508,21 +508,21 @@ export type Database = {
           created_at: string
           id: string
           job_id: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           contact_id: string
           created_at?: string
           id?: string
           job_id: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           contact_id?: string
           created_at?: string
           id?: string
           job_id?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -594,7 +594,7 @@ export type Database = {
           tools_platforms: string[]
           travel_willingness: string
           updated_at: string
-          user_id: string | null
+          user_id: string
           work_style: string
           years_experience: number | null
         }
@@ -623,7 +623,7 @@ export type Database = {
           tools_platforms?: string[]
           travel_willingness?: string
           updated_at?: string
-          user_id?: string | null
+          user_id: string
           work_style?: string
           years_experience?: number | null
         }
@@ -652,7 +652,7 @@ export type Database = {
           tools_platforms?: string[]
           travel_willingness?: string
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
           work_style?: string
           years_experience?: number | null
         }
@@ -716,7 +716,7 @@ export type Database = {
           type: string
           urgency: string | null
           url: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           applied_date?: string | null
@@ -740,7 +740,7 @@ export type Database = {
           type?: string
           urgency?: string | null
           url?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           applied_date?: string | null
@@ -764,7 +764,7 @@ export type Database = {
           type?: string
           urgency?: string | null
           url?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
