@@ -19,11 +19,11 @@ const PLACEHOLDER = (ctx: TemplateContext, key: keyof TemplateContext, fallback:
 
 function fill(template: string, ctx: TemplateContext): string {
   return template
-    .replaceAll("{name}", PLACEHOLDER(ctx, "contactName", "[name]"))
-    .replaceAll("{first_name}", PLACEHOLDER(ctx, "contactFirstName", PLACEHOLDER(ctx, "contactName", "[name]").split(" ")[0]))
-    .replaceAll("{company}", PLACEHOLDER(ctx, "targetCompany", "[company]"))
-    .replaceAll("{role}", PLACEHOLDER(ctx, "jobTitle", "[role]"))
-    .replaceAll("{your_name}", PLACEHOLDER(ctx, "yourName", "[your name]"));
+    .split("{name}").join(PLACEHOLDER(ctx, "contactName", "[name]"))
+    .split("{first_name}").join(PLACEHOLDER(ctx, "contactFirstName", PLACEHOLDER(ctx, "contactName", "[name]").split(" ")[0]))
+    .split("{company}").join(PLACEHOLDER(ctx, "targetCompany", "[company]"))
+    .split("{role}").join(PLACEHOLDER(ctx, "jobTitle", "[role]"))
+    .split("{your_name}").join(PLACEHOLDER(ctx, "yourName", "[your name]"));
 }
 
 const RAW_TEMPLATES: Record<NetworkRole, OutreachTemplate[]> = {
