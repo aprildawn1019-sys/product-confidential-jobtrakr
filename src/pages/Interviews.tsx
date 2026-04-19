@@ -51,6 +51,7 @@ type TimelineItem =
 export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd, onUpdate, onDelete, onUpdateContact }: InterviewsPageProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { toast } = useToast();
   const initialFilter = (searchParams.get("filter") as FilterType) || "all";
   const [filter, setFilter] = useState<FilterType>(initialFilter);
   const [dialogOpen, setDialogOpen] = useState(false);
