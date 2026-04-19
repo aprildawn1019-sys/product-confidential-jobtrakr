@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
-import { ArrowUp, ArrowDown, ArrowUpDown, Trash2, Megaphone, ChevronDown } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Trash2, Megaphone, ChevronDown, Building2, Briefcase, CalendarDays, X } from "lucide-react";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
