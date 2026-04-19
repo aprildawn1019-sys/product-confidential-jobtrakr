@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Menu, Briefcase } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import OnboardingTour, { hasCompletedTour } from "@/components/OnboardingTour";
