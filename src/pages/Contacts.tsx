@@ -645,7 +645,13 @@ export default function Contacts({
           </Button>
           <BulkContactUploadDialog onAddBulk={onAddBulk} existingContacts={contacts} />
           <LinkedInImportDialog onImport={onAddBulk} existingContacts={contacts} />
-          <AddContactDialog onAdd={onAdd} />
+          <AddContactDialog
+            onAdd={onAdd}
+            open={addDialogOpen}
+            onOpenChange={(v) => { setAddDialogOpen(v); if (!v) setAddPrefill({}); }}
+            defaultCompany={addPrefill.company}
+            defaultNetworkRole={addPrefill.role}
+          />
         </div>
       </div>
 
