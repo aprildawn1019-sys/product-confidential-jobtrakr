@@ -63,9 +63,9 @@ export default function WeeklyReview({ jobs, interviews, contactActivities }: We
     const followUps = (start: Date, end: Date) =>
       contactActivities.filter(a => FOLLOWUP_TYPES.has(a.activityType) && inRange(a.activityDate, start, end)).length;
 
-    // Interviews scheduled: interviews booked (created_at) in window
+    // Interviews scheduled: interviews occurring in window (status not cancelled)
     const interviewsBooked = (start: Date, end: Date) =>
-      interviews.filter(i => inRange(i.createdAt, start, end)).length;
+      interviews.filter(i => i.status !== "cancelled" && inRange(i.date, start, end)).length;
 
     // Networking meetings completed: contact activity 'meeting' on/before today, in window
     const meetingsDone = (start: Date, end: Date) =>
