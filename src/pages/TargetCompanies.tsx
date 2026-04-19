@@ -449,6 +449,17 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
         contacts={contacts}
         onMerge={handleMerge}
       />
+
+      {/* Sourcing panel */}
+      <SourcingPanel
+        company={sourcingTarget?.company || null}
+        coverage={sourcingTarget?.coverage || null}
+        open={!!sourcingCompanyId}
+        onOpenChange={(o) => { if (!o) setSourcingCompanyId(null); }}
+        contacts={contacts}
+        onAddContact={handleAddContactFromPanel}
+        onOpenContact={(id) => navigate(`/contacts?contactId=${id}`)}
+      />
     </div>
   );
 }
