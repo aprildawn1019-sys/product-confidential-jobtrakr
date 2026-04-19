@@ -15,6 +15,13 @@ export type ActionLane = "networking" | "referrals" | "applications";
 export type ActionUrgency = "overdue" | "today" | "soon" | "later";
 export type ActionSource = "signal" | "nudge" | "ai";
 
+export interface OutreachContext {
+  networkRole: NetworkRole;
+  contactName: string;
+  targetCompany?: string;
+  jobTitle?: string;
+}
+
 export interface DerivedAction {
   /** Stable signature used for snooze persistence — must be deterministic */
   signature: string;
@@ -35,6 +42,8 @@ export interface DerivedAction {
   recommendationRequestId?: string;
   /** ISO date for due/follow-up — informational only */
   dueDate?: string;
+  /** When present, ActionCard renders inline copy-ready outreach templates */
+  outreachContext?: OutreachContext;
 }
 
 const URGENCY_WEIGHT: Record<ActionUrgency, number> = {
