@@ -1,68 +1,48 @@
 
-The user wants a spreadsheet view of contacts/connections with bulk edit, sorting, and the new columns (campaign, company, target company). Edits cascade to linked data.
+The user is asking for UX recommendations on where the Reports functionality should live in the app. Currently it's a standalone page (`src/pages/Reports.tsx`) reached via the sidebar — let me think about whether that's the right home and what alternatives or additions make sense.
 
-Let me think about scope:
+Looking at what Reports does today: bulk CSV exports of Jobs, Contacts, Interviews. It's purely an export utility, not analytics/visualization.
 
-1. **New view mode**: Add a fourth view mode "spreadsheet" to existing toggle (grid/compact/detailed → + spreadsheet)
-2. **Spreadsheet UI**: Editable table with rows = contacts, columns = key fields
-3. **Columns to include**:
-   - Name
-   - Company
-   - Role
-   - Email
-   - Phone
-   - LinkedIn
-   - Warmth
-   - Campaign(s) — multi-select
-   - Target Company — read-only indicator (derived from company match)
-   - Follow-up date
-4. **Functionality**:
-   - **Inline editing**: click cell → edit → save on blur/enter (calls `onUpdate`)
-   - **Sorting**: click column header to sort asc/desc
-   - **Bulk edit**: row selection with checkboxes, "Apply to selected" panel for warmth, campaign add/remove, delete
-5. **Cascade**: Since contact data is the source of truth (jobs/network/target-company-match all derive from `contact.company` and `contact.id`), updating the contact via `onUpdate` already cascades. Campaign toggling uses `onToggleContactCampaign`.
+UX principles to apply:
+- **Proximity**: export should live near the data being exported (users think "I want to export *these* contacts" not "I want to go to Reports")
+- **Discoverability**: a dedicated page is discoverable but rarely visited — exports often get forgotten in standalone pages
+- **Context preservation**: exporting filtered/sorted data is more valuable than exporting everything
+- **Progressive disclosure**: bulk "export everything" is a power-user need; per-list export is the common case
 
-**Approach**: Build a new component `src/components/ContactsSpreadsheet.tsx` to keep `Contacts.tsx` from growing further. Add it as a fourth view mode in the existing view switcher.
+## Proposal
 
-Don't need a custom grid library — a styled `<table>` with `<input>` cells is sufficient and matches the existing design system. Keep it lean.
+Three complementary surfaces, in priority order:
 
-**Out of scope**: Resizable columns, copy/paste of cell ranges, undo/redo, CSV paste import (CSV upload already exists via BulkContactUploadDialog). I'll mention these as follow-ups.
+**1. Inline on each list page (primary)** — highest value
+- **Jobs page**: "Export CSV" item in the existing toolbar/overflow menu, exports the *currently filtered* list
+- **Contacts page**: same pattern, plus respects the new spreadsheet view's sort
+- **Interviews page**: same pattern
+- Why: matches user intent ("export what I'm looking at"), respects filters, zero navigation cost
 
-## Plan
+**2. Settings → Data & Export (secondary)** — for full backups
+- Move the current "export everything" page under a Settings section as "Data & Export"
+- Group with future destructive/admin actions (delete account, import, backup)
+- Why: bulk dumps are an admin/backup task, not a daily workflow — Settings is where users expect them
 
-**New file:**
-- `src/components/ContactsSpreadsheet.tsx` — table-based spreadsheet view
+**3. Keep a lightweight Reports entry only if analytics are coming** 
+- If Reports will eventually host charts/insights (pipeline velocity, response rates, time-to-offer), keep the sidebar entry and rename today's CSVs to a "Download data" subsection on that page
+- If Reports stays export-only, **remove the sidebar item** — it's prime navigation real estate spent on a rarely-used utility
 
-**Edit:**
-- `src/pages/Contacts.tsx`:
-  - Add `"spreadsheet"` to `viewMode` union
-  - Add a 4th button to the view switcher (Sheet icon)
-  - Render `<ContactsSpreadsheet>` when active
-  - Pass through: `filteredContacts`, `campaigns`, `contactCampaigns`, `targetCompanies`, `getTargetCompanyMatch`, `getCampaignsForContact`, `onUpdate`, `onDelete`, `onToggleContactCampaign`
+## Recommendation
 
-**Spreadsheet component features:**
-- Sticky header row
-- Sortable column headers (click to toggle asc/desc, indicator arrow)
-- Row checkboxes + select-all in header
-- Inline editable cells:
-  - **Text fields** (name, company, role, email, phone, linkedin): `<Input>` that commits onBlur/Enter
-  - **Warmth**: `<Select>` (cold/warm/hot/strong/none)
-  - **Follow-up**: `<Input type="date">`
-  - **Campaigns**: small popover with checkboxes (multi-select)
-  - **Target Company**: read-only ⭐ badge (derived)
-- Bulk action bar (appears when rows selected):
-  - "Set warmth" select → applies to all
-  - "Add to campaign" select → applies to all
-  - "Remove from campaign" select → applies to all
-  - "Delete selected" button (with confirm)
-- Sorting works on top of existing filters from parent
-- Horizontal scroll for narrow viewports
+Do **#1 + #2** now, decide #3 based on the analytics roadmap. Net effect: exports become discoverable in-context, the sidebar slot is freed for something used daily, and power users still have a single backup screen.
 
-**Cascade behavior** — verified:
-- `onUpdate(id, { company: "New" })` → updates contact row → `getTargetCompanyMatch(contact.company)` automatically reflects new match → `getNetworkMatchesForJob` automatically reflects new company on next render → Network Map re-renders.
-- `onToggleContactCampaign` → updates `contact_campaigns` table → all places querying `getCampaignsForContact` reflect change.
-- No additional cascade logic needed; existing store handlers already do the right thing.
+### Sidebar impact
+```text
+Before:                    After:
+- Dashboard                - Dashboard
+- Jobs                     - Jobs              [+ Export menu]
+- Contacts                 - Contacts          [+ Export menu]
+- Interviews               - Interviews        [+ Export menu]
+- ...                      - ...
+- Reports          ←remove - Settings
+                             └ Data & Export   ←moved here
+```
 
-**Out of scope for this iteration:**
-- Cell range copy/paste, undo, frozen columns, column resize, CSV paste
-- Editing target-company status from contact row (that requires renaming target_companies, separate concern)
+### Open question
+Whether to keep a Reports nav item depends on whether you plan to add analytics dashboards (funnel conversion, response rates, etc.) on top of pure CSV export. That decision shapes #3.
