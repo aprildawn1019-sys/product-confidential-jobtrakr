@@ -21,7 +21,7 @@ import StatusBadge from "@/components/StatusBadge";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import ContactsSpreadsheet from "@/components/ContactsSpreadsheet";
 import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact, TargetCompany } from "@/types/jobTracker";
-import { RELATIONSHIP_LABELS } from "@/types/jobTracker";
+import { RELATIONSHIP_LABELS, NETWORK_ROLES } from "@/types/jobTracker";
 
 
 import { useToast } from "@/hooks/use-toast";
@@ -844,13 +844,9 @@ export default function Contacts({
           <SelectContent>
             <SelectItem value="all">All Roles</SelectItem>
             <SelectItem value="none">No Role</SelectItem>
-            <SelectItem value="referral_source">Referral Source</SelectItem>
-            <SelectItem value="hiring_manager">Hiring Manager</SelectItem>
-            <SelectItem value="advocate">Advocate</SelectItem>
-            <SelectItem value="recruiter">Recruiter</SelectItem>
-            <SelectItem value="mentor">Mentor</SelectItem>
-            <SelectItem value="peer">Peer</SelectItem>
-            <SelectItem value="informational">Informational</SelectItem>
+            {NETWORK_ROLES.map(r => (
+              <SelectItem key={r.value} value={r.value}>{r.emoji} {r.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={campaignFilter} onValueChange={setCampaignFilter}>

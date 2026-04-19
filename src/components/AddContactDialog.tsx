@@ -120,7 +120,12 @@ export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
                 <SelectTrigger><SelectValue placeholder="Select role..." /></SelectTrigger>
                 <SelectContent>
                   {NETWORK_ROLES.map(r => (
-                    <SelectItem key={r.value} value={r.value}>{r.emoji} {r.label}</SelectItem>
+                    <SelectItem key={r.value} value={r.value}>
+                      <div className="flex flex-col">
+                        <span>{r.emoji} {r.label}</span>
+                        <span className="text-[10px] text-muted-foreground">{r.description}</span>
+                      </div>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
