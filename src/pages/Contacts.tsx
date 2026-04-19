@@ -21,7 +21,7 @@ import StatusBadge from "@/components/StatusBadge";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import ContactsSpreadsheet from "@/components/ContactsSpreadsheet";
 import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact, TargetCompany } from "@/types/jobTracker";
-import { RELATIONSHIP_LABELS } from "@/types/jobTracker";
+import { RELATIONSHIP_LABELS, NETWORK_ROLES } from "@/types/jobTracker";
 
 
 import { useToast } from "@/hooks/use-toast";
