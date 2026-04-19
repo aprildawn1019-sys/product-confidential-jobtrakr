@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,10 +8,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Clock, MoreHorizontal, Sparkles, Lightbulb, Bell, ArrowRight } from "lucide-react";
+import { Clock, MoreHorizontal, Sparkles, Lightbulb, Bell, ArrowRight, MessageSquareQuote, ChevronDown, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import type { DerivedAction } from "@/lib/actionEngine";
 import type { SnoozeDuration } from "@/hooks/useActionSnoozes";
+import { getOutreachTemplates } from "@/lib/outreachTemplates";
 
 interface ActionCardProps {
   action: DerivedAction;
@@ -42,9 +45,32 @@ export default function ActionCard({ action, onSnooze, compact }: ActionCardProp
   const navigate = useNavigate();
   const SourceIcon = sourceIcon[action.source].icon;
   const badge = urgencyBadge[action.urgency];
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const templates = useMemo(() => {
+    if (!action.outreachContext) return [];
+    return getOutreachTemplates(action.outreachContext.networkRole, {
+      contactName: action.outreachContext.contactName,
+      contactFirstName: action.outreachContext.contactName.split(" ")[0],
+      targetCompany: action.outreachContext.targetCompany,
+      jobTitle: action.outreachContext.jobTitle,
+    });
+  }, [action.outreachContext]);
 
   const handleOpen = () => {
     if (action.href) navigate(action.href);
+  };
+
+  const copy = async (id: string, body: string) => {
+    try {
+      await navigator.clipboard.writeText(body);
+      setCopiedId(id);
+      toast.success("Copied to clipboard");
+      setTimeout(() => setCopiedId(null), 1500);
+    } catch {
+      toast.error("Could not copy");
+    }
   };
 
   return (
@@ -101,15 +127,55 @@ export default function ActionCard({ action, onSnooze, compact }: ActionCardProp
       </div>
       <div className="mt-2 flex items-center justify-between gap-2">
         <span className="text-[11px] text-muted-foreground capitalize">{action.lane}</span>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="h-7 text-xs gap-1 text-primary hover:text-primary"
-          onClick={handleOpen}
-        >
-          {action.actionLabel} <ArrowRight className="h-3 w-3" />
-        </Button>
+        <div className="flex items-center gap-1">
+          {templates.length > 0 && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground"
+              onClick={() => setTemplatesOpen((v) => !v)}
+              aria-expanded={templatesOpen}
+              aria-label={templatesOpen ? "Hide outreach templates" : "Show outreach templates"}
+            >
+              <MessageSquareQuote className="h-3 w-3" />
+              {templatesOpen ? "Hide template" : "Use template"}
+              <ChevronDown className={cn("h-3 w-3 transition-transform", templatesOpen && "rotate-180")} />
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 text-xs gap-1 text-primary hover:text-primary"
+            onClick={handleOpen}
+          >
+            {action.actionLabel} <ArrowRight className="h-3 w-3" />
+          </Button>
+        </div>
       </div>
+
+      {templatesOpen && templates.length > 0 && (
+        <div className="mt-2 space-y-1.5 border-t border-border/50 pt-2">
+          {templates.map((t) => {
+            const id = `${action.signature}-${t.id}`;
+            return (
+              <div key={t.id} className="rounded border border-dashed bg-muted/30 p-2">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t.label}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 gap-1 text-xs"
+                    onClick={() => copy(id, t.body)}
+                  >
+                    {copiedId === id ? <><Check className="h-3 w-3" /> Copied</> : <><Copy className="h-3 w-3" /> Copy</>}
+                  </Button>
+                </div>
+                <p className="text-xs whitespace-pre-line text-foreground/90">{t.body}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
