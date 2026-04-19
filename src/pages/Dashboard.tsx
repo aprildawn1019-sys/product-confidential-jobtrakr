@@ -114,6 +114,15 @@ export default function Dashboard({
         <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} icon={Star} accent="success" href="/target-companies" />
       </div>
 
+      <WeeklyReview jobs={jobs} interviews={interviews} contactActivities={contactActivities} />
+
+      <UpcomingInterviewsStrip interviews={interviews} jobs={jobs} />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ActiveOpportunitiesPanel jobs={jobs} />
+        <TargetCoverageSnapshot targetCompanies={targetCompanies} contacts={contacts} />
+      </div>
+
       <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div>
