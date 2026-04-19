@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
-import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown, Sheet, Download } from "lucide-react";
+import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutGrid, Megaphone, Star, Check, ExternalLink, ArrowUpDown, Sheet, Download } from "lucide-react";
 import { downloadContactsCsv } from "@/lib/contactsCsvExport";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -152,7 +152,7 @@ export default function Contacts({
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; contactId: string } | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "compact" | "detailed" | "spreadsheet">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "spreadsheet">("grid");
   const [searchQuery, setSearchQuery] = useState(companyFilter || "");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
   const [followUpFilter, setFollowUpFilter] = useState<string>("all");
@@ -320,162 +320,6 @@ export default function Contacts({
             {contact.linkedin && <Button variant="outline" size="sm" asChild><a href={`https://${contact.linkedin}`} target="_blank" rel="noopener noreferrer"><Linkedin className="h-3.5 w-3.5 mr-1" />LinkedIn</a></Button>}
           </div>
           {contact.lastContactedAt && <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />Last contacted: {contact.lastContactedAt}</p>}
-        </div>
-        {isExpanded && renderExpandedSection(contact, connections, sameOrgContacts, connectedIds, availableToConnect, activities, linkedJobs, availableJobs, contactCampaignIds)}
-      </div>
-    );
-  };
-
-  const renderCompactRow = (contact: Contact) => {
-    const isExpanded = expandedContact === contact.id;
-    const connections = getConnectionsForContact(contact.id);
-    const sameOrgContacts = getContactsAtSameOrg(contact.id);
-    const connectedIds = new Set(connections.map(c => c.contactId1 === contact.id ? c.contactId2 : c.contactId1));
-    const availableToConnect = contacts.filter(c => c.id !== contact.id && !connectedIds.has(c.id));
-    const activities = getActivitiesForContact(contact.id);
-    const linkedJobs = getJobsForContact(contact.id);
-    const linkedJobIds = new Set(linkedJobs.map(j => j.id));
-    const availableJobs = jobs.filter(j => !linkedJobIds.has(j.id));
-    const contactCampaignIds = contactCampaigns.filter(cc => cc.contactId === contact.id).map(cc => cc.campaignId);
-
-    return (
-      <div key={contact.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
-        <div className="px-5 py-3 flex items-center gap-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary font-display font-bold text-primary-foreground text-xs shrink-0">
-            {contact.name.split(" ").map(n => n[0]).join("")}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-sm">{contact.name}</span>
-              <span className="text-xs text-muted-foreground">{contact.role} at </span>
-              <button onClick={() => navigate("/network")} className="text-xs text-primary hover:underline">{contact.company}</button>
-              <TargetCompanyBadge target={getTargetCompanyMatch(contact.company)} />
-            </div>
-            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-              <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
-              <FollowUpIndicator date={contact.followUpDate} />
-              {linkedJobs.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Briefcase className="h-2.5 w-2.5" />{linkedJobs.length}</Badge>}
-              {jobIdFilter && !linkedJobIds.has(jobIdFilter) && (
-                <Badge variant="outline" className="text-[10px] gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary" onClick={() => handleLinkToJob(contact.id, contact.name)}>
-                  <Link2 className="h-2.5 w-2.5" />Link to Job
-                </Badge>
-              )}
-              {jobIdFilter && linkedJobIds.has(jobIdFilter) && (
-                <Badge variant="default" className="text-[10px] gap-1 bg-primary/15 text-primary border-primary/20">
-                  <Check className="h-2.5 w-2.5" />Linked
-                </Badge>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {contact.email && <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`mailto:${contact.email}`}><Mail className="h-3.5 w-3.5" /></a></Button>}
-            {contact.linkedin && <Button variant="ghost" size="icon" className="h-7 w-7" asChild><a href={`https://${contact.linkedin}`} target="_blank" rel="noopener noreferrer"><Linkedin className="h-3.5 w-3.5" /></a></Button>}
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpandedContact(isExpanded ? null : contact.id)}>
-              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDelete(contact.id)}>
-              <Trash2 className="h-3.5 w-3.5 text-destructive" />
-            </Button>
-          </div>
-        </div>
-        {isExpanded && renderExpandedSection(contact, connections, sameOrgContacts, connectedIds, availableToConnect, activities, linkedJobs, availableJobs, contactCampaignIds)}
-      </div>
-    );
-  };
-
-  const renderDetailedRow = (contact: Contact) => {
-    const isExpanded = expandedContact === contact.id;
-    const connections = getConnectionsForContact(contact.id);
-    const sameOrgContacts = getContactsAtSameOrg(contact.id);
-    const connectedIds = new Set(connections.map(c => c.contactId1 === contact.id ? c.contactId2 : c.contactId1));
-    const availableToConnect = contacts.filter(c => c.id !== contact.id && !connectedIds.has(c.id));
-    const activities = getActivitiesForContact(contact.id);
-    const linkedJobs = getJobsForContact(contact.id);
-    const linkedJobIds = new Set(linkedJobs.map(j => j.id));
-    const availableJobs = jobs.filter(j => !linkedJobIds.has(j.id));
-    const contactCampaignIds = contactCampaigns.filter(cc => cc.contactId === contact.id).map(cc => cc.campaignId);
-    const recs = getRecommendationRequestsForContact(contact.id);
-
-    return (
-      <div key={contact.id} className="rounded-xl border border-border bg-card transition-shadow hover:shadow-md">
-        <div className="px-5 py-4 space-y-2">
-          <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-display font-bold text-primary-foreground text-xs shrink-0">
-              {contact.name.split(" ").map(n => n[0]).join("")}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold">{contact.name}</span>
-                <span className="text-sm text-muted-foreground">{contact.role}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => navigate("/network")} className="text-sm text-primary hover:underline flex items-center gap-1">
-                  <Building2 className="h-3.5 w-3.5" />{contact.company}<ExternalLink className="h-3 w-3 opacity-50" />
-                </button>
-                <TargetCompanyBadge target={getTargetCompanyMatch(contact.company)} />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 shrink-0">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpandedContact(isExpanded ? null : contact.id)}>
-                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDelete(contact.id)}>
-                <Trash2 className="h-3.5 w-3.5 text-destructive" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Contact details row */}
-          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap pl-14">
-            {contact.email && (
-              <a href={`mailto:${contact.email}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                <Mail className="h-3 w-3" />{contact.email}
-              </a>
-            )}
-            {contact.phone && (
-              <span className="flex items-center gap-1">
-                <Phone className="h-3 w-3" />{contact.phone}
-              </span>
-            )}
-            {contact.linkedin && (
-              <a href={`https://${contact.linkedin}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-foreground transition-colors">
-                <Linkedin className="h-3 w-3" />LinkedIn
-              </a>
-            )}
-            {contact.lastContactedAt && (
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />Last: {contact.lastContactedAt}
-              </span>
-            )}
-          </div>
-
-          {/* Badges row */}
-          <div className="flex items-center gap-1.5 flex-wrap pl-14">
-            <WarmthBadge warmth={contact.relationshipWarmth} onChange={w => onUpdate(contact.id, { relationshipWarmth: w })} />
-            <FollowUpIndicator date={contact.followUpDate} />
-            {renderCampaignBadges(contact.id)}
-            {sameOrgContacts.length > 0 && <Badge variant="secondary" className="text-[10px] gap-1"><Building2 className="h-2.5 w-2.5" />{sameOrgContacts.length} at org</Badge>}
-            {linkedJobs.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Briefcase className="h-2.5 w-2.5" />{linkedJobs.length} job{linkedJobs.length > 1 ? "s" : ""}</Badge>}
-            {connections.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><Link2 className="h-2.5 w-2.5" />{connections.length} conn.</Badge>}
-            {activities.length > 0 && <Badge variant="outline" className="text-[10px] gap-1"><MessageSquare className="h-2.5 w-2.5" />{activities.length} activities</Badge>}
-            {recs.filter(r => r.status === "pending").length > 0 && <Badge variant="warning" className="text-[10px] gap-1"><Star className="h-2.5 w-2.5" />Rec pending</Badge>}
-            {recs.some(r => r.status === "received") && <Badge variant="success" className="text-[10px] gap-1"><Check className="h-2.5 w-2.5" />Rec received</Badge>}
-            {jobIdFilter && !linkedJobIds.has(jobIdFilter) && (
-              <Badge variant="outline" className="text-[10px] gap-1 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors text-primary" onClick={() => handleLinkToJob(contact.id, contact.name)}>
-                <Link2 className="h-2.5 w-2.5" />Link to Job
-              </Badge>
-            )}
-            {jobIdFilter && linkedJobIds.has(jobIdFilter) && (
-              <Badge variant="default" className="text-[10px] gap-1 bg-primary/15 text-primary border-primary/20">
-                <Check className="h-2.5 w-2.5" />Linked
-              </Badge>
-            )}
-          </div>
-
-          {/* Notes preview */}
-          {contact.notes && (
-            <p className="text-xs text-muted-foreground truncate pl-14 italic">"{contact.notes}"</p>
-          )}
         </div>
         {isExpanded && renderExpandedSection(contact, connections, sameOrgContacts, connectedIds, availableToConnect, activities, linkedJobs, availableJobs, contactCampaignIds)}
       </div>
@@ -747,11 +591,8 @@ export default function Contacts({
             <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("grid")} title="Grid view">
               <LayoutGrid className="h-4 w-4" />
             </Button>
-            <Button variant={viewMode === "compact" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("compact")} title="Compact list">
-              <List className="h-4 w-4" />
-            </Button>
-            <Button variant={viewMode === "detailed" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("detailed")} title="Detailed list">
-              <LayoutList className="h-4 w-4" />
+            <Button variant={viewMode === "spreadsheet" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("spreadsheet")} title="Spreadsheet">
+              <Sheet className="h-4 w-4" />
             </Button>
             <Button variant={viewMode === "spreadsheet" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("spreadsheet")} title="Spreadsheet">
               <Sheet className="h-4 w-4" />
@@ -886,7 +727,7 @@ export default function Contacts({
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredContacts.map(renderContactCard)}
         </div>
-      ) : viewMode === "spreadsheet" ? (
+      ) : (
         <ContactsSpreadsheet
           contacts={filteredContacts}
           campaigns={campaigns}
@@ -898,10 +739,6 @@ export default function Contacts({
           onDelete={onDelete}
           onToggleContactCampaign={onToggleContactCampaign}
         />
-      ) : (
-        <div className="space-y-2">
-          {filteredContacts.map(viewMode === "compact" ? renderCompactRow : renderDetailedRow)}
-        </div>
       )}
     </div>
   );
