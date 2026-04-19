@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_snoozes: {
+        Row: {
+          action_signature: string
+          created_at: string
+          id: string
+          snoozed_until: string
+          user_id: string
+        }
+        Insert: {
+          action_signature: string
+          created_at?: string
+          id?: string
+          snoozed_until: string
+          user_id: string
+        }
+        Update: {
+          action_signature?: string
+          created_at?: string
+          id?: string
+          snoozed_until?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_feed_jobs: {
         Row: {
           company: string
