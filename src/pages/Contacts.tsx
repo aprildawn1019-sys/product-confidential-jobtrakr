@@ -20,7 +20,7 @@ import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import ContactsSpreadsheet from "@/components/ContactsSpreadsheet";
-import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact, TargetCompany } from "@/types/jobTracker";
+import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact, TargetCompany, NetworkRole } from "@/types/jobTracker";
 import { RELATIONSHIP_LABELS, NETWORK_ROLES } from "@/types/jobTracker";
 
 
@@ -137,7 +137,27 @@ export default function Contacts({
   const jobIdFilter = searchParams.get("jobId");
   const highlightId = searchParams.get("highlight");
   const companyFilter = searchParams.get("company");
+  const actionParam = searchParams.get("action");
+  const roleParam = searchParams.get("role");
   const [expandedContact, setExpandedContact] = useState<string | null>(highlightId);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [addPrefill, setAddPrefill] = useState<{ company?: string; role?: NetworkRole }>({});
+
+  // Open AddContactDialog when arriving with ?action=add (e.g. from sourcing panel handoff)
+  useEffect(() => {
+    if (actionParam === "add") {
+      setAddPrefill({
+        company: companyFilter || undefined,
+        role: (roleParam as NetworkRole) || undefined,
+      });
+      setAddDialogOpen(true);
+      // strip action params so re-renders don't re-trigger; keep ?company= for list context
+      const next = new URLSearchParams(searchParams);
+      next.delete("action");
+      next.delete("role");
+      setSearchParams(next, { replace: true });
+    }
+  }, [actionParam, roleParam, companyFilter, searchParams, setSearchParams]);
 
   // Auto-scroll to highlighted contact
   useEffect(() => {
@@ -625,7 +645,13 @@ export default function Contacts({
           </Button>
           <BulkContactUploadDialog onAddBulk={onAddBulk} existingContacts={contacts} />
           <LinkedInImportDialog onImport={onAddBulk} existingContacts={contacts} />
-          <AddContactDialog onAdd={onAdd} />
+          <AddContactDialog
+            onAdd={onAdd}
+            open={addDialogOpen}
+            onOpenChange={(v) => { setAddDialogOpen(v); if (!v) setAddPrefill({}); }}
+            defaultCompany={addPrefill.company}
+            defaultNetworkRole={addPrefill.role}
+          />
         </div>
       </div>
 

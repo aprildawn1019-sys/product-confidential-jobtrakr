@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,20 +8,49 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import type { Contact } from "@/types/jobTracker";
+import type { Contact, NetworkRole } from "@/types/jobTracker";
 import { NETWORK_ROLES } from "@/types/jobTracker";
 
 interface AddContactDialogProps {
   onAdd: (contact: Omit<Contact, "id" | "createdAt">) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  defaultCompany?: string;
+  defaultNetworkRole?: NetworkRole;
+  hideTrigger?: boolean;
 }
 
-export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
-  const [open, setOpen] = useState(false);
+export default function AddContactDialog({
+  onAdd,
+  open: controlledOpen,
+  onOpenChange,
+  defaultCompany,
+  defaultNetworkRole,
+  hideTrigger,
+}: AddContactDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (v: boolean) => {
+    if (!isControlled) setInternalOpen(v);
+    onOpenChange?.(v);
+  };
   const [fetchingLinkedin, setFetchingLinkedin] = useState(false);
   const [form, setForm] = useState({
-    name: "", company: "", role: "", email: "", phone: "", linkedin: "", notes: "",
-    relationshipWarmth: "", conversationLog: "", networkRole: "",
+    name: "", company: defaultCompany || "", role: "", email: "", phone: "", linkedin: "", notes: "",
+    relationshipWarmth: "", conversationLog: "", networkRole: defaultNetworkRole || "",
   });
+
+  // Sync prefill when dialog opens with new defaults
+  useEffect(() => {
+    if (open) {
+      setForm(f => ({
+        ...f,
+        company: defaultCompany ?? f.company,
+        networkRole: defaultNetworkRole ?? f.networkRole,
+      }));
+    }
+  }, [open, defaultCompany, defaultNetworkRole]);
 
   const handleLinkedinFetch = async () => {
     const url = form.linkedin.trim();
@@ -62,9 +91,11 @@ export default function AddContactDialog({ onAdd }: AddContactDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button><Plus className="h-4 w-4" /> Add Contact</Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button><Plus className="h-4 w-4" /> Add Contact</Button>
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="font-display">Add Connection</DialogTitle>
