@@ -11,25 +11,34 @@ A comprehensive job search management application built with React, TypeScript, 
 [![Supabase](https://img.shields.io/badge/Supabase-Backend-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com)
 
 <p align="center">
-  <img src="docs/images/hero.png" alt="JobTrackr Dashboard" width="800" />
+  <img src="docs/images/hero.png" alt="Jobtrakr Dashboard" width="800" />
 </p>
+
+## Screenshots
+
+| | |
+|---|---|
+| <img src="docs/images/jobs-kanban.png" alt="Jobs Kanban" width="400" /> | <img src="docs/images/connections.png" alt="Connections spreadsheet" width="400" /> |
+| **Jobs Kanban** — drag-and-drop pipeline | **Connections** — spreadsheet view of your network |
+| <img src="docs/images/network-map.png" alt="Network Map" width="400" /> | <img src="docs/images/skills-insights.png" alt="Skills Insights" width="400" /> |
+| **Network Map** — interactive graph of contacts, companies, and jobs | **Skills Insights** — demand trends across tracked roles |
 
 ## Features
 
 ### 📊 Dashboard
-- At-a-glance stats: total jobs, active applications, upcoming interviews
+- At-a-glance stats: total jobs, active applications, upcoming interviews, target companies
 - Company avatars with deterministic color coding
-- High urgency jobs and top-rated fits widgets with interactive star ratings and tooltips
+- "Active Opportunities" panel with priority and match-score filters
 - Follow-up reminders with overdue tracking
-- Application pipeline with rounded, overlapping status segments — click any segment to filter Jobs by that status
+- Application pipeline funnel — click any segment to filter Jobs by that status
 
 ### 💼 Job Tracking
 - **List & Kanban views** — drag-and-drop jobs between status columns
-- Consistent card layout with tooltips on all action buttons (fit score, company link, details)
 - Statuses: Saved → Applied → Screening → Interviewing → Offer / Rejected / Withdrawn / Closed
-- Inline editing of status, fit score (1–5 stars), and urgency level
+- Inline editing of status, match score (1–5 stars), and priority (Low / Medium / High)
 - Job detail panel with description, recruiter info, and linked contacts
-- Bulk import jobs via CSV/Excel upload
+- Bulk import jobs via CSV/Excel with AI-powered column mapping
+- Per-list **CSV export** that respects current filters and sort
 
 ### 📋 Job CRM
 - Dedicated per-job CRM page (`/jobs/:id`) inspired by Salesforce Opportunity views
@@ -41,44 +50,60 @@ A comprehensive job search management application built with React, TypeScript, 
 - AI-generated cover letters tailored to each job description and your search profile
 - Pick from tracked jobs or enter details manually
 - Auto-extract job descriptions from URLs
-- Full history page to view, search, copy, and manage all generated letters
+- Full history page with built-in Tiptap rich-text editor
 
 ### 👥 Contact Management
-- Full CRM for professional relationships
+- Full CRM for professional relationships with grid, compact, detailed, and **spreadsheet** views
 - Relationship warmth tracking (Cold → Warm → Hot → Champion)
-- Follow-up date scheduling with overdue alerts
-- Activity logging and conversation notes
-- Many-to-many outreach campaign management
+- Follow-up scheduling with overdue alerts and dynamic Google Calendar links
+- Activity logging, conversation notes, and recommendation request tracking
+- Many-to-many outreach campaigns
 - Contact-to-contact connections and org-level networking
-- Recommendation request tracking
 - LinkedIn profile import with AI-powered field extraction
 - Bulk contact import via CSV/Excel
 
-### 📅 Interviews
+### 🕸️ Network Map
+- Interactive force-directed graph (xyflow/react) of contacts, companies, and jobs
+- Company clustering with deterministic colors
+- Filter by warmth, role, or company; search and deep-link selections
+- Click-to-connect contact-to-contact relationships
+- Export the current view as PNG
+
+### 📅 Schedule
+- Unified timeline of interviews and contact follow-ups
 - Schedule and manage interviews (Phone, Technical, Behavioral, Onsite, Final)
 - Calendar view with highlighted interview and follow-up dates
-- Combined timeline of interviews and contact follow-ups
 
 ### 🔍 Job Search
-- AI-powered job search with profile-based matching
-- Job board management and tracking
+- AI-powered hybrid search with profile-based matching (up to 50 results)
+- Recommendations engine with weighted scoring and deep links
 - Dismiss irrelevant results to refine future searches
+- **AI PM Feed** — automated discovery of AI Product Management roles (rate-limited 3/hr)
+
+### 🗂️ Job Boards
+- Manage job search sources (LinkedIn, BioSpace, ExecThread, etc.)
+- Gated-access scanner flags boards that need manual checking
+- Excluded from automated AI searches to avoid wasted calls
 
 ### 📝 Profile Editor
 - Searchable job profile with target roles, skills, and preferences
-- Resume parsing for auto-populating profile fields
-- Used by AI search to match relevant opportunities
+- Resume parsing (PDF/DOCX/text) auto-populates profile fields
+- Used by AI search and cover-letter generation
 
 ### 📈 Skills Insights
 - Skills frequency analysis across tracked job postings
-- Snapshot history for trending skill demand over time
+- Demand-tier pills (high / moderate / low) and snapshot history for trends
+- LinkedIn headline builder and resume keyword overlap
 
 ### 🎯 Target Companies
-- Build a shortlist of dream employers with priority levels (Dream, Strong, Interested)
-- Track pipeline status per company (Researching, Applied, Connected, Archived)
+- Shortlist dream employers with priority levels (Dream, Strong, Interested)
+- Pipeline status per company (Researching, Applied, Connected, Archived)
 - Auto-computed stats: jobs tracked, contacts, and active applications per company
-- Dashboard integration with target company stat card
-- Quick access to company websites and careers pages
+- Fuzzy name matching with duplicate detection and merge tooling
+
+### ⚙️ Settings → Data & Export
+- Bulk CSV backups of jobs, contacts, and interviews
+- Lives under Settings (the standalone Reports page was retired in favor of in-context export menus on each list page)
 
 
 ## Tech Stack
