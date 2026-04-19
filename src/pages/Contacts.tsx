@@ -591,11 +591,8 @@ export default function Contacts({
             <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("grid")} title="Grid view">
               <LayoutGrid className="h-4 w-4" />
             </Button>
-            <Button variant={viewMode === "compact" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("compact")} title="Compact list">
-              <List className="h-4 w-4" />
-            </Button>
-            <Button variant={viewMode === "detailed" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("detailed")} title="Detailed list">
-              <LayoutList className="h-4 w-4" />
+            <Button variant={viewMode === "spreadsheet" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("spreadsheet")} title="Spreadsheet">
+              <Sheet className="h-4 w-4" />
             </Button>
             <Button variant={viewMode === "spreadsheet" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("spreadsheet")} title="Spreadsheet">
               <Sheet className="h-4 w-4" />
