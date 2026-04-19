@@ -91,9 +91,11 @@ export default function AddContactDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button><Plus className="h-4 w-4" /> Add Contact</Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button><Plus className="h-4 w-4" /> Add Contact</Button>
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="font-display">Add Connection</DialogTitle>
