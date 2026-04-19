@@ -1,79 +1,78 @@
 
 
-## Dashboard vs. Command Center — what to keep, split, or cut
+## Use case #2 — "Find a Booster or Connector for [company]" on Target Companies
 
-Good question to ask now, before the Command Center cements itself as the only landing surface. Let me lay out what's actually on the current Command Center, what was on the old Dashboard, and where each piece belongs.
+The funnel goal is simple: **every target company should eventually have a Booster inside it**. Right now the Target Companies page tells you *what* you want (a shortlist) but doesn't help you *how* to get there. This use case closes that gap.
 
-### What's on the Command Center today
+### What the page tells us today
 
-1. **Header** — title, action count summary, "Suggest next steps" (AI), "Take the tour"
-2. **4 stat cards** — Total Jobs, Active Applications, Interviews Scheduled, Target Companies
-3. **Next steps panel** — Queue / Swimlane toggle (the core of the redesign)
-4. **Pipeline Overview** — funnel visualization
+Each card shows job count, contact count, active applications, priority, status, industry, notes, and quick links to filtered Jobs/Contacts. What's **missing** is a *sourcing signal*: at a glance you can't tell whether a target is "covered" (you have an inside referral path) or "cold" (zero connections), and you can't act on the cold ones in one click.
 
-Items 2 and 4 are **overview/metrics** content. Items 1 and 3 are **action-oriented** content. They're currently coexisting on one page, which works at 1108px but starts to feel busy and dilutes the "what do I do next?" intent.
+### The mental model: Coverage state per target
 
-### The tension
+Each target company falls into one of four sourcing states, derived from the contacts you already have:
 
-A command center answers: **"What should I do right now?"**
-A dashboard answers: **"How is my search going overall?"**
+| State | Meaning | Visual |
+|---|---|---|
+| 🚀 **Has Booster** | ≥1 contact at the company tagged `booster` | Green chip "Booster: [name]" |
+| 🌉 **Connector available** | No Booster, but ≥1 `connector` who could intro you | Blue chip "Ask Connector" |
+| 👀 **Recruiter only** | No Booster/Connector, but `recruiter_internal` exists | Amber chip "Recruiter contact" |
+| ❄️ **Cold** | No relevant contacts | Grey chip "No inside path" + primary CTA |
 
-Both are valid; they serve different moments:
-- **Morning / between sessions** → command center (action mode)
-- **Weekly review / status check / sharing with a coach** → dashboard (reflection mode)
+This taxonomy is the natural payoff of the network role refactor we just shipped.
 
-Right now we're forcing both moments onto one screen, and the metrics cards + funnel aren't doing much work in action mode (you don't decide what to do based on "Total Jobs: 47").
+### Three additions to the Target Companies page
 
-### Three options
+#### 1. Coverage badge on each card
+A clickable chip that shows the company's funnel state at a glance. Click → opens the sourcing panel.
 
-#### Option A — Pure Command Center, move metrics elsewhere
-Strip the stat cards and Pipeline Overview off the Command Center. The page becomes purely about next actions. Metrics move to:
-- Stat cards → top of `/jobs` (where they're contextual)
-- Pipeline funnel → `/reports` (where weekly-review content lives)
+#### 2. Sourcing summary bar + Coverage filter
+Above the grid: "**12 targets · 3 Boosters · 4 Connectors · 5 Cold**" — each segment clickable as a filter. New filter dropdown "Coverage" pairs with the existing Priority + Status filters.
 
-**Pro**: Cleanest action surface, no visual noise competing with the queue.
-**Con**: You lose the at-a-glance feel of "the dashboard." First-login users land on a list of tasks, not a snapshot.
+#### 3. Sourcing panel (the core deliverable)
 
-#### Option B — Split into two pages: `/` (Command Center) + `/dashboard` (Overview)
-Command Center stays the default landing page (action focus). A separate Overview page at `/dashboard` keeps the stat cards, pipeline funnel, and gains room for richer analytics (weekly velocity, response rates, lane health).
+A right-side **Sheet** titled **"Find a Booster at [company]"** with:
 
-**Pro**: Each surface has a clear job. Power users get both. Sidebar gains a "Dashboard" link below "Command Center."
-**Con**: Two top-level surfaces to maintain. Some users won't discover the second one.
+- **Section A — Inside path**: existing Boosters with one-tap "Open outreach" using the role-aware templates we already have. If no Boosters but Connectors exist, surface the Connectors with an "Ask for intro to {company}" pre-filled template.
+- **Section B — Recruiter contacts**: internal recruiters at the company (parallel path).
+- **Section C — Sourcing actions** (always visible):
+  1. **Search LinkedIn for "{company}" + your role** — opens LinkedIn people search in a new tab (deep link, no scraping)
+  2. **Check who you already know** — fuzzy scans your *entire* contact list for substring mentions of the target company in `notes`/`conversation_log` — surfaces forgotten 2nd-degree Connectors
+  3. **Add a contact at {company}** — opens the existing AddContactDialog with `company` and `networkRole=booster` pre-filled
+  4. **Visit careers page** — deep link if `careersUrl` set
+- **Section D — Coverage history**: "First contact added [date]" or "No contacts yet" — frames progress.
 
-#### Option C — Keep as-is but tighten (recommended starting point)
-Keep stat cards (they're tiny and provide context) but **remove the Pipeline Overview** from the Command Center — it's the heaviest piece and least action-relevant. Move the funnel to a small sidebar widget on `/jobs` or to `/reports`. Stat cards stay because they're scannable in <1 second and don't compete with the queue.
+#### 4. Sort option: "Coverage gap"
+Ranks Dream/Strong companies with no Booster to the top. The morning-routine view: "what targets need sourcing today?"
 
-**Pro**: Minimum disruption, preserves the lightweight overview, removes the one panel that competes most for attention.
-**Con**: Doesn't fully resolve the action-vs-reflection split — just defers it.
+### Why a Sheet (not Dialog or new page)
 
-### What I'd recommend
+- Dialog blocks the grid; you'd lose context across multiple companies
+- A new page is overkill — sourcing is a 30-second action
+- A right-side Sheet keeps the grid visible and supports rapid hopping between targets
 
-**Option C now, Option B later.** Here's why:
+### Data model — no migration needed
 
-1. The Command Center is brand new. Users need to learn the queue/swimlane pattern. Removing the funnel reduces competing visual weight without amputating the overview entirely.
-2. Stat cards (4 small numbers) are cheap real estate and orient new users — they answer "is this app showing me my data?" in a glance.
-3. A dedicated `/dashboard` Overview page is the right long-term shape, but it deserves its own design pass with **richer** analytics than what's there today (response rate per lane, time-to-first-interview, conversion funnel by source). Building it as a token-effort copy-paste of the old dashboard would underdeliver.
+Everything derives from existing fields: `contacts.network_role` (already populated by the role refactor), `contacts.company` matched via existing `companiesMatch` fuzzy matcher, and substring scan of `notes`/`conversation_log` for 2nd-degree candidates. **No new tables or columns** — this is purely UX.
 
-### Concrete plan if you pick Option C
+### File-level changes
 
-- Remove the **Pipeline Overview** card from `src/pages/Dashboard.tsx`
-- Add the funnel to **`src/pages/Reports.tsx`** as a top-of-page section (it's already an analytics surface)
-- Keep the 4 stat cards on the Command Center
-- Header subtitle stays as the action summary
-- No routing changes, no sidebar changes
+- New `src/components/targetcompanies/CoverageBadge.tsx`
+- New `src/components/targetcompanies/SourcingPanel.tsx`
+- New `src/components/targetcompanies/coverageUtils.ts` — pure functions: `getCoverageState`, `findSecondDegreeMatches`, `buildLinkedInSearchUrl`
+- Edit `src/pages/TargetCompanies.tsx` — summary bar, filter, coverage badge, "Find a Booster" button, sort option. **Already 356 lines — I'll extract the card into `TargetCompanyCard.tsx` while in there.**
+- No changes to outreach templates, AddContactDialog, or store — reuse as-is
 
-### Concrete plan if you pick Option B
+### Intentionally NOT in this pass
 
-- Create new `src/pages/Overview.tsx` with stat cards + pipeline funnel + room for new analytics widgets
-- Add `/dashboard` route → Overview component
-- Keep `/` → Command Center (current `Dashboard.tsx`, slim down by removing stat cards + funnel)
-- Add "Overview" sidebar link below "Command Center" in `AppSidebar.tsx`'s Discover group
-- Defer richer analytics widgets (response rate, velocity) to a follow-up
+- ❌ AI-suggested Boosters from external data (LinkedIn scraping, Apollo) — your constraint says no third-party scraping; LinkedIn deep links are the right primitive
+- ❌ Auto-creating Connector intros without user review — the whole point is the user judges who to approach
+- ❌ A separate "Sourcing" page — Target Companies already implies this job; a new page fragments intent
 
 ### Things I want your call on
 
-1. **Which option (A / B / C / something else)?**
-2. **If C**: should the funnel land on `/reports` or in a sidebar widget on `/jobs`?
-3. **If B**: any specific metrics you want on the Overview page beyond what's there today (response rate by lane, time-to-first-interview, weekly application velocity)?
-4. **First-login experience**: should brand-new users land on Command Center (current behavior) or on Overview (more "welcome" feel)?
+1. **Coverage chip placement on the card** — replace the current "X jobs · Y contacts" line, or **add a new line above it**? (My take: add above, keep the stats — they're useful context.)
+2. **Sourcing panel surface** — right-side **Sheet** (my recommendation) or **Dialog** (more focused, blocks grid)?
+3. **2nd-degree match scope** — search only `notes`+`conversation_log` text, or also include `linkedin` URL substring? Wider = more candidates but more noise.
+4. **Default sort** — keep current (creation order), or default to **"Coverage gap"** so the morning view shows cold Dream/Strong companies first?
 
