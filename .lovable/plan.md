@@ -1,54 +1,53 @@
 
+## Connections views — overlap evaluation
 
-## Reframing A — single Dashboard surface with inline Weekly Review
+The "Connections" surface currently exposes **5 distinct views** of the same underlying contact list. Most overlap heavily.
 
-### Decisions locked in
-- **One surface, one name**: "Dashboard" everywhere (page header, sidebar, memory). Drop "Command Center" wording.
-- **Add Weekly Review** inline on the Dashboard (collapsed by default to protect action focus).
-- **Reports page**: demote — move CSV exports + pipeline funnel into a Settings area; remove `/reports` as a top-level sidebar entry.
+### What exists today
 
-### Weekly Review metrics (this week, Mon-Sun)
-1. **Applications sent** — count of `jobs` whose `status_updated_at` moved to `applied` this week (proxy: jobs with `applied_date` in current week).
-2. **Follow-ups done** — count of `contact_activities` rows with `activity_type` in {`email`, `call`, `linkedin_message`, `meeting`} this week.
-3. **Interviews scheduled** — count of `interviews` with `created_at` this week (when the interview was booked, regardless of when it occurs).
-4. **Networking meetings completed** — count of `contact_activities` with `activity_type = 'meeting'` and `activity_date` ≤ today, this week.
+**On `/contacts` (Connections page) — 4 view modes via toggle:**
+1. **Grid** (default) — card layout, 3 columns. Avatar + name + warmth + key badges. Best for *browsing*.
+2. **Compact list** — 1-line row per contact (name, role, company, warmth, badges). Best for *scanning many contacts*.
+3. **Detailed list** — multi-line row with email/phone/LinkedIn inline + every badge type (campaigns, same-org, jobs, connections, activities, recs). Best for *triage with full context*.
+4. **Spreadsheet** — `ContactsSpreadsheet` component: sortable columns, inline editing, bulk warmth/campaign/delete actions. Best for *data cleanup and bulk ops*.
 
-Each metric: big number + small "vs last week" delta (↑ ↓ →). No charts in this pass — keep it scannable.
+**On `/network-map` — 1 view:**
+5. **Network Map** — xyflow graph: contacts clustered by company, with company + job nodes and connection edges. Best for *seeing relationships visually*.
 
-### File-level changes
+### Overlap analysis
 
-**Rename / cleanup**
-- Rename page header in `src/pages/Dashboard.tsx` from "Command Center" → "Dashboard". Keep filename `Dashboard.tsx` (no route change).
-- Update `src/components/AppSidebar.tsx` label to "Dashboard".
-- Update `mem://index.md` and `mem://features/dashboard-analytics` to reflect the unified naming + Weekly Review.
+| View | Unique value | Overlaps with |
+|------|--------------|---------------|
+| Grid | Visual browsing, "showcase" feel | Compact (same data, denser) |
+| **Compact list** | Fast scanning | Grid (same fields) AND Detailed (subset) AND Spreadsheet (subset, no editing) |
+| Detailed list | All badges + inline contact methods | Grid + Compact (superset of both) — but expanding any card already shows this |
+| **Spreadsheet** | Inline editing, sorting, **bulk actions** (only place to bulk-update warmth, add/remove campaigns, bulk delete) | None — uniquely capable |
+| Network Map | Visual relationships, clustering | None — completely different mental model |
 
-**New component**
-- `src/components/dashboard/WeeklyReview.tsx` — collapsible card with the 4 metrics + week-over-week deltas. Pure derivation from existing store data; no new tables, no edge functions.
+### Recommendation: collapse 4 → 2
 
-**Dashboard wiring**
-- `src/pages/Dashboard.tsx`: insert `<WeeklyReview ... />` between the 4 stat cards and the "Next steps" panel. Collapsed by default; remembers state in `localStorage` (`jobtrakr.weeklyReview.expanded`).
+**Keep:**
+- **Cards** (rename Grid → Cards) — the default browsing experience.
+- **Spreadsheet** — uniquely owns inline editing + bulk actions.
+- **Network Map** — separate page, separate value.
 
-**Reports demotion**
-- Remove `/reports` link from `src/components/AppSidebar.tsx`.
-- Move the `Reports` page contents into a new `src/pages/SettingsData.tsx` mounted at `/settings/data` (CSV exports + pipeline funnel preserved as-is).
-- Keep `/reports` route as a redirect to `/settings/data` so any bookmarked link still works.
-- Add a "Data & Export" entry in the Settings sidebar group (or wherever the existing Settings link lives) so it's discoverable.
+**Remove:**
+- **Compact list** — fully redundant with Grid (same fields, just denser; users who want density can use Spreadsheet).
+- **Detailed list** — the expand-card affordance on the Grid view already reveals every badge and field shown here. Detailed = "everything always expanded", which is noise for most workflows.
 
-### What's intentionally NOT in this pass
-- No new analytics charts (response rate by lane, time-to-interview trends) — those belong to a later, dedicated analytics pass if ever needed.
-- No DB changes; all metrics derive from existing tables.
-- No change to the Action Queue / Swimlane behavior.
+### Why this works
+- Removes 2 toggle buttons from a crowded toolbar.
+- The 3 remaining surfaces map to **3 distinct intents**: browse (Cards), edit/bulk (Spreadsheet), explore relationships (Network Map).
+- No data or capability is lost — Detailed view's content is reachable via Card expansion; Compact's density is reachable via Spreadsheet.
 
-### Open question for you (the prompt you asked for)
+### Files to change (implementation pass)
+- `src/pages/Contacts.tsx`:
+  - Narrow `viewMode` type to `"grid" | "spreadsheet"`.
+  - Remove the `Compact` and `Detailed` toggle buttons from the toolbar (lines ~750-754).
+  - Delete `renderCompactRow` and `renderDetailedRow` functions and their imports (`List`, `LayoutList` icons).
+  - Simplify the bottom render branch: just Cards or Spreadsheet.
+  - Persist remaining viewMode preference (already in component state — fine to leave).
+- No DB or routing changes. No memory updates needed (no rules currently lock these views in).
 
-Once Weekly Review lands, the Dashboard will have: header → 4 stat cards → Weekly Review (collapsible) → Next steps (Queue/Swimlane). The old Dashboard had a few more elements that we removed or never carried over. **Which of these would you like to re-introduce, if any?**
-
-1. **Pipeline Funnel** (currently on Reports → moving to Settings/Data) — re-add a compact version to the Dashboard?
-2. **Active Opportunities panel** — list of jobs in `applied` / `interviewing` / `offer` with quick status updates (was on the old dashboard per memory).
-3. **Upcoming Interviews strip** — next 3 interviews with date + company, deep-linked to the interview row.
-4. **Recent Activity timeline** — last 5 contact activities + job activities, mixed feed.
-5. **Target Coverage snapshot** — "3 Boosters · 4 Connectors · 5 Cold targets" mini-bar from the new sourcing taxonomy, deep-linked to filtered Target Companies.
-6. **Nothing — keep it lean** (just stats + Weekly Review + Next steps).
-
-Pick any combination; I'll prioritize them under the Next steps panel in the order you specify.
-
+### Open question
+One judgment call worth confirming before I implement: **rename "Grid" to "Cards"** in the tooltip, or keep "Grid"? I'll default to **Cards** since it's clearer, but flag it now in case you prefer Grid.
