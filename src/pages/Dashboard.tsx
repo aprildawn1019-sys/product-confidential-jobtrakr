@@ -6,6 +6,10 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import StatCard from "@/components/StatCard";
 import ActionQueue from "@/components/commandcenter/ActionQueue";
 import ActionSwimlane from "@/components/commandcenter/ActionSwimlane";
+import WeeklyReview from "@/components/dashboard/WeeklyReview";
+import UpcomingInterviewsStrip from "@/components/dashboard/UpcomingInterviewsStrip";
+import ActiveOpportunitiesPanel from "@/components/dashboard/ActiveOpportunitiesPanel";
+import TargetCoverageSnapshot from "@/components/dashboard/TargetCoverageSnapshot";
 import { deriveActions } from "@/lib/actionEngine";
 import { useActionSnoozes } from "@/hooks/useActionSnoozes";
 import { useAiSuggestedActions } from "@/hooks/useAiSuggestedActions";
@@ -74,7 +78,7 @@ export default function Dashboard({
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Command Center</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="mt-1 text-muted-foreground">
             {actions.length === 0
               ? "Nothing on your plate. Plan your next move."
@@ -108,6 +112,15 @@ export default function Dashboard({
         <StatCard label="Active Applications" value={activeApps} icon={Send} accent="info" href="/jobs?status=active" />
         <StatCard label="Interviews Scheduled" value={upcoming.length} icon={CalendarCheck} accent="warning" href="/interviews" />
         <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} icon={Star} accent="success" href="/target-companies" />
+      </div>
+
+      <WeeklyReview jobs={jobs} interviews={interviews} contactActivities={contactActivities} />
+
+      <UpcomingInterviewsStrip interviews={interviews} jobs={jobs} />
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ActiveOpportunitiesPanel jobs={jobs} />
+        <TargetCoverageSnapshot targetCompanies={targetCompanies} contacts={contacts} />
       </div>
 
       <div className="rounded-xl border border-border bg-card p-6">
