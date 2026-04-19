@@ -727,7 +727,7 @@ export default function Contacts({
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredContacts.map(renderContactCard)}
         </div>
-      ) : viewMode === "spreadsheet" ? (
+      ) : (
         <ContactsSpreadsheet
           contacts={filteredContacts}
           campaigns={campaigns}
@@ -739,10 +739,6 @@ export default function Contacts({
           onDelete={onDelete}
           onToggleContactCampaign={onToggleContactCampaign}
         />
-      ) : (
-        <div className="space-y-2">
-          {filteredContacts.map(viewMode === "compact" ? renderCompactRow : renderDetailedRow)}
-        </div>
       )}
     </div>
   );
