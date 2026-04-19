@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe, AlertTriangle, GitMerge } from "lucide-react";
+import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe, AlertTriangle, GitMerge, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +16,11 @@ import CompanyAvatar from "@/components/CompanyAvatar";
 import HelpHint from "@/components/help/HelpHint";
 import DuplicateCompaniesDialog from "@/components/targetcompanies/DuplicateCompaniesDialog";
 import { detectDuplicateClusters } from "@/components/targetcompanies/duplicateDetection";
+import CoverageBadge from "@/components/targetcompanies/CoverageBadge";
+import SourcingPanel from "@/components/targetcompanies/SourcingPanel";
+import { getCoverageInfo, coverageGapComparator, COVERAGE_LABELS, type CoverageState } from "@/components/targetcompanies/coverageUtils";
 import { companiesMatch } from "@/stores/jobTrackerStore";
-import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact } from "@/types/jobTracker";
+import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact, NetworkRole } from "@/types/jobTracker";
 
 interface TargetCompaniesProps {
   targetCompanies: TargetCompany[];
@@ -57,22 +60,50 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
   const [search, setSearch] = useState("");
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterCoverage, setFilterCoverage] = useState<string>("all");
+  const [sortMode, setSortMode] = useState<string>("default");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [duplicatesDialogOpen, setDuplicatesDialogOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [sourcingCompanyId, setSourcingCompanyId] = useState<string | null>(null);
 
   const duplicateClusters = useMemo(() => detectDuplicateClusters(targetCompanies), [targetCompanies]);
 
+  // Compute coverage for every target once per render
+  const withCoverage = useMemo(
+    () => targetCompanies.map(company => ({ company, coverage: getCoverageInfo(company, contacts) })),
+    [targetCompanies, contacts],
+  );
+
+  const coverageCounts = useMemo(() => {
+    const counts: Record<CoverageState, number> = { booster: 0, connector: 0, recruiter: 0, cold: 0 };
+    for (const { company, coverage } of withCoverage) {
+      if (company.status === "archived") continue;
+      counts[coverage.state] += 1;
+    }
+    return counts;
+  }, [withCoverage]);
+  const activeCount = withCoverage.filter(({ company }) => company.status !== "archived").length;
+
   const filtered = useMemo(() => {
-    return targetCompanies.filter(tc => {
-      if (filterPriority !== "all" && tc.priority !== filterPriority) return false;
-      if (filterStatus !== "all" && tc.status !== filterStatus) return false;
-      if (search && !tc.name.toLowerCase().includes(search.toLowerCase())) return false;
+    const list = withCoverage.filter(({ company, coverage }) => {
+      if (filterPriority !== "all" && company.priority !== filterPriority) return false;
+      if (filterStatus !== "all" && company.status !== filterStatus) return false;
+      if (filterCoverage !== "all" && coverage.state !== filterCoverage) return false;
+      if (search && !company.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [targetCompanies, search, filterPriority, filterStatus]);
+    if (sortMode === "coverage_gap") {
+      return [...list].sort(coverageGapComparator);
+    }
+    return list;
+  }, [withCoverage, search, filterPriority, filterStatus, filterCoverage, sortMode]);
+
+  const sourcingTarget = sourcingCompanyId
+    ? withCoverage.find(({ company }) => company.id === sourcingCompanyId) || null
+    : null;
 
   const activeStatuses = ["applied", "screening", "interviewing", "offer"];
 
@@ -81,6 +112,11 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
     const matchedContacts = contacts.filter(c => companiesMatch(c.company, companyName));
     const activeApps = matchedJobs.filter(j => activeStatuses.includes(j.status));
     return { jobCount: matchedJobs.length, contactCount: matchedContacts.length, activeApps: activeApps.length };
+  };
+
+  const handleAddContactFromPanel = (prefill: { company: string; networkRole: NetworkRole }) => {
+    // Hand off to Contacts page with prefill in URL params (existing pattern uses ?company=)
+    navigate(`/contacts?company=${encodeURIComponent(prefill.company)}&role=${prefill.networkRole}&action=add`);
   };
 
   const handleMerge = async (
@@ -151,6 +187,39 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
         </Alert>
       )}
 
+      {/* Coverage summary bar */}
+      {activeCount > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3">
+          <span className="text-xs font-medium text-muted-foreground mr-1">
+            {activeCount} active target{activeCount === 1 ? "" : "s"}:
+          </span>
+          {(["booster", "connector", "recruiter", "cold"] as CoverageState[]).map(state => {
+            const count = coverageCounts[state];
+            const conf = COVERAGE_LABELS[state];
+            const isActive = filterCoverage === state;
+            return (
+              <button
+                key={state}
+                onClick={() => setFilterCoverage(isActive ? "all" : state)}
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-colors ${
+                  isActive
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background hover:bg-muted text-foreground border-border"
+                }`}
+              >
+                <span aria-hidden>{conf.emoji}</span>
+                <span>{count} {conf.short}</span>
+              </button>
+            );
+          })}
+          {filterCoverage !== "all" && (
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs ml-auto" onClick={() => setFilterCoverage("all")}>
+              Clear
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
@@ -176,6 +245,23 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
             <SelectItem value="archived">Archived</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={filterCoverage} onValueChange={setFilterCoverage}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Coverage" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Coverage</SelectItem>
+            <SelectItem value="booster">🚀 Has Booster</SelectItem>
+            <SelectItem value="connector">🌉 Connector</SelectItem>
+            <SelectItem value="recruiter">👀 Recruiter only</SelectItem>
+            <SelectItem value="cold">❄️ Cold</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortMode} onValueChange={setSortMode}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Sort" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">Default order</SelectItem>
+            <SelectItem value="coverage_gap">Coverage gap (cold first)</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Card Grid */}
@@ -192,7 +278,7 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map(tc => {
+          {filtered.map(({ company: tc, coverage }) => {
             const stats = getStats(tc.name);
             const pConf = priorityConfig[tc.priority];
             const sConf = statusConfig[tc.status];
@@ -210,7 +296,8 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
                     <Badge variant="outline" className={`shrink-0 text-xs ${pConf.color}`}>{pConf.label}</Badge>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <CoverageBadge coverage={coverage} onClick={() => setSourcingCompanyId(tc.id)} />
                     <Badge variant="secondary" className={`text-xs ${sConf.color}`}>{sConf.label}</Badge>
                   </div>
 
@@ -239,33 +326,44 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
 
                   {tc.notes && <p className="text-xs text-muted-foreground line-clamp-2">{tc.notes}</p>}
 
-                  <div className="flex items-center gap-1 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Tooltip><TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(tc)}><Pencil className="h-3.5 w-3.5" /></Button>
-                    </TooltipTrigger><TooltipContent>Edit</TooltipContent></Tooltip>
-                    {tc.careersUrl && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button
+                      variant={coverage.state === "cold" ? "default" : "outline"}
+                      size="sm"
+                      className="h-7 px-2.5 text-xs gap-1.5"
+                      onClick={() => setSourcingCompanyId(tc.id)}
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {coverage.state === "booster" ? "Outreach" : coverage.state === "cold" ? "Find a Booster" : "Sourcing"}
+                    </Button>
+                    <div className="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
                       <Tooltip><TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                          <a href={tc.careersUrl} target="_blank" rel="noopener noreferrer"><Globe className="h-3.5 w-3.5" /></a>
-                        </Button>
-                      </TooltipTrigger><TooltipContent>Careers page</TooltipContent></Tooltip>
-                    )}
-                    {tc.website && (
-                      <Tooltip><TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                          <a href={tc.website} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
-                        </Button>
-                      </TooltipTrigger><TooltipContent>Website</TooltipContent></Tooltip>
-                    )}
-                    {tc.status !== "archived" ? (
-                      <Tooltip><TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto" onClick={() => onUpdate(tc.id, { status: "archived" })}><Archive className="h-3.5 w-3.5" /></Button>
-                      </TooltipTrigger><TooltipContent>Archive</TooltipContent></Tooltip>
-                    ) : (
-                      <Tooltip><TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto text-destructive" onClick={() => onDelete(tc.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                      </TooltipTrigger><TooltipContent>Delete</TooltipContent></Tooltip>
-                    )}
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(tc)}><Pencil className="h-3.5 w-3.5" /></Button>
+                      </TooltipTrigger><TooltipContent>Edit</TooltipContent></Tooltip>
+                      {tc.careersUrl && (
+                        <Tooltip><TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                            <a href={tc.careersUrl} target="_blank" rel="noopener noreferrer"><Globe className="h-3.5 w-3.5" /></a>
+                          </Button>
+                        </TooltipTrigger><TooltipContent>Careers page</TooltipContent></Tooltip>
+                      )}
+                      {tc.website && (
+                        <Tooltip><TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                            <a href={tc.website} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
+                          </Button>
+                        </TooltipTrigger><TooltipContent>Website</TooltipContent></Tooltip>
+                      )}
+                      {tc.status !== "archived" ? (
+                        <Tooltip><TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdate(tc.id, { status: "archived" })}><Archive className="h-3.5 w-3.5" /></Button>
+                        </TooltipTrigger><TooltipContent>Archive</TooltipContent></Tooltip>
+                      ) : (
+                        <Tooltip><TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => onDelete(tc.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                        </TooltipTrigger><TooltipContent>Delete</TooltipContent></Tooltip>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -350,6 +448,17 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
         jobs={jobs}
         contacts={contacts}
         onMerge={handleMerge}
+      />
+
+      {/* Sourcing panel */}
+      <SourcingPanel
+        company={sourcingTarget?.company || null}
+        coverage={sourcingTarget?.coverage || null}
+        open={!!sourcingCompanyId}
+        onOpenChange={(o) => { if (!o) setSourcingCompanyId(null); }}
+        contacts={contacts}
+        onAddContact={handleAddContactFromPanel}
+        onOpenContact={(id) => navigate(`/contacts?contactId=${id}`)}
       />
     </div>
   );
