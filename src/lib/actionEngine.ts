@@ -113,11 +113,11 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     const linkedJobIds = input.jobContacts
       .filter((jc) => jc.contactId === c.id)
       .map((jc) => jc.jobId);
-    if (linkedJobIds.length > 0) {
-      const allInactive = linkedJobIds.every((jid) => {
-        const job = input.jobs.find((j) => j.id === jid);
-        return job && INACTIVE_JOB_STATUSES.has(job.status);
-      });
+    const linkedJobs = linkedJobIds
+      .map((jid) => input.jobs.find((j) => j.id === jid))
+      .filter((j): j is Job => !!j);
+    if (linkedJobs.length > 0) {
+      const allInactive = linkedJobs.every((j) => INACTIVE_JOB_STATUSES.has(j.status));
       if (allInactive) continue;
     }
     const urgency = urgencyFromDate(c.followUpDate);
@@ -125,6 +125,8 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     const daysOverdue = urgency === "overdue"
       ? Math.max(0, differenceInDays(now, parseISO(c.followUpDate)))
       : 0;
+    const activeLinkedJob = linkedJobs.find((j) => !INACTIVE_JOB_STATUSES.has(j.status));
+    const networkRole = c.networkRole as NetworkRole | undefined;
     actions.push({
       signature: `followup:contact:${c.id}:${c.followUpDate}`,
       lane: "networking",
@@ -133,10 +135,16 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
       priorityScore: scoreOf(urgency, "networking", daysOverdue),
       title: `Follow up with ${c.name}`,
       subtitle: `${c.role || "Contact"} at ${c.company}`,
-      actionLabel: getPrimaryAction(c.networkRole as NetworkRole) || "Reach out",
+      actionLabel: getPrimaryAction(networkRole) || "Reach out",
       href: `/contacts?highlight=${c.id}`,
       contactId: c.id,
       dueDate: c.followUpDate,
+      outreachContext: networkRole ? {
+        networkRole,
+        contactName: c.name,
+        targetCompany: activeLinkedJob?.company || c.company,
+        jobTitle: activeLinkedJob?.title,
+      } : undefined,
     });
   }
 
