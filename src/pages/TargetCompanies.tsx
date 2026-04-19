@@ -187,6 +187,39 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
         </Alert>
       )}
 
+      {/* Coverage summary bar */}
+      {activeCount > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3">
+          <span className="text-xs font-medium text-muted-foreground mr-1">
+            {activeCount} active target{activeCount === 1 ? "" : "s"}:
+          </span>
+          {(["booster", "connector", "recruiter", "cold"] as CoverageState[]).map(state => {
+            const count = coverageCounts[state];
+            const conf = COVERAGE_LABELS[state];
+            const isActive = filterCoverage === state;
+            return (
+              <button
+                key={state}
+                onClick={() => setFilterCoverage(isActive ? "all" : state)}
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-colors ${
+                  isActive
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background hover:bg-muted text-foreground border-border"
+                }`}
+              >
+                <span aria-hidden>{conf.emoji}</span>
+                <span>{count} {conf.short}</span>
+              </button>
+            );
+          })}
+          {filterCoverage !== "all" && (
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs ml-auto" onClick={() => setFilterCoverage("all")}>
+              Clear
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
@@ -210,6 +243,23 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
             <SelectItem value="applied">Applied</SelectItem>
             <SelectItem value="connected">Connected</SelectItem>
             <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterCoverage} onValueChange={setFilterCoverage}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Coverage" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Coverage</SelectItem>
+            <SelectItem value="booster">🚀 Has Booster</SelectItem>
+            <SelectItem value="connector">🌉 Connector</SelectItem>
+            <SelectItem value="recruiter">👀 Recruiter only</SelectItem>
+            <SelectItem value="cold">❄️ Cold</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortMode} onValueChange={setSortMode}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Sort" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">Default order</SelectItem>
+            <SelectItem value="coverage_gap">Coverage gap (cold first)</SelectItem>
           </SelectContent>
         </Select>
       </div>
