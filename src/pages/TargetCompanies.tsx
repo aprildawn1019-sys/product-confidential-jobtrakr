@@ -278,7 +278,7 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map(tc => {
+          {filtered.map(({ company: tc, coverage }) => {
             const stats = getStats(tc.name);
             const pConf = priorityConfig[tc.priority];
             const sConf = statusConfig[tc.status];
@@ -296,7 +296,8 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
                     <Badge variant="outline" className={`shrink-0 text-xs ${pConf.color}`}>{pConf.label}</Badge>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <CoverageBadge coverage={coverage} onClick={() => setSourcingCompanyId(tc.id)} />
                     <Badge variant="secondary" className={`text-xs ${sConf.color}`}>{sConf.label}</Badge>
                   </div>
 
@@ -325,33 +326,44 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
 
                   {tc.notes && <p className="text-xs text-muted-foreground line-clamp-2">{tc.notes}</p>}
 
-                  <div className="flex items-center gap-1 pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Tooltip><TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(tc)}><Pencil className="h-3.5 w-3.5" /></Button>
-                    </TooltipTrigger><TooltipContent>Edit</TooltipContent></Tooltip>
-                    {tc.careersUrl && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button
+                      variant={coverage.state === "cold" ? "default" : "outline"}
+                      size="sm"
+                      className="h-7 px-2.5 text-xs gap-1.5"
+                      onClick={() => setSourcingCompanyId(tc.id)}
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {coverage.state === "booster" ? "Outreach" : coverage.state === "cold" ? "Find a Booster" : "Sourcing"}
+                    </Button>
+                    <div className="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
                       <Tooltip><TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                          <a href={tc.careersUrl} target="_blank" rel="noopener noreferrer"><Globe className="h-3.5 w-3.5" /></a>
-                        </Button>
-                      </TooltipTrigger><TooltipContent>Careers page</TooltipContent></Tooltip>
-                    )}
-                    {tc.website && (
-                      <Tooltip><TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                          <a href={tc.website} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
-                        </Button>
-                      </TooltipTrigger><TooltipContent>Website</TooltipContent></Tooltip>
-                    )}
-                    {tc.status !== "archived" ? (
-                      <Tooltip><TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto" onClick={() => onUpdate(tc.id, { status: "archived" })}><Archive className="h-3.5 w-3.5" /></Button>
-                      </TooltipTrigger><TooltipContent>Archive</TooltipContent></Tooltip>
-                    ) : (
-                      <Tooltip><TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 ml-auto text-destructive" onClick={() => onDelete(tc.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                      </TooltipTrigger><TooltipContent>Delete</TooltipContent></Tooltip>
-                    )}
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(tc)}><Pencil className="h-3.5 w-3.5" /></Button>
+                      </TooltipTrigger><TooltipContent>Edit</TooltipContent></Tooltip>
+                      {tc.careersUrl && (
+                        <Tooltip><TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                            <a href={tc.careersUrl} target="_blank" rel="noopener noreferrer"><Globe className="h-3.5 w-3.5" /></a>
+                          </Button>
+                        </TooltipTrigger><TooltipContent>Careers page</TooltipContent></Tooltip>
+                      )}
+                      {tc.website && (
+                        <Tooltip><TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                            <a href={tc.website} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" /></a>
+                          </Button>
+                        </TooltipTrigger><TooltipContent>Website</TooltipContent></Tooltip>
+                      )}
+                      {tc.status !== "archived" ? (
+                        <Tooltip><TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onUpdate(tc.id, { status: "archived" })}><Archive className="h-3.5 w-3.5" /></Button>
+                        </TooltipTrigger><TooltipContent>Archive</TooltipContent></Tooltip>
+                      ) : (
+                        <Tooltip><TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => onDelete(tc.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                        </TooltipTrigger><TooltipContent>Delete</TooltipContent></Tooltip>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
