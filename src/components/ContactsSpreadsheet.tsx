@@ -266,6 +266,30 @@ export default function ContactsSpreadsheet({
     setBulkRemoveCampaign("");
   };
 
+  const applyBulkCompany = () => {
+    const next = bulkCompany.trim();
+    if (!next) return;
+    selected.forEach((id) => onUpdate(id, { company: next }));
+    setBulkCompany("");
+  };
+
+  const applyBulkRole = () => {
+    const next = bulkRole.trim();
+    if (!next) return;
+    selected.forEach((id) => onUpdate(id, { role: next }));
+    setBulkRole("");
+  };
+
+  const applyBulkFollowUp = () => {
+    if (!bulkFollowUp) return;
+    selected.forEach((id) => onUpdate(id, { followUpDate: bulkFollowUp }));
+    setBulkFollowUp("");
+  };
+
+  const applyBulkClearFollowUp = () => {
+    selected.forEach((id) => onUpdate(id, { followUpDate: undefined }));
+  };
+
   const applyBulkDelete = () => {
     selected.forEach((id) => onDelete(id));
     setSelected(new Set());
