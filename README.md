@@ -1,6 +1,6 @@
 # JobTrackr
 
-A comprehensive job search management application built with React, TypeScript, and Supabase. Track job postings, manage your application pipeline, nurture professional contacts, and stay on top of interviews — all in one place.
+A full-funnel job search management application built with React, TypeScript, and Supabase. Track every opportunity end-to-end — from saved leads through applications, screenings, interviews, and offers — alongside the contacts and conversations that move each one forward.
 
 [![PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)

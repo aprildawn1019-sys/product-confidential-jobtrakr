@@ -74,15 +74,15 @@ export default function Landing() {
         <div className="text-center max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-medium text-accent mb-4 sm:mb-6">
             <Star className="h-3 w-3 fill-accent text-accent" />
-            Your job search command center
+            Full-funnel job search tracking
           </div>
           <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-tight">
-            Track every opportunity.
+            From first lead to signed offer.
             <br />
-            <span className="text-primary">Land your next role.</span>
+            <span className="text-primary">Track the entire funnel.</span>
           </h1>
           <p className="mt-4 sm:mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            JobTrackr brings your entire job search into one place — applications, contacts, interviews, and insights — so you can focus on what matters.
+            JobTrackr follows every opportunity through each stage — saved, applied, screening, interviewing, offer — together with the contacts, conversations, and follow-ups that move it forward.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6 sm:mt-8">
             <Button size="lg" className="w-full sm:w-auto gap-2 text-base px-6" onClick={() => navigate("/auth?mode=signup")}>
@@ -119,10 +119,10 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10 sm:mb-14">
             <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              Everything you need to manage your job search
+              One workspace for the whole funnel
             </h2>
             <p className="mt-3 text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
-              From first application to final offer, JobTrackr keeps you organized and in control.
+              Discovery, applications, networking, interviews, and offers — every stage tracked in one place, with the relationships that drive each one forward.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
