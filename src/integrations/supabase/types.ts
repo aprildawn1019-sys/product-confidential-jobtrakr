@@ -780,31 +780,40 @@ export type Database = {
         Row: {
           contact_id: string
           created_at: string
+          due_date: string | null
           id: string
+          job_id: string | null
           notes: string | null
           received_at: string | null
           requested_at: string
           status: string
+          target_company_id: string | null
           user_id: string
         }
         Insert: {
           contact_id: string
           created_at?: string
+          due_date?: string | null
           id?: string
+          job_id?: string | null
           notes?: string | null
           received_at?: string | null
           requested_at: string
           status?: string
+          target_company_id?: string | null
           user_id: string
         }
         Update: {
           contact_id?: string
           created_at?: string
+          due_date?: string | null
           id?: string
+          job_id?: string | null
           notes?: string | null
           received_at?: string | null
           requested_at?: string
           status?: string
+          target_company_id?: string | null
           user_id?: string
         }
         Relationships: [
