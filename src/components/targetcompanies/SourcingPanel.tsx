@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import CompanyAvatar from "@/components/CompanyAvatar";
-import WarmthBadge from "@/components/WarmthBadge";
 import { getOutreachTemplates } from "@/lib/outreachTemplates";
 import { findSecondDegreeMatches, buildLinkedInSearchUrl, COVERAGE_LABELS, type CoverageInfo } from "./coverageUtils";
 import type { Contact, NetworkRole, TargetCompany } from "@/types/jobTracker";
