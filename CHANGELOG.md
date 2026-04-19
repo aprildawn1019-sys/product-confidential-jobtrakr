@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Network Map** — interactive force-directed graph (xyflow/react) of contacts, companies, and jobs with clustering, search, filters, and PNG export
+- **Contacts spreadsheet view** — sortable spreadsheet alongside grid / compact / detailed views
+- **Per-list CSV export** — Jobs, Contacts, and Interviews now expose an "Export CSV" action that respects the current filters and sort
+- **Settings → Data & Export** — bulk CSV backups consolidated under Settings
+- **AI PM Feed** — automated discovery of AI Product Management roles, rate-limited to 3/hr per user
+- Refreshed marketing screenshots in `docs/images/` (Dashboard, Jobs, Connections, Network Map, Skills Insights)
+
+### Changed
+- Renamed terminology: "Urgency" → **Priority** (Low / Medium / High); "Fit score" → **Match score** (manual 1–5 stars, never AI-assigned)
+- Branding updated to **Jobtrakr** by Product Confidential
+- Unified Interviews and contact follow-ups into a single **Schedule** page
+
+### Removed
+- Standalone **Reports** page and sidebar entry (replaced by in-context export menus + Settings → Data & Export)
+
+### Security
+- `user_id` is now `NOT NULL` on every per-user table to prevent orphan rows
+
+---
+
 ## [1.0.0] — 2026-04-08
 
 ### Added
