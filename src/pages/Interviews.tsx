@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { format, parseISO, isToday, isTomorrow, isPast, formatDistanceToNow } from "date-fns";
-import { Calendar as CalendarIcon, Clock, Plus, Trash2, CheckCircle2, XCircle, Briefcase, Users, Pencil, X } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Plus, Trash2, CheckCircle2, XCircle, Briefcase, Users, Pencil, X, Download } from "lucide-react";
+import { downloadInterviewsCsv } from "@/lib/interviewsCsvExport";
+import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +32,7 @@ interface InterviewsPageProps {
   onUpdate: (id: string, updates: Partial<Interview>) => void;
   onDelete: (id: string) => void;
   onUpdateContact?: (id: string, updates: Partial<Contact>) => void;
+  getContactsForJob?: (jobId: string) => Contact[];
 }
 
 const typeColors: Record<string, string> = {
@@ -46,9 +49,10 @@ type TimelineItem =
   | { kind: "interview"; interview: Interview; date: string }
   | { kind: "followup"; contact: Contact; date: string };
 
-export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd, onUpdate, onDelete, onUpdateContact }: InterviewsPageProps) {
+export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd, onUpdate, onDelete, onUpdateContact, getContactsForJob }: InterviewsPageProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { toast } = useToast();
   const initialFilter = (searchParams.get("filter") as FilterType) || "all";
   const [filter, setFilter] = useState<FilterType>(initialFilter);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -119,10 +123,24 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
             {upcomingCount} interviews · {followUpCount} follow-ups
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4" /> Schedule Interview</Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={interviews.length === 0}
+            onClick={() => {
+              const count = downloadInterviewsCsv({ interviews, jobs, getContactsForJob });
+              toast({ title: "Export ready", description: `${count} interview${count === 1 ? "" : "s"} exported.` });
+            }}
+            title="Export interviews as CSV"
+          >
+            <Download className="h-4 w-4 mr-1" />
+            Export CSV
+          </Button>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4" /> Schedule Interview</Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Schedule Interview</DialogTitle>
@@ -199,7 +217,8 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
               </Button>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filter & Calendar Overview */}

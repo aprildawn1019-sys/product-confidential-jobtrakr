@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
-import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown, Sheet } from "lucide-react";
+import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutList, LayoutGrid, Megaphone, Star, Check, List, Phone, ExternalLink, ArrowUpDown, Sheet, Download } from "lucide-react";
+import { downloadContactsCsv } from "@/lib/contactsCsvExport";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -758,6 +759,28 @@ export default function Contacts({
           </div>
           <Button variant={showCampaigns ? "secondary" : "outline"} size="sm" onClick={() => setShowCampaigns(!showCampaigns)}>
             <Megaphone className="h-4 w-4 mr-1" />Campaigns
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={filteredContacts.length === 0}
+            onClick={() => {
+              const count = downloadContactsCsv({
+                contacts: filteredContacts,
+                campaigns,
+                jobs,
+                getConnectionsForContact,
+                getActivitiesForContact,
+                getCampaignsForContact,
+                getJobsForContact,
+                getRecommendationRequestsForContact,
+              });
+              toast({ title: "Export ready", description: `${count} contact${count === 1 ? "" : "s"} exported (current filter).` });
+            }}
+            title="Export current filter as CSV"
+          >
+            <Download className="h-4 w-4 mr-1" />
+            Export CSV
           </Button>
           <BulkContactUploadDialog onAddBulk={onAddBulk} existingContacts={contacts} />
           <LinkedInImportDialog onImport={onAddBulk} existingContacts={contacts} />

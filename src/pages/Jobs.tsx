@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert, Building2, FileText } from "lucide-react";
+import { MapPin, ExternalLink, Trash2, LayoutList, Kanban, ChevronDown, ChevronUp, Calendar, Clock, User, Users, Search, X, Sparkles, Plus, Loader2, SearchCheck, BrainCircuit, Database, ShieldAlert, Building2, FileText, Download } from "lucide-react";
+import { downloadJobsCsv } from "@/lib/jobsCsvExport";
 import HelpHint from "@/components/help/HelpHint";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import MatchScoreStars from "@/components/MatchScoreStars";
@@ -337,6 +338,32 @@ export default function Jobs({
                   <Kanban className="h-4 w-4" />
                 </Button>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={filteredJobs.length === 0}
+                onClick={() => {
+                  const targetMap = new Map(targetCompanies.map(tc => [tc.id, tc] as const));
+                  const priorityOrder: Record<string, number> = { dream: 0, strong: 1, interested: 2 };
+                  const getTargetForJob = (job: Job) => {
+                    const matches = targetCompanies.filter(tc => companiesMatch(tc.name, job.company));
+                    if (matches.length === 0) return undefined;
+                    return matches.sort((a, b) => (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99))[0];
+                  };
+                  const count = downloadJobsCsv({
+                    jobs: filteredJobs,
+                    interviews,
+                    getContactsForJob,
+                    getJobActivitiesForJob: getJobActivitiesForJob ?? (() => []),
+                    getTargetForJob,
+                  });
+                  toast({ title: "Export ready", description: `${count} job${count === 1 ? "" : "s"} exported (current filter).` });
+                }}
+                title="Export current filter as CSV"
+              >
+                <Download className="h-4 w-4 mr-1" />
+                Export CSV
+              </Button>
               <BulkJobUploadDialog onAddJobs={onAddBulk} existingJobs={jobs} />
               <AddJobDialog onAdd={onAdd} contacts={contacts} />
             </div>

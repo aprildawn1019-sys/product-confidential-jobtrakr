@@ -119,13 +119,14 @@ export default function Reports() {
     <div className="space-y-6 animate-fade-in max-w-4xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight flex items-center gap-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Settings</p>
+          <h1 className="font-display text-3xl font-bold tracking-tight flex items-center gap-2 mt-1">
             <FileSpreadsheet className="h-7 w-7 text-primary" />
-            Reports
+            Data &amp; Export
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Download data dumps of your entire job search. Each export is a UTF-8 CSV with all related context (linked
-            contacts, interview history, activities) flattened into rows.
+            Download full backups of your job search. For exporting a filtered view of jobs, contacts, or interviews,
+            use the <span className="font-medium text-foreground">Export CSV</span> button on each list page.
           </p>
         </div>
         <Button onClick={exportAll} className="gap-2">

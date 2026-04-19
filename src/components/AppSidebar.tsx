@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Briefcase, Users, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, FileText, FileSpreadsheet, Network, Sparkles, PlayCircle, CircleHelp, LucideIcon } from "lucide-react";
+import { LayoutDashboard, Briefcase, Users, Search, UserCog, Globe, LogOut, CalendarDays, Compass, ClipboardList, Handshake, ChevronDown, ChevronRight, TrendingUp, Star, FileText, Settings, Network, Sparkles, PlayCircle, CircleHelp, LucideIcon } from "lucide-react";
 import { useHelp } from "@/components/help/HelpProvider";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -38,7 +38,6 @@ const groups: { label: string; icon: LucideIcon; items: LinkItemWithTour[] }[] =
       { to: "/target-companies", icon: Star, label: "Target Companies", tourId: "entry-target-companies" },
       { to: "/interviews", icon: CalendarDays, label: "Schedule" },
       { to: "/cover-letters", icon: FileText, label: "Cover Letters" },
-      { to: "/reports", icon: FileSpreadsheet, label: "Reports" },
     ],
   },
   {
@@ -215,6 +214,21 @@ function SidebarContent({ jobs, onNavigate }: { jobs: { id: string; title: strin
       </nav>
 
       <div className="border-t border-sidebar-border p-4 space-y-1">
+        <NavLink
+          to="/settings"
+          onClick={handleNavClick}
+          className={({ isActive }) =>
+            cn(
+              "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors w-full",
+              isActive || location.pathname.startsWith("/settings")
+                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+            )
+          }
+        >
+          <Settings className="h-4 w-4" />
+          Settings
+        </NavLink>
         <Button
           variant="ghost"
           size="sm"

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Menu, Briefcase } from "lucide-react";
 import AppSidebar from "@/components/AppSidebar";
 import OnboardingTour, { hasCompletedTour } from "@/components/OnboardingTour";
@@ -163,6 +163,7 @@ export default function Index() {
               onUpdate={store.updateInterview}
               onDelete={store.deleteInterview}
               onUpdateContact={store.updateContact}
+              getContactsForJob={store.getContactsForJob}
             />
           } />
           <Route path="job-search" element={<JobSearch onAddJob={store.addJob} existingJobs={store.jobs} contacts={store.contacts} targetCompanies={store.targetCompanies} />} />
@@ -181,7 +182,9 @@ export default function Index() {
             />
           } />
           <Route path="cover-letters" element={<CoverLetters jobs={store.jobs} />} />
-          <Route path="reports" element={<Reports />} />
+          <Route path="reports" element={<Navigate to="/settings/data-export" replace />} />
+          <Route path="settings" element={<Navigate to="/settings/data-export" replace />} />
+          <Route path="settings/data-export" element={<Reports />} />
           <Route path="getting-started" element={
             <GettingStarted
               jobs={store.jobs}
