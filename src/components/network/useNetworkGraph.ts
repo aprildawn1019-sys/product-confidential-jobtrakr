@@ -131,19 +131,48 @@ function getLayout(nodes: Node[], edges: Edge[], companyNodeMap: Map<string, str
 
   const n = sortedCompanies.length;
 
-  // Helper: pack company clusters into a uniform grid (used for large overviews).
+  // Helper: pack company clusters into a variable-cell grid (used for large overviews).
+  // Big clusters get bigger cells; rows are anchored to row-max heights so clusters
+  // don't overlap and the visual density gradient (large → small) is preserved.
   function placeAsGrid() {
-    const footprints = sortedCompanies.map(id => 2 * (clusterRadius(companyNodeMap.get(id)?.length ?? 0) + LABEL_PAD));
-    const sorted = [...footprints].sort((a, b) => a - b);
-    const median = sorted[Math.floor(sorted.length / 2)] || 260;
-    const cellSize = Math.max(260, Math.min(420, median));
-    const cols = Math.max(1, Math.ceil(Math.sqrt(Math.max(1, n))));
+    // Per-cluster footprint (diameter) including label padding.
+    const footprints = sortedCompanies.map(id => {
+      const childCount = companyNodeMap.get(id)?.length ?? 0;
+      return 2 * (clusterRadius(childCount) + LABEL_PAD);
+    });
+
+    // Choose a column count proportional to sqrt(n) but biased wider so big
+    // clusters at the start of the sorted list get visual breathing room.
+    const cols = Math.max(1, Math.ceil(Math.sqrt(Math.max(1, n)) * 1.2));
+
+    // Compute per-row height = max footprint in that row, and per-column width
+    // = max footprint across all rows for that column index.
+    const rowCount = Math.ceil(n / cols);
+    const rowHeights: number[] = new Array(rowCount).fill(0);
+    const colWidths: number[] = new Array(cols).fill(0);
+    sortedCompanies.forEach((_, i) => {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      const fp = footprints[i];
+      if (fp > rowHeights[row]) rowHeights[row] = fp;
+      if (fp > colWidths[col]) colWidths[col] = fp;
+    });
+
+    // Cumulative offsets so each cell sits at its row/col origin.
+    const colX: number[] = [0];
+    for (let c = 1; c < cols; c++) colX.push(colX[c - 1] + colWidths[c - 1]);
+    const rowY: number[] = [0];
+    for (let r = 1; r < rowCount; r++) rowY.push(rowY[r - 1] + rowHeights[r - 1]);
+
+    const totalW = colX[cols - 1] + colWidths[cols - 1];
+    const totalH = rowY[rowCount - 1] + rowHeights[rowCount - 1];
+
     sortedCompanies.forEach((compId, i) => {
       const row = Math.floor(i / cols);
       const col = i % cols;
-      const cx = (col - (cols - 1) / 2) * cellSize;
-      const rows = Math.ceil(n / cols);
-      const cy = (row - (rows - 1) / 2) * cellSize;
+      // Centre of cell, shifted so the whole grid is centred at the origin.
+      const cx = colX[col] + colWidths[col] / 2 - totalW / 2;
+      const cy = rowY[row] + rowHeights[row] / 2 - totalH / 2;
       positions.set(compId, { x: cx, y: cy });
       const children = companyNodeMap.get(compId) ?? [];
       placeChildren(cx, cy, children);
