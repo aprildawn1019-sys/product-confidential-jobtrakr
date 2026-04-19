@@ -214,6 +214,21 @@ function SidebarContent({ jobs, onNavigate }: { jobs: { id: string; title: strin
       </nav>
 
       <div className="border-t border-sidebar-border p-4 space-y-1">
+        <NavLink
+          to="/settings"
+          onClick={handleNavClick}
+          className={({ isActive }) =>
+            cn(
+              "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors w-full",
+              isActive || location.pathname.startsWith("/settings")
+                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+            )
+          }
+        >
+          <Settings className="h-4 w-4" />
+          Settings
+        </NavLink>
         <Button
           variant="ghost"
           size="sm"
