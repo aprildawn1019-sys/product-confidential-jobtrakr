@@ -72,7 +72,9 @@ function ContactRow({
             >
               {contact.name}
             </button>
-            {contact.relationshipWarmth && <WarmthBadge warmth={contact.relationshipWarmth} />}
+            {contact.relationshipWarmth && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">{contact.relationshipWarmth}</Badge>
+            )}
           </div>
           {contact.role && <p className="text-xs text-muted-foreground truncate">{contact.role}</p>}
         </div>
