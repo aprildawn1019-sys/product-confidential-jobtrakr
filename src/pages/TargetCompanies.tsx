@@ -70,7 +70,7 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [sourcingCompanyId, setSourcingCompanyId] = useState<string | null>(null);
 
-  // Sync URL params (?coverage=…&sort=coverage) into local state for deep-linking from the Dashboard
+  // Sync URL params (?coverage=…&sort=coverage&sourcing=<id>) into local state for deep-linking from the Dashboard
   useEffect(() => {
     const coverage = searchParams.get("coverage");
     if (coverage && ["booster", "connector", "recruiter", "cold"].includes(coverage)) {
@@ -78,6 +78,8 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
     }
     const sort = searchParams.get("sort");
     if (sort === "coverage") setSortMode("coverage_gap");
+    const sourcing = searchParams.get("sourcing");
+    if (sourcing) setSourcingCompanyId(sourcing);
   }, [searchParams]);
 
   const duplicateClusters = useMemo(() => detectDuplicateClusters(targetCompanies), [targetCompanies]);
