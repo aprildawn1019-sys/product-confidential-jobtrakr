@@ -217,7 +217,8 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
               </Button>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filter & Calendar Overview */}
