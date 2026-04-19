@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
-import { ArrowUp, ArrowDown, ArrowUpDown, Trash2, Megaphone, ChevronDown } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Trash2, Megaphone, ChevronDown, Building2, Briefcase, CalendarDays, X } from "lucide-react";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -167,6 +167,9 @@ export default function ContactsSpreadsheet({
   const [bulkWarmth, setBulkWarmth] = useState<string>("");
   const [bulkAddCampaign, setBulkAddCampaign] = useState<string>("");
   const [bulkRemoveCampaign, setBulkRemoveCampaign] = useState<string>("");
+  const [bulkCompany, setBulkCompany] = useState<string>("");
+  const [bulkRole, setBulkRole] = useState<string>("");
+  const [bulkFollowUp, setBulkFollowUp] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const toggleSort = useCallback(
@@ -263,6 +266,30 @@ export default function ContactsSpreadsheet({
     setBulkRemoveCampaign("");
   };
 
+  const applyBulkCompany = () => {
+    const next = bulkCompany.trim();
+    if (!next) return;
+    selected.forEach((id) => onUpdate(id, { company: next }));
+    setBulkCompany("");
+  };
+
+  const applyBulkRole = () => {
+    const next = bulkRole.trim();
+    if (!next) return;
+    selected.forEach((id) => onUpdate(id, { role: next }));
+    setBulkRole("");
+  };
+
+  const applyBulkFollowUp = () => {
+    if (!bulkFollowUp) return;
+    selected.forEach((id) => onUpdate(id, { followUpDate: bulkFollowUp }));
+    setBulkFollowUp("");
+  };
+
+  const applyBulkClearFollowUp = () => {
+    selected.forEach((id) => onUpdate(id, { followUpDate: undefined }));
+  };
+
   const applyBulkDelete = () => {
     selected.forEach((id) => onDelete(id));
     setSelected(new Set());
@@ -309,6 +336,54 @@ export default function ContactsSpreadsheet({
             </Select>
             <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={applyBulkWarmth} disabled={!bulkWarmth}>
               Apply
+            </Button>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="relative">
+              <Building2 className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={bulkCompany}
+                onChange={(e) => setBulkCompany(e.target.value)}
+                placeholder="Set company…"
+                className="h-7 w-[150px] pl-7 text-xs"
+                onKeyDown={(e) => { if (e.key === "Enter") applyBulkCompany(); }}
+              />
+            </div>
+            <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={applyBulkCompany} disabled={!bulkCompany.trim()}>
+              Apply
+            </Button>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="relative">
+              <Briefcase className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={bulkRole}
+                onChange={(e) => setBulkRole(e.target.value)}
+                placeholder="Set role…"
+                className="h-7 w-[150px] pl-7 text-xs"
+                onKeyDown={(e) => { if (e.key === "Enter") applyBulkRole(); }}
+              />
+            </div>
+            <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={applyBulkRole} disabled={!bulkRole.trim()}>
+              Apply
+            </Button>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="relative">
+              <CalendarDays className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="date"
+                value={bulkFollowUp}
+                onChange={(e) => setBulkFollowUp(e.target.value)}
+                className="h-7 w-[150px] pl-7 text-xs"
+                title="Set follow-up date"
+              />
+            </div>
+            <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={applyBulkFollowUp} disabled={!bulkFollowUp}>
+              Set
+            </Button>
+            <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={applyBulkClearFollowUp} title="Clear follow-up date for selected">
+              <X className="h-3 w-3" />
             </Button>
           </div>
           {campaigns.length > 0 && (
