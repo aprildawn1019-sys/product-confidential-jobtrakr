@@ -31,16 +31,21 @@ export interface SkillsSnapshot {
   capturedAt: string;
 }
 
-export type NetworkRole = "referral_source" | "hiring_manager" | "advocate" | "recruiter" | "peer" | "mentor" | "cold_lead";
+export type NetworkRole =
+  | "booster"
+  | "connector"
+  | "recruiter_internal"
+  | "recruiter_external"
+  | "hiring_manager"
+  | "mentor_peer";
 
-export const NETWORK_ROLES: { value: NetworkRole; label: string; emoji: string }[] = [
-  { value: "referral_source", label: "Referral Source", emoji: "🔗" },
-  { value: "hiring_manager", label: "Hiring Manager", emoji: "👔" },
-  { value: "advocate", label: "Advocate", emoji: "📣" },
-  { value: "recruiter", label: "Recruiter", emoji: "🎯" },
-  { value: "peer", label: "Peer", emoji: "🤝" },
-  { value: "mentor", label: "Mentor", emoji: "🧭" },
-  { value: "cold_lead", label: "Cold Lead", emoji: "❄️" },
+export const NETWORK_ROLES: { value: NetworkRole; label: string; emoji: string; description: string }[] = [
+  { value: "booster", label: "Booster", emoji: "🚀", description: "Inside the target company; will refer or intro you" },
+  { value: "connector", label: "Connector", emoji: "🌉", description: "Outside the target co but knows people inside" },
+  { value: "recruiter_internal", label: "Recruiter (internal)", emoji: "🎯", description: "In-house recruiter at one company" },
+  { value: "recruiter_external", label: "Recruiter (external)", emoji: "🎲", description: "Agency or independent recruiter, cross-company" },
+  { value: "hiring_manager", label: "Hiring Manager", emoji: "👔", description: "Direct decision-maker for a role" },
+  { value: "mentor_peer", label: "Mentor / Peer", emoji: "🧭", description: "Advice and support, not transactional" },
 ];
 
 export type RelationshipLabel = "introduced_by" | "referred_to" | "works_with" | "reports_to" | "former_colleague";
