@@ -167,6 +167,9 @@ export default function ContactsSpreadsheet({
   const [bulkWarmth, setBulkWarmth] = useState<string>("");
   const [bulkAddCampaign, setBulkAddCampaign] = useState<string>("");
   const [bulkRemoveCampaign, setBulkRemoveCampaign] = useState<string>("");
+  const [bulkCompany, setBulkCompany] = useState<string>("");
+  const [bulkRole, setBulkRole] = useState<string>("");
+  const [bulkFollowUp, setBulkFollowUp] = useState<string>("");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const toggleSort = useCallback(
