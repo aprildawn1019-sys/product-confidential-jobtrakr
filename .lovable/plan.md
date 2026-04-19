@@ -1,78 +1,54 @@
 
 
-## Use case #2 — "Find a Booster or Connector for [company]" on Target Companies
+## Reframing A — single Dashboard surface with inline Weekly Review
 
-The funnel goal is simple: **every target company should eventually have a Booster inside it**. Right now the Target Companies page tells you *what* you want (a shortlist) but doesn't help you *how* to get there. This use case closes that gap.
+### Decisions locked in
+- **One surface, one name**: "Dashboard" everywhere (page header, sidebar, memory). Drop "Command Center" wording.
+- **Add Weekly Review** inline on the Dashboard (collapsed by default to protect action focus).
+- **Reports page**: demote — move CSV exports + pipeline funnel into a Settings area; remove `/reports` as a top-level sidebar entry.
 
-### What the page tells us today
+### Weekly Review metrics (this week, Mon-Sun)
+1. **Applications sent** — count of `jobs` whose `status_updated_at` moved to `applied` this week (proxy: jobs with `applied_date` in current week).
+2. **Follow-ups done** — count of `contact_activities` rows with `activity_type` in {`email`, `call`, `linkedin_message`, `meeting`} this week.
+3. **Interviews scheduled** — count of `interviews` with `created_at` this week (when the interview was booked, regardless of when it occurs).
+4. **Networking meetings completed** — count of `contact_activities` with `activity_type = 'meeting'` and `activity_date` ≤ today, this week.
 
-Each card shows job count, contact count, active applications, priority, status, industry, notes, and quick links to filtered Jobs/Contacts. What's **missing** is a *sourcing signal*: at a glance you can't tell whether a target is "covered" (you have an inside referral path) or "cold" (zero connections), and you can't act on the cold ones in one click.
-
-### The mental model: Coverage state per target
-
-Each target company falls into one of four sourcing states, derived from the contacts you already have:
-
-| State | Meaning | Visual |
-|---|---|---|
-| 🚀 **Has Booster** | ≥1 contact at the company tagged `booster` | Green chip "Booster: [name]" |
-| 🌉 **Connector available** | No Booster, but ≥1 `connector` who could intro you | Blue chip "Ask Connector" |
-| 👀 **Recruiter only** | No Booster/Connector, but `recruiter_internal` exists | Amber chip "Recruiter contact" |
-| ❄️ **Cold** | No relevant contacts | Grey chip "No inside path" + primary CTA |
-
-This taxonomy is the natural payoff of the network role refactor we just shipped.
-
-### Three additions to the Target Companies page
-
-#### 1. Coverage badge on each card
-A clickable chip that shows the company's funnel state at a glance. Click → opens the sourcing panel.
-
-#### 2. Sourcing summary bar + Coverage filter
-Above the grid: "**12 targets · 3 Boosters · 4 Connectors · 5 Cold**" — each segment clickable as a filter. New filter dropdown "Coverage" pairs with the existing Priority + Status filters.
-
-#### 3. Sourcing panel (the core deliverable)
-
-A right-side **Sheet** titled **"Find a Booster at [company]"** with:
-
-- **Section A — Inside path**: existing Boosters with one-tap "Open outreach" using the role-aware templates we already have. If no Boosters but Connectors exist, surface the Connectors with an "Ask for intro to {company}" pre-filled template.
-- **Section B — Recruiter contacts**: internal recruiters at the company (parallel path).
-- **Section C — Sourcing actions** (always visible):
-  1. **Search LinkedIn for "{company}" + your role** — opens LinkedIn people search in a new tab (deep link, no scraping)
-  2. **Check who you already know** — fuzzy scans your *entire* contact list for substring mentions of the target company in `notes`/`conversation_log` — surfaces forgotten 2nd-degree Connectors
-  3. **Add a contact at {company}** — opens the existing AddContactDialog with `company` and `networkRole=booster` pre-filled
-  4. **Visit careers page** — deep link if `careersUrl` set
-- **Section D — Coverage history**: "First contact added [date]" or "No contacts yet" — frames progress.
-
-#### 4. Sort option: "Coverage gap"
-Ranks Dream/Strong companies with no Booster to the top. The morning-routine view: "what targets need sourcing today?"
-
-### Why a Sheet (not Dialog or new page)
-
-- Dialog blocks the grid; you'd lose context across multiple companies
-- A new page is overkill — sourcing is a 30-second action
-- A right-side Sheet keeps the grid visible and supports rapid hopping between targets
-
-### Data model — no migration needed
-
-Everything derives from existing fields: `contacts.network_role` (already populated by the role refactor), `contacts.company` matched via existing `companiesMatch` fuzzy matcher, and substring scan of `notes`/`conversation_log` for 2nd-degree candidates. **No new tables or columns** — this is purely UX.
+Each metric: big number + small "vs last week" delta (↑ ↓ →). No charts in this pass — keep it scannable.
 
 ### File-level changes
 
-- New `src/components/targetcompanies/CoverageBadge.tsx`
-- New `src/components/targetcompanies/SourcingPanel.tsx`
-- New `src/components/targetcompanies/coverageUtils.ts` — pure functions: `getCoverageState`, `findSecondDegreeMatches`, `buildLinkedInSearchUrl`
-- Edit `src/pages/TargetCompanies.tsx` — summary bar, filter, coverage badge, "Find a Booster" button, sort option. **Already 356 lines — I'll extract the card into `TargetCompanyCard.tsx` while in there.**
-- No changes to outreach templates, AddContactDialog, or store — reuse as-is
+**Rename / cleanup**
+- Rename page header in `src/pages/Dashboard.tsx` from "Command Center" → "Dashboard". Keep filename `Dashboard.tsx` (no route change).
+- Update `src/components/AppSidebar.tsx` label to "Dashboard".
+- Update `mem://index.md` and `mem://features/dashboard-analytics` to reflect the unified naming + Weekly Review.
 
-### Intentionally NOT in this pass
+**New component**
+- `src/components/dashboard/WeeklyReview.tsx` — collapsible card with the 4 metrics + week-over-week deltas. Pure derivation from existing store data; no new tables, no edge functions.
 
-- ❌ AI-suggested Boosters from external data (LinkedIn scraping, Apollo) — your constraint says no third-party scraping; LinkedIn deep links are the right primitive
-- ❌ Auto-creating Connector intros without user review — the whole point is the user judges who to approach
-- ❌ A separate "Sourcing" page — Target Companies already implies this job; a new page fragments intent
+**Dashboard wiring**
+- `src/pages/Dashboard.tsx`: insert `<WeeklyReview ... />` between the 4 stat cards and the "Next steps" panel. Collapsed by default; remembers state in `localStorage` (`jobtrakr.weeklyReview.expanded`).
 
-### Things I want your call on
+**Reports demotion**
+- Remove `/reports` link from `src/components/AppSidebar.tsx`.
+- Move the `Reports` page contents into a new `src/pages/SettingsData.tsx` mounted at `/settings/data` (CSV exports + pipeline funnel preserved as-is).
+- Keep `/reports` route as a redirect to `/settings/data` so any bookmarked link still works.
+- Add a "Data & Export" entry in the Settings sidebar group (or wherever the existing Settings link lives) so it's discoverable.
 
-1. **Coverage chip placement on the card** — replace the current "X jobs · Y contacts" line, or **add a new line above it**? (My take: add above, keep the stats — they're useful context.)
-2. **Sourcing panel surface** — right-side **Sheet** (my recommendation) or **Dialog** (more focused, blocks grid)?
-3. **2nd-degree match scope** — search only `notes`+`conversation_log` text, or also include `linkedin` URL substring? Wider = more candidates but more noise.
-4. **Default sort** — keep current (creation order), or default to **"Coverage gap"** so the morning view shows cold Dream/Strong companies first?
+### What's intentionally NOT in this pass
+- No new analytics charts (response rate by lane, time-to-interview trends) — those belong to a later, dedicated analytics pass if ever needed.
+- No DB changes; all metrics derive from existing tables.
+- No change to the Action Queue / Swimlane behavior.
+
+### Open question for you (the prompt you asked for)
+
+Once Weekly Review lands, the Dashboard will have: header → 4 stat cards → Weekly Review (collapsible) → Next steps (Queue/Swimlane). The old Dashboard had a few more elements that we removed or never carried over. **Which of these would you like to re-introduce, if any?**
+
+1. **Pipeline Funnel** (currently on Reports → moving to Settings/Data) — re-add a compact version to the Dashboard?
+2. **Active Opportunities panel** — list of jobs in `applied` / `interviewing` / `offer` with quick status updates (was on the old dashboard per memory).
+3. **Upcoming Interviews strip** — next 3 interviews with date + company, deep-linked to the interview row.
+4. **Recent Activity timeline** — last 5 contact activities + job activities, mixed feed.
+5. **Target Coverage snapshot** — "3 Boosters · 4 Connectors · 5 Cold targets" mini-bar from the new sourcing taxonomy, deep-linked to filtered Target Companies.
+6. **Nothing — keep it lean** (just stats + Weekly Review + Next steps).
+
+Pick any combination; I'll prioritize them under the Next steps panel in the order you specify.
 
