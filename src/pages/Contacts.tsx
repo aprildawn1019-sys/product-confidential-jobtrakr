@@ -326,6 +326,7 @@ export default function Contacts({
     );
   };
 
+  const renderExpandedSection = (
     contact: Contact,
     connections: (ContactConnection & { contact?: Contact })[],
     sameOrgContacts: Contact[],
