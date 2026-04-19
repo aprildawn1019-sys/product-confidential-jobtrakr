@@ -6,8 +6,10 @@ import { downloadContactsCsv } from "@/lib/contactsCsvExport";
 import { downloadInterviewsCsv } from "@/lib/interviewsCsvExport";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
 import { companiesMatch } from "@/stores/jobTrackerStore";
+import PipelineFunnel from "@/components/PipelineFunnel";
 import type { Job } from "@/types/jobTracker";
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface ExportSection {
   id: string;
@@ -22,6 +24,7 @@ interface ExportSection {
 export default function Reports() {
   const store = useJobTrackerStore();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const getTargetForJob = useMemo(() => {
     const priorityOrder: Record<string, number> = { dream: 0, strong: 1, interested: 2 };
@@ -134,6 +137,15 @@ export default function Reports() {
           Export everything
         </Button>
       </div>
+
+      {store.jobs.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-5">
+          <h2 className="font-display text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
+            Pipeline Overview
+          </h2>
+          <PipelineFunnel jobs={store.jobs} onClickStage={(status) => navigate(`/jobs?status=${status}`)} />
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {sections.map(section => {

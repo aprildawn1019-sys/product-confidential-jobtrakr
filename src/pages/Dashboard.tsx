@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import PipelineFunnel from "@/components/PipelineFunnel";
 import { useNavigate } from "react-router-dom";
 import { Briefcase, CalendarCheck, Send, Star, Sparkles, Inbox, Columns3, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -142,12 +141,6 @@ export default function Dashboard({
         )}
       </div>
 
-      <div className="rounded-xl border border-border bg-card p-5">
-        <h2 className="font-display text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
-          Pipeline Overview
-        </h2>
-        <PipelineFunnel jobs={jobs} onClickStage={(status) => navigate(`/jobs?status=${status}`)} />
-      </div>
     </div>
   );
 }
