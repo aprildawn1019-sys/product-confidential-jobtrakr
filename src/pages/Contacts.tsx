@@ -152,7 +152,7 @@ export default function Contacts({
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; contactId: string } | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "compact" | "detailed" | "spreadsheet">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "spreadsheet">("grid");
   const [searchQuery, setSearchQuery] = useState(companyFilter || "");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
   const [followUpFilter, setFollowUpFilter] = useState<string>("all");
