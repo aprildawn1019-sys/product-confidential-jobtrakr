@@ -257,6 +257,7 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     if (!lastTouch) continue;
     const days = differenceInDays(now, new Date(lastTouch));
     if (days < 30) continue;
+    const networkRole = c.networkRole as NetworkRole | undefined;
     actions.push({
       signature: `nudge:reconnect:${c.id}`,
       lane: "networking",
@@ -265,9 +266,14 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
       priorityScore: scoreOf("soon", "networking", Math.max(0, days - 30)),
       title: `Reconnect with ${c.name}`,
       subtitle: `Warm contact · last touch ${days}d ago`,
-      actionLabel: getPrimaryAction(c.networkRole as NetworkRole) || "Reach out",
+      actionLabel: getPrimaryAction(networkRole) || "Reach out",
       href: `/contacts?highlight=${c.id}`,
       contactId: c.id,
+      outreachContext: networkRole ? {
+        networkRole,
+        contactName: c.name,
+        targetCompany: c.company,
+      } : undefined,
     });
   }
 
