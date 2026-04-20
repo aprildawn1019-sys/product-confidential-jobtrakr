@@ -190,7 +190,7 @@ export default function Overview({
             </Button>
             <Badge variant="outline" className="text-[10px] h-5">Beta</Badge>
           </div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Overview</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="mt-1 text-muted-foreground text-sm">
             Search funnel analytics — response rates, time to first interview, and weekly velocity.
           </p>

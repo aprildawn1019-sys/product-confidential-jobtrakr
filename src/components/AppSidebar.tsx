@@ -105,7 +105,7 @@ function SidebarContent({ jobs, onNavigate }: { jobs: { id: string; title: strin
           )
         }>
           <LayoutDashboard className="h-4 w-4" />
-          Dashboard
+          Command Center
         </NavLink>
         <NavLink to="/dashboard" onClick={handleNavClick} className={({ isActive }) =>
           cn(
@@ -116,7 +116,7 @@ function SidebarContent({ jobs, onNavigate }: { jobs: { id: string; title: strin
           )
         }>
           <BarChart3 className="h-4 w-4" />
-          Overview
+          Dashboard
         </NavLink>
         <NavLink to="/getting-started" onClick={handleNavClick} className={({ isActive }) =>
           cn(
