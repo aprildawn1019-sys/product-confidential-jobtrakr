@@ -102,11 +102,11 @@ export default function Landing() {
               <div className="h-3 w-3 rounded-full bg-destructive/60" />
               <div className="h-3 w-3 rounded-full bg-warning/60" />
               <div className="h-3 w-3 rounded-full bg-success/60" />
-              <span className="ml-3 text-xs text-muted-foreground font-medium">JobTrackr — Dashboard</span>
+              <span className="ml-3 text-xs text-muted-foreground font-medium">JobTrackr — Command Center</span>
             </div>
             <img
               src={dashboardMockup}
-              alt="JobTrackr Dashboard showing job tracking pipeline, priority widgets, and company avatars"
+              alt="JobTrackr Command Center showing the prioritized next-steps queue, pipeline widgets, and company avatars"
               className="w-full"
               loading="eager"
             />
