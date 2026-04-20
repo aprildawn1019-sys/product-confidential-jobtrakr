@@ -255,10 +255,7 @@ export default function ProfileEditor() {
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Search Profile</h1>
-          <p className="mt-1 text-muted-foreground">Manage your job search preferences, skills, and criteria</p>
-        </div>
+        <p className="text-sm text-muted-foreground">Manage your job search preferences, skills, and criteria</p>
         <Button onClick={handleSave} disabled={saving}>
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           Save Profile
