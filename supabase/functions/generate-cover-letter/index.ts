@@ -47,6 +47,23 @@ serve(async (req) => {
     let skills: string[] = [];
     let summary = "";
 
+    // Prefer the user's primary resume version (Library → Resumes).
+    const primaryRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/resume_versions?user_id=eq.${userId}&is_primary=eq.true&select=content&limit=1`,
+      {
+        headers: {
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
+        },
+      }
+    );
+    const primary = await primaryRes.json();
+    if (primary?.[0]?.content) {
+      resumeText = primary[0].content;
+    }
+
+    // Fall back to the legacy single-blob resume on the search profile,
+    // and pull skills/summary from the profile either way.
     const profileRes = await fetch(
       `${SUPABASE_URL}/rest/v1/job_search_profile?user_id=eq.${userId}&select=resume_text,skills,summary&limit=1`,
       {
@@ -58,7 +75,7 @@ serve(async (req) => {
     );
     const profiles = await profileRes.json();
     if (profiles?.[0]) {
-      resumeText = profiles[0].resume_text || "";
+      if (!resumeText) resumeText = profiles[0].resume_text || "";
       skills = profiles[0].skills || [];
       summary = profiles[0].summary || "";
     }
