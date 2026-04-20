@@ -148,7 +148,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
 feat: add bulk job export to CSV
-fix: correct fit score rounding on dashboard
+fix: correct fit score rounding on command center
 docs: update self-hosting instructions
 refactor: extract AI config into shared helper
 ```
