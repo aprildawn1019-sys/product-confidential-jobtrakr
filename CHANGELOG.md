@@ -14,7 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Per-list CSV export** — Jobs, Contacts, and Interviews now expose an "Export CSV" action that respects the current filters and sort
 - **Settings → Data & Export** — bulk CSV backups consolidated under Settings
 - **AI PM Feed** — automated discovery of AI Product Management roles, rate-limited to 3/hr per user
-- Refreshed marketing screenshots in `docs/images/` (Dashboard, Jobs, Connections, Network Map, Skills Insights)
+- Refreshed marketing screenshots in `docs/images/` (Command Center, Jobs, Connections, Network Map, Skills Insights)
+- **Renamed** primary surfaces: `/` is now **Command Center** (prioritized next steps + widgets); `/dashboard` is now **Dashboard** (search-funnel analytics: response rate by lane, time to first interview, weekly velocity)
 
 ### Changed
 - Renamed terminology: "Urgency" → **Priority** (Low / Medium / High); "Fit score" → **Match score** (manual 1–5 stars, never AI-assigned)

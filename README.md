@@ -11,7 +11,7 @@ A full-funnel job search management application built with React, TypeScript, an
 [![Supabase](https://img.shields.io/badge/Supabase-Backend-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com)
 
 <p align="center">
-  <img src="docs/images/hero.png" alt="Jobtrakr Dashboard" width="800" />
+  <img src="docs/images/hero.png" alt="Jobtrakr Command Center" width="800" />
 </p>
 
 ## Screenshots
@@ -25,12 +25,15 @@ A full-funnel job search management application built with React, TypeScript, an
 
 ## Features
 
-### 📊 Dashboard
-- At-a-glance stats: total jobs, active applications, upcoming interviews, target companies
-- Company avatars with deterministic color coding
-- "Active Opportunities" panel with priority and match-score filters
-- Follow-up reminders with overdue tracking
-- Application pipeline funnel — click any segment to filter Jobs by that status
+### 🎯 Command Center (`/`)
+- Prioritized next-step queue across networking, referrals, and applications
+- Weekly Review with applications sent, follow-ups, interviews, and networking meetings vs. last week
+- Upcoming Interviews strip, Active Opportunities, Target Coverage snapshot, and Targets-needing-sourcing widget
+- AI-suggested next steps and inline role-based outreach templates
+
+### 📊 Dashboard (`/dashboard`)
+- Search-funnel analytics: response rate by lane, time to first interview, and weekly velocity
+- Charts powered by Recharts; placeholder hints flag metrics whose formulas may evolve
 
 ### 💼 Job Tracking
 - **List & Kanban views** — drag-and-drop jobs between status columns
