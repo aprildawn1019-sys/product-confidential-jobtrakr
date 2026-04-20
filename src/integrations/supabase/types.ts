@@ -850,6 +850,36 @@ export type Database = {
           },
         ]
       }
+      resume_versions: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       target_companies: {
         Row: {
           careers_url: string | null
