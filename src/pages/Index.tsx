@@ -5,6 +5,7 @@ import AppSidebar from "@/components/AppSidebar";
 import OnboardingTour, { hasCompletedTour } from "@/components/OnboardingTour";
 import ResumeTourBanner from "@/components/ResumeTourBanner";
 import Dashboard from "@/pages/Dashboard";
+import Overview from "@/pages/Overview";
 import Jobs from "@/pages/Jobs";
 import JobCRM from "@/pages/JobCRM";
 import Contacts from "@/pages/Contacts";
@@ -72,6 +73,7 @@ export default function Index() {
       <main className={`flex-1 ${isMobile ? 'pt-14 p-4' : 'ml-64 p-8'}`}>
         <Routes>
           <Route index element={<Dashboard jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} jobContacts={store.jobContacts} targetCompanies={store.targetCompanies} contactActivities={store.contactActivities} recommendationRequests={store.recommendationRequests} onUpdateStatus={store.updateJobStatus} onUpdateJob={store.updateJob} onUpdateContact={store.updateContact} />} />
+          <Route path="dashboard" element={<Overview jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} contactActivities={store.contactActivities} jobContacts={store.jobContacts} recommendationRequests={store.recommendationRequests} />} />
           <Route path="jobs" element={
             <Jobs
               jobs={store.jobs}
