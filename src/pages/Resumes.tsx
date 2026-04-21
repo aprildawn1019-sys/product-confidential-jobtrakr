@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import DOMPurify from "dompurify";
-import { FileStack, Plus, Trash2, Pencil, Save, X, Loader2, Star, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { FileStack, Plus, Trash2, Pencil, Save, X, Loader2, Star, Copy, Check, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import {
+  extractTextFromResumeFile,
+  plainTextToResumeHtml,
+  ResumeFileError,
+} from "@/lib/resumeFileParser";
 
 interface ResumeVersion {
   id: string;
@@ -48,6 +53,13 @@ export default function Resumes() {
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
+
+  // File upload (PDF / DOCX / TXT). Creates a new resume version pre-filled
+  // with the extracted plain text — the user can rename, edit, and (optionally)
+  // mark it primary from there. We deliberately skip AI parsing here so the
+  // imported content matches the source file exactly.
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchVersions();
@@ -100,6 +112,58 @@ export default function Resumes() {
       toast({ title: "Create failed", description: e.message, variant: "destructive" });
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleUploadClick = () => fileInputRef.current?.click();
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Always reset the input so picking the same file twice still fires onChange.
+    if (e.target) e.target.value = "";
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const text = await extractTextFromResumeFile(file);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not signed in");
+
+      // Derive a sensible default version name from the filename
+      // (strip extension, fall back to "Imported resume").
+      const baseName = file.name.replace(/\.[^.]+$/, "").trim() || "Imported resume";
+      const isFirst = versions.length === 0;
+
+      const { data, error } = await supabase
+        .from("resume_versions")
+        .insert({
+          user_id: user.id,
+          name: baseName,
+          content: plainTextToResumeHtml(text),
+          is_primary: isFirst,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) {
+        setVersions((prev) => [data as ResumeVersion, ...prev]);
+        setExpandedId(data.id);
+      }
+      toast({
+        title: "Resume imported",
+        description: isFirst ? "Marked as primary." : `Created "${baseName}".`,
+      });
+    } catch (err) {
+      const message =
+        err instanceof ResumeFileError
+          ? err.message
+          : err instanceof Error
+          ? err.message
+          : "Upload failed";
+      toast({ title: "Import failed", description: message, variant: "destructive" });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -223,9 +287,23 @@ export default function Resumes() {
             Store multiple resume versions. Mark one as primary — that version powers AI job matching and cover letter generation.
           </p>
         </div>
-        <Button onClick={() => setCreateOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" /> New Resume
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Hidden input drives both header + empty-state Upload buttons. */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+            className="hidden"
+            onChange={handleFileUpload}
+          />
+          <Button variant="outline" onClick={handleUploadClick} disabled={uploading} className="gap-2">
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            Upload File
+          </Button>
+          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" /> New Resume
+          </Button>
+        </div>
       </div>
 
       {versions.length === 0 ? (
@@ -236,11 +314,17 @@ export default function Resumes() {
             </div>
             <h3 className="text-lg font-semibold mb-1">No resumes yet</h3>
             <p className="text-sm text-muted-foreground mb-4 max-w-md">
-              Create your first resume version. You can keep separate variants for different role types — your primary version is what AI matching uses.
+              Upload an existing resume (PDF, DOCX, or text) or create a new version from scratch. Your primary version powers AI matching and cover letters.
             </p>
-            <Button onClick={() => setCreateOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" /> Create First Resume
-            </Button>
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <Button variant="outline" onClick={handleUploadClick} disabled={uploading} className="gap-2">
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                Upload File
+              </Button>
+              <Button onClick={() => setCreateOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" /> Create First Resume
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (
