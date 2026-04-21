@@ -92,68 +92,33 @@ export default function Dashboard({
         </p>
       </div>
 
-      {/* Primary stats — toggleable between current pipeline ("In flight")
-          and all-time totals ("Lifetime"). The three slots stay in place so
-          numbers are directly comparable; the toggle just swaps values + the
-          helper line that defines what each count includes. Choice persists
-          in localStorage so power users get the view they prefer on reload. */}
+      {/* Primary stats — in-flight pipeline only. Three slots reflect distinct
+          stages of activity on the Command Center: jobs you're considering
+          (saved), jobs you're actively pursuing (applications in motion), and
+          interviews on the calendar. Lifetime totals and Target Companies live
+          on their dedicated pages — they aren't activity signals. */}
       <div>
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            {statsView === "in-flight" ? "In flight" : "Lifetime"}
-          </p>
-          <div
-            role="tablist"
-            aria-label="Toggle between in-flight and lifetime totals"
-            className="inline-flex items-center rounded-full border border-border/60 bg-muted/40 p-0.5 text-xs"
-          >
-            {(["in-flight", "lifetime"] as const).map((view) => (
-              <button
-                key={view}
-                role="tab"
-                aria-selected={statsView === view}
-                onClick={() => setStatsView(view)}
-                className={`rounded-full px-3 py-1 font-medium transition-colors ${
-                  statsView === view
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {view === "in-flight" ? "In flight" : "Lifetime"}
-              </button>
-            ))}
-          </div>
-        </div>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          In flight
+        </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
-            label={statsView === "in-flight" ? "Active Applications" : "Lifetime Applications"}
-            value={statsView === "in-flight" ? activeApps : jobs.length}
-            href={statsView === "in-flight" ? "/jobs?status=active" : "/jobs"}
-            helper={
-              statsView === "in-flight"
-                ? "Applied, screening, interviewing, or offer. Excludes saved, rejected, withdrawn, closed."
-                : "Every job ever added — including saved, rejected, withdrawn, and closed."
-            }
+            label="Jobs"
+            value={savedJobsCount}
+            href="/jobs?status=saved"
+            helper="Saved roles awaiting application — your shortlist of opportunities to act on."
           />
           <StatCard
-            label={statsView === "in-flight" ? "Interviews Scheduled" : "Lifetime Interviews"}
-            value={statsView === "in-flight" ? upcomingInterviewCount : interviews.length}
+            label="Active Applications"
+            value={activeApps}
+            href="/jobs?status=active"
+            helper="Applied, screening, interviewing, or offer. Excludes saved, rejected, withdrawn, closed."
+          />
+          <StatCard
+            label="Interviews Scheduled"
+            value={upcomingInterviewCount}
             href="/interviews"
-            helper={
-              statsView === "in-flight"
-                ? "Upcoming interviews with status “scheduled.” Excludes completed, cancelled, no-show."
-                : "Every interview ever logged — including completed, cancelled, and no-shows."
-            }
-          />
-          <StatCard
-            label={statsView === "in-flight" ? "Target Companies" : "Lifetime Targets"}
-            value={statsView === "in-flight" ? activeTargetCount : targetCompanies.length}
-            href="/target-companies"
-            helper={
-              statsView === "in-flight"
-                ? "Companies on your shortlist. Excludes archived."
-                : "Every target company ever added — including archived."
-            }
+            helper="Upcoming interviews with status “scheduled.” Excludes completed, cancelled, no-show."
           />
         </div>
       </div>
