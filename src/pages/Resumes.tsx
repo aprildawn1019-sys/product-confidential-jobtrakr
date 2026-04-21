@@ -287,9 +287,23 @@ export default function Resumes() {
             Store multiple resume versions. Mark one as primary — that version powers AI job matching and cover letter generation.
           </p>
         </div>
-        <Button onClick={() => setCreateOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" /> New Resume
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Hidden input drives both header + empty-state Upload buttons. */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+            className="hidden"
+            onChange={handleFileUpload}
+          />
+          <Button variant="outline" onClick={handleUploadClick} disabled={uploading} className="gap-2">
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            Upload File
+          </Button>
+          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" /> New Resume
+          </Button>
+        </div>
       </div>
 
       {versions.length === 0 ? (
