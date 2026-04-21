@@ -1,11 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Inbox, Columns3, Loader2, ChevronDown } from "lucide-react";
+import { Sparkles, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import StatCard from "@/components/StatCard";
-import ActionQueue from "@/components/commandcenter/ActionQueue";
-import ActionSwimlane from "@/components/commandcenter/ActionSwimlane";
 import WeeklyReview from "@/components/dashboard/WeeklyReview";
 import UpcomingInterviewsStrip from "@/components/dashboard/UpcomingInterviewsStrip";
 import ActiveOpportunitiesPanel from "@/components/dashboard/ActiveOpportunitiesPanel";
@@ -37,8 +34,6 @@ interface DashboardProps {
   onUpdateContact?: (id: string, updates: Partial<Contact>) => void;
 }
 
-type ViewMode = "queue" | "swimlane";
-
 export default function Dashboard({
   jobs,
   contacts,
@@ -49,9 +44,8 @@ export default function Dashboard({
   recommendationRequests = [],
 }: DashboardProps) {
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<ViewMode>("queue");
 
-  const { snoozes, snooze } = useActionSnoozes();
+  const { snoozes } = useActionSnoozes();
   const { suggestions: aiSuggestions, loading: aiLoading, fetchSuggestions: fetchAi } = useAiSuggestedActions();
 
   // First-login redirect: brand-new users → Getting Started.
@@ -115,39 +109,7 @@ export default function Dashboard({
         <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} href="/target-companies" />
       </div>
 
-      {/* Next steps — the page's primary surface, directly under stats */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <div>
-            <h2 className="font-display text-lg font-semibold">Next steps</h2>
-            <p className="text-xs text-muted-foreground">
-              Across networking, referrals, and applications · sorted by urgency
-            </p>
-          </div>
-          <ToggleGroup
-            type="single"
-            size="sm"
-            value={viewMode}
-            onValueChange={(v) => v && setViewMode(v as ViewMode)}
-            className="h-8 rounded-md border border-border bg-card"
-          >
-            <ToggleGroupItem value="queue" className="h-7 px-2 text-xs gap-1" title="Single prioritized list">
-              <Inbox className="h-3 w-3" /> Queue
-            </ToggleGroupItem>
-            <ToggleGroupItem value="swimlane" className="h-7 px-2 text-xs gap-1" title="Three-lane bird's-eye view">
-              <Columns3 className="h-3 w-3" /> Swimlane
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-
-        {viewMode === "queue" ? (
-          <ActionQueue actions={actions} onSnooze={snooze} />
-        ) : (
-          <ActionSwimlane actions={actions} onSnooze={snooze} />
-        )}
-      </div>
-
-      {/* Secondary row: weekly review + upcoming interviews side by side */}
+      {/* Primary surface: weekly review + upcoming interviews, two-column */}
       <div className="grid gap-4 lg:grid-cols-2">
         <WeeklyReview jobs={jobs} interviews={interviews} contactActivities={contactActivities} />
         <UpcomingInterviewsStrip interviews={interviews} jobs={jobs} />
