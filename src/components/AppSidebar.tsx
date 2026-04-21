@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Briefcase, Users, Search, Globe, LogOut, CalendarDays,
   ChevronDown, ChevronRight, TrendingUp, Star, FileText, Settings, Network,
   Sparkles, PlayCircle, CircleHelp, BarChart3, FileStack, LucideIcon, PanelLeftClose, PanelLeft,
+  UserCircle2, MoreHorizontal,
 } from "lucide-react";
 import { useHelp } from "@/components/help/HelpProvider";
 import { NavLink, useLocation } from "react-router-dom";
@@ -12,7 +13,40 @@ import { Button } from "@/components/ui/button";
 // (Collapsible no longer used: sidebar groups are always-visible per hero spec.)
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+// Deterministic 2-letter initials from a name or email.
+function initialsOf(label: string): string {
+  if (!label) return "?";
+  const cleaned = label.includes("@") ? label.split("@")[0].replace(/[._-]+/g, " ") : label;
+  const parts = cleaned.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// Lightweight hook to read the signed-in user's display name + initials.
+function useCurrentUser() {
+  const [info, setInfo] = useState<{ name: string; email: string; initials: string }>({
+    name: "Account", email: "", initials: "·",
+  });
+  useEffect(() => {
+    let mounted = true;
+    const apply = (user: { email?: string | null; user_metadata?: Record<string, unknown> } | null) => {
+      if (!mounted || !user) return;
+      const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+      const name = (meta.full_name as string) || (meta.name as string) || (user.email ?? "Account");
+      setInfo({ name, email: user.email ?? "", initials: initialsOf(name) });
+    };
+    supabase.auth.getUser().then(({ data }) => apply(data.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => apply(session?.user ?? null));
+    return () => { mounted = false; sub.subscription.unsubscribe(); };
+  }, []);
+  return info;
+}
 
 type LinkItem = { to: string; icon: LucideIcon; label: string; tourId?: string; end?: boolean };
 
