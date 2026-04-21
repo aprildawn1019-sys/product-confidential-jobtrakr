@@ -314,11 +314,17 @@ export default function Resumes() {
             </div>
             <h3 className="text-lg font-semibold mb-1">No resumes yet</h3>
             <p className="text-sm text-muted-foreground mb-4 max-w-md">
-              Create your first resume version. You can keep separate variants for different role types — your primary version is what AI matching uses.
+              Upload an existing resume (PDF, DOCX, or text) or create a new version from scratch. Your primary version powers AI matching and cover letters.
             </p>
-            <Button onClick={() => setCreateOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" /> Create First Resume
-            </Button>
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <Button variant="outline" onClick={handleUploadClick} disabled={uploading} className="gap-2">
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                Upload File
+              </Button>
+              <Button onClick={() => setCreateOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" /> Create First Resume
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (
