@@ -115,6 +115,58 @@ export default function Resumes() {
     }
   };
 
+  const handleUploadClick = () => fileInputRef.current?.click();
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Always reset the input so picking the same file twice still fires onChange.
+    if (e.target) e.target.value = "";
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const text = await extractTextFromResumeFile(file);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not signed in");
+
+      // Derive a sensible default version name from the filename
+      // (strip extension, fall back to "Imported resume").
+      const baseName = file.name.replace(/\.[^.]+$/, "").trim() || "Imported resume";
+      const isFirst = versions.length === 0;
+
+      const { data, error } = await supabase
+        .from("resume_versions")
+        .insert({
+          user_id: user.id,
+          name: baseName,
+          content: plainTextToResumeHtml(text),
+          is_primary: isFirst,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) {
+        setVersions((prev) => [data as ResumeVersion, ...prev]);
+        setExpandedId(data.id);
+      }
+      toast({
+        title: "Resume imported",
+        description: isFirst ? "Marked as primary." : `Created "${baseName}".`,
+      });
+    } catch (err) {
+      const message =
+        err instanceof ResumeFileError
+          ? err.message
+          : err instanceof Error
+          ? err.message
+          : "Upload failed";
+      toast({ title: "Import failed", description: message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleStartEdit = (v: ResumeVersion) => {
     setEditingId(v.id);
     setEditName(v.name);
