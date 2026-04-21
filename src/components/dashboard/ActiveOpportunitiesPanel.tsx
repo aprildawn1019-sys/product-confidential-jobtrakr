@@ -2,20 +2,19 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
+import { isActiveJob, countActiveJobs } from "@/lib/pipelineCounts";
 import type { Job } from "@/types/jobTracker";
 
 interface Props {
   jobs: Job[];
 }
 
-const ACTIVE_STATUSES = ["applied", "screening", "interviewing", "offer"];
-
 export default function ActiveOpportunitiesPanel({ jobs }: Props) {
   const navigate = useNavigate();
 
   const active = useMemo(() => {
     return jobs
-      .filter(j => ACTIVE_STATUSES.includes(j.status))
+      .filter(isActiveJob)
       .sort((a, b) => {
         const aTime = a.statusUpdatedAt ? new Date(a.statusUpdatedAt).getTime() : 0;
         const bTime = b.statusUpdatedAt ? new Date(b.statusUpdatedAt).getTime() : 0;
@@ -26,7 +25,7 @@ export default function ActiveOpportunitiesPanel({ jobs }: Props) {
 
   if (active.length === 0) return null;
 
-  const totalActive = jobs.filter(j => ACTIVE_STATUSES.includes(j.status)).length;
+  const totalActive = countActiveJobs(jobs);
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8">

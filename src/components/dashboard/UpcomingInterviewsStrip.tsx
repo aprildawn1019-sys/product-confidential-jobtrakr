@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Circle } from "lucide-react";
 import CompanyAvatar from "@/components/CompanyAvatar";
+import { isScheduledInterview } from "@/lib/pipelineCounts";
 import type { Interview, Job } from "@/types/jobTracker";
 
 interface Props {
@@ -30,7 +31,7 @@ export default function UpcomingInterviewsStrip({ interviews, jobs }: Props) {
   const upcoming = useMemo(() => {
     const now = Date.now();
     return interviews
-      .filter(i => i.status === "scheduled")
+      .filter(isScheduledInterview)
       .filter(i => {
         const t = new Date(i.date).getTime();
         return Number.isNaN(t) ? true : t >= now - 86_400_000; // include today
@@ -43,7 +44,7 @@ export default function UpcomingInterviewsStrip({ interviews, jobs }: Props) {
     <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-display text-xl font-semibold">Upcoming interviews</h2>
-        {interviews.some(i => i.status === "scheduled") && (
+        {interviews.some(isScheduledInterview) && (
           <button
             onClick={() => navigate("/interviews")}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"

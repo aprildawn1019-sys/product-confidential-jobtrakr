@@ -10,6 +10,11 @@ import ActiveOpportunitiesPanel from "@/components/dashboard/ActiveOpportunities
 
 import TargetsNeedingSourcing from "@/components/dashboard/TargetsNeedingSourcing";
 import { deriveActions } from "@/lib/actionEngine";
+import {
+  countActiveJobs,
+  countScheduledInterviews,
+  countActiveTargetCompanies,
+} from "@/lib/pipelineCounts";
 import { useActionSnoozes } from "@/hooks/useActionSnoozes";
 import { useAiSuggestedActions } from "@/hooks/useAiSuggestedActions";
 import type {
@@ -60,7 +65,11 @@ export default function Dashboard({
     }
   }, [jobs.length, contacts.length, targetCompanies.length, navigate]);
 
-  const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
+  // Standardized in-flight counts (single source of truth: src/lib/pipelineCounts.ts).
+  // Stat cards, page subtitles, and panel headers all read from these helpers.
+  const activeApps = countActiveJobs(jobs);
+  const upcomingInterviewCount = countScheduledInterviews(interviews);
+  const activeTargetCount = countActiveTargetCompanies(targetCompanies);
   const upcoming = interviews.filter(i => i.status === "scheduled");
 
   const actions = useMemo(() => deriveActions({
@@ -101,13 +110,13 @@ export default function Dashboard({
           />
           <StatCard
             label="Interviews Scheduled"
-            value={upcoming.length}
+            value={upcomingInterviewCount}
             href="/interviews"
             helper="Upcoming interviews with status “scheduled.” Excludes completed, cancelled, no-show."
           />
           <StatCard
             label="Target Companies"
-            value={targetCompanies.filter(tc => tc.status !== "archived").length}
+            value={activeTargetCount}
             href="/target-companies"
             helper="Companies on your shortlist. Excludes archived."
           />

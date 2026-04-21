@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Job, Contact, JobStatus, Interview, TargetCompany, JobActivity } from "@/types/jobTracker";
+import { isActiveJob, countActiveJobs } from "@/lib/pipelineCounts";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import PipelineFunnel from "@/components/PipelineFunnel";
@@ -143,7 +144,7 @@ export default function Jobs({
       const q = searchQuery.toLowerCase();
       if (q && !job.title.toLowerCase().includes(q) && !job.company.toLowerCase().includes(q) && !job.location.toLowerCase().includes(q)) return false;
       if (statusFilter === "active") {
-        if (["saved", "rejected", "withdrawn", "closed"].includes(job.status)) return false;
+        if (!isActiveJob(job)) return false;
       } else if (statusFilter !== "all") {
         const statuses = statusFilter.split(",");
         if (!statuses.includes(job.status)) return false;
@@ -330,7 +331,7 @@ export default function Jobs({
               <p className="mt-1 text-muted-foreground">
                 {jobs.length} {jobs.length === 1 ? "job" : "jobs"}
                 {(() => {
-                  const active = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
+                  const active = countActiveJobs(jobs);
                   const inInterviews = jobs.filter(j => j.status === "interviewing").length;
                   return ` · ${active} active · ${inInterviews} in interviews`;
                 })()}
