@@ -95,7 +95,7 @@ export default function Index() {
 
       <main
         className={cn(
-          "flex-1 transition-[margin] duration-200",
+          "flex-1 min-w-0 transition-[margin] duration-200",
           isMobile ? "pt-14 p-4" : (collapsed ? "ml-14 p-8" : "ml-64 p-8")
         )}
       >
