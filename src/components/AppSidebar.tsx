@@ -221,40 +221,17 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         )}
 
         {groups.map((group) => {
-          const isOpen = openGroups[group.label] ?? true;
-          const hasActiveChild = group.items.some((item) =>
-            item.end ? location.pathname === item.to : location.pathname === item.to
-          );
-
+          // Hero spec: section labels are bright amber, always visible (no
+          // collapsible chevron). Keeps the sidebar reading like the mockup
+          // — calm, scannable, no extra controls.
           return (
-            <Collapsible
-              key={group.label}
-              open={isOpen}
-              onOpenChange={() => toggleGroup(group.label)}
-            >
-              <CollapsibleTrigger className="w-full" aria-expanded={isOpen}>
-                <div
-                  className={cn(
-                    "flex items-center gap-2 rounded-lg px-3 py-2 mt-3 cursor-pointer select-none transition-colors",
-                    "hover:bg-sidebar-accent/30",
-                    hasActiveChild
-                      ? "text-sidebar-group-foreground"
-                      : "text-sidebar-group-foreground/70"
-                  )}
-                >
-                  <span className="flex-1 text-left text-[11px] font-bold uppercase tracking-widest">
-                    {group.label}
-                  </span>
-                  <ChevronDown
-                    className={cn(
-                      "h-3.5 w-3.5 shrink-0 opacity-60 transition-transform duration-200",
-                      isOpen ? "rotate-0" : "-rotate-90"
-                    )}
-                  />
-                </div>
-              </CollapsibleTrigger>
-
-              <CollapsibleContent className="space-y-0.5 pt-0.5">
+            <div key={group.label} className="pt-4 first:pt-1">
+              <div className="px-3 pb-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-sidebar-primary">
+                  {group.label}
+                </span>
+              </div>
+              <div className="space-y-0.5">
                 {group.items.map(({ to, icon: Icon, label, tourId, end }) => (
                   <div key={to} data-tour={tourId}>
                     {to === "/jobs" ? (
