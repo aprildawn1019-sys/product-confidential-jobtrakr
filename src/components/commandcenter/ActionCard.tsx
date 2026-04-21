@@ -45,7 +45,7 @@ const sourceIcon: Record<DerivedAction["source"], { icon: typeof Bell; label: st
 export default function ActionCard({ action, onSnooze, compact }: ActionCardProps) {
   const navigate = useNavigate();
   const SourceIcon = sourceIcon[action.source].icon;
-  const badge = urgencyBadge[action.urgency];
+  const label = urgencyLabel[action.urgency];
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -98,10 +98,10 @@ export default function ActionCard({ action, onSnooze, compact }: ActionCardProp
             </p>
           )}
         </button>
-        <div className="flex items-center gap-1 shrink-0">
-          <Badge variant="outline" className={cn("text-[10px] h-5 px-1.5 font-medium", badge.className)}>
-            {badge.label}
-          </Badge>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={cn("text-[11px] font-medium tabular-nums", label.className)}>
+            {label.label}
+          </span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
