@@ -86,15 +86,31 @@ export default function Dashboard({
 
       {/* Primary stats — strictly in-flight pipeline metrics. "Total Jobs"
           (a lifetime count) is intentionally separated below so the top row
-          only shows momentum that changes week to week. */}
+          only shows momentum that changes week to week. Each helper line
+          spells out exactly which job statuses are counted. */}
       <div>
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           In flight
         </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard label="Active Applications" value={activeApps} href="/jobs?status=active" />
-          <StatCard label="Interviews Scheduled" value={upcoming.length} href="/interviews" />
-          <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} href="/target-companies" />
+          <StatCard
+            label="Active Applications"
+            value={activeApps}
+            href="/jobs?status=active"
+            helper="Applied, screening, interviewing, or offer. Excludes saved, rejected, withdrawn, closed."
+          />
+          <StatCard
+            label="Interviews Scheduled"
+            value={upcoming.length}
+            href="/interviews"
+            helper="Upcoming interviews with status “scheduled.” Excludes completed, cancelled, no-show."
+          />
+          <StatCard
+            label="Target Companies"
+            value={targetCompanies.filter(tc => tc.status !== "archived").length}
+            href="/target-companies"
+            helper="Companies on your shortlist. Excludes archived."
+          />
         </div>
       </div>
 
@@ -103,7 +119,12 @@ export default function Dashboard({
           All-time
         </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard label="Total Jobs Tracked" value={jobs.length} href="/jobs" />
+          <StatCard
+            label="Lifetime Jobs Tracked"
+            value={jobs.length}
+            href="/jobs"
+            helper="Every job ever added — including saved, rejected, withdrawn, and closed. Not your current pipeline."
+          />
         </div>
       </div>
 

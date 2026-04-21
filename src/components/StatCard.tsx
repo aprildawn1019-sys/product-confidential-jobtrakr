@@ -13,6 +13,12 @@ interface StatCardProps {
   variant?: "minimal" | "accented";
   accent?: "default" | "success" | "warning" | "info";
   href?: string;
+  /**
+   * Optional clarifier shown beneath the label in the minimal variant.
+   * Use to define exactly what the count includes/excludes (e.g.
+   * "Excludes saved, rejected, withdrawn"). Keep to one short line.
+   */
+  helper?: string;
 }
 
 const accentedCardStyles = {
@@ -36,6 +42,7 @@ export default function StatCard({
   variant = "minimal",
   accent = "default",
   href,
+  helper,
 }: StatCardProps) {
   const content =
     variant === "minimal" ? (
@@ -53,6 +60,11 @@ export default function StatCard({
         <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
+        {helper && (
+          <p className="mt-1.5 text-xs leading-snug text-muted-foreground/80">
+            {helper}
+          </p>
+        )}
       </div>
     ) : (
       <div
