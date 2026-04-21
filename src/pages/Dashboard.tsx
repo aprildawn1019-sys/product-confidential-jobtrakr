@@ -10,6 +10,11 @@ import ActiveOpportunitiesPanel from "@/components/dashboard/ActiveOpportunities
 
 import TargetsNeedingSourcing from "@/components/dashboard/TargetsNeedingSourcing";
 import { deriveActions } from "@/lib/actionEngine";
+import {
+  countActiveJobs,
+  countScheduledInterviews,
+  countActiveTargetCompanies,
+} from "@/lib/pipelineCounts";
 import { useActionSnoozes } from "@/hooks/useActionSnoozes";
 import { useAiSuggestedActions } from "@/hooks/useAiSuggestedActions";
 import type {
@@ -60,7 +65,9 @@ export default function Dashboard({
     }
   }, [jobs.length, contacts.length, targetCompanies.length, navigate]);
 
-  const activeApps = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
+  const activeApps = countActiveJobs(jobs);
+  const upcomingInterviews = countScheduledInterviews(interviews);
+  const activeTargets = countActiveTargetCompanies(targetCompanies);
   const upcoming = interviews.filter(i => i.status === "scheduled");
 
   const actions = useMemo(() => deriveActions({
