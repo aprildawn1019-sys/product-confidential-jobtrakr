@@ -111,54 +111,21 @@ export default function ProfileEditor() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      toast({ title: "File too large", description: "Maximum file size is 5MB", variant: "destructive" });
-      return;
-    }
-
-    let resumeText = "";
-
     setParsing(true);
     try {
-      if (file.type === "text/plain" || file.name.endsWith(".txt") || file.name.endsWith(".md")) {
-        resumeText = await file.text();
-      } else if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
-        const pdfjsLib = await import("pdfjs-dist");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const pages: string[] = [];
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          pages.push(content.items.map((item: any) => item.str).join(" "));
-        }
-        resumeText = pages.join("\n\n");
-      } else if (
-        file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-        file.name.endsWith(".docx")
-      ) {
-        const mammoth = await import("mammoth");
-        const arrayBuffer = await file.arrayBuffer();
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        resumeText = result.value;
-      } else {
-        resumeText = await file.text();
-      }
-
-      if (resumeText.trim().length < 20) {
-        toast({ title: "Could not read file", description: "Please paste your resume text manually.", variant: "destructive" });
-        setParsing(false);
-        return;
-      }
-
+      const resumeText = await extractTextFromResumeFile(file);
       await parseResumeText(resumeText);
-    } catch (err: any) {
-      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } catch (err) {
+      const message =
+        err instanceof ResumeFileError
+          ? err.message
+          : err instanceof Error
+          ? err.message
+          : "Upload failed";
+      toast({ title: "Upload failed", description: message, variant: "destructive" });
     } finally {
       setParsing(false);
-      // Reset file input
+      // Reset file input so picking the same file again still fires onChange.
       e.target.value = "";
     }
   };
