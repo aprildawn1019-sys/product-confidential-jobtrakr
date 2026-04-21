@@ -52,6 +52,14 @@ export default function Dashboard({
   const navigate = useNavigate();
   const [showAllSteps, setShowAllSteps] = useState(false);
 
+  const [statsView, setStatsView] = useState<"in-flight" | "lifetime">(() => {
+    if (typeof window === "undefined") return "in-flight";
+    return (localStorage.getItem("jobtrakr.dashboard.statsView") as "in-flight" | "lifetime") || "in-flight";
+  });
+  useEffect(() => {
+    localStorage.setItem("jobtrakr.dashboard.statsView", statsView);
+  }, [statsView]);
+
   const { snoozes, completed, snooze, complete } = useActionSnoozes();
   const { suggestions: aiSuggestions, loading: aiLoading, fetchSuggestions: fetchAi } = useAiSuggestedActions();
 
@@ -93,46 +101,68 @@ export default function Dashboard({
         </p>
       </div>
 
-      {/* Primary stats — strictly in-flight pipeline metrics. "Total Jobs"
-          (a lifetime count) is intentionally separated below so the top row
-          only shows momentum that changes week to week. Each helper line
-          spells out exactly which job statuses are counted. */}
+      {/* Primary stats — toggleable between current pipeline ("In flight")
+          and all-time totals ("Lifetime"). The three slots stay in place so
+          numbers are directly comparable; the toggle just swaps values + the
+          helper line that defines what each count includes. Choice persists
+          in localStorage so power users get the view they prefer on reload. */}
       <div>
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          In flight
-        </p>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard
-            label="Active Applications"
-            value={activeApps}
-            href="/jobs?status=active"
-            helper="Applied, screening, interviewing, or offer. Excludes saved, rejected, withdrawn, closed."
-          />
-          <StatCard
-            label="Interviews Scheduled"
-            value={upcomingInterviewCount}
-            href="/interviews"
-            helper="Upcoming interviews with status “scheduled.” Excludes completed, cancelled, no-show."
-          />
-          <StatCard
-            label="Target Companies"
-            value={activeTargetCount}
-            href="/target-companies"
-            helper="Companies on your shortlist. Excludes archived."
-          />
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            {statsView === "in-flight" ? "In flight" : "Lifetime"}
+          </p>
+          <div
+            role="tablist"
+            aria-label="Toggle between in-flight and lifetime totals"
+            className="inline-flex items-center rounded-full border border-border/60 bg-muted/40 p-0.5 text-xs"
+          >
+            {(["in-flight", "lifetime"] as const).map((view) => (
+              <button
+                key={view}
+                role="tab"
+                aria-selected={statsView === view}
+                onClick={() => setStatsView(view)}
+                className={`rounded-full px-3 py-1 font-medium transition-colors ${
+                  statsView === view
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {view === "in-flight" ? "In flight" : "Lifetime"}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div>
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          All-time
-        </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
-            label="Lifetime Jobs Tracked"
-            value={jobs.length}
-            href="/jobs"
-            helper="Every job ever added — including saved, rejected, withdrawn, and closed. Not your current pipeline."
+            label={statsView === "in-flight" ? "Active Applications" : "Lifetime Applications"}
+            value={statsView === "in-flight" ? activeApps : jobs.length}
+            href={statsView === "in-flight" ? "/jobs?status=active" : "/jobs"}
+            helper={
+              statsView === "in-flight"
+                ? "Applied, screening, interviewing, or offer. Excludes saved, rejected, withdrawn, closed."
+                : "Every job ever added — including saved, rejected, withdrawn, and closed."
+            }
+          />
+          <StatCard
+            label={statsView === "in-flight" ? "Interviews Scheduled" : "Lifetime Interviews"}
+            value={statsView === "in-flight" ? upcomingInterviewCount : interviews.length}
+            href="/interviews"
+            helper={
+              statsView === "in-flight"
+                ? "Upcoming interviews with status “scheduled.” Excludes completed, cancelled, no-show."
+                : "Every interview ever logged — including completed, cancelled, and no-shows."
+            }
+          />
+          <StatCard
+            label={statsView === "in-flight" ? "Target Companies" : "Lifetime Targets"}
+            value={statsView === "in-flight" ? activeTargetCount : targetCompanies.length}
+            href="/target-companies"
+            helper={
+              statsView === "in-flight"
+                ? "Companies on your shortlist. Excludes archived."
+                : "Every target company ever added — including archived."
+            }
           />
         </div>
       </div>
