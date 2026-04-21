@@ -75,7 +75,9 @@ export default function NextStepRow({
   return (
     <div
       className={cn(
-        "group flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/40",
+        "group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2 transition-colors hover:bg-muted/40",
+        "before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:rounded-full",
+        urgencyAccent[action.urgency],
         checked && "opacity-60",
       )}
     >
@@ -98,13 +100,10 @@ export default function NextStepRow({
           <p className="text-xs text-muted-foreground truncate">{action.subtitle}</p>
         )}
       </button>
-      <div className="flex items-center gap-1 shrink-0">
-        <Badge
-          variant="outline"
-          className={cn("text-[10px] h-5 px-1.5 font-medium", badge.className)}
-        >
-          {badge.label}
-        </Badge>
+      <div className="flex items-center gap-2 shrink-0">
+        <span className={cn("text-[11px] font-medium tabular-nums", label.className)}>
+          {label.label}
+        </span>
         <Button
           variant="ghost"
           size="icon"
