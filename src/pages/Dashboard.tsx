@@ -111,7 +111,27 @@ export default function Dashboard({
         <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} href="/target-companies" />
       </div>
 
-      {/* Primary surface: weekly review + upcoming interviews, two-column */}
+      {/* Next steps — compact list with completion toggles */}
+      <div className="rounded-xl border border-border bg-card p-5">
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div>
+            <h2 className="font-display text-lg font-semibold">Next steps</h2>
+            <p className="text-xs text-muted-foreground">
+              Check items off as you finish them · sorted by urgency
+            </p>
+          </div>
+        </div>
+        <NextStepsList
+          actions={actions}
+          completed={completed}
+          onComplete={complete}
+          onSnooze={snooze}
+          visibleCount={showAllSteps ? actions.length : 6}
+          onViewAll={() => setShowAllSteps(true)}
+        />
+      </div>
+
+      {/* Secondary: weekly review + upcoming interviews, two-column */}
       <div className="grid gap-4 lg:grid-cols-2">
         <WeeklyReview jobs={jobs} interviews={interviews} contactActivities={contactActivities} />
         <UpcomingInterviewsStrip interviews={interviews} jobs={jobs} />
