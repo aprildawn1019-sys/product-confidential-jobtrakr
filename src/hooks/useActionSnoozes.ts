@@ -16,6 +16,7 @@ const DURATION_DAYS: Record<SnoozeDuration, number> = {
  */
 export function useActionSnoozes() {
   const [snoozes, setSnoozes] = useState<Record<string, string>>({});
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -57,8 +58,39 @@ export function useActionSnoozes() {
       delete next[signature];
       return next;
     });
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      next.delete(signature);
+      return next;
+    });
     await supabase.from("action_snoozes").delete().eq("action_signature", signature);
   }, []);
 
-  return { snoozes, loading, snooze, unsnooze, refresh };
+  /**
+   * Mark an action complete. Persists as a long (1-year) snooze so the
+   * derived action stops surfacing, and tracks an in-memory "just completed"
+   * flag so the UI can briefly render the checked state before the row
+   * animates out on the next derive cycle.
+   */
+  const complete = useCallback(async (signature: string) => {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+    if (!userId) return;
+    const until = addDays(new Date(), 365).toISOString();
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      next.add(signature);
+      return next;
+    });
+    setSnoozes((prev) => ({ ...prev, [signature]: until }));
+    await supabase
+      .from("action_snoozes")
+      .upsert(
+        { user_id: userId, action_signature: signature, snoozed_until: until },
+        { onConflict: "user_id,action_signature" },
+      );
+  }, []);
+
+  return { snoozes, completed, loading, snooze, unsnooze, complete, refresh };
 }
+
