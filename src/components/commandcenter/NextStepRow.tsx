@@ -80,7 +80,7 @@ export default function NextStepRow({
         checked && "opacity-60",
       )}
     >
-      <CompanyAvatar company={avatarSeed(action)} size="sm" />
+      <CompanyAvatar company={avatarSeed(action)} size="md" tone="neutral" />
 
       <div className="min-w-0 flex-1">
         <p className={cn("text-sm font-medium truncate", checked && "line-through")}>
@@ -92,8 +92,8 @@ export default function NextStepRow({
       </div>
 
       <div className="flex items-center gap-1 shrink-0">
-        {/* Larger amber stadium toggle — matches hero spec proportions.
-            Wider pill, thicker amber border; fills with accent when checked. */}
+        {/* Hero spec: clean amber stadium outline. Empty when pending,
+            filled amber when complete. No knob — that's the whole visual. */}
         <button
           type="button"
           role="switch"
@@ -102,19 +102,27 @@ export default function NextStepRow({
           disabled={checked}
           onClick={handleToggle}
           className={cn(
-            "relative inline-flex h-7 w-14 items-center rounded-full border-2 transition-colors",
+            "inline-flex h-7 w-14 items-center justify-center rounded-full border-2 transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             checked
               ? "border-accent bg-accent"
               : "border-accent bg-transparent hover:bg-accent/10",
           )}
         >
-          <span
-            className={cn(
-              "inline-block h-4 w-4 rounded-full bg-accent transition-transform duration-200",
-              checked ? "translate-x-[26px] bg-accent-foreground" : "translate-x-1",
-            )}
-          />
+          {checked && (
+            <svg
+              viewBox="0 0 16 16"
+              className="h-3.5 w-3.5 text-accent-foreground"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="3 8.5 6.5 12 13 4.5" />
+            </svg>
+          )}
         </button>
 
         <DropdownMenu>

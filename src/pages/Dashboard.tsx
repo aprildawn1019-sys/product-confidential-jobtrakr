@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Loader2, ChevronDown } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StatCard from "@/components/StatCard";
 import NextStepsList from "@/components/commandcenter/NextStepsList";
@@ -124,23 +124,22 @@ export default function Dashboard({
         <UpcomingInterviewsStrip interviews={interviews} jobs={jobs} />
       </div>
 
-      {/* Tertiary: pipeline & sourcing signals — collapsed by default to keep the page calm */}
-      <details className="group rounded-xl border border-border bg-card">
-        <summary className="flex cursor-pointer items-center justify-between gap-3 p-5 list-none [&::-webkit-details-marker]:hidden">
-          <div>
-            <h2 className="font-display text-lg font-semibold">Pipeline & sourcing signals</h2>
-            <p className="text-xs text-muted-foreground">Active opportunities, target coverage, and sourcing gaps</p>
-          </div>
-          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
-        </summary>
-        <div className="space-y-4 border-t border-border p-5">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ActiveOpportunitiesPanel jobs={jobs} />
-            <TargetCoverageSnapshot targetCompanies={targetCompanies} contacts={contacts} />
-          </div>
-          <TargetsNeedingSourcing targetCompanies={targetCompanies} contacts={contacts} />
+      {/* Tertiary: pipeline & sourcing signals — visible by default. The hero
+          mockup shows the dashboard scrolling into deeper context after the
+          fold; hiding everything in <details> made the dashboard feel empty. */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="font-display text-xl font-semibold">Pipeline & sourcing signals</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Active opportunities, target coverage, and sourcing gaps
+          </p>
         </div>
-      </details>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ActiveOpportunitiesPanel jobs={jobs} />
+          <TargetCoverageSnapshot targetCompanies={targetCompanies} contacts={contacts} />
+        </div>
+        <TargetsNeedingSourcing targetCompanies={targetCompanies} contacts={contacts} />
+      </section>
 
     </div>
   );

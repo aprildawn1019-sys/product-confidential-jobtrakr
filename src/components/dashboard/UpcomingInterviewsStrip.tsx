@@ -69,7 +69,7 @@ export default function UpcomingInterviewsStrip({ interviews, jobs }: Props) {
                 onClick={() => job && navigate(`/jobs/${job.id}`)}
                 className="group flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-muted/40"
               >
-                <CompanyAvatar company={company} size="sm" />
+                <CompanyAvatar company={company} size="md" tone="neutral" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{company}</p>
                   <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
