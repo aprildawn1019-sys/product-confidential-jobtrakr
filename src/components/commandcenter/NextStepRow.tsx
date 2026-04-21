@@ -58,7 +58,7 @@ export default function NextStepRow({
 }: NextStepRowProps) {
   const navigate = useNavigate();
   const [pending, setPending] = useState(false);
-  const badge = urgencyBadge[action.urgency];
+  const label = urgencyLabel[action.urgency];
   const checked = isCompleted || pending;
 
   const handleOpen = () => {
