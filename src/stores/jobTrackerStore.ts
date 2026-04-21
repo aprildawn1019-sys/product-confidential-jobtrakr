@@ -50,6 +50,7 @@ function mapContact(row: any): Contact {
     followUpDate: row.follow_up_date ?? undefined,
     conversationLog: row.conversation_log ?? undefined,
     networkRole: row.network_role ?? undefined,
+    avatarUrl: row.avatar_url ?? undefined,
   };
 }
 
@@ -303,6 +304,7 @@ export function useJobTrackerStore() {
       follow_up_date: contact.followUpDate || null,
       conversation_log: contact.conversationLog || null,
       network_role: contact.networkRole || null,
+      avatar_url: contact.avatarUrl || null,
     }).select().single();
     if (data) setContacts(prev => [mapContact(data), ...prev]);
   };
@@ -315,6 +317,7 @@ export function useJobTrackerStore() {
       email: c.email || null, phone: c.phone || null,
       linkedin: c.linkedin || null, notes: c.notes || null,
       last_contacted_at: c.lastContactedAt || null,
+      avatar_url: c.avatarUrl || null,
     }));
     const { data } = await supabase.from("contacts").insert(rows).select();
     if (data) setContacts(prev => [...data.map(mapContact), ...prev]);
@@ -334,6 +337,7 @@ export function useJobTrackerStore() {
     if (updates.conversationLog !== undefined) dbUpdates.conversation_log = updates.conversationLog || null;
     if (updates.lastContactedAt !== undefined) dbUpdates.last_contacted_at = updates.lastContactedAt || null;
     if (updates.networkRole !== undefined) dbUpdates.network_role = updates.networkRole || null;
+    if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl || null;
     await supabase.from("contacts").update(dbUpdates).eq("id", id);
     setContacts(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
   };

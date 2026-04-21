@@ -33,8 +33,37 @@ Deno.serve(async (req) => {
 
     const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
     let profileContent = "";
+    // Track the contact's profile photo URL across strategies. We prefer
+    // og:image / JSON-LD `image` because they're stable, public, and
+    // returned without authentication. We never fail the request if we
+    // can't find one — the UI falls back to initials.
+    let avatarUrl = "";
 
-    // Strategy 1: Try Firecrawl SCRAPE on the LinkedIn URL directly
+    /** Pull the first og:image / twitter:image / JSON-LD image out of raw HTML. */
+    const extractAvatarFromHtml = (html: string): string => {
+      const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+      if (og?.[1]) return og[1];
+      const tw = html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
+      if (tw?.[1]) return tw[1];
+      const jsonLd = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i);
+      if (jsonLd?.[1]) {
+        try {
+          const parsed = JSON.parse(jsonLd[1]);
+          const candidates = Array.isArray(parsed) ? parsed : [parsed];
+          for (const node of candidates) {
+            const img = node?.image;
+            if (typeof img === "string") return img;
+            if (typeof img?.url === "string") return img.url;
+            if (typeof img?.contentUrl === "string") return img.contentUrl;
+          }
+        } catch { /* ignore */ }
+      }
+      return "";
+    };
+
+    // Strategy 1: Try Firecrawl SCRAPE on the LinkedIn URL directly.
+    // We request `markdown` (for the AI extraction below) AND `rawHtml` so
+    // we can grab og:image without a separate request.
     if (firecrawlKey) {
       console.log("Strategy 1: Firecrawl scrape of LinkedIn URL");
       try {
@@ -46,7 +75,7 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             url: formattedUrl,
-            formats: ["markdown"],
+            formats: ["markdown", "rawHtml"],
             onlyMainContent: true,
             waitFor: 3000,
           }),
@@ -55,9 +84,17 @@ Deno.serve(async (req) => {
         if (scrapeResp.ok) {
           const scrapeData = await scrapeResp.json();
           const markdown = scrapeData.data?.markdown || scrapeData.markdown || "";
+          const rawHtml = scrapeData.data?.rawHtml || scrapeData.rawHtml || "";
           if (markdown.length > 50) {
             profileContent = markdown.substring(0, 6000);
             console.log("Firecrawl scrape success, content length:", profileContent.length);
+          }
+          if (rawHtml) {
+            const found = extractAvatarFromHtml(rawHtml);
+            if (found) {
+              avatarUrl = found;
+              console.log("Avatar from Firecrawl rawHtml:", avatarUrl.substring(0, 80));
+            }
           }
         } else {
           console.log("Firecrawl scrape status:", scrapeResp.status);
