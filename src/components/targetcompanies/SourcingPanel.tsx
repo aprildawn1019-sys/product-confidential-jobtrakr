@@ -133,7 +133,7 @@ export default function SourcingPanel({
       <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col">
         <SheetHeader className="p-6 pb-4 border-b">
           <div className="flex items-center gap-3">
-            <CompanyAvatar company={company.name} size="md" />
+            <CompanyAvatar company={company.name} logoUrl={company.logoUrl} website={company.website} size="md" />
             <div className="min-w-0 flex-1">
               <SheetTitle className="text-base truncate">Find a Booster at {company.name}</SheetTitle>
               <SheetDescription className="text-xs flex items-center gap-1.5 mt-1">

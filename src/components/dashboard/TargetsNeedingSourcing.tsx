@@ -101,7 +101,7 @@ export default function TargetsNeedingSourcing({ targetCompanies, contacts, limi
                 className="group flex w-full items-center gap-3 rounded-md border border-border/60 bg-card p-2.5 text-left transition-colors hover:bg-muted/40"
                 aria-label={`Open sourcing panel for ${company.name}`}
               >
-                <CompanyAvatar company={company.name} size="sm" tone="neutral" />
+                <CompanyAvatar company={company.name} logoUrl={company.logoUrl} website={company.website} size="sm" tone="neutral" />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="truncate text-sm font-medium">{company.name}</span>

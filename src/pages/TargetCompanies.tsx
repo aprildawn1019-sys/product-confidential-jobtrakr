@@ -300,7 +300,7 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
                 <CardContent className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <CompanyAvatar company={tc.name} size="md" />
+                      <CompanyAvatar company={tc.name} logoUrl={tc.logoUrl} website={tc.website} size="md" />
                       <div className="min-w-0">
                         <h3 className="font-semibold truncate">{tc.name}</h3>
                         {tc.industry && <p className="text-xs text-muted-foreground truncate">{tc.industry}{tc.size ? ` · ${tc.size}` : ""}</p>}
