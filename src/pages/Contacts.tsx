@@ -289,9 +289,7 @@ export default function Contacts({
         <div className="p-5 flex flex-col flex-1">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary font-display font-bold text-primary-foreground text-sm shrink-0">
-                {contact.name.split(" ").map(n => n[0]).join("")}
-              </div>
+              <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="md" />
               <div className="min-w-0">
                 <h3 className="font-semibold truncate">{contact.name}</h3>
                 <p className="text-sm text-muted-foreground truncate">{contact.role}</p>

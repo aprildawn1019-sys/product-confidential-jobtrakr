@@ -173,8 +173,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Strategy 4: Direct fetch for JSON-LD or meta tags
-    if (profileContent.length < 100) {
+    // Strategy 4: Direct fetch for JSON-LD or meta tags. Even if Strategy 1
+    // already filled `profileContent`, we still try this if we don't yet
+    // have an avatar URL — it's the cheapest way to grab og:image.
+    if (profileContent.length < 100 || !avatarUrl) {
       console.log("Strategy 4: Direct fetch for meta/JSON-LD");
       try {
         const directResp = await fetch(formattedUrl, {
@@ -187,21 +189,30 @@ Deno.serve(async (req) => {
 
         if (directResp.ok) {
           const html = await directResp.text();
-          const jsonLdMatch = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i);
-          if (jsonLdMatch) {
-            profileContent = jsonLdMatch[1];
-            console.log("Found JSON-LD data");
-          } else {
-            const metaContent: string[] = [];
-            const metaMatches = html.matchAll(/<meta[^>]*(?:name|property)="([^"]*)"[^>]*content="([^"]*)"[^>]*>/gi);
-            for (const m of metaMatches) {
-              if (m[1].includes("title") || m[1].includes("description") || m[1].includes("og:")) {
-                metaContent.push(`${m[1]}: ${m[2]}`);
-              }
+          if (!avatarUrl) {
+            const found = extractAvatarFromHtml(html);
+            if (found) {
+              avatarUrl = found;
+              console.log("Avatar from direct fetch:", avatarUrl.substring(0, 80));
             }
-            if (metaContent.length > 0) {
-              profileContent = metaContent.join("\n");
-              console.log("Extracted meta tags:", metaContent.length);
+          }
+          if (profileContent.length < 100) {
+            const jsonLdMatch = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i);
+            if (jsonLdMatch) {
+              profileContent = jsonLdMatch[1];
+              console.log("Found JSON-LD data");
+            } else {
+              const metaContent: string[] = [];
+              const metaMatches = html.matchAll(/<meta[^>]*(?:name|property)="([^"]*)"[^>]*content="([^"]*)"[^>]*>/gi);
+              for (const m of metaMatches) {
+                if (m[1].includes("title") || m[1].includes("description") || m[1].includes("og:")) {
+                  metaContent.push(`${m[1]}: ${m[2]}`);
+                }
+              }
+              if (metaContent.length > 0) {
+                profileContent = metaContent.join("\n");
+                console.log("Extracted meta tags:", metaContent.length);
+              }
             }
           }
         }
@@ -271,8 +282,12 @@ Deno.serve(async (req) => {
 
     const contact = JSON.parse(toolCall.function.arguments);
     contact.linkedin = contact.linkedin || formattedUrl;
+    // Attach the profile photo URL we discovered (if any). The client
+    // stores it on the contact and renders it in the avatar circle, with
+    // an automatic fallback to initials if the image fails to load.
+    if (avatarUrl) contact.avatar_url = avatarUrl;
 
-    console.log("Extracted:", contact.name, "|", contact.role, "|", contact.company);
+    console.log("Extracted:", contact.name, "|", contact.role, "|", contact.company, "| avatar:", avatarUrl ? "yes" : "no");
 
     return new Response(JSON.stringify({ success: true, data: contact }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
