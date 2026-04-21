@@ -54,6 +54,13 @@ export default function Resumes() {
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
 
+  // File upload (PDF / DOCX / TXT). Creates a new resume version pre-filled
+  // with the extracted plain text — the user can rename, edit, and (optionally)
+  // mark it primary from there. We deliberately skip AI parsing here so the
+  // imported content matches the source file exactly.
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
+
   useEffect(() => {
     fetchVersions();
   }, []);
