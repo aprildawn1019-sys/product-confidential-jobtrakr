@@ -45,6 +45,10 @@ export const INACTIVE_JOB_STATUSES: readonly JobStatus[] = [
 export const isActiveJob = (j: Pick<Job, "status">): boolean =>
   (ACTIVE_JOB_STATUSES as readonly string[]).includes(j.status);
 
+/** Saved jobs = shortlisted, awaiting application. */
+export const isSavedJob = (j: Pick<Job, "status">): boolean =>
+  j.status === "saved";
+
 export const isScheduledInterview = (i: Pick<Interview, "status">): boolean =>
   i.status === "scheduled";
 
