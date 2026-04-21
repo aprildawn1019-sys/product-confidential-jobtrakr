@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, MoreHorizontal } from "lucide-react";
+import { Check, Clock, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
