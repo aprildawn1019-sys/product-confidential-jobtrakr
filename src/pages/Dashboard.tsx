@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Briefcase, CalendarCheck, Send, Star, Sparkles, Inbox, Columns3, Loader2 } from "lucide-react";
+import { Sparkles, Inbox, Columns3, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import StatCard from "@/components/StatCard";
@@ -109,23 +109,13 @@ export default function Dashboard({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total Jobs" value={jobs.length} icon={Briefcase} href="/jobs" />
-        <StatCard label="Active Applications" value={activeApps} icon={Send} accent="info" href="/jobs?status=active" />
-        <StatCard label="Interviews Scheduled" value={upcoming.length} icon={CalendarCheck} accent="warning" href="/interviews" />
-        <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} icon={Star} accent="success" href="/target-companies" />
+        <StatCard label="Total Jobs" value={jobs.length} href="/jobs" />
+        <StatCard label="Active Applications" value={activeApps} href="/jobs?status=active" />
+        <StatCard label="Interviews Scheduled" value={upcoming.length} href="/interviews" />
+        <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} href="/target-companies" />
       </div>
 
-      <WeeklyReview jobs={jobs} interviews={interviews} contactActivities={contactActivities} />
-
-      <UpcomingInterviewsStrip interviews={interviews} jobs={jobs} />
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <ActiveOpportunitiesPanel jobs={jobs} />
-        <TargetCoverageSnapshot targetCompanies={targetCompanies} contacts={contacts} />
-      </div>
-
-      <TargetsNeedingSourcing targetCompanies={targetCompanies} contacts={contacts} />
-
+      {/* Next steps — the page's primary surface, directly under stats */}
       <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div>
@@ -156,6 +146,30 @@ export default function Dashboard({
           <ActionSwimlane actions={actions} onSnooze={snooze} />
         )}
       </div>
+
+      {/* Secondary row: weekly review + upcoming interviews side by side */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <WeeklyReview jobs={jobs} interviews={interviews} contactActivities={contactActivities} />
+        <UpcomingInterviewsStrip interviews={interviews} jobs={jobs} />
+      </div>
+
+      {/* Tertiary: pipeline & sourcing signals — collapsed by default to keep the page calm */}
+      <details className="group rounded-xl border border-border bg-card">
+        <summary className="flex cursor-pointer items-center justify-between gap-3 p-5 list-none [&::-webkit-details-marker]:hidden">
+          <div>
+            <h2 className="font-display text-lg font-semibold">Pipeline & sourcing signals</h2>
+            <p className="text-xs text-muted-foreground">Active opportunities, target coverage, and sourcing gaps</p>
+          </div>
+          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="space-y-4 border-t border-border p-5">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ActiveOpportunitiesPanel jobs={jobs} />
+            <TargetCoverageSnapshot targetCompanies={targetCompanies} contacts={contacts} />
+          </div>
+          <TargetsNeedingSourcing targetCompanies={targetCompanies} contacts={contacts} />
+        </div>
+      </details>
 
     </div>
   );

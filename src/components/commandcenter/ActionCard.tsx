@@ -21,18 +21,18 @@ interface ActionCardProps {
   compact?: boolean;
 }
 
-const urgencyStyles: Record<DerivedAction["urgency"], string> = {
-  overdue: "border-destructive/40 bg-destructive/5",
-  today: "border-warning/40 bg-warning/5",
-  soon: "border-info/30 bg-info/5",
-  later: "border-border",
+const urgencyAccent: Record<DerivedAction["urgency"], string> = {
+  overdue: "before:bg-destructive",
+  today: "before:bg-warning",
+  soon: "before:bg-info",
+  later: "before:bg-transparent",
 };
 
 const urgencyBadge: Record<DerivedAction["urgency"], { label: string; className: string }> = {
-  overdue: { label: "Overdue", className: "text-destructive border-destructive/30" },
-  today: { label: "Today", className: "text-warning border-warning/30" },
-  soon: { label: "Soon", className: "text-info border-info/30" },
-  later: { label: "Later", className: "text-muted-foreground" },
+  overdue: { label: "Overdue", className: "bg-destructive/10 text-destructive border-destructive/20" },
+  today: { label: "Today", className: "bg-warning/10 text-warning border-warning/30" },
+  soon: { label: "Soon", className: "bg-info/10 text-info border-info/30" },
+  later: { label: "Later", className: "bg-muted text-muted-foreground border-transparent" },
 };
 
 const sourceIcon: Record<DerivedAction["source"], { icon: typeof Bell; label: string; className: string }> = {
@@ -76,8 +76,9 @@ export default function ActionCard({ action, onSnooze, compact }: ActionCardProp
   return (
     <div
       className={cn(
-        "group rounded-lg border p-3 transition-colors hover:bg-muted/40",
-        urgencyStyles[action.urgency],
+        "group relative rounded-lg border border-border bg-card p-3 pl-4 transition-colors hover:bg-muted/30",
+        "before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:rounded-full",
+        urgencyAccent[action.urgency],
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -97,7 +98,7 @@ export default function ActionCard({ action, onSnooze, compact }: ActionCardProp
           )}
         </button>
         <div className="flex items-center gap-1 shrink-0">
-          <Badge variant="outline" className={cn("text-[10px] h-5", badge.className)}>
+          <Badge variant="outline" className={cn("text-[10px] h-5 px-1.5 font-medium", badge.className)}>
             {badge.label}
           </Badge>
           <DropdownMenu>
