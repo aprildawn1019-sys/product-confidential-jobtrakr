@@ -73,6 +73,14 @@ export interface Contact {
   followUpDate?: string;
   conversationLog?: string;
   networkRole?: NetworkRole;
+  /**
+   * Optional profile photo URL. Auto-populated when a contact is created
+   * from a LinkedIn URL (the scrape edge function returns the og:image /
+   * JSON-LD `image` field), or set manually in the Add Contact dialog.
+   * The UI falls back to initials when this is empty or the image fails
+   * to load (LinkedIn CDN URLs can expire).
+   */
+  avatarUrl?: string;
 }
 
 export interface Interview {
