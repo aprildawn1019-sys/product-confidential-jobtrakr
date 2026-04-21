@@ -1,11 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Inbox, Columns3, Loader2, ChevronDown } from "lucide-react";
+import { Sparkles, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import StatCard from "@/components/StatCard";
-import ActionQueue from "@/components/commandcenter/ActionQueue";
-import ActionSwimlane from "@/components/commandcenter/ActionSwimlane";
 import WeeklyReview from "@/components/dashboard/WeeklyReview";
 import UpcomingInterviewsStrip from "@/components/dashboard/UpcomingInterviewsStrip";
 import ActiveOpportunitiesPanel from "@/components/dashboard/ActiveOpportunitiesPanel";
