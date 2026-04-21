@@ -118,9 +118,9 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight flex items-center gap-2">Schedule<HelpHint articleId="scheduling-interviews" /></h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight flex items-center gap-2">Interviews<HelpHint articleId="scheduling-interviews" /></h1>
           <p className="mt-1 text-muted-foreground">
-            {upcomingCount} interviews · {followUpCount} follow-ups
+            {upcomingCount} interview{upcomingCount === 1 ? "" : "s"} scheduled · {followUpCount} follow-up{followUpCount === 1 ? "" : "s"}
           </p>
         </div>
         <div className="flex items-center gap-2">
