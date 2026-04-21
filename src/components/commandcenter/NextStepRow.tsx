@@ -92,8 +92,8 @@ export default function NextStepRow({
       </div>
 
       <div className="flex items-center gap-1 shrink-0">
-        {/* Amber stadium toggle — matches hero spec. Pill that fills with accent
-            when checked; outline when pending. */}
+        {/* Larger amber stadium toggle — matches hero spec proportions.
+            Wider pill, thicker amber border; fills with accent when checked. */}
         <button
           type="button"
           role="switch"
@@ -102,7 +102,7 @@ export default function NextStepRow({
           disabled={checked}
           onClick={handleToggle}
           className={cn(
-            "relative inline-flex h-6 w-11 items-center rounded-full border-2 transition-colors",
+            "relative inline-flex h-7 w-14 items-center rounded-full border-2 transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             checked
               ? "border-accent bg-accent"
@@ -111,8 +111,8 @@ export default function NextStepRow({
         >
           <span
             className={cn(
-              "inline-block h-3.5 w-3.5 rounded-full bg-accent transition-transform duration-200",
-              checked ? "translate-x-[22px] bg-accent-foreground" : "translate-x-1",
+              "inline-block h-4 w-4 rounded-full bg-accent transition-transform duration-200",
+              checked ? "translate-x-[26px] bg-accent-foreground" : "translate-x-1",
             )}
           />
         </button>

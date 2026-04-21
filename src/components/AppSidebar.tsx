@@ -9,7 +9,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+// (Collapsible no longer used: sidebar groups are always-visible per hero spec.)
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -77,21 +77,8 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   const isOnJobCRM = location.pathname.startsWith("/jobs/");
   const [jobSubOpen, setJobSubOpen] = useState(isOnJobCRM);
 
-  const initialOpen = groups.reduce<Record<string, boolean>>((acc, group) => {
-    acc[group.label] = group.items.some((item) =>
-      item.end ? location.pathname === item.to : (location.pathname === item.to || (item.to === "/jobs" && isOnJobCRM))
-    );
-    return acc;
-  }, {});
-
-  const anyActive = Object.values(initialOpen).some(Boolean);
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
-    anyActive ? initialOpen : groups.reduce((acc, g) => ({ ...acc, [g.label]: true }), {} as Record<string, boolean>)
-  );
-
-  const toggleGroup = (label: string) => {
-    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
-  };
+  // Sidebar groups are always-visible (no chevrons) — see hero spec.
+  // We intentionally drop per-group open/close state.
 
   const handleNavClick = () => onNavigate?.();
 

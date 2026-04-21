@@ -41,14 +41,16 @@ export default function StatCard({
     variant === "minimal" ? (
       <div
         className={cn(
-          "rounded-xl border border-border bg-card p-5 sm:p-6 animate-fade-in transition-all",
+          // Hero spec: soft white card, generous padding, very large numeral
+          // (Space Grotesk), uppercase label below. No icon, no border accent.
+          "rounded-2xl border border-border/60 bg-card p-6 sm:p-8 animate-fade-in transition-all",
           href && "hover:border-foreground/15 hover:shadow-sm cursor-pointer",
         )}
       >
-        <p className="font-display text-4xl sm:text-5xl font-bold tracking-tight tabular-nums leading-none text-foreground">
+        <p className="font-display text-5xl sm:text-6xl font-bold tracking-tight tabular-nums leading-none text-foreground">
           {value}
         </p>
-        <p className="mt-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
       </div>

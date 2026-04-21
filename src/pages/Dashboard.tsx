@@ -91,28 +91,11 @@ export default function Dashboard({
         <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} href="/target-companies" />
       </div>
 
-      {/* Next steps — promoted directly under stats. Suggest-next-steps button
-          lives in this panel's header (not the page header) so the page chrome
-          stays calm. */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <div>
-            <h2 className="font-display text-lg font-semibold">Next steps</h2>
-            <p className="text-xs text-muted-foreground">
-              Check items off as you finish them · sorted by urgency
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => fetchAi({ jobs, contacts, targetCompanies, recommendationRequests })}
-            disabled={aiLoading}
-          >
-            {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Suggest next steps
-          </Button>
-        </div>
+      {/* Next steps — promoted directly under stats. Hero spec: panel header
+          is a single "Next steps" title; no subtitle, no buttons inside the
+          card. The Suggest button moves to a quiet ghost row beneath the list. */}
+      <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8">
+        <h2 className="font-display text-xl font-semibold mb-4">Next steps</h2>
         <NextStepsList
           actions={actions}
           completed={completed}
@@ -121,6 +104,18 @@ export default function Dashboard({
           visibleCount={showAllSteps ? actions.length : 6}
           onViewAll={() => setShowAllSteps(true)}
         />
+        <div className="mt-3 flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => fetchAi({ jobs, contacts, targetCompanies, recommendationRequests })}
+            disabled={aiLoading}
+          >
+            {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            Suggest next steps
+          </Button>
+        </div>
       </div>
 
       {/* Secondary: weekly review + upcoming interviews, two-column */}
