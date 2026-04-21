@@ -45,8 +45,9 @@ export default function Dashboard({
   recommendationRequests = [],
 }: DashboardProps) {
   const navigate = useNavigate();
+  const [showAllSteps, setShowAllSteps] = useState(false);
 
-  const { snoozes } = useActionSnoozes();
+  const { snoozes, completed, snooze, complete } = useActionSnoozes();
   const { suggestions: aiSuggestions, loading: aiLoading, fetchSuggestions: fetchAi } = useAiSuggestedActions();
 
   // First-login redirect: brand-new users → Getting Started.
