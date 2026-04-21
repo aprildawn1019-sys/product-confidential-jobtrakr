@@ -173,6 +173,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
 
         <div className="border-t border-sidebar-border p-2 space-y-1 flex flex-col items-center">
           {hasData ? null : renderIconLink({ to: "/getting-started", icon: Sparkles, label: "Getting Started" })}
+          {renderIconLink({ to: "/settings/profile", icon: UserCircle2, label: "Profile" })}
           {renderIconLink(settingsItem)}
           <Tooltip delayDuration={150}>
             <TooltipTrigger asChild>
@@ -185,21 +186,43 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 <CircleHelp className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right">Help &amp; Resources</TooltipContent>
+            <TooltipContent side="right">Help</TooltipContent>
           </Tooltip>
-          <Tooltip delayDuration={150}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-                onClick={handleSignOut}
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Sign out</TooltipContent>
-          </Tooltip>
+
+          <div className="my-1 h-px w-6 bg-sidebar-border/60" />
+
+          <DropdownMenu>
+            <Tooltip delayDuration={150}>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-primary text-[11px] font-semibold text-sidebar-primary-foreground hover:opacity-90 transition-opacity"
+                    aria-label={`Account menu for ${user.name}`}
+                  >
+                    {user.initials}
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="right">{user.name}</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent side="right" align="end" className="w-56">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium truncate">{user.name}</p>
+                {user.email && user.email !== user.name && (
+                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                )}
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleRestartTour}>
+                <PlayCircle className="h-4 w-4 mr-2" />
+                Restart walkthrough
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </TooltipProvider>
     );
@@ -314,14 +337,31 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-4 space-y-1">
+      <div className="border-t border-sidebar-border p-3 space-y-0.5">
+        {/* Profile / Settings / Help — quiet utility links matching the hero spec */}
         <NavLink
-          to="/settings"
+          to="/settings/profile"
           onClick={handleNavClick}
           className={({ isActive }) =>
             cn(
-              "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors w-full",
-              isActive || location.pathname.startsWith("/settings")
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              isActive
+                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+            )
+          }
+        >
+          <UserCircle2 className="h-4 w-4" />
+          Profile
+        </NavLink>
+        <NavLink
+          to="/settings"
+          end
+          onClick={handleNavClick}
+          className={({ isActive }) =>
+            cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              isActive || location.pathname === "/settings" || location.pathname === "/settings/data-export"
                 ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                 : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
             )
@@ -330,33 +370,49 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           <Settings className="h-4 w-4" />
           Settings
         </NavLink>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+        <button
+          type="button"
           onClick={() => { handleNavClick(); openHelp(); }}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
         >
-          <CircleHelp className="h-4 w-4 mr-2" />
-          Help &amp; Resources
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-          onClick={() => { handleNavClick(); window.dispatchEvent(new Event("jobtrakr:start-tour")); }}
-        >
-          <PlayCircle className="h-4 w-4 mr-2" />
-          Restart walkthrough
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-          onClick={handleSignOut}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Sign Out
-        </Button>
+          <CircleHelp className="h-4 w-4" />
+          Help
+        </button>
+
+        {/* Account row — avatar + name, opens menu with Restart walkthrough + Sign out.
+            Tucking these inside the avatar menu keeps walkthrough discoverable but out of
+            the daily-use surface, and prevents accidental sign-outs. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="mt-2 flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-sidebar-accent/50 group"
+              aria-label={`Account menu for ${user.name}`}
+            >
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[11px] font-semibold text-sidebar-primary-foreground">
+                {user.initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
+                {user.email && user.email !== user.name && (
+                  <p className="text-[11px] text-sidebar-muted truncate">{user.email}</p>
+                )}
+              </div>
+              <MoreHorizontal className="h-4 w-4 text-sidebar-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="end" className="w-56">
+            <DropdownMenuItem onClick={handleRestartTour}>
+              <PlayCircle className="h-4 w-4 mr-2" />
+              Restart walkthrough
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </>
   );
