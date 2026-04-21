@@ -1,14 +1,10 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Target, Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle2, Rocket, Users, UserSearch, Snowflake, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CompanyAvatar from "@/components/CompanyAvatar";
-import {
-  getCoverageInfo,
-  COVERAGE_LABELS,
-  type CoverageState,
-} from "@/components/targetcompanies/coverageUtils";
+import { getCoverageInfo, type CoverageState } from "@/components/targetcompanies/coverageUtils";
 import { cn } from "@/lib/utils";
 import type { Contact, TargetCompany } from "@/types/jobTracker";
 
@@ -30,6 +26,13 @@ const STATE_WEIGHT: Record<CoverageState, number> = {
 const PRIORITY_LABEL: Record<string, { label: string; className: string }> = {
   dream: { label: "Dream", className: "bg-success/10 text-success border-success/30" },
   strong: { label: "Strong", className: "bg-info/10 text-info border-info/30" },
+};
+
+const STATE_META: Record<CoverageState, { label: string; icon: LucideIcon; tone: string }> = {
+  booster:   { label: "Has Booster",         icon: Rocket,     tone: "text-success" },
+  connector: { label: "Connector available", icon: Users,      tone: "text-info" },
+  recruiter: { label: "Recruiter only",      icon: UserSearch, tone: "text-warning" },
+  cold:      { label: "No inside path",      icon: Snowflake,  tone: "text-muted-foreground" },
 };
 
 export default function TargetsNeedingSourcing({ targetCompanies, contacts, limit = 5 }: Props) {
@@ -60,16 +63,15 @@ export default function TargetsNeedingSourcing({ targetCompanies, contacts, limi
   const remaining = Math.max(0, gaps.length - visible.length);
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <Target className="h-4 w-4 text-warning shrink-0" />
-          <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground truncate">
-            Targets needing sourcing
-          </h2>
-          {gaps.length > 0 && (
-            <Badge variant="secondary" className="text-[10px] h-5 shrink-0">{gaps.length}</Badge>
-          )}
+    <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="font-display text-xl font-semibold">Targets needing sourcing</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {gaps.length === 0
+              ? "Every Dream and Strong target has a Booster"
+              : `${gaps.length} high-priority target${gaps.length === 1 ? "" : "s"} without an inside path`}
+          </p>
         </div>
         {gaps.length > 0 && (
           <button
@@ -84,34 +86,33 @@ export default function TargetsNeedingSourcing({ targetCompanies, contacts, limi
       {gaps.length === 0 ? (
         <div className="flex items-center gap-2 rounded-md border border-dashed border-border bg-muted/30 p-3">
           <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-          <p className="text-xs text-muted-foreground">
-            Every Dream and Strong target has a Booster. Nice coverage.
-          </p>
+          <p className="text-xs text-muted-foreground">Nice coverage — keep nurturing.</p>
         </div>
       ) : (
         <div className="space-y-1.5">
           {visible.map(({ company, coverage }) => {
-            const stateMeta = COVERAGE_LABELS[coverage.state];
+            const stateMeta = STATE_META[coverage.state];
+            const StateIcon = stateMeta.icon;
             const prio = PRIORITY_LABEL[company.priority];
             return (
               <button
                 key={company.id}
                 onClick={() => navigate(`/target-companies?sourcing=${company.id}`)}
-                className="group w-full flex items-center gap-3 rounded-md border border-border bg-card p-2.5 text-left hover:bg-muted/40 transition-colors"
+                className="group flex w-full items-center gap-3 rounded-md border border-border/60 bg-card p-2.5 text-left transition-colors hover:bg-muted/40"
                 aria-label={`Open sourcing panel for ${company.name}`}
               >
-                <CompanyAvatar company={company.name} size="sm" />
+                <CompanyAvatar company={company.name} size="sm" tone="neutral" />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium truncate">{company.name}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="truncate text-sm font-medium">{company.name}</span>
                     {prio && (
-                      <Badge variant="outline" className={cn("text-[10px] h-4 px-1.5", prio.className)}>
+                      <Badge variant="outline" className={cn("h-4 px-1.5 text-[10px]", prio.className)}>
                         {prio.label}
                       </Badge>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                    <span aria-hidden>{stateMeta.emoji}</span>
+                  <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <StateIcon className={cn("h-3 w-3", stateMeta.tone)} strokeWidth={1.75} />
                     <span>{stateMeta.label}</span>
                     {coverage.allAtCompany.length > 0 && (
                       <span>· {coverage.allAtCompany.length} contact{coverage.allAtCompany.length === 1 ? "" : "s"}</span>
@@ -121,7 +122,7 @@ export default function TargetsNeedingSourcing({ targetCompanies, contacts, limi
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 text-xs gap-1 text-primary hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                  className="h-7 shrink-0 gap-1 px-2 text-xs text-primary opacity-0 transition-opacity hover:text-primary group-hover:opacity-100"
                   tabIndex={-1}
                 >
                   <Sparkles className="h-3 w-3" />
@@ -133,7 +134,7 @@ export default function TargetsNeedingSourcing({ targetCompanies, contacts, limi
           {remaining > 0 && (
             <button
               onClick={() => navigate("/target-companies?sort=coverage")}
-              className="w-full text-xs text-muted-foreground hover:text-foreground py-2 transition-colors"
+              className="w-full py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
               + {remaining} more target{remaining === 1 ? "" : "s"} needing sourcing
             </button>

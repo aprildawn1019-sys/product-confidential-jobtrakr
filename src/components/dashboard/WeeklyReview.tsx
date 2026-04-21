@@ -68,16 +68,16 @@ export default function WeeklyReview({ jobs, interviews, contactActivities }: We
 
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8">
-      <div className="mb-4 flex items-end justify-between">
-        <div>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
           <h2 className="font-display text-xl font-semibold">Weekly review</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {total === 0 ? "No activity logged this week yet" : `${total} action${total === 1 ? "" : "s"} this week`}
           </p>
         </div>
-        <div className="hidden gap-3 text-[10px] uppercase tracking-wider text-muted-foreground sm:flex">
+        <div className="hidden shrink-0 gap-3 text-[10px] uppercase tracking-wider text-muted-foreground lg:flex">
           <Legend swatchClass="bg-primary" label="Apps" />
-          <Legend swatchClass="bg-accent" label="Follow-ups" />
+          <Legend swatchClass="bg-accent" label="Follows" />
           <Legend swatchClass="bg-info" label="Interviews" />
           <Legend swatchClass="bg-success" label="Meetings" />
         </div>
@@ -85,8 +85,8 @@ export default function WeeklyReview({ jobs, interviews, contactActivities }: We
 
       <div className="h-44">
         {total === 0 ? (
-          <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-            Log applications, follow-ups, or interviews to see this week's mix.
+          <div className="flex h-full items-center justify-center text-center text-xs text-muted-foreground">
+            Log applications, follow-ups, or interviews to start tracking your week.
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
