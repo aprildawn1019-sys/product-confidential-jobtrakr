@@ -52,6 +52,14 @@ export default function Dashboard({
   const navigate = useNavigate();
   const [showAllSteps, setShowAllSteps] = useState(false);
 
+  const [statsView, setStatsView] = useState<"in-flight" | "lifetime">(() => {
+    if (typeof window === "undefined") return "in-flight";
+    return (localStorage.getItem("jobtrakr.dashboard.statsView") as "in-flight" | "lifetime") || "in-flight";
+  });
+  useEffect(() => {
+    localStorage.setItem("jobtrakr.dashboard.statsView", statsView);
+  }, [statsView]);
+
   const { snoozes, completed, snooze, complete } = useActionSnoozes();
   const { suggestions: aiSuggestions, loading: aiLoading, fetchSuggestions: fetchAi } = useAiSuggestedActions();
 
