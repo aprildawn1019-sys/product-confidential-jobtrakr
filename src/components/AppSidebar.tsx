@@ -104,8 +104,13 @@ interface SidebarBodyProps {
 function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps) {
   const location = useLocation();
   const { openHelp } = useHelp();
+  const user = useCurrentUser();
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+  };
+  const handleRestartTour = () => {
+    onNavigate?.();
+    window.dispatchEvent(new Event("jobtrakr:start-tour"));
   };
 
   const isOnJobCRM = location.pathname.startsWith("/jobs/");
