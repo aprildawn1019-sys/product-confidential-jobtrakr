@@ -84,11 +84,27 @@ export default function Dashboard({
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total Jobs" value={jobs.length} href="/jobs" />
-        <StatCard label="Active Applications" value={activeApps} href="/jobs?status=active" />
-        <StatCard label="Interviews Scheduled" value={upcoming.length} href="/interviews" />
-        <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} href="/target-companies" />
+      {/* Primary stats — strictly in-flight pipeline metrics. "Total Jobs"
+          (a lifetime count) is intentionally separated below so the top row
+          only shows momentum that changes week to week. */}
+      <div>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          In flight
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard label="Active Applications" value={activeApps} href="/jobs?status=active" />
+          <StatCard label="Interviews Scheduled" value={upcoming.length} href="/interviews" />
+          <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} href="/target-companies" />
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          All-time
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard label="Total Jobs Tracked" value={jobs.length} href="/jobs" />
+        </div>
       </div>
 
       {/* Next steps — promoted directly under stats. Hero spec: panel header
