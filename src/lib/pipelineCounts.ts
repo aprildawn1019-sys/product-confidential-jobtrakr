@@ -60,6 +60,9 @@ export const isActiveTargetCompany = (tc: Pick<TargetCompany, "status">): boolea
 export const countActiveJobs = (jobs: Pick<Job, "status">[]): number =>
   jobs.filter(isActiveJob).length;
 
+export const countSavedJobs = (jobs: Pick<Job, "status">[]): number =>
+  jobs.filter(isSavedJob).length;
+
 export const countScheduledInterviews = (interviews: Pick<Interview, "status">[]): number =>
   interviews.filter(isScheduledInterview).length;
 
