@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, MoreHorizontal } from "lucide-react";
+import { Check, Clock, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -92,37 +92,35 @@ export default function NextStepRow({
       </div>
 
       <div className="flex items-center gap-1 shrink-0">
-        {/* Hero spec: clean amber stadium outline. Empty when pending,
-            filled amber when complete. No knob — that's the whole visual. */}
+        {/* Completion control — reads as "mark done", not a settings toggle.
+            Empty circle with a "Done" label that becomes a filled amber
+            check once clicked. Mirrors Linear/Things/Todoist task patterns. */}
         <button
           type="button"
-          role="switch"
+          role="checkbox"
           aria-checked={checked}
-          aria-label={`Mark "${action.title}" complete`}
+          aria-label={checked ? `"${action.title}" completed` : `Mark "${action.title}" done`}
           disabled={checked}
           onClick={handleToggle}
           className={cn(
-            "inline-flex h-7 w-14 items-center justify-center rounded-full border-2 transition-colors",
+            "inline-flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1 text-xs font-medium transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             checked
-              ? "border-accent bg-accent"
-              : "border-accent bg-transparent hover:bg-accent/10",
+              ? "text-muted-foreground cursor-default"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted",
           )}
         >
-          {checked && (
-            <svg
-              viewBox="0 0 16 16"
-              className="h-3.5 w-3.5 text-accent-foreground"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <polyline points="3 8.5 6.5 12 13 4.5" />
-            </svg>
-          )}
+          <span
+            className={cn(
+              "inline-flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors",
+              checked
+                ? "border-accent bg-accent text-accent-foreground"
+                : "border-muted-foreground/40 group-hover:border-accent",
+            )}
+          >
+            {checked && <Check className="h-3 w-3" strokeWidth={3} />}
+          </span>
+          <span className={cn(checked && "sr-only")}>Done</span>
         </button>
 
         <DropdownMenu>
