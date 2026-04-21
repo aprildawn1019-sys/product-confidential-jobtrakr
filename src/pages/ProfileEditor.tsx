@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Save, Plus, X, Upload, FileText } from "lucide-react";
 import HelpHint from "@/components/help/HelpHint";
+import { extractTextFromResumeFile, ResumeFileError } from "@/lib/resumeFileParser";
 
 function TagInput({ value, onChange, placeholder }: { value: string[]; onChange: (v: string[]) => void; placeholder?: string }) {
   const [input, setInput] = useState("");
