@@ -12,8 +12,8 @@ import TargetsNeedingSourcing from "@/components/dashboard/TargetsNeedingSourcin
 import { deriveActions } from "@/lib/actionEngine";
 import {
   countActiveJobs,
+  countSavedJobs,
   countScheduledInterviews,
-  countActiveTargetCompanies,
 } from "@/lib/pipelineCounts";
 import { useActionSnoozes } from "@/hooks/useActionSnoozes";
 import { useAiSuggestedActions } from "@/hooks/useAiSuggestedActions";
