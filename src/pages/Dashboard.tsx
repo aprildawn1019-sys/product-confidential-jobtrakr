@@ -7,7 +7,7 @@ import NextStepsList from "@/components/commandcenter/NextStepsList";
 import WeeklyReview from "@/components/dashboard/WeeklyReview";
 import UpcomingInterviewsStrip from "@/components/dashboard/UpcomingInterviewsStrip";
 import ActiveOpportunitiesPanel from "@/components/dashboard/ActiveOpportunitiesPanel";
-import TargetCoverageSnapshot from "@/components/dashboard/TargetCoverageSnapshot";
+
 import TargetsNeedingSourcing from "@/components/dashboard/TargetsNeedingSourcing";
 import { deriveActions } from "@/lib/actionEngine";
 import { useActionSnoozes } from "@/hooks/useActionSnoozes";
@@ -131,14 +131,13 @@ export default function Dashboard({
         <div>
           <h2 className="font-display text-xl font-semibold">Pipeline & sourcing signals</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Active opportunities, target coverage, and sourcing gaps
+            Active opportunities and sourcing gaps to close
           </p>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <ActiveOpportunitiesPanel jobs={jobs} />
-          <TargetCoverageSnapshot targetCompanies={targetCompanies} contacts={contacts} />
+          <TargetsNeedingSourcing targetCompanies={targetCompanies} contacts={contacts} />
         </div>
-        <TargetsNeedingSourcing targetCompanies={targetCompanies} contacts={contacts} />
       </section>
 
     </div>
