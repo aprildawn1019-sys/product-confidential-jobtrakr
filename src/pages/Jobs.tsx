@@ -324,10 +324,17 @@ export default function Jobs({
           <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
             <div>
               <h1 className="font-display text-3xl font-bold tracking-tight flex items-center gap-2">
-                Job Pipeline
+                Jobs
                 <HelpHint articleId="pipeline-stages" />
               </h1>
-              <p className="mt-1 text-muted-foreground">{filteredJobs.length} of {jobs.length} positions</p>
+              <p className="mt-1 text-muted-foreground">
+                {jobs.length} {jobs.length === 1 ? "job" : "jobs"}
+                {(() => {
+                  const active = jobs.filter(j => !["saved", "rejected", "withdrawn", "closed"].includes(j.status)).length;
+                  const inInterviews = jobs.filter(j => j.status === "interviewing").length;
+                  return ` · ${active} active · ${inInterviews} in interviews`;
+                })()}
+              </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center rounded-lg border border-border p-0.5">

@@ -73,16 +73,35 @@ export default function Dashboard({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Command Center</h1>
-          <p className="mt-1 text-muted-foreground">
-            {actions.length === 0
-              ? "Nothing on your plate. Plan your next move."
-              : `${actions.length} next step${actions.length === 1 ? "" : "s"}${overdueCount ? ` · ${overdueCount} overdue` : ""}${todayCount ? ` · ${todayCount} today` : ""}`}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+      {/* Header — clean title + actions count subtitle. No buttons in the header
+          (per dashboard-mockup.jpg / spec-command-center-v2.jpg). */}
+      <div>
+        <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">Command Center</h1>
+        <p className="mt-1 text-muted-foreground">
+          {actions.length === 0
+            ? "Nothing on your plate. Plan your next move."
+            : `${actions.length} next step${actions.length === 1 ? "" : "s"}${overdueCount ? ` · ${overdueCount} overdue` : ""}${todayCount ? ` · ${todayCount} today` : ""}`}
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Total Jobs" value={jobs.length} href="/jobs" />
+        <StatCard label="Active Applications" value={activeApps} href="/jobs?status=active" />
+        <StatCard label="Interviews Scheduled" value={upcoming.length} href="/interviews" />
+        <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} href="/target-companies" />
+      </div>
+
+      {/* Next steps — promoted directly under stats. Suggest-next-steps button
+          lives in this panel's header (not the page header) so the page chrome
+          stays calm. */}
+      <div className="rounded-xl border border-border bg-card p-5">
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div>
+            <h2 className="font-display text-lg font-semibold">Next steps</h2>
+            <p className="text-xs text-muted-foreground">
+              Check items off as you finish them · sorted by urgency
+            </p>
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -93,33 +112,6 @@ export default function Dashboard({
             {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             Suggest next steps
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => window.dispatchEvent(new Event("jobtrakr:start-tour"))}
-          >
-            <Sparkles className="h-4 w-4" /> Take the tour
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total Jobs" value={jobs.length} href="/jobs" />
-        <StatCard label="Active Applications" value={activeApps} href="/jobs?status=active" />
-        <StatCard label="Interviews Scheduled" value={upcoming.length} href="/interviews" />
-        <StatCard label="Target Companies" value={targetCompanies.filter(tc => tc.status !== "archived").length} href="/target-companies" />
-      </div>
-
-      {/* Next steps — compact list with completion toggles */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <div>
-            <h2 className="font-display text-lg font-semibold">Next steps</h2>
-            <p className="text-xs text-muted-foreground">
-              Check items off as you finish them · sorted by urgency
-            </p>
-          </div>
         </div>
         <NextStepsList
           actions={actions}
