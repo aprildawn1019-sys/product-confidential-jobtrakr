@@ -98,7 +98,7 @@ export default function ActionCard({ action, onSnooze, compact }: ActionCardProp
           )}
         </button>
         <div className="flex items-center gap-1 shrink-0">
-          <Badge variant="outline" className={cn("text-[10px] h-5", badge.className)}>
+          <Badge variant="outline" className={cn("text-[10px] h-5 px-1.5 font-medium", badge.className)}>
             {badge.label}
           </Badge>
           <DropdownMenu>
