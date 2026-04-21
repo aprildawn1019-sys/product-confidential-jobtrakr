@@ -20,6 +20,7 @@ import WarmthBadge from "@/components/WarmthBadge";
 import StatusBadge from "@/components/StatusBadge";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import ContactsSpreadsheet from "@/components/ContactsSpreadsheet";
+import ContactAvatar from "@/components/ContactAvatar";
 import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact, TargetCompany, NetworkRole } from "@/types/jobTracker";
 import { RELATIONSHIP_LABELS, NETWORK_ROLES } from "@/types/jobTracker";
 

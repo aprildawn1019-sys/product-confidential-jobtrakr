@@ -116,6 +116,22 @@ export default function AddContactDialog({
           <DialogTitle className="font-display">Add Connection</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Avatar row — shows the live profile photo (auto-filled by the
+              LinkedIn fetch below, or pasted manually). Falls back to
+              initials when no URL is set. Sits above the name field so
+              users see the connection between the photo and who it's for. */}
+          <div className="flex items-center gap-3">
+            <ContactAvatar name={form.name || "?"} avatarUrl={form.avatarUrl} size="lg" />
+            <div className="flex-1 space-y-1">
+              <Label className="text-xs text-muted-foreground">Profile photo URL (optional)</Label>
+              <Input
+                value={form.avatarUrl}
+                onChange={e => setForm(f => ({ ...f, avatarUrl: e.target.value }))}
+                placeholder="Auto-filled from LinkedIn, or paste an image URL"
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Name *</Label>
