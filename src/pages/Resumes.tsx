@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import DOMPurify from "dompurify";
-import { FileStack, Plus, Trash2, Pencil, Save, X, Loader2, Star, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { FileStack, Plus, Trash2, Pencil, Save, X, Loader2, Star, Copy, Check, ChevronDown, ChevronUp, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import {
+  extractTextFromResumeFile,
+  plainTextToResumeHtml,
+  ResumeFileError,
+} from "@/lib/resumeFileParser";
 
 interface ResumeVersion {
   id: string;
