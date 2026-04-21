@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,18 +21,19 @@ interface ActionCardProps {
   compact?: boolean;
 }
 
+// Calm Operations: thin left accent + muted urgency micro-label, no fills.
 const urgencyAccent: Record<DerivedAction["urgency"], string> = {
-  overdue: "before:bg-destructive",
-  today: "before:bg-warning",
-  soon: "before:bg-info",
+  overdue: "before:bg-destructive/60",
+  today: "before:bg-warning/70",
+  soon: "before:bg-info/60",
   later: "before:bg-transparent",
 };
 
-const urgencyBadge: Record<DerivedAction["urgency"], { label: string; className: string }> = {
-  overdue: { label: "Overdue", className: "bg-destructive/10 text-destructive border-destructive/20" },
-  today: { label: "Today", className: "bg-warning/10 text-warning border-warning/30" },
-  soon: { label: "Soon", className: "bg-info/10 text-info border-info/30" },
-  later: { label: "Later", className: "bg-muted text-muted-foreground border-transparent" },
+const urgencyLabel: Record<DerivedAction["urgency"], { label: string; className: string }> = {
+  overdue: { label: "Overdue", className: "text-destructive/80" },
+  today: { label: "Today", className: "text-foreground" },
+  soon: { label: "Soon", className: "text-muted-foreground" },
+  later: { label: "Later", className: "text-muted-foreground" },
 };
 
 const sourceIcon: Record<DerivedAction["source"], { icon: typeof Bell; label: string; className: string }> = {
@@ -44,7 +45,7 @@ const sourceIcon: Record<DerivedAction["source"], { icon: typeof Bell; label: st
 export default function ActionCard({ action, onSnooze, compact }: ActionCardProps) {
   const navigate = useNavigate();
   const SourceIcon = sourceIcon[action.source].icon;
-  const badge = urgencyBadge[action.urgency];
+  const label = urgencyLabel[action.urgency];
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -97,10 +98,10 @@ export default function ActionCard({ action, onSnooze, compact }: ActionCardProp
             </p>
           )}
         </button>
-        <div className="flex items-center gap-1 shrink-0">
-          <Badge variant="outline" className={cn("text-[10px] h-5 px-1.5 font-medium", badge.className)}>
-            {badge.label}
-          </Badge>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={cn("text-[11px] font-medium tabular-nums", label.className)}>
+            {label.label}
+          </span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

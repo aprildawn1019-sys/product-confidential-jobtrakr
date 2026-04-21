@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Clock, MoreHorizontal } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -22,11 +22,20 @@ interface NextStepRowProps {
   onSnooze: (signature: string, duration: SnoozeDuration) => void;
 }
 
-const urgencyBadge: Record<DerivedAction["urgency"], { label: string; className: string }> = {
-  overdue: { label: "Overdue", className: "bg-destructive/10 text-destructive border-destructive/20" },
-  today: { label: "Today", className: "bg-warning/10 text-warning border-warning/30" },
-  soon: { label: "Soon", className: "bg-info/10 text-info border-info/30" },
-  later: { label: "Later", className: "bg-muted text-muted-foreground border-transparent" },
+// Calm Operations: no tinted backgrounds. Urgency is communicated by a thin
+// left accent border on the row plus a muted-text micro-label.
+const urgencyAccent: Record<DerivedAction["urgency"], string> = {
+  overdue: "before:bg-destructive/60",
+  today: "before:bg-warning/70",
+  soon: "before:bg-info/60",
+  later: "before:bg-transparent",
+};
+
+const urgencyLabel: Record<DerivedAction["urgency"], { label: string; className: string }> = {
+  overdue: { label: "Overdue", className: "text-destructive/80" },
+  today: { label: "Today", className: "text-foreground" },
+  soon: { label: "Soon", className: "text-muted-foreground" },
+  later: { label: "Later", className: "text-muted-foreground" },
 };
 
 /**
@@ -49,7 +58,7 @@ export default function NextStepRow({
 }: NextStepRowProps) {
   const navigate = useNavigate();
   const [pending, setPending] = useState(false);
-  const badge = urgencyBadge[action.urgency];
+  const label = urgencyLabel[action.urgency];
   const checked = isCompleted || pending;
 
   const handleOpen = () => {
@@ -66,7 +75,9 @@ export default function NextStepRow({
   return (
     <div
       className={cn(
-        "group flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted/40",
+        "group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2 transition-colors hover:bg-muted/40",
+        "before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:rounded-full",
+        urgencyAccent[action.urgency],
         checked && "opacity-60",
       )}
     >
@@ -89,13 +100,10 @@ export default function NextStepRow({
           <p className="text-xs text-muted-foreground truncate">{action.subtitle}</p>
         )}
       </button>
-      <div className="flex items-center gap-1 shrink-0">
-        <Badge
-          variant="outline"
-          className={cn("text-[10px] h-5 px-1.5 font-medium", badge.className)}
-        >
-          {badge.label}
-        </Badge>
+      <div className="flex items-center gap-2 shrink-0">
+        <span className={cn("text-[11px] font-medium tabular-nums", label.className)}>
+          {label.label}
+        </span>
         <Button
           variant="ghost"
           size="icon"
