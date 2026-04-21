@@ -282,8 +282,8 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                     )}
                   </div>
                 ))}
-              </CollapsibleContent>
-            </Collapsible>
+              </div>
+            </div>
           );
         })}
       </nav>
