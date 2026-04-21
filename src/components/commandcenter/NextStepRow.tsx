@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Clock, MoreHorizontal } from "lucide-react";
+import { Clock, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,22 +21,6 @@ interface NextStepRowProps {
   onSnooze: (signature: string, duration: SnoozeDuration) => void;
 }
 
-// Calm Operations: no tinted backgrounds. Urgency is communicated by a thin
-// left accent border on the row plus a muted-text micro-label.
-const urgencyAccent: Record<DerivedAction["urgency"], string> = {
-  overdue: "before:bg-destructive/60",
-  today: "before:bg-warning/70",
-  soon: "before:bg-info/60",
-  later: "before:bg-transparent",
-};
-
-const urgencyLabel: Record<DerivedAction["urgency"], { label: string; className: string }> = {
-  overdue: { label: "Overdue", className: "text-destructive/80" },
-  today: { label: "Today", className: "text-foreground" },
-  soon: { label: "Soon", className: "text-muted-foreground" },
-  later: { label: "Later", className: "text-muted-foreground" },
-};
-
 /**
  * Pick a deterministic avatar seed: prefer the contact name, fall back to the
  * target company, then to the action title. Keeps avatars stable across renders.
@@ -50,6 +33,12 @@ function avatarSeed(action: DerivedAction): string {
   );
 }
 
+/**
+ * Spec source: src/assets/dashboard-mockup.jpg + spec-command-center-v2.jpg.
+ * Row composition: avatar · title/subtitle · amber stadium toggle.
+ * No tinted urgency backgrounds, no left accent bars, no inline arrow.
+ * The whole row is clickable to navigate; the toggle is the completion control.
+ */
 export default function NextStepRow({
   action,
   isCompleted = false,
@@ -58,62 +47,76 @@ export default function NextStepRow({
 }: NextStepRowProps) {
   const navigate = useNavigate();
   const [pending, setPending] = useState(false);
-  const label = urgencyLabel[action.urgency];
   const checked = isCompleted || pending;
 
   const handleOpen = () => {
     if (action.href) navigate(action.href);
   };
 
-  const handleToggle = (next: boolean | "indeterminate") => {
-    if (next === true && !checked) {
-      setPending(true);
-      onComplete(action.signature);
+  const handleRowKey = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOpen();
     }
+  };
+
+  const handleToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (checked) return;
+    setPending(true);
+    onComplete(action.signature);
   };
 
   return (
     <div
+      role={action.href ? "button" : undefined}
+      tabIndex={action.href ? 0 : -1}
+      onClick={action.href ? handleOpen : undefined}
+      onKeyDown={action.href ? handleRowKey : undefined}
       className={cn(
-        "group relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2 transition-colors hover:bg-muted/40",
-        "before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:rounded-full",
-        urgencyAccent[action.urgency],
+        "group flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors",
+        action.href && "cursor-pointer hover:bg-muted/40 focus:outline-none focus:bg-muted/40",
         checked && "opacity-60",
       )}
     >
-      <Checkbox
-        checked={checked}
-        onCheckedChange={handleToggle}
-        aria-label={`Mark "${action.title}" complete`}
-        className="h-5 w-5 shrink-0"
-      />
       <CompanyAvatar company={avatarSeed(action)} size="sm" />
-      <button
-        type="button"
-        onClick={handleOpen}
-        className="min-w-0 flex-1 text-left"
-      >
+
+      <div className="min-w-0 flex-1">
         <p className={cn("text-sm font-medium truncate", checked && "line-through")}>
           {action.title}
         </p>
         {action.subtitle && (
           <p className="text-xs text-muted-foreground truncate">{action.subtitle}</p>
         )}
-      </button>
-      <div className="flex items-center gap-2 shrink-0">
-        <span className={cn("text-[11px] font-medium tabular-nums", label.className)}>
-          {label.label}
-        </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={handleOpen}
-          aria-label={action.actionLabel}
-          disabled={!action.href}
+      </div>
+
+      <div className="flex items-center gap-1 shrink-0">
+        {/* Amber stadium toggle — matches hero spec. Pill that fills with accent
+            when checked; outline when pending. */}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={checked}
+          aria-label={`Mark "${action.title}" complete`}
+          disabled={checked}
+          onClick={handleToggle}
+          className={cn(
+            "relative inline-flex h-6 w-11 items-center rounded-full border-2 transition-colors",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            checked
+              ? "border-accent bg-accent"
+              : "border-accent bg-transparent hover:bg-accent/10",
+          )}
         >
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Button>
+          <span
+            className={cn(
+              "inline-block h-3.5 w-3.5 rounded-full bg-accent transition-transform duration-200",
+              checked ? "translate-x-[22px] bg-accent-foreground" : "translate-x-1",
+            )}
+          />
+        </button>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -121,11 +124,12 @@ export default function NextStepRow({
               size="icon"
               className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
               aria-label="More options"
+              onClick={(event) => event.stopPropagation()}
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
             <DropdownMenuItem onClick={() => onSnooze(action.signature, "1d")}>
               <Clock className="h-3.5 w-3.5 mr-2" /> Snooze 1 day
             </DropdownMenuItem>
