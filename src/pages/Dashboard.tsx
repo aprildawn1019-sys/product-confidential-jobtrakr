@@ -65,9 +65,11 @@ export default function Dashboard({
     }
   }, [jobs.length, contacts.length, targetCompanies.length, navigate]);
 
+  // Standardized in-flight counts (single source of truth: src/lib/pipelineCounts.ts).
+  // Stat cards, page subtitles, and panel headers all read from these helpers.
   const activeApps = countActiveJobs(jobs);
-  const upcomingInterviews = countScheduledInterviews(interviews);
-  const activeTargets = countActiveTargetCompanies(targetCompanies);
+  const upcomingInterviewCount = countScheduledInterviews(interviews);
+  const activeTargetCount = countActiveTargetCompanies(targetCompanies);
   const upcoming = interviews.filter(i => i.status === "scheduled");
 
   const actions = useMemo(() => deriveActions({
