@@ -603,8 +603,15 @@ export default function Contacts({
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Connections</h1>
-          <p className="mt-1 text-muted-foreground">{filteredContacts.length} of {contacts.length} contacts</p>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Contacts</h1>
+          <p className="mt-1 text-muted-foreground">
+            {contacts.length} {contacts.length === 1 ? "contact" : "contacts"}
+            {(() => {
+              const warm = contacts.filter(c => c.relationshipWarmth === "warm" || c.relationshipWarmth === "hot").length;
+              const followUps = contacts.filter(c => c.followUpDate).length;
+              return ` · ${warm} warm · ${followUps} follow-up${followUps === 1 ? "" : "s"} due`;
+            })()}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center rounded-lg border border-border p-0.5">
