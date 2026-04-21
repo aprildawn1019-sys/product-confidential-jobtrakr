@@ -110,13 +110,13 @@ export default function Dashboard({
           />
           <StatCard
             label="Interviews Scheduled"
-            value={upcoming.length}
+            value={upcomingInterviewCount}
             href="/interviews"
             helper="Upcoming interviews with status “scheduled.” Excludes completed, cancelled, no-show."
           />
           <StatCard
             label="Target Companies"
-            value={targetCompanies.filter(tc => tc.status !== "archived").length}
+            value={activeTargetCount}
             href="/target-companies"
             helper="Companies on your shortlist. Excludes archived."
           />
