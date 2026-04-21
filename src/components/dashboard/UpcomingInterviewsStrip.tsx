@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, ArrowRight } from "lucide-react";
+import { Circle } from "lucide-react";
+import CompanyAvatar from "@/components/CompanyAvatar";
 import type { Interview, Job } from "@/types/jobTracker";
 
 interface Props {
@@ -8,13 +9,21 @@ interface Props {
   jobs: Job[];
 }
 
-function fmtDate(date: string, time?: string): string {
+/** Format e.g. "Tue · 2:30 PM" or "Tue · Oct 28". */
+function fmtWhen(date: string, time?: string): string {
   const d = new Date(date);
   if (Number.isNaN(d.getTime())) return date;
-  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", weekday: "short" };
-  return time ? `${d.toLocaleDateString(undefined, opts)} · ${time}` : d.toLocaleDateString(undefined, opts);
+  const day = d.toLocaleDateString(undefined, { weekday: "short" });
+  if (time) return `${day} · ${time}`;
+  return `${day} · ${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
 }
 
+/**
+ * Spec source: src/assets/dashboard-mockup.jpg.
+ * Vertical list of upcoming interviews — one row per item with avatar +
+ * company/role + amber circle on the right (matches Next steps row visually).
+ * Renders even when empty so the two-column dashboard layout stays balanced.
+ */
 export default function UpcomingInterviewsStrip({ interviews, jobs }: Props) {
   const navigate = useNavigate();
 
@@ -27,43 +36,51 @@ export default function UpcomingInterviewsStrip({ interviews, jobs }: Props) {
         return Number.isNaN(t) ? true : t >= now - 86_400_000; // include today
       })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 3);
+      .slice(0, 4);
   }, [interviews]);
 
-  if (upcoming.length === 0) return null;
-
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="h-4 w-4 text-warning" />
-          <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Upcoming Interviews
-          </h2>
+    <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="font-display text-xl font-semibold">Upcoming interviews</h2>
+        {interviews.some(i => i.status === "scheduled") && (
+          <button
+            onClick={() => navigate("/interviews")}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            View all →
+          </button>
+        )}
+      </div>
+
+      {upcoming.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">
+          Nothing on the calendar yet.
+        </p>
+      ) : (
+        <div className="space-y-1">
+          {upcoming.map(iv => {
+            const job = jobs.find(j => j.id === iv.jobId);
+            const company = job?.company ?? "Interview";
+            const subtitle = `${job?.title ?? iv.type} · ${fmtWhen(iv.date, iv.time)}`;
+            return (
+              <button
+                key={iv.id}
+                onClick={() => job && navigate(`/jobs/${job.id}`)}
+                className="group flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-muted/40"
+              >
+                <CompanyAvatar company={company} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{company}</p>
+                  <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
+                </div>
+                {/* Amber outlined circle — matches the right-side affordance in the mockup. */}
+                <Circle className="h-5 w-5 shrink-0 text-accent" strokeWidth={2} />
+              </button>
+            );
+          })}
         </div>
-        <button
-          onClick={() => navigate("/interviews")}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          View all <ArrowRight className="h-3 w-3" />
-        </button>
-      </div>
-      <div className="grid gap-2 sm:grid-cols-3">
-        {upcoming.map(iv => {
-          const job = jobs.find(j => j.id === iv.jobId);
-          return (
-            <button
-              key={iv.id}
-              onClick={() => job && navigate(`/jobs/${job.id}`)}
-              className="rounded-lg border border-border bg-background/50 p-3 text-left transition-colors hover:border-primary/40 hover:bg-muted/30"
-            >
-              <p className="text-xs font-medium text-warning">{fmtDate(iv.date, iv.time)}</p>
-              <p className="mt-1 truncate font-semibold text-sm">{job?.company || "Unknown company"}</p>
-              <p className="truncate text-xs text-muted-foreground">{job?.title || ""} · {iv.type}</p>
-            </button>
-          );
-        })}
-      </div>
+      )}
     </div>
   );
 }
