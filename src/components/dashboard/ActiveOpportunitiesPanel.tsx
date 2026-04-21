@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Briefcase, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import type { Job } from "@/types/jobTracker";
 
@@ -29,32 +29,31 @@ export default function ActiveOpportunitiesPanel({ jobs }: Props) {
   const totalActive = jobs.filter(j => ACTIVE_STATUSES.includes(j.status)).length;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Briefcase className="h-4 w-4 text-info" />
-          <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Active Opportunities
-          </h2>
-          <span className="text-xs text-muted-foreground">({totalActive})</span>
+    <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="font-display text-xl font-semibold">Active opportunities</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">{totalActive} in motion</p>
         </div>
         <button
           onClick={() => navigate("/jobs?status=active")}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
         >
           View all <ArrowRight className="h-3 w-3" />
         </button>
       </div>
-      <div className="divide-y divide-border">
+      <div className="divide-y divide-border/60">
         {active.map(job => (
           <button
             key={job.id}
             onClick={() => navigate(`/jobs/${job.id}`)}
-            className="flex w-full items-center justify-between gap-3 py-2.5 text-left hover:bg-muted/30 transition-colors -mx-2 px-2 rounded"
+            className="-mx-2 flex w-full items-center justify-between gap-3 rounded-md px-2 py-2.5 text-left transition-colors hover:bg-muted/40"
           >
             <div className="min-w-0 flex-1">
-              <p className="truncate font-medium text-sm">{job.title}</p>
-              <p className="truncate text-xs text-muted-foreground">{job.company}{job.location ? ` · ${job.location}` : ""}</p>
+              <p className="truncate text-sm font-medium">{job.title}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {job.company}{job.location ? ` · ${job.location}` : ""}
+              </p>
             </div>
             <StatusBadge status={job.status} />
           </button>
