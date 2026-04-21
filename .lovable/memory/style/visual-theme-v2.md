@@ -52,20 +52,21 @@ align to the image, not to existing code.
 
 ## Action rows (Next steps)
 
-Spec composition (from dashboard-mockup.jpg):
+Spec composition:
 
 ```
-[ avatar ] Title                           [ amber stadium toggle ]
+[ avatar ] Title                           [ ○ Done ]
            Subtitle
 ```
 
 - **No** left urgency accent bars.
-- **No** "Overdue / Today" micro-labels next to the toggle.
+- **No** "Overdue / Today" micro-labels next to the control.
 - **No** inline hover arrow button.
 - The whole row is the click target (navigates to action.href).
-- Completion control = single amber stadium toggle (`role="switch"`).
+- Completion control = **circular checkbox + "Done" label** (`role="checkbox"`).
+  Reads as a task-completion action, not a settings toggle. Empty muted ring → filled amber check on click.
 - More-options dropdown (snooze) appears on hover only.
-- Completed rows: 60% opacity + line-through on the title.
+- Completed rows: 60% opacity + line-through on the title; the "Done" text is hidden, only the filled check remains.
 
 ## Status / priority pills (Jobs, Contacts)
 
