@@ -6,17 +6,17 @@ import {
   UserCircle2, MoreHorizontal, Compass, BookOpen,
 } from "lucide-react";
 
-// Koudou brand mark — winding path rising to a soft sun on the horizon.
-// Inline SVG so it inherits currentColor inside the amber sidebar tile.
+// Koudou brand mark — two-tone: deep navy path rising to a soft cream sun.
+// Uses explicit semantic tokens so both tones render distinctly on the amber tile.
 const KoudouMark = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 32 32" className={className} aria-hidden="true" fill="none">
-    {/* sun on horizon */}
-    <circle cx="22" cy="11" r="3" fill="currentColor" opacity="0.95" />
-    {/* winding path widening toward viewer */}
+    {/* Tone 1 — soft cream sun (light tone) */}
+    <circle cx="22" cy="10" r="3.5" className="fill-sidebar-primary-foreground" />
+    {/* Tone 2 — deep navy path (dark tone) */}
     <path
       d="M5 28 Q 12 22 16 18 Q 20 14 22 12"
-      stroke="currentColor"
-      strokeWidth="3"
+      className="stroke-sidebar"
+      strokeWidth="3.25"
       strokeLinecap="round"
       fill="none"
     />
