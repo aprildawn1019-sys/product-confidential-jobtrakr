@@ -409,11 +409,6 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             <p className="truncate text-xs font-medium text-sidebar-foreground" title={user.name}>
               {user.name}
             </p>
-            {user.email && user.email !== user.name && (
-              <p className="truncate text-[11px] text-sidebar-muted" title={user.email}>
-                {user.email}
-              </p>
-            )}
           </div>
 
           <div className="flex items-center">
