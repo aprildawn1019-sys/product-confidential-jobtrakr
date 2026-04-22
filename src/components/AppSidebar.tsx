@@ -140,9 +140,6 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
 
   // === COLLAPSED (icon-only) ===
   if (collapsed) {
-    const allItems = groups.flatMap((g, gi) => [
-      ...g.items.map((it) => ({ ...it, _group: gi })),
-    ]);
     const settingsItem = { to: "/settings", icon: Settings, label: "Settings" };
 
     const renderIconLink = (item: LinkItem) => (
@@ -155,13 +152,16 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             className={({ isActive }) =>
               cn(
                 "relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
+                // Active state mirrors the expanded mode: a small amber bar on
+                // the left edge plus a subtle navy fill, so the collapsed and
+                // expanded sidebars feel like the same surface.
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  ? "bg-sidebar-accent text-sidebar-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
                   : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )
             }
           >
-            <item.icon className="h-4 w-4" />
+            <item.icon className="h-4 w-4" strokeWidth={1.75} />
           </NavLink>
         </TooltipTrigger>
         <TooltipContent side="right">{item.label}</TooltipContent>
@@ -171,7 +171,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
     return (
       <TooltipProvider>
         <div className="flex h-16 items-center justify-center">
-          <KoudouMark className="h-9 w-9 rounded-lg" />
+          <BrandTile className="h-7 w-7" />
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Primary">
