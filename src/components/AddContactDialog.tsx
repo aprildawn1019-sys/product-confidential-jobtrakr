@@ -229,6 +229,14 @@ export default function AddContactDialog({
   // no-op interval) for non-rate-limit errors, so calling it
   // unconditionally is safe.
   const retryCooldown = useRetryCountdown(importError);
+  // Tracks the LinkedIn URLs the user has already fetched during this
+  // dialog session. The *second* (and subsequent) fetch of the same URL
+  // is treated as an explicit re-import: we ask the avatar proxy to
+  // bypass its hash cache and re-fetch the photo from LinkedIn so an
+  // updated profile picture actually overwrites the stored bytes.
+  // A ref (vs. state) avoids re-renders — this is purely a side-channel
+  // signal for the next request.
+  const fetchedUrlsRef = useRef<Set<string>>(new Set());
   const [form, setForm] = useState({
     name: "", company: defaultCompany || "", role: "", email: "", phone: "", linkedin: "", notes: "",
     relationshipWarmth: "", conversationLog: "", networkRole: defaultNetworkRole || "",
