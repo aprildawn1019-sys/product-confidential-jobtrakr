@@ -100,6 +100,11 @@ export default function ContactAvatar({
   // any LinkedIn-derived URL as if it weren't present at all and render
   // initials with a small "privacy on" indicator instead.
   const privacyDisabled = useDisableLinkedInAvatars();
+  // Honor the OS-level reduced-motion setting: when enabled, the spinner
+  // overlay swaps to a static dot so we don't run a continuous rotation
+  // on every avatar in long lists (a known accessibility pain point for
+  // users with vestibular disorders).
+  const prefersReducedMotion = usePrefersReducedMotion();
   const isLinkedInPhoto = !!avatarUrl && isLinkedInDerivedAvatar(avatarUrl);
   const suppressedByPrivacy = privacyDisabled && isLinkedInPhoto;
 
