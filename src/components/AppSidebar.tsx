@@ -292,7 +292,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           return (
             <div key={group.label} className="pt-5 first:pt-1">
               <div className="px-3 pb-2">
-                <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-sidebar-muted">
+                <span className="font-sans text-xs font-semibold tracking-wide text-sidebar-foreground/55">
                   {group.label}
                 </span>
               </div>
