@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Loader2, CheckCircle2, UserCircle2, AlertCircle, RefreshCw, X } from "lucide-react";
+import { Plus, Loader2, CheckCircle2, UserCircle2, AlertCircle, RefreshCw, X, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import ContactAvatar from "@/components/ContactAvatar";
@@ -39,6 +39,65 @@ interface PersistedImportError {
   message: string;
   attemptedUrl: string;
   failedAt: number; // Date.now() when the failure occurred
+  // When true, this failure was identified as an upstream rate limit
+  // (HTTP 429 from the edge function or a known rate-limit phrase from
+  // the AI/Firecrawl backends). The UI swaps the destructive styling for
+  // a calmer "warning" treatment and adds a wait-and-retry suggestion.
+  rateLimited?: boolean;
+  // Suggested wait window in seconds before the next retry. Derived from
+  // upstream hints when available, otherwise a sensible default so the
+  // UI can show a live countdown on the Retry button.
+  retryAfterSeconds?: number;
+}
+
+/**
+ * Inspect a raw error from `supabase.functions.invoke` (which may be a
+ * `FunctionsHttpError`, plain `Error`, or just a string) plus the JSON
+ * body the function returned, and decide whether this looks like a
+ * rate-limit response.
+ *
+ * We can't always read the HTTP status code through the supabase-js
+ * wrapper, so we also pattern-match well-known phrases the scrape
+ * pipeline emits ("Rate limited", "Too Many Requests", "rate limit",
+ * "429"). Anything matched is treated as a soft, retry-after failure.
+ */
+function detectRateLimit(args: {
+  error: unknown;
+  data: unknown;
+}): { rateLimited: boolean; retryAfterSeconds: number; friendlyMessage: string } {
+  const DEFAULT_WAIT = 60;
+  const candidates: string[] = [];
+  const e = args.error as { message?: string; status?: number; context?: { status?: number } } | null;
+  const d = args.data as { error?: string; status?: number } | null;
+  if (e?.message) candidates.push(e.message);
+  if (typeof e?.status === "number") candidates.push(String(e.status));
+  if (typeof e?.context?.status === "number") candidates.push(String(e.context.status));
+  if (d?.error) candidates.push(d.error);
+  if (typeof d?.status === "number") candidates.push(String(d.status));
+
+  const haystack = candidates.join(" | ").toLowerCase();
+  const isRateLimited =
+    haystack.includes("429") ||
+    haystack.includes("rate limit") ||
+    haystack.includes("rate-limit") ||
+    haystack.includes("rate limited") ||
+    haystack.includes("too many requests");
+
+  // Look for an explicit "retry after N seconds" hint in any of the
+  // surfaced messages (some upstreams embed it in the error text).
+  let retryAfter = DEFAULT_WAIT;
+  const retryMatch = haystack.match(/retry[^0-9]{0,12}(\d{1,4})\s*(second|seconds|s)\b/);
+  if (retryMatch) {
+    const n = parseInt(retryMatch[1], 10);
+    if (Number.isFinite(n) && n > 0 && n <= 600) retryAfter = n;
+  }
+
+  return {
+    rateLimited: isRateLimited,
+    retryAfterSeconds: retryAfter,
+    friendlyMessage:
+      "LinkedIn’s scraper is temporarily rate-limited. Please wait a moment before retrying — this usually clears within a minute.",
+  };
 }
 
 function loadPersistedError(): PersistedImportError | null {
@@ -83,6 +142,41 @@ function formatRelativeTime(timestamp: number): string {
   if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
   const days = Math.round(hours / 24);
   return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
+/**
+ * Returns the remaining seconds in a rate-limit cool-down window. Ticks
+ * every second while > 0, then settles at 0. Pass `null` (no error or
+ * non-rate-limit error) to disable the timer entirely.
+ */
+function useRetryCountdown(error: PersistedImportError | null): number {
+  const [remaining, setRemaining] = useState<number>(() => {
+    if (!error?.rateLimited || !error.retryAfterSeconds) return 0;
+    const elapsed = Math.floor((Date.now() - error.failedAt) / 1000);
+    return Math.max(0, error.retryAfterSeconds - elapsed);
+  });
+
+  useEffect(() => {
+    if (!error?.rateLimited || !error.retryAfterSeconds) {
+      setRemaining(0);
+      return;
+    }
+    const tick = () => {
+      const elapsed = Math.floor((Date.now() - error.failedAt) / 1000);
+      const next = Math.max(0, (error.retryAfterSeconds ?? 0) - elapsed);
+      setRemaining(next);
+      return next;
+    };
+    // Seed immediately so the UI reflects the latest value on mount /
+    // dependency change, then tick every second until we hit zero.
+    if (tick() === 0) return;
+    const id = window.setInterval(() => {
+      if (tick() === 0) window.clearInterval(id);
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [error?.rateLimited, error?.retryAfterSeconds, error?.failedAt]);
+
+  return remaining;
 }
 
 // Tracks what we were able to pull from a LinkedIn fetch so the UI can
@@ -131,6 +225,10 @@ export default function AddContactDialog({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Live countdown for the rate-limit cool-down. Returns 0 (and is a
+  // no-op interval) for non-rate-limit errors, so calling it
+  // unconditionally is safe.
+  const retryCooldown = useRetryCountdown(importError);
   const [form, setForm] = useState({
     name: "", company: defaultCompany || "", role: "", email: "", phone: "", linkedin: "", notes: "",
     relationshipWarmth: "", conversationLog: "", networkRole: defaultNetworkRole || "",
@@ -159,14 +257,22 @@ export default function AddContactDialog({
     // stale "Failed N minutes ago" panel waiting in sessionStorage.
     setImportError(null);
     savePersistedError(null);
+    // Hoist data/error outside the try so the catch block can run
+    // rate-limit detection against the actual response payload (the
+    // FunctionsHttpError thrown by supabase-js usually only carries a
+    // generic "non-2xx status code" message).
+    let invokeData: any = null;
+    let invokeError: any = null;
     try {
-      const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
-      if (error || !data?.success) {
+      const res = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
+      invokeData = res.data;
+      invokeError = res.error;
+      if (invokeError || !invokeData?.success) {
         // Surface the richest error info available: explicit data.error,
         // then the FunctionsError message, falling back to a generic note.
-        throw new Error(data?.error || error?.message || "Unknown error from scrape-linkedin");
+        throw new Error(invokeData?.error || invokeError?.message || "Unknown error from scrape-linkedin");
       }
-      const d = data.data;
+      const d = invokeData.data;
       // Track which specific fields the scraper actually returned so the
       // status badge can list them (e.g. "Extracted: name, role").
       const got: string[] = [];
@@ -189,19 +295,35 @@ export default function AddContactDialog({
           : "LinkedIn returned no usable fields — fill in manually.",
       });
     } catch (e: any) {
-      const message = e?.message || "Failed to reach the LinkedIn scraper.";
+      const rawMessage = e?.message || "Failed to reach the LinkedIn scraper.";
+      // Run detection across every signal we have: the thrown error, the
+      // resolved invoke error (FunctionsHttpError), and the JSON body the
+      // function returned. Any 429-like signal flips us into the friendlier
+      // rate-limit treatment.
+      const detection = detectRateLimit({
+        error: invokeError ?? e,
+        data: invokeData,
+      });
       setImportStatus("failed");
       setExtractedFields([]);
       const persisted: PersistedImportError = {
-        message,
+        message: detection.rateLimited ? detection.friendlyMessage : rawMessage,
         attemptedUrl: fullUrl,
         failedAt: Date.now(),
+        rateLimited: detection.rateLimited || undefined,
+        retryAfterSeconds: detection.rateLimited ? detection.retryAfterSeconds : undefined,
       };
       setImportError(persisted);
       savePersistedError(persisted);
       // Toast is kept for users who already moved focus away, but the
       // inline error block is now the source of truth for actionability.
-      toast({ title: "LinkedIn fetch failed", description: message, variant: "destructive" });
+      // Rate-limit toasts use the default (non-destructive) variant since
+      // they're a transient capacity issue, not a real failure.
+      toast({
+        title: detection.rateLimited ? "LinkedIn scraper is busy" : "LinkedIn fetch failed",
+        description: persisted.message,
+        variant: detection.rateLimited ? "default" : "destructive",
+      });
     } finally {
       setFetchingLinkedin(false);
     }
@@ -356,31 +478,58 @@ export default function AddContactDialog({
           {importError && (
             <div
               role="alert"
-              className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm"
+              // Rate-limit failures use a calmer warning palette (amber)
+              // because they're transient and self-resolving — destructive
+              // styling would over-signal severity. Hard failures keep the
+              // existing destructive treatment.
+              className={
+                importError.rateLimited
+                  ? "rounded-md border border-warning/40 bg-warning/10 p-3 text-sm"
+                  : "rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm"
+              }
             >
               <div className="flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-destructive" />
+                {importError.rateLimited ? (
+                  <Clock className="h-4 w-4 mt-0.5 shrink-0 text-warning-foreground" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-destructive" />
+                )}
                 <div className="flex-1 space-y-1.5 min-w-0">
                   <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                    <p className="font-medium text-destructive">LinkedIn import failed</p>
+                    <p
+                      className={
+                        importError.rateLimited
+                          ? "font-medium text-foreground"
+                          : "font-medium text-destructive"
+                      }
+                    >
+                      {importError.rateLimited
+                        ? "LinkedIn scraper is temporarily busy"
+                        : "LinkedIn import failed"}
+                    </p>
                     {/* Relative timestamp helps when the panel was
                         restored from sessionStorage on reopen — gives
                         the user context for whether to retry now. */}
                     <p className="text-[11px] text-muted-foreground shrink-0">
-                      Failed {formatRelativeTime(importError.failedAt)}
+                      {importError.rateLimited ? "Detected" : "Failed"}{" "}
+                      {formatRelativeTime(importError.failedAt)}
                     </p>
                   </div>
                   <p className="text-muted-foreground break-words">{importError.message}</p>
                   <p className="text-[11px] text-muted-foreground break-all font-mono">
                     {importError.attemptedUrl}
                   </p>
-                  <div className="flex gap-2 pt-1">
+                  <div className="flex items-center gap-2 pt-1 flex-wrap">
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
                       onClick={() => handleLinkedinFetch(importError.attemptedUrl)}
-                      disabled={fetchingLinkedin}
+                      // Block retry while a request is in flight OR while
+                      // the rate-limit cool-down is still counting down.
+                      // Both states would otherwise let the user fire off
+                      // a request that's almost guaranteed to 429 again.
+                      disabled={fetchingLinkedin || retryCooldown > 0}
                       aria-busy={fetchingLinkedin}
                       className="h-7 gap-1.5"
                     >
@@ -388,6 +537,11 @@ export default function AddContactDialog({
                         <>
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           Retrying…
+                        </>
+                      ) : retryCooldown > 0 ? (
+                        <>
+                          <Clock className="h-3.5 w-3.5" />
+                          Retry in {retryCooldown}s
                         </>
                       ) : (
                         <>
