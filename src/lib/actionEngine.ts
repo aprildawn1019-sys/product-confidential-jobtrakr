@@ -178,6 +178,37 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     });
   }
 
+  // Interview follow-up reminders — fires while the interview isn't cancelled.
+  // Captures the "send a thank-you note next Tuesday" workflow without forcing
+  // the user to also have a contact record for the company. Auto-clears when
+  // the interview is cancelled (e.g. they bailed) so the nudge doesn't linger.
+  for (const i of input.interviews) {
+    if (!i.followUpDate) continue;
+    if (i.status === "cancelled") continue;
+    const urgency = urgencyFromDate(i.followUpDate);
+    if (urgency === "later") continue;
+    const job = input.jobs.find((j) => j.id === i.jobId);
+    if (!job) continue;
+    const daysOverdue = urgency === "overdue"
+      ? Math.max(0, differenceInCalendarDays(now, parseLocalDate(i.followUpDate) ?? now))
+      : 0;
+    actions.push({
+      signature: `interview-followup:${i.id}:${i.followUpDate}`,
+      lane: "applications",
+      urgency,
+      source: "signal",
+      // Boost slightly less than live interviews but more than generic nudges —
+      // a thank-you note timing window is short and high-leverage.
+      priorityScore: scoreOf(urgency, "applications", daysOverdue) - 25,
+      title: `Follow up after interview — ${job.title}`,
+      subtitle: `${job.company} · ${i.type} interview`,
+      actionLabel: "Send follow-up",
+      href: `/jobs/${job.id}`,
+      jobId: job.id,
+      dueDate: i.followUpDate,
+    });
+  }
+
   // Outstanding recommendation requests (>7 days in pending/asked status)
   for (const r of input.recommendationRequests) {
     if (r.status !== "pending") continue;
