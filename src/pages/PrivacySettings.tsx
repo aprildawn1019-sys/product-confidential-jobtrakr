@@ -1,23 +1,38 @@
-import { ShieldOff, Info } from "lucide-react";
+import { ShieldOff, Info, ShieldCheck, MessageSquareOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
   useDisableLinkedInAvatars,
   setDisableLinkedInAvatars,
+  useUseAvatarProxy,
+  setUseAvatarProxy,
+  useDenseAvatarTooltips,
+  setDenseAvatarTooltips,
 } from "@/lib/privacyPrefs";
 
 /**
  * Settings → Privacy panel.
  *
- * Today this hosts a single toggle: disable LinkedIn avatar proxying.
- * When ON, the app stops requesting any LinkedIn-derived photo (raw CDN
- * or our own cached copy) and renders initials for every contact instead.
- * The preference is local to this device — it doesn't change what's
- * stored in the database, just what's rendered.
+ * Hosts three related toggles:
+ *  1. "Hide LinkedIn profile photos" — display-side suppression. Stops
+ *     rendering any LinkedIn-derived photo and shows initials instead.
+ *  2. "Route LinkedIn avatars through proxy" — import-side behavior.
+ *     When ON (default) newly imported contacts get their photo cached
+ *     in our storage bucket. When OFF the raw LinkedIn URL is stored
+ *     directly on the contact (faster import, but the browser may 403).
+ *  3. "Show avatar status tooltips in dense lists" — UX comfort.
+ *     When OFF, the small ⓘ tooltips on contact tables / kanban / sidebar
+ *     avatars are suppressed; the visual badge stays so the state is
+ *     still discoverable.
+ *
+ * All prefs are local to the device — they don't change what's stored
+ * in the database, just what the UI requests / what the importer caches.
  */
 export default function PrivacySettings() {
   const disableLinkedInAvatars = useDisableLinkedInAvatars();
+  const useAvatarProxy = useUseAvatarProxy();
+  const denseAvatarTooltips = useDenseAvatarTooltips();
 
   return (
     <div className="space-y-6">
@@ -62,6 +77,93 @@ export default function PrivacySettings() {
               delete cached avatars from storage. To purge cached photos for a
               specific contact, edit the contact and clear the photo URL.
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            Import & caching
+          </CardTitle>
+          <CardDescription>
+            Choose how LinkedIn profile photos are fetched when you add a contact.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-4">
+            <div className="space-y-1">
+              <Label
+                htmlFor="use-avatar-proxy"
+                className="text-sm font-medium leading-none cursor-pointer"
+              >
+                Route LinkedIn avatars through our proxy
+              </Label>
+              <p className="text-xs text-muted-foreground max-w-md">
+                Recommended. When enabled, profile photos pulled during a
+                LinkedIn import are downloaded by our edge function and cached
+                in your account's storage so they always render reliably.
+                When disabled, the raw LinkedIn image URL is stored directly
+                on the contact — your browser will fetch it from LinkedIn's
+                CDN, which often blocks third-party display.
+              </p>
+            </div>
+            <Switch
+              id="use-avatar-proxy"
+              checked={useAvatarProxy}
+              onCheckedChange={setUseAvatarProxy}
+              aria-label="Route LinkedIn avatars through our proxy"
+            />
+          </div>
+
+          <div className="flex items-start gap-2 rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
+            <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+            <p>
+              Affects only contacts imported after you change this setting.
+              Existing avatar URLs are not modified. Use the
+              "Refresh avatar" button on a contact to re-import a photo with
+              the current setting.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MessageSquareOff className="h-4 w-4 text-primary" />
+            Tooltips & hints
+          </CardTitle>
+          <CardDescription>
+            Reduce on-hover noise in dense surfaces like contact tables and
+            kanban cards.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-4">
+            <div className="space-y-1">
+              <Label
+                htmlFor="dense-avatar-tooltips"
+                className="text-sm font-medium leading-none cursor-pointer"
+              >
+                Show avatar status tooltips in dense lists
+              </Label>
+              <p className="text-xs text-muted-foreground max-w-md">
+                When enabled (default), hovering or focusing an avatar in a
+                table, kanban card, or sidebar list shows a tooltip explaining
+                why the photo is missing or hidden. Turn this off if those
+                tooltips feel distracting — the small corner badge will still
+                appear so you can spot the state at a glance, and large
+                profile cards will keep their tooltips.
+              </p>
+            </div>
+            <Switch
+              id="dense-avatar-tooltips"
+              checked={denseAvatarTooltips}
+              onCheckedChange={setDenseAvatarTooltips}
+              aria-label="Show avatar status tooltips in dense lists"
+            />
           </div>
         </CardContent>
       </Card>
