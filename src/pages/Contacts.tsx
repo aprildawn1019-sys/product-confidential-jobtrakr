@@ -625,9 +625,6 @@ export default function Contacts({
             <Button variant={viewMode === "spreadsheet" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("spreadsheet")} title="Spreadsheet">
               <Sheet className="h-4 w-4" />
             </Button>
-            <Button variant={viewMode === "spreadsheet" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("spreadsheet")} title="Spreadsheet">
-              <Sheet className="h-4 w-4" />
-            </Button>
           </div>
           <Button variant={showCampaigns ? "secondary" : "outline"} size="sm" onClick={() => setShowCampaigns(!showCampaigns)}>
             <Megaphone className="h-4 w-4 mr-1" />Campaigns
