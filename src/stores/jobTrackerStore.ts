@@ -169,7 +169,10 @@ export function useJobTrackerStore() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   // === JOBS ===
-  const addJob = async (job: Omit<Job, "id" | "createdAt">) => {
+  // Returns the newly created Job so callers (e.g. the dashboard quick-log
+  // form) can immediately attach related records like an interview without
+  // round-tripping through state.
+  const addJob = async (job: Omit<Job, "id" | "createdAt">): Promise<Job | undefined> => {
     const userId = await getUserId();
     if (!userId) return;
     const { data } = await supabase.from("jobs").insert({
@@ -182,25 +185,25 @@ export function useJobTrackerStore() {
       poster_role: job.posterRole || null, fit_score: job.fitScore || null,
       urgency: job.priority || null, source: job.source || "manual",
     }).select().single();
-    if (data) {
-      const newJob = mapJob(data);
-      setJobs(prev => [newJob, ...prev]);
-      // Auto-extract skills if description is present
-      if (job.description && job.description.length >= 20) {
-        try {
-          const { data: skillsData } = await supabase.functions.invoke("extract-job-skills", {
-            body: { description: job.description },
+    if (!data) return;
+    const newJob = mapJob(data);
+    setJobs(prev => [newJob, ...prev]);
+    // Auto-extract skills if description is present
+    if (job.description && job.description.length >= 20) {
+      try {
+        const { data: skillsData } = await supabase.functions.invoke("extract-job-skills", {
+          body: { description: job.description },
+        });
+        if (skillsData?.skills?.length) {
+          await supabase.from("job_skills_snapshots").insert({
+            user_id: userId, job_id: newJob.id, skills: skillsData.skills, source: "tracked",
           });
-          if (skillsData?.skills?.length) {
-            await supabase.from("job_skills_snapshots").insert({
-              user_id: userId, job_id: newJob.id, skills: skillsData.skills, source: "tracked",
-            });
-          }
-        } catch (e) {
-          console.error("Skills extraction failed:", e);
         }
+      } catch (e) {
+        console.error("Skills extraction failed:", e);
       }
     }
+    return newJob;
   };
 
   const addJobsBulk = async (jobsList: Omit<Job, "id" | "createdAt">[]) => {
