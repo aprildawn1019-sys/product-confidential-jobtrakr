@@ -23,15 +23,8 @@ interface AddContactDialogProps {
   hideTrigger?: boolean;
 }
 
-// Tracks what we were able to pull from a LinkedIn fetch so the UI can
-// surface a clear, honest status badge to the user.
-//   - idle:      no fetch attempted yet (or form was reset)
-//   - extracted: fetch succeeded and at least one field was populated
-//   - partial:   fetch succeeded but returned no usable fields
-//   - failed:    fetch threw / returned an error
-// Avatars are intentionally NOT part of this status — LinkedIn blocks
-// hotlinking, so contacts always render with initials regardless.
-type ImportStatus = "idle" | "extracted" | "partial" | "failed";
+// (ImportStatus is declared further down, after the persistence helpers,
+// so the file reads top-to-bottom: helpers → types → component.)
 
 // We persist the most recent LinkedIn import failure across dialog
 // open/close cycles using sessionStorage. Rationale:
@@ -203,7 +196,13 @@ export default function AddContactDialog({
       const message = e?.message || "Failed to reach the LinkedIn scraper.";
       setImportStatus("failed");
       setExtractedFields([]);
-      setImportError({ message, attemptedUrl: fullUrl });
+      const persisted: PersistedImportError = {
+        message,
+        attemptedUrl: fullUrl,
+        failedAt: Date.now(),
+      };
+      setImportError(persisted);
+      savePersistedError(persisted);
       // Toast is kept for users who already moved focus away, but the
       // inline error block is now the source of truth for actionability.
       toast({ title: "LinkedIn fetch failed", description: message, variant: "destructive" });
