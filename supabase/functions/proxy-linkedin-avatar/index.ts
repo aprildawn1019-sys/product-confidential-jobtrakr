@@ -107,19 +107,35 @@ Deno.serve(async (req) => {
 
     // ── Cache lookup ────────────────────────────────────────────────
     // List with a name filter is the cheapest way to check existence
-    // without paying for a full object download.
+    // without paying for a full object download. We also use the
+    // returned `created_at` to enforce the TTL.
     const { data: existing } = await admin.storage
       .from(BUCKET)
       .list("", { limit: 1, search: hash });
 
     const cached = existing?.find((o) => o.name.startsWith(`${hash}.`));
-    if (cached) {
+    if (cached && !bypassCache && !isExpired(cached.created_at)) {
       const { data: pub } = admin.storage.from(BUCKET).getPublicUrl(cached.name);
       console.log("Cache HIT:", cached.name);
+      // Bust browser caches by appending the storage object's mtime — same
+      // bytes still resolve from CDN, but a stale `<img>` will refetch
+      // when we return a different URL.
+      const bust = cached.updated_at || cached.created_at || "";
+      const url = bust ? `${pub.publicUrl}?v=${encodeURIComponent(bust)}` : pub.publicUrl;
       return new Response(
-        JSON.stringify({ success: true, cached: true, url: pub.publicUrl }),
+        JSON.stringify({ success: true, cached: true, url }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
+    }
+
+    // Stale or forced refresh — drop the existing object so the upload
+    // path below replaces it cleanly even if the extension changes.
+    if (cached && (bypassCache || isExpired(cached.created_at))) {
+      console.log(
+        bypassCache ? "Force refresh, evicting:" : "TTL expired, evicting:",
+        cached.name,
+      );
+      await admin.storage.from(BUCKET).remove([cached.name]);
     }
 
     // ── Cache miss → fetch upstream ─────────────────────────────────
