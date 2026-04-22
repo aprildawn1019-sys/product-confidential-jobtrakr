@@ -253,11 +253,8 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
     );
 
-  // Icon class: amber when active (inherits via parent), neutral otherwise.
-  const navIconClass = "h-[18px] w-[18px] shrink-0 text-sidebar-muted group-hover:text-sidebar-foreground group-[.bg-sidebar-accent]:text-sidebar-primary";
-
   return (
-    <>
+    <TooltipProvider>
       {/* Brand lockup: matches landing page wordmark — Space Grotesk 700 @ 20px. */}
       <div className="flex h-16 items-center gap-2.5 px-4">
         <BrandMark className="h-9 w-9" />
