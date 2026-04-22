@@ -78,10 +78,11 @@ describe("ContactAvatar — blocked image URL (LinkedIn 403 case)", () => {
     expect(screen.getByText("JD")).toBeInTheDocument();
 
     // The corner indicator (an aria-hidden span containing the AlertCircle
-    // svg from lucide-react) should now be present. We assert via the
-    // avatar root having an svg child — initials-only path has none.
+    // svg from lucide-react) should now be present. Lucide SVGs don't
+    // expose role="img", so we look for the svg element directly inside
+    // the avatar root.
     const root = screen.getByLabelText("Jane Doe");
-    expect(within(root).getByRole("img", { hidden: true })).toBeTruthy(); // svg has implicit role=img
+    expect(root.querySelector("svg")).not.toBeNull();
   });
 
   it("re-renders cleanly when the URL prop changes after a failure", () => {
