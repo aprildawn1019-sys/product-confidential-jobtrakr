@@ -4,7 +4,7 @@ import { Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StatCard from "@/components/StatCard";
 import NextStepsList from "@/components/commandcenter/NextStepsList";
-import WeeklyReview from "@/components/dashboard/WeeklyReview";
+// Weekly Review removed from Command Center — Reports page owns weekly recap.
 import UpcomingInterviewsStrip from "@/components/dashboard/UpcomingInterviewsStrip";
 import ActiveOpportunitiesPanel from "@/components/dashboard/ActiveOpportunitiesPanel";
 
@@ -150,11 +150,10 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* Secondary: weekly review + upcoming interviews, two-column */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <WeeklyReview jobs={jobs} interviews={interviews} contactActivities={contactActivities} />
-        <UpcomingInterviewsStrip interviews={interviews} jobs={jobs} />
-      </div>
+      {/* Secondary: upcoming interviews. Weekly Review used to live next to
+          this; it overlapped with Reports + Next Steps so we removed it and
+          let the strip span the full row. */}
+      <UpcomingInterviewsStrip interviews={interviews} jobs={jobs} />
 
       {/* Tertiary: pipeline & sourcing signals — visible by default. The hero
           mockup shows the dashboard scrolling into deeper context after the

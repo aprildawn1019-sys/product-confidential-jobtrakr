@@ -1,6 +1,7 @@
 import { useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Clock, MoreHorizontal } from "lucide-react";
+import { differenceInDays, isPast, isToday, parseISO } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import CompanyAvatar from "@/components/CompanyAvatar";
 import { cn } from "@/lib/utils";
-import type { DerivedAction } from "@/lib/actionEngine";
+import type { DerivedAction, ActionUrgency } from "@/lib/actionEngine";
 import type { SnoozeDuration } from "@/hooks/useActionSnoozes";
 
 interface NextStepRowProps {
@@ -19,6 +20,69 @@ interface NextStepRowProps {
   isCompleted?: boolean;
   onComplete: (signature: string) => void;
   onSnooze: (signature: string, duration: SnoozeDuration) => void;
+}
+
+/**
+ * Compact "when is this due" chip rendered on the right of every Next Steps row.
+ *
+ * Why this exists: rows previously showed times with no date and no signal of
+ * what was past-due vs. upcoming. The chip answers three questions at a glance:
+ *  • Is this overdue? (red) — with how many days
+ *  • Is this today? (amber)
+ *  • Otherwise: when is it due? (muted, e.g. "Fri Apr 25")
+ *
+ * For nudges with no concrete due date we render a faint urgency word so the
+ * column stays aligned and the user knows nothing is technically late.
+ */
+function UrgencyChip({ urgency, dueDate }: { urgency: ActionUrgency; dueDate?: string }) {
+  if (!dueDate) {
+    if (urgency === "later") return null;
+    return (
+      <span className="rounded-md px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        {urgency}
+      </span>
+    );
+  }
+
+  let parsed: Date;
+  try {
+    parsed = dueDate.length <= 10 ? parseISO(dueDate) : new Date(dueDate);
+  } catch {
+    return null;
+  }
+  if (isNaN(parsed.getTime())) return null;
+
+  let label: string;
+  let toneClass: string;
+
+  if (isPast(parsed) && !isToday(parsed)) {
+    const days = Math.max(1, differenceInDays(new Date(), parsed));
+    label = `Overdue ${days}d`;
+    toneClass = "bg-destructive/10 text-destructive";
+  } else if (isToday(parsed)) {
+    label = "Today";
+    toneClass = "bg-accent/15 text-accent-foreground";
+  } else {
+    const days = differenceInDays(parsed, new Date());
+    const dateLabel = parsed.toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    label = days <= 3 ? `${dateLabel} · in ${days}d` : dateLabel;
+    toneClass = "bg-muted text-muted-foreground";
+  }
+
+  return (
+    <span
+      className={cn(
+        "rounded-md px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap",
+        toneClass,
+      )}
+    >
+      {label}
+    </span>
+  );
 }
 
 /**
@@ -91,7 +155,11 @@ export default function NextStepRow({
         )}
       </div>
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Due-date / urgency chip — answers "when?" and "is this overdue?"
+            without making the user open the item. Hidden when no signal. */}
+        {!checked && <UrgencyChip urgency={action.urgency} dueDate={action.dueDate} />}
+
         {/* Completion control — reads as "mark done", not a settings toggle.
             Empty circle with a "Done" label that becomes a filled amber
             check once clicked. Mirrors Linear/Things/Todoist task patterns. */}
