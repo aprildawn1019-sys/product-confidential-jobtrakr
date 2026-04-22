@@ -9,6 +9,7 @@ import { Plus, Globe, Loader2, Linkedin, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import type { Job, JobStatus, Contact } from "@/types/jobTracker";
+import { getUseAvatarProxy } from "@/lib/privacyPrefs";
 
 interface AddJobDialogProps {
   onAdd: (job: Omit<Job, "id" | "createdAt">) => void;
@@ -59,7 +60,10 @@ export default function AddJobDialog({ onAdd, contacts, onLinkContact }: AddJobD
     try {
       let url = linkedinUrl.trim();
       if (!url.startsWith("http")) url = `https://${url}`;
-      const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url } });
+      // Honor the privacy toggle for avatar proxying when scraping the
+      // contact info attached to a job posting.
+      const useAvatarProxy = getUseAvatarProxy();
+      const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url, useAvatarProxy } });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || "Fetch failed");
       const d = data.data;

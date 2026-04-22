@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import ContactAvatar from "@/components/ContactAvatar";
 import type { Contact, NetworkRole } from "@/types/jobTracker";
 import { NETWORK_ROLES } from "@/types/jobTracker";
+import { getUseAvatarProxy } from "@/lib/privacyPrefs";
 
 interface AddContactDialogProps {
   onAdd: (contact: Omit<Contact, "id" | "createdAt">) => void;
