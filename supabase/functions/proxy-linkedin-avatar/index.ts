@@ -18,6 +18,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { requireUser } from "../_shared/auth.ts";
+import { checkRateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -143,6 +144,22 @@ Deno.serve(async (req) => {
         }
       }
     }
+
+    // ── Rate limit upstream fetches ─────────────────────────────────
+    // Only requests that actually need to hit LinkedIn count toward the
+    // limit — cache hits short-circuited above are free. This keeps
+    // normal browsing unaffected while preventing rapid re-imports of
+    // the same contact (or a mass re-import) from hammering upstream.
+    // 30 upstream fetches / 10 minutes per user is generous for typical
+    // CRM workflows but blocks pathological loops.
+    const rl = await checkRateLimit({
+      userId: auth.user.id,
+      functionName: "proxy-linkedin-avatar",
+      maxCalls: 30,
+      windowMinutes: 10,
+      corsHeaders,
+    });
+    if (rl.errorResponse) return rl.errorResponse;
 
     // ── Cache miss → fetch upstream ─────────────────────────────────
     console.log("Cache MISS, fetching:", url.substring(0, 80));
