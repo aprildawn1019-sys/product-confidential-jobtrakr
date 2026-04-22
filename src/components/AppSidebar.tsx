@@ -208,8 +208,8 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         </nav>
 
         <div className="border-t border-sidebar-border p-2 space-y-1 flex flex-col items-center">
-          {hasData ? null : renderIconLink({ to: "/getting-started", icon: Sparkles, label: "Getting Started" })}
-          {renderIconLink({ to: "/settings/profile", icon: UserCircle2, label: "Profile" })}
+          {hasData ? null : renderIconLink({ to: "/getting-started", icon: Sparkles, label: "Getting Started", iconColor: ICON_AMBER })}
+          {renderIconLink({ to: "/settings/profile", icon: UserCircle2, label: "Profile", iconColor: ICON_AMBER })}
           {renderIconLink(settingsItem)}
           <Tooltip delayDuration={150}>
             <TooltipTrigger asChild>
