@@ -1,53 +1,41 @@
 
-## Connections views — overlap evaluation
 
-The "Connections" surface currently exposes **5 distinct views** of the same underlying contact list. Most overlap heavily.
+## Brand mark comparison mockup — light & dark backgrounds
 
-### What exists today
+I'll generate a single comparison image that places all four Rising Arc variants (A, B, C, D) on both a **light surface** (landing page nav context) and a **dark surface** (sidebar context), so you can pick the right variant per surface.
 
-**On `/contacts` (Connections page) — 4 view modes via toggle:**
-1. **Grid** (default) — card layout, 3 columns. Avatar + name + warmth + key badges. Best for *browsing*.
-2. **Compact list** — 1-line row per contact (name, role, company, warmth, badges). Best for *scanning many contacts*.
-3. **Detailed list** — multi-line row with email/phone/LinkedIn inline + every badge type (campaigns, same-org, jobs, connections, activities, recs). Best for *triage with full context*.
-4. **Spreadsheet** — `ContactsSpreadsheet` component: sortable columns, inline editing, bulk warmth/campaign/delete actions. Best for *data cleanup and bulk ops*.
+### What you'll see
 
-**On `/network-map` — 1 view:**
-5. **Network Map** — xyflow graph: contacts clustered by company, with company + job nodes and connection edges. Best for *seeing relationships visually*.
+A 4×2 grid PNG saved to `/mnt/documents/rising-arc-variants-light-dark.png`:
 
-### Overlap analysis
+```text
+                 LIGHT BG              DARK BG
+              (landing nav)         (app sidebar)
+   ┌──────────────────────────┬──────────────────────────┐
+ A │  [tile]  Koudou          │  [tile]  Koudou          │
+   ├──────────────────────────┼──────────────────────────┤
+ B │  [tile]  Koudou          │  [tile]  Koudou          │
+   ├──────────────────────────┼──────────────────────────┤
+ C │  [tile]  Koudou          │  [tile]  Koudou          │
+   ├──────────────────────────┼──────────────────────────┤
+ D │  [tile]  Koudou          │  [tile]  Koudou          │
+   └──────────────────────────┴──────────────────────────┘
+```
 
-| View | Unique value | Overlaps with |
-|------|--------------|---------------|
-| Grid | Visual browsing, "showcase" feel | Compact (same data, denser) |
-| **Compact list** | Fast scanning | Grid (same fields) AND Detailed (subset) AND Spreadsheet (subset, no editing) |
-| Detailed list | All badges + inline contact methods | Grid + Compact (superset of both) — but expanding any card already shows this |
-| **Spreadsheet** | Inline editing, sorting, **bulk actions** (only place to bulk-update warmth, add/remove campaigns, bulk delete) | None — uniquely capable |
-| Network Map | Visual relationships, clustering | None — completely different mental model |
+Each cell shows:
+- The actual variant PNG at sidebar/nav size (~36px tile)
+- The "Koudou" wordmark beside it in the project's display font
+- A second row at favicon size (16px and 32px) for tab legibility check
+- The surface background uses the real theme tokens: light = `#FAFAF7` (canvas), dark = `#0F1729` (sidebar navy)
 
-### Recommendation: collapse 4 → 2
+### Technical approach
 
-**Keep:**
-- **Cards** (rename Grid → Cards) — the default browsing experience.
-- **Spreadsheet** — uniquely owns inline editing + bulk actions.
-- **Network Map** — separate page, separate value.
+1. Use Pillow to compose the grid from the four existing PNGs in `src/assets/concepts/`.
+2. Render each variant unmodified (no recoloring) so you see exactly how the painted artwork reads on each background.
+3. Add small labels (A / B / C / D, "Light surface" / "Dark surface") for clarity.
+4. Output a single PNG to `/mnt/documents/rising-arc-variants-light-dark.png` — no project files touched, no live UI changes.
 
-**Remove:**
-- **Compact list** — fully redundant with Grid (same fields, just denser; users who want density can use Spreadsheet).
-- **Detailed list** — the expand-card affordance on the Grid view already reveals every badge and field shown here. Detailed = "everything always expanded", which is noise for most workflows.
+### After you decide
 
-### Why this works
-- Removes 2 toggle buttons from a crowded toolbar.
-- The 3 remaining surfaces map to **3 distinct intents**: browse (Cards), edit/bulk (Spreadsheet), explore relationships (Network Map).
-- No data or capability is lost — Detailed view's content is reachable via Card expansion; Compact's density is reachable via Spreadsheet.
+Once you pick (one variant for dark sidebar, one for light landing/favicon — possibly the same), I'll wire it in: copy the chosen PNGs to `src/assets/brand/`, swap the inline `KoudouMark` SVG in `AppSidebar.tsx` for an `<img>`, update the landing nav + footer in `Landing.tsx`, and regenerate `public/favicon.png`.
 
-### Files to change (implementation pass)
-- `src/pages/Contacts.tsx`:
-  - Narrow `viewMode` type to `"grid" | "spreadsheet"`.
-  - Remove the `Compact` and `Detailed` toggle buttons from the toolbar (lines ~750-754).
-  - Delete `renderCompactRow` and `renderDetailedRow` functions and their imports (`List`, `LayoutList` icons).
-  - Simplify the bottom render branch: just Cards or Spreadsheet.
-  - Persist remaining viewMode preference (already in component state — fine to leave).
-- No DB or routing changes. No memory updates needed (no rules currently lock these views in).
-
-### Open question
-One judgment call worth confirming before I implement: **rename "Grid" to "Cards"** in the tooltip, or keep "Grid"? I'll default to **Cards** since it's clearer, but flag it now in case you prefer Grid.
