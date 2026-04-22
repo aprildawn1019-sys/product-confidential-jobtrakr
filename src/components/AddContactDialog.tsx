@@ -22,6 +22,69 @@ interface AddContactDialogProps {
   hideTrigger?: boolean;
 }
 
+// (ImportStatus is declared further down, after the persistence helpers,
+// so the file reads top-to-bottom: helpers → types → component.)
+
+// We persist the most recent LinkedIn import failure across dialog
+// open/close cycles using sessionStorage. Rationale:
+//   • If the user accidentally hits Esc / clicks outside the dialog,
+//     reopening shouldn't lose the error message and the URL that broke.
+//   • sessionStorage (not localStorage) keeps it per-tab and clears on
+//     browser close — this is debugging context, not a long-lived pref.
+//   • Stored as JSON so we can include the original timestamp for the
+//     "Failed N minutes ago" hint.
+const ERROR_STORAGE_KEY = "jobtrakr.addContact.lastImportError";
+
+interface PersistedImportError {
+  message: string;
+  attemptedUrl: string;
+  failedAt: number; // Date.now() when the failure occurred
+}
+
+function loadPersistedError(): PersistedImportError | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(ERROR_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Defensive: ensure the shape is what we expect before trusting it.
+    if (
+      typeof parsed?.message === "string" &&
+      typeof parsed?.attemptedUrl === "string" &&
+      typeof parsed?.failedAt === "number"
+    ) {
+      return parsed as PersistedImportError;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function savePersistedError(err: PersistedImportError | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (err) {
+      window.sessionStorage.setItem(ERROR_STORAGE_KEY, JSON.stringify(err));
+    } else {
+      window.sessionStorage.removeItem(ERROR_STORAGE_KEY);
+    }
+  } catch {
+    /* sessionStorage unavailable — fall back to in-memory only */
+  }
+}
+
+function formatRelativeTime(timestamp: number): string {
+  const diffMs = Date.now() - timestamp;
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.round(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
 // Tracks what we were able to pull from a LinkedIn fetch so the UI can
 // surface a clear, honest status badge to the user.
 //   - idle:      no fetch attempted yet (or form was reset)
@@ -54,11 +117,20 @@ export default function AddContactDialog({
   // error block (instead of relying solely on the toast, which disappears
   // before the user can act on it). `attemptedUrl` is preserved so the
   // retry button always hits the exact URL that originally failed, even
-  // if the user has since edited the LinkedIn input.
-  const [importError, setImportError] = useState<{
-    message: string;
-    attemptedUrl: string;
-  } | null>(null);
+  // if the user has since edited the LinkedIn input. Hydrated from
+  // sessionStorage on mount so an accidental dismissal of the dialog
+  // doesn't lose the error context.
+  const [importError, setImportError] = useState<PersistedImportError | null>(
+    () => loadPersistedError(),
+  );
+  // If we hydrated an error from storage, also restore the "failed"
+  // status badge so the UI reflects the persisted state on reopen.
+  useEffect(() => {
+    if (importError && importStatus === "idle") {
+      setImportStatus("failed");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [form, setForm] = useState({
     name: "", company: defaultCompany || "", role: "", email: "", phone: "", linkedin: "", notes: "",
     relationshipWarmth: "", conversationLog: "", networkRole: defaultNetworkRole || "",
@@ -83,7 +155,10 @@ export default function AddContactDialog({
     const fullUrl = url.startsWith("http") ? url : `https://${url}`;
     setFetchingLinkedin(true);
     // Clear any prior error so the inline block disappears while retrying.
+    // Also evict the persisted copy so a successful retry doesn't leave a
+    // stale "Failed N minutes ago" panel waiting in sessionStorage.
     setImportError(null);
+    savePersistedError(null);
     try {
       const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
       if (error || !data?.success) {
@@ -117,7 +192,13 @@ export default function AddContactDialog({
       const message = e?.message || "Failed to reach the LinkedIn scraper.";
       setImportStatus("failed");
       setExtractedFields([]);
-      setImportError({ message, attemptedUrl: fullUrl });
+      const persisted: PersistedImportError = {
+        message,
+        attemptedUrl: fullUrl,
+        failedAt: Date.now(),
+      };
+      setImportError(persisted);
+      savePersistedError(persisted);
       // Toast is kept for users who already moved focus away, but the
       // inline error block is now the source of truth for actionability.
       toast({ title: "LinkedIn fetch failed", description: message, variant: "destructive" });
@@ -142,6 +223,7 @@ export default function AddContactDialog({
     setImportStatus("idle");
     setExtractedFields([]);
     setImportError(null);
+    savePersistedError(null);
     setOpen(false);
   };
 
@@ -272,7 +354,15 @@ export default function AddContactDialog({
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-destructive" />
                 <div className="flex-1 space-y-1.5 min-w-0">
-                  <p className="font-medium text-destructive">LinkedIn import failed</p>
+                  <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                    <p className="font-medium text-destructive">LinkedIn import failed</p>
+                    {/* Relative timestamp helps when the panel was
+                        restored from sessionStorage on reopen — gives
+                        the user context for whether to retry now. */}
+                    <p className="text-[11px] text-muted-foreground shrink-0">
+                      Failed {formatRelativeTime(importError.failedAt)}
+                    </p>
+                  </div>
                   <p className="text-muted-foreground break-words">{importError.message}</p>
                   <p className="text-[11px] text-muted-foreground break-all font-mono">
                     {importError.attemptedUrl}
@@ -297,7 +387,13 @@ export default function AddContactDialog({
                       type="button"
                       size="sm"
                       variant="ghost"
-                      onClick={() => setImportError(null)}
+                      onClick={() => {
+                        // Explicit dismissal — drop both the in-memory
+                        // copy and the persisted one so reopening the
+                        // dialog doesn't bring the error back.
+                        setImportError(null);
+                        savePersistedError(null);
+                      }}
                       className="h-7 gap-1.5 text-muted-foreground"
                     >
                       <X className="h-3.5 w-3.5" />
