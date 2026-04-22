@@ -51,6 +51,8 @@ export default function Dashboard({
   targetCompanies = [],
   contactActivities = [],
   recommendationRequests = [],
+  onAddJob,
+  onAddInterview,
 }: DashboardProps) {
   const navigate = useNavigate();
   const [showAllSteps, setShowAllSteps] = useState(false);
