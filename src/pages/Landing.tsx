@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Briefcase, BarChart3, Users, CalendarCheck, Brain, FileText, ArrowRight, Star, Target, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import dashboardMockup from "@/assets/dashboard-mockup.jpg";
+import koudouMarkSrc from "@/assets/brand/koudou-mark.png";
 
 const features = [
   {
@@ -54,9 +55,7 @@ export default function Landing() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
-            <Briefcase className="h-4.5 w-4.5 text-primary-foreground" />
-          </div>
+          <img src={koudouMarkSrc} alt="Koudou" className="h-9 w-9" />
           <span className="font-display text-xl font-bold tracking-tight text-foreground">Koudou</span>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
@@ -161,7 +160,7 @@ export default function Landing() {
       <footer className="px-4 sm:px-6 py-6 sm:py-8 border-t border-border">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <Briefcase className="h-4 w-4" />
+            <img src={koudouMarkSrc} alt="Koudou" className="h-5 w-5" />
             <span>Koudou</span>
           </div>
           <div className="flex items-center gap-4">
