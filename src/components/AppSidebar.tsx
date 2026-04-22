@@ -162,7 +162,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
 
   // === COLLAPSED (icon-only) ===
   if (collapsed) {
-    const settingsItem = { to: "/settings", icon: Settings, label: "Settings" };
+    const settingsItem: LinkItem = { to: "/settings", icon: Settings, label: "Settings", iconColor: ICON_AMBER };
 
     const renderIconLink = (item: LinkItem) => (
       <Tooltip key={item.to} delayDuration={150}>
