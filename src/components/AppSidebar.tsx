@@ -351,82 +351,81 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-3 space-y-0.5">
-        {/* Profile / Settings / Help — quiet utility links matching the hero spec */}
-        <NavLink
-          to="/settings/profile"
-          onClick={handleNavClick}
-          className={({ isActive }) =>
-            cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-              isActive
-                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-            )
-          }
-        >
-          <UserCircle2 className="h-4 w-4" />
-          Profile
-        </NavLink>
-        <NavLink
-          to="/settings"
-          end
-          onClick={handleNavClick}
-          className={({ isActive }) =>
-            cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-              isActive || location.pathname === "/settings" || location.pathname === "/settings/data-export"
-                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-            )
-          }
-        >
-          <Settings className="h-4 w-4" />
-          Settings
-        </NavLink>
-        <button
-          type="button"
-          onClick={() => { handleNavClick(); openHelp(); }}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
-        >
-          <CircleHelp className="h-4 w-4" />
-          Help
-        </button>
-
-        {/* Account row — avatar + name, opens menu with Restart walkthrough + Sign out.
-            Tucking these inside the avatar menu keeps walkthrough discoverable but out of
-            the daily-use surface, and prevents accidental sign-outs. */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="mt-2 flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-sidebar-accent/50 group"
-              aria-label={`Account menu for ${user.name}`}
-            >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[11px] font-semibold text-sidebar-primary-foreground">
+      {/* Footer per the v3 sidebar spec: a single compact row with the
+          account avatar + small Profile / Settings / Help glyphs. The
+          dropdown still hangs off the avatar so Restart walkthrough +
+          Sign out remain reachable without crowding the surface. */}
+      <div className="border-t border-sidebar-border px-3 py-3">
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[11px] font-semibold text-sidebar-primary-foreground hover:opacity-90 transition-opacity"
+                aria-label={`Account menu for ${user.name}`}
+              >
                 {user.initials}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="start" className="w-56">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium truncate">{user.name}</p>
                 {user.email && user.email !== user.name && (
-                  <p className="text-[11px] text-sidebar-muted truncate">{user.email}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                 )}
               </div>
-              <MoreHorizontal className="h-4 w-4 text-sidebar-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="end" className="w-56">
-            <DropdownMenuItem onClick={handleRestartTour}>
-              <PlayCircle className="h-4 w-4 mr-2" />
-              Restart walkthrough
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleRestartTour}>
+                <PlayCircle className="h-4 w-4 mr-2" />
+                Restart walkthrough
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <NavLink
+            to="/settings/profile"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs transition-colors",
+                isActive
+                  ? "text-sidebar-foreground"
+                  : "text-sidebar-muted hover:text-sidebar-foreground"
+              )
+            }
+          >
+            <UserCircle2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Profile
+          </NavLink>
+          <NavLink
+            to="/settings"
+            end
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs transition-colors",
+                isActive || location.pathname === "/settings" || location.pathname === "/settings/data-export"
+                  ? "text-sidebar-foreground"
+                  : "text-sidebar-muted hover:text-sidebar-foreground"
+              )
+            }
+          >
+            <Settings className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Settings
+          </NavLink>
+          <button
+            type="button"
+            onClick={() => { handleNavClick(); openHelp(); }}
+            className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-sidebar-muted hover:text-sidebar-foreground transition-colors"
+          >
+            <CircleHelp className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Help
+          </button>
+        </div>
       </div>
     </>
   );
