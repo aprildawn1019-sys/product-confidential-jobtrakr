@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Loader2, CheckCircle2, UserCircle2, AlertCircle, RefreshCw, X, Clock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchLinkedinDeduped } from "@/lib/linkedinFetchDedup";
 import { toast } from "@/hooks/use-toast";
 import ContactAvatar from "@/components/ContactAvatar";
 import type { Contact, NetworkRole } from "@/types/jobTracker";
@@ -277,9 +277,12 @@ export default function AddContactDialog({
       // edge function tells the avatar proxy to overwrite its cached
       // copy instead of returning the same stored bytes.
       const isReimport = fetchedUrlsRef.current.has(fullUrl);
-      const res = await supabase.functions.invoke("scrape-linkedin", {
-        body: { url: fullUrl, forceRefreshAvatar: isReimport },
-      });
+      // Route through the module-level dedup helper so concurrent fetches
+      // for the same (URL, forceRefresh) pair share a single edge function
+      // call. The local `fetchingLinkedin` guard already blocks re-entry
+      // within this dialog instance — this protects against the case where
+      // a second AddContactDialog (or a parallel UI) targets the same URL.
+      const res = await fetchLinkedinDeduped(fullUrl, isReimport);
       invokeData = res.data;
       invokeError = res.error;
       if (invokeError || !invokeData?.success) {

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Globe, Loader2, Linkedin, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchLinkedinDeduped } from "@/lib/linkedinFetchDedup";
 import { toast } from "@/hooks/use-toast";
 import type { Job, JobStatus, Contact } from "@/types/jobTracker";
 
@@ -54,15 +55,24 @@ export default function AddJobDialog({ onAdd, contacts, onLinkContact }: AddJobD
   };
 
   const handleFetchLinkedin = async () => {
-    if (!linkedinUrl.trim()) return;
+    // Local guard prevents re-entry within this dialog while a request is
+    // already in flight. The button below is also disabled on this flag,
+    // but defensive code here protects against rapid synchronous calls
+    // before React flushes the disabled state to the DOM.
+    if (!linkedinUrl.trim() || fetchingLinkedin) return;
     setFetchingLinkedin(true);
     try {
       let url = linkedinUrl.trim();
       if (!url.startsWith("http")) url = `https://${url}`;
-      const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url } });
+      // Shared dedup helper: if AddContactDialog (or another AddJobDialog)
+      // is already fetching this exact URL, we await the same Promise
+      // instead of firing a second upstream call.
+      const { data, error } = await fetchLinkedinDeduped(url, false);
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || "Fetch failed");
-      const d = data.data;
+      if (!(data as { success?: boolean })?.success) {
+        throw new Error((data as { error?: string })?.error || "Fetch failed");
+      }
+      const d = (data as { data: { name?: string; role?: string; company?: string } }).data;
       setForm(f => ({
         ...f,
         posterName: d.name || f.posterName,
