@@ -15,6 +15,20 @@ function isLinkedInDerivedAvatar(url: string): boolean {
 }
 
 /**
+ * True when the URL is a *raw* LinkedIn CDN URL that did NOT go through
+ * our caching proxy. These are the high-risk loads — LinkedIn's CDN
+ * actively blocks third-party hot-linking, so they almost always 403.
+ * We surface a slightly different failure message in this case so users
+ * understand a "Refresh avatar" action will likely fix the problem.
+ */
+function isRawLinkedInUrl(url: string): boolean {
+  return /(^|\.)licdn\.com\//i.test(url);
+}
+
+/** Hard ceiling on how long we wait before treating the image as failed. */
+const LOAD_TIMEOUT_MS = 8000;
+
+/**
  * Avatar for a *person* (vs. CompanyAvatar which is for organizations).
  *
  * Rendering rules:
@@ -71,6 +85,18 @@ export default function ContactAvatar({
     setImgState(effectiveUrl ? "loading" : "loaded");
   }, [effectiveUrl]);
 
+  // Watchdog: if the browser never fires onLoad/onError (network stall,
+  // hung CDN, blocked by an ad blocker, etc.) the spinner would spin
+  // forever. After LOAD_TIMEOUT_MS we give up and fall through to the
+  // initials + error indicator path so the UI keeps moving.
+  useEffect(() => {
+    if (!effectiveUrl || imgState !== "loading") return;
+    const t = window.setTimeout(() => {
+      setImgState((prev) => (prev === "loading" ? "failed" : prev));
+    }, LOAD_TIMEOUT_MS);
+    return () => window.clearTimeout(t);
+  }, [effectiveUrl, imgState]);
+
   const dim =
     size === "lg"
       ? "h-14 w-14 text-base"
@@ -111,33 +137,51 @@ export default function ContactAvatar({
         className,
       )}
     >
-      {showImage ? (
-        <img
-          src={effectiveUrl ?? undefined}
-          alt=""
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          onLoad={() => setImgState("loaded")}
-          onError={() => setImgState("failed")}
-          className={cn(
-            "h-full w-full object-cover transition-opacity",
-            imgState === "loading" ? "opacity-0" : "opacity-100",
-          )}
-        />
-      ) : (
-        <span aria-hidden="true">{getInitials(name)}</span>
+      {/* Initials always render in the background. While the image is
+          loading they show through the transparent <img>; if the image
+          fails or is suppressed they become the only visible content.
+          Marked aria-hidden because the wrapper's role="img"+aria-label
+          already announces the contact name. */}
+      {!showImage && <span aria-hidden="true">{getInitials(name)}</span>}
+      {showImage && (
+        <>
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 flex items-center justify-center"
+          >
+            {getInitials(name)}
+          </span>
+          <img
+            src={effectiveUrl ?? undefined}
+            alt=""
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onLoad={() => setImgState("loaded")}
+            onError={() => setImgState("failed")}
+            className={cn(
+              "relative h-full w-full object-cover transition-opacity",
+              imgState === "loading" ? "opacity-0" : "opacity-100",
+            )}
+          />
+        </>
       )}
 
-      {/* Loading spinner overlays the initials placeholder so there's a
-          subtle hint that we're trying to fetch a photo. The initials
-          remain visible behind it as a graceful fallback. */}
+      {/* Loading overlay: dims the initials behind a spinner so users see
+          "we're working on it" rather than initials snapping to a photo
+          with no transition. The visible spinner is decorative; the
+          aria-live region below carries the announcement for AT users. */}
       {showLoadingOverlay && (
-        <span
-          className="absolute inset-0 flex items-center justify-center bg-primary/60"
-          aria-hidden="true"
-        >
-          <Loader2 className={cn("animate-spin text-primary-foreground", indicatorSize)} />
-        </span>
+        <>
+          <span
+            className="absolute inset-0 flex items-center justify-center bg-primary/60"
+            aria-hidden="true"
+          >
+            <Loader2 className={cn("animate-spin text-primary-foreground", indicatorSize)} />
+          </span>
+          <span role="status" aria-live="polite" className="sr-only">
+            Loading profile photo for {name}
+          </span>
+        </>
       )}
 
       {/* Tiny corner badge that appears only when an image URL was present
@@ -184,12 +228,20 @@ export default function ContactAvatar({
   // Choose the explanatory copy based on which indicator is showing.
   // Privacy takes precedence (and is mutually exclusive in practice
   // because suppressedByPrivacy hides the URL before it can fail).
+  // For failures we further distinguish raw LinkedIn URLs (proxy
+  // didn't run) from cached/proxied URLs that still failed (network
+  // stall, deleted bucket object, etc.) so the suggested next step
+  // matches reality.
+  const isRawFailure =
+    showFailedIndicator && !!effectiveUrl && isRawLinkedInUrl(effectiveUrl);
   const tooltipLabel = showPrivacyIndicator
     ? `${name} — LinkedIn photo hidden by privacy settings.`
     : `${name} — profile photo unavailable. Why?`;
   const tooltipBody = showPrivacyIndicator
     ? "LinkedIn photos are hidden because you disabled avatar proxying in Settings → Privacy. Initials are shown instead."
-    : "Profile photo unavailable. LinkedIn blocks third-party apps from displaying member photos, so we're using initials instead.";
+    : isRawFailure
+    ? "This contact's photo is a direct LinkedIn URL that the browser can't load. Use \u201CRefresh avatar\u201D to fetch and cache a fresh copy through our proxy."
+    : "Profile photo unavailable. The cached image couldn't be loaded — try \u201CRefresh avatar\u201D to fetch the latest version from LinkedIn.";
 
   // Radix Tooltip requires a focusable trigger so keyboard users can
   // discover the explanation. We wrap the avatar in a real <button> with
