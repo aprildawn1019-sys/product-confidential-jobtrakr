@@ -61,7 +61,17 @@ function useCurrentUser() {
   return info;
 }
 
-type LinkItem = { to: string; icon: LucideIcon; label: string; tourId?: string; end?: boolean };
+type LinkItem = {
+  to: string;
+  icon: LucideIcon;
+  label: string;
+  tourId?: string;
+  end?: boolean;
+  // Per-icon hue (CSS color string). Each nav item gets its own color so
+  // the sidebar reads as a chromatic legend, matching the multi-color
+  // treatment shown in the latest hero mock.
+  iconColor: string;
+};
 
 interface AppSidebarProps {
   jobs?: { id: string; title: string; company: string }[];
@@ -72,40 +82,53 @@ interface AppSidebarProps {
   onMobileClose?: () => void;
 }
 
-// New sidebar spec: groups are quiet category headers (amber label, no
-// leading icon, no chevron). The visual hierarchy comes from the labels
-// themselves and an amber left-edge bar on the active row.
+// Per-item icon palette. Hues are pulled from the design-token family
+// (amber, info-blue, success-green, plus a couple of complementary tints)
+// so the sidebar feels colorful but stays inside the Koudou brand system.
+// Hand-picked HSL values are used (not raw token references) so each row
+// gets a *distinct* hue instead of all collapsing to the same accent.
+const ICON_AMBER = "hsl(36 95% 60%)";    // brand accent
+const ICON_NAVY  = "hsl(222 60% 65%)";   // tinted primary, readable on navy bg
+const ICON_TEAL  = "hsl(180 55% 55%)";   // calm cyan/teal
+const ICON_GREEN = "hsl(152 55% 55%)";   // success-tinted
+const ICON_VIOLET = "hsl(265 60% 68%)";  // soft violet
+const ICON_ROSE  = "hsl(345 70% 65%)";   // warm rose
+const ICON_BLUE  = "hsl(210 80% 62%)";   // info blue
+const ICON_LIME  = "hsl(80 55% 55%)";    // chartreuse
+const ICON_SAND  = "hsl(40 45% 65%)";    // warm sand
+const ICON_SKY   = "hsl(200 75% 65%)";   // sky cyan
+
 const groups: { label: string; items: LinkItem[] }[] = [
   {
     label: "Today",
     items: [
-      { to: "/", icon: LayoutDashboard, label: "Command Center", end: true },
-      { to: "/jobs", icon: Briefcase, label: "Jobs" },
-      { to: "/contacts", icon: Users, label: "Contacts", tourId: "entry-network" },
-      { to: "/interviews", icon: CalendarDays, label: "Interviews" },
+      { to: "/",           icon: LayoutDashboard, label: "Command Center", end: true,                 iconColor: ICON_AMBER },
+      { to: "/jobs",       icon: Briefcase,        label: "Jobs",                                       iconColor: ICON_BLUE  },
+      { to: "/contacts",   icon: Users,            label: "Contacts", tourId: "entry-network",          iconColor: ICON_GREEN },
+      { to: "/interviews", icon: CalendarDays,     label: "Interviews",                                 iconColor: ICON_ROSE  },
     ],
   },
   {
     label: "Pipeline",
     items: [
-      { to: "/target-companies", icon: Star, label: "Target Companies", tourId: "entry-target-companies" },
-      { to: "/job-boards", icon: Globe, label: "Job Boards" },
-      { to: "/job-search", icon: Search, label: "Job Search", tourId: "entry-job-search" },
+      { to: "/target-companies", icon: Star,   label: "Target Companies", tourId: "entry-target-companies", iconColor: ICON_NAVY  },
+      { to: "/job-boards",       icon: Globe,  label: "Job Boards",                                          iconColor: ICON_AMBER },
+      { to: "/job-search",       icon: Search, label: "Job Search", tourId: "entry-job-search",              iconColor: ICON_TEAL  },
     ],
   },
   {
     label: "Library",
     items: [
-      { to: "/resumes", icon: FileStack, label: "Resumes" },
-      { to: "/cover-letters", icon: FileText, label: "Cover Letters" },
+      { to: "/resumes",       icon: FileStack, label: "Resumes",       iconColor: ICON_SAND   },
+      { to: "/cover-letters", icon: FileText,  label: "Cover Letters", iconColor: ICON_VIOLET },
     ],
   },
   {
     label: "Insights",
     items: [
-      { to: "/insights", icon: BarChart3, label: "Insights" },
-      { to: "/skills-insights", icon: TrendingUp, label: "Skills Insights" },
-      { to: "/network-map", icon: Network, label: "Network Map" },
+      { to: "/insights",        icon: BarChart3,  label: "Insights",        iconColor: ICON_SKY   },
+      { to: "/skills-insights", icon: TrendingUp, label: "Skills Insights", iconColor: ICON_LIME  },
+      { to: "/network-map",     icon: Network,    label: "Network Map",     iconColor: ICON_BLUE  },
     ],
   },
 ];
@@ -139,7 +162,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
 
   // === COLLAPSED (icon-only) ===
   if (collapsed) {
-    const settingsItem = { to: "/settings", icon: Settings, label: "Settings" };
+    const settingsItem: LinkItem = { to: "/settings", icon: Settings, label: "Settings", iconColor: ICON_AMBER };
 
     const renderIconLink = (item: LinkItem) => (
       <Tooltip key={item.to} delayDuration={150}>
@@ -160,7 +183,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               )
             }
           >
-            <item.icon className="h-[18px] w-[18px]" strokeWidth={2} />
+            <item.icon className="h-[18px] w-[18px]" strokeWidth={2} color={item.iconColor} />
           </NavLink>
         </TooltipTrigger>
         <TooltipContent side="right">{item.label}</TooltipContent>
@@ -185,8 +208,8 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         </nav>
 
         <div className="border-t border-sidebar-border p-2 space-y-1 flex flex-col items-center">
-          {hasData ? null : renderIconLink({ to: "/getting-started", icon: Sparkles, label: "Getting Started" })}
-          {renderIconLink({ to: "/settings/profile", icon: UserCircle2, label: "Profile" })}
+          {hasData ? null : renderIconLink({ to: "/getting-started", icon: Sparkles, label: "Getting Started", iconColor: ICON_AMBER })}
+          {renderIconLink({ to: "/settings/profile", icon: UserCircle2, label: "Profile", iconColor: ICON_AMBER })}
           {renderIconLink(settingsItem)}
           <Tooltip delayDuration={150}>
             <TooltipTrigger asChild>
@@ -297,7 +320,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 </span>
               </div>
               <div className="space-y-0.5">
-                {group.items.map(({ to, icon: Icon, label, tourId, end }) => (
+                {group.items.map(({ to, icon: Icon, label, tourId, end, iconColor }) => (
                   <div key={to} data-tour={tourId}>
                     {to === "/jobs" ? (
                       <>
@@ -306,7 +329,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                             <Icon
                               className="h-[18px] w-[18px] shrink-0"
                               strokeWidth={2}
-                              color="hsl(var(--sidebar-primary))"
+                              color={iconColor}
                             />
                             {label}
                           </NavLink>
@@ -348,7 +371,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                         <Icon
                           className="h-[18px] w-[18px] shrink-0"
                           strokeWidth={2}
-                          color="hsl(var(--sidebar-primary))"
+                          color={iconColor}
                         />
                         {label}
                       </NavLink>
