@@ -1,3 +1,4 @@
+// @vitest-environment node
 /**
  * Tests for the pure HTML → avatar-URL extraction logic. Each test
  * simulates what the edge function would receive in a specific real-world
