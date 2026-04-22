@@ -15,7 +15,7 @@ const BrandMark = ({ className }: { className?: string }) => (
   <img
     src={koudouMarkSrc}
     alt="Koudou"
-    className={cn("shrink-0", className)}
+    className={cn("shrink-0 rounded-lg", className)}
   />
 );
 import { useHelp } from "@/components/help/HelpProvider";
