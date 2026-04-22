@@ -6,10 +6,16 @@
 // the suite runs offline and deterministically.
 //
 // Run with:
-//   deno test --allow-env --allow-read supabase/functions/proxy-linkedin-avatar/index.test.ts
+//   PROXY_LINKEDIN_AVATAR_SKIP_SERVE=1 deno test \
+//     --allow-env --allow-read --allow-net \
+//     supabase/functions/proxy-linkedin-avatar/index.test.ts
+//
+// The env var prevents the module-level `Deno.serve` block from binding a
+// port during tests. (We also call `Deno.env.set` below as a safety net,
+// but Deno hoists static imports above script body, so the CLI flag is
+// what actually keeps the port from binding.)
 
-// Prevent the module-level `Deno.serve` from binding a port when we import
-// the handler factory below. Must be set BEFORE the import is evaluated.
+// Safety net — see comment above.
 Deno.env.set("PROXY_LINKEDIN_AVATAR_SKIP_SERVE", "1");
 
 import {
