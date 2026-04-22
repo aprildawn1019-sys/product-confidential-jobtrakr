@@ -329,7 +329,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                             <Icon
                               className="h-[18px] w-[18px] shrink-0"
                               strokeWidth={2}
-                              color="hsl(var(--sidebar-primary))"
+                              color={iconColor}
                             />
                             {label}
                           </NavLink>
