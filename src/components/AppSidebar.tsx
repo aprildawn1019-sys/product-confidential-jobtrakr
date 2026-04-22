@@ -277,7 +277,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               )
             }
           >
-            <Sparkles className="h-[18px] w-[18px]" strokeWidth={2} />
+            <Sparkles className="h-[18px] w-[18px] shrink-0" strokeWidth={2} color="hsl(var(--sidebar-primary))" />
             Getting Started
           </NavLink>
         )}
