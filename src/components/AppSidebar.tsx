@@ -289,7 +289,10 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           return (
             <div key={group.label} className="pt-5 first:pt-1">
               <div className="px-3 pb-2">
-                <span className="font-sans text-xs font-semibold tracking-wide text-sidebar-foreground/55">
+                <span
+                  className="font-sans text-[11px] font-semibold uppercase tracking-[0.14em]"
+                  style={{ color: "hsl(var(--sidebar-group-foreground) / 0.85)" }}
+                >
                   {group.label}
                 </span>
               </div>
