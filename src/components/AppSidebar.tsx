@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Briefcase, Users, Search, Globe, LogOut, CalendarDays,
-  ChevronDown, ChevronRight, TrendingUp, Star, FileText, Settings, Network,
+  ChevronDown, ChevronRight, TrendingUp, Star, FileText, Settings, Cog, Network,
   Sparkles, PlayCircle, CircleHelp, BarChart3, FileStack, LucideIcon, PanelLeftClose, PanelLeft,
 } from "lucide-react";
 import { useHelp } from "@/components/help/HelpProvider";
@@ -428,7 +428,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                   }
                   aria-label="Settings"
                 >
-                  <Settings className="h-4 w-4" strokeWidth={1.75} />
+                  <Cog className="h-4 w-4" strokeWidth={1.75} />
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="top">Settings</TooltipContent>
