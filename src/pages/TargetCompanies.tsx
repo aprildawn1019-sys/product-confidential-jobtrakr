@@ -37,17 +37,23 @@ interface TargetCompaniesProps {
   ) => Promise<void>;
 }
 
+// Tokenized pill families — single-tone, no raw palette colors.
+// Priority: dream = brand accent (amber), strong = info, interested = muted.
+// Status:   researching = info, applied = success, connected = primary,
+//           archived = muted. Picking distinct tokens (info vs primary) so
+//           "strong priority" and "connected status" don't collapse to the
+//           same blue when both render on a row.
 const priorityConfig: Record<TargetCompanyPriority, { label: string; color: string }> = {
-  dream: { label: "Dream", color: "bg-amber-100 text-amber-800 border-amber-300" },
-  strong: { label: "Strong", color: "bg-blue-100 text-blue-800 border-blue-300" },
+  dream: { label: "Dream", color: "bg-accent/15 text-accent-foreground border-accent/30" },
+  strong: { label: "Strong", color: "bg-info/15 text-info border-info/30" },
   interested: { label: "Interested", color: "bg-muted text-muted-foreground border-border" },
 };
 
 const statusConfig: Record<TargetCompanyStatus, { label: string; color: string }> = {
-  researching: { label: "Researching", color: "bg-purple-100 text-purple-800" },
-  applied: { label: "Applied", color: "bg-green-100 text-green-800" },
-  connected: { label: "Connected", color: "bg-blue-100 text-blue-800" },
-  archived: { label: "Archived", color: "bg-muted text-muted-foreground" },
+  researching: { label: "Researching", color: "bg-info/15 text-info border-info/30" },
+  applied: { label: "Applied", color: "bg-success/15 text-success border-success/30" },
+  connected: { label: "Connected", color: "bg-primary/15 text-primary border-primary/30" },
+  archived: { label: "Archived", color: "bg-muted text-muted-foreground border-border" },
 };
 
 const emptyForm = {
@@ -168,7 +174,7 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Star className="h-6 w-6 text-amber-500" />
+            <Star className="h-6 w-6 text-accent" />
             Target Companies
             <HelpHint articleId="target-companies" />
           </h1>
@@ -179,14 +185,15 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
         </Button>
       </div>
 
-      {/* Duplicate detection banner */}
+      {/* Duplicate detection banner — uses warning token so it picks up
+          dark-mode automatically and stays in the status family. */}
       {duplicateClusters.length > 0 && !bannerDismissed && (
-        <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900">
-          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-          <AlertTitle className="text-amber-900 dark:text-amber-200">
+        <Alert className="border-warning/40 bg-warning/10">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertTitle className="text-foreground">
             {duplicateClusters.length} potential duplicate group{duplicateClusters.length === 1 ? "" : "s"} detected
           </AlertTitle>
-          <AlertDescription className="text-amber-800 dark:text-amber-300/90 flex items-center justify-between gap-3 flex-wrap mt-1">
+          <AlertDescription className="text-muted-foreground flex items-center justify-between gap-3 flex-wrap mt-1">
             <span className="text-sm">
               {duplicateClusters.reduce((sum, c) => sum + c.length, 0)} target companies look like duplicates. Review and merge to keep your pipeline clean.
             </span>
@@ -330,7 +337,7 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
                     {stats.activeApps > 0 && (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button onClick={() => navigate(`/jobs?company=${encodeURIComponent(tc.name)}&status=applied,screening,interviewing,offer`)} className="flex items-center gap-1 text-green-600 font-medium hover:text-green-700 transition-colors">{stats.activeApps} active</button>
+                          <button onClick={() => navigate(`/jobs?company=${encodeURIComponent(tc.name)}&status=applied,screening,interviewing,offer`)} className="flex items-center gap-1 text-success font-medium hover:text-success/80 transition-colors">{stats.activeApps} active</button>
                         </TooltipTrigger>
                         <TooltipContent>View jobs with active applications (applied, screening, interviewing, offer)</TooltipContent>
                       </Tooltip>

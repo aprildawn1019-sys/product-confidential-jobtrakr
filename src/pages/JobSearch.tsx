@@ -124,11 +124,13 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
     return scored;
   }, [existingJobs, contacts, targetCompanies]);
 
+  // Tokenized score tiers — stays in the status family so dark-mode just works
+  // off the existing HSL tokens (no per-mode overrides needed).
   const getRecommendationScoreColor = (score: number) => {
-    if (score >= 85) return "bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700";
-    if (score >= 70) return "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700";
-    if (score >= 55) return "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700";
-    return "bg-muted text-muted-foreground";
+    if (score >= 85) return "bg-success/15 text-success border-success/30";
+    if (score >= 70) return "bg-info/15 text-info border-info/30";
+    if (score >= 55) return "bg-warning/15 text-warning border-warning/30";
+    return "bg-muted text-muted-foreground border-border";
   };
 
   useEffect(() => {
@@ -712,7 +714,7 @@ export default function JobSearch({ onAddJob, existingJobs, contacts, targetComp
                 className="flex items-center justify-between w-full p-4 text-left hover:bg-muted/50 transition-colors rounded-t-xl"
               >
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-amber-500" />
+                  <Sparkles className="h-4 w-4 text-accent" />
                   <span className="font-semibold text-sm">Recommended for You</span>
                   <span className="text-xs text-muted-foreground">— top tracked jobs by fit, priority &amp; network</span>
                 </div>

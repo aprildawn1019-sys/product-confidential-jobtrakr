@@ -22,7 +22,7 @@ export default function TargetCompanyBadge({ target, size = "sm" }: TargetCompan
       <TooltipTrigger asChild>
         <Badge
           variant="outline"
-          className={`gap-1 border-amber-300 bg-amber-50 text-amber-700 ${size === "sm" ? "text-[10px] px-1.5 py-0" : "text-xs px-2 py-0.5"}`}
+          className={`gap-1 border-accent/40 bg-accent/15 text-accent-foreground ${size === "sm" ? "text-[10px] px-1.5 py-0" : "text-xs px-2 py-0.5"}`}
         >
           <Star className={size === "sm" ? "h-2.5 w-2.5" : "h-3 w-3"} />
           Target

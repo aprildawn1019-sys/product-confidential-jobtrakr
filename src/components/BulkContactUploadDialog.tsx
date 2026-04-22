@@ -299,7 +299,7 @@ export default function BulkContactUploadDialog({ onAddBulk, existingContacts }:
                 </div>
                 <div className="flex gap-4 mt-1.5 text-xs text-muted-foreground">
                   <span>{report.totalRows} total</span>
-                  <span className="text-green-600">{report.validRows} valid</span>
+                  <span className="text-success">{report.validRows} valid</span>
                   {report.duplicates > 0 && <span className="text-warning">{report.duplicates} duplicates</span>}
                   {report.issueRows > 0 && <span className="text-destructive">{report.issueRows} with issues</span>}
                 </div>

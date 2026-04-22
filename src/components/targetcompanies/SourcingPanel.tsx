@@ -148,7 +148,7 @@ export default function SourcingPanel({
             {/* Section A — Inside path */}
             <section className="space-y-2">
               <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-emerald-600" />
+                <Target className="h-4 w-4 text-success" />
                 <h3 className="text-sm font-semibold">Inside path</h3>
               </div>
 
@@ -174,7 +174,7 @@ export default function SourcingPanel({
                 <Separator />
                 <section className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-amber-600" />
+                    <Users className="h-4 w-4 text-warning" />
                     <h3 className="text-sm font-semibold">Recruiter contacts</h3>
                   </div>
                   <div className="space-y-3">
@@ -208,7 +208,7 @@ export default function SourcingPanel({
                 </Button>
 
                 <Button variant="outline" className="justify-start gap-2 h-auto py-2.5" onClick={() => handleAdd("booster")}>
-                  <UserPlus className="h-4 w-4 text-emerald-600" />
+                  <UserPlus className="h-4 w-4 text-success" />
                   <span className="flex-1 text-left">
                     <span className="block text-sm font-medium">Add a Booster at {company.name}</span>
                     <span className="block text-[11px] text-muted-foreground">Pre-fills company + role</span>
@@ -234,7 +234,7 @@ export default function SourcingPanel({
             <Separator />
             <section className="space-y-2">
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-blue-600" />
+                <Search className="h-4 w-4 text-info" />
                 <h3 className="text-sm font-semibold">Who you may already know</h3>
                 {secondDegree.length > 0 && <Badge variant="secondary" className="text-[10px]">{secondDegree.length}</Badge>}
               </div>
