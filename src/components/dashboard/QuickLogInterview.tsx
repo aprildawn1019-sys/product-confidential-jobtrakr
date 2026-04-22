@@ -45,6 +45,9 @@ export default function QuickLogInterview({ jobs, onAddJob, onAddInterview }: Pr
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState("");
   const [status, setStatus] = useState<Status>("scheduled");
+  // Optional follow-up — null means "no reminder". When set, we persist it on
+  // the interview record and surface it in Next Steps via actionEngine.
+  const [followUpDate, setFollowUpDate] = useState<Date | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
 
   // Distinct, alphabetised list of company names already in the tracker —
@@ -66,6 +69,7 @@ export default function QuickLogInterview({ jobs, onAddJob, onAddInterview }: Pr
     setDate(undefined);
     setTime("");
     setStatus("scheduled");
+    setFollowUpDate(undefined);
   };
 
   const handleSubmit = async () => {
@@ -104,10 +108,11 @@ export default function QuickLogInterview({ jobs, onAddJob, onAddInterview }: Pr
         date: format(date, "yyyy-MM-dd"),
         time: time || undefined,
         status,
+        followUpDate: followUpDate ? format(followUpDate, "yyyy-MM-dd") : undefined,
       });
       toast({
         title: "Interview logged",
-        description: `${company.trim()} · ${format(date, "EEE, MMM d")}${time ? ` · ${time}` : ""}`,
+        description: `${company.trim()} · ${format(date, "EEE, MMM d")}${time ? ` · ${time}` : ""}${followUpDate ? ` · follow up ${format(followUpDate, "MMM d")}` : ""}`,
       });
       reset();
       setOpen(false);
@@ -239,6 +244,56 @@ export default function QuickLogInterview({ jobs, onAddJob, onAddInterview }: Pr
                 onChange={(e) => setTime(e.target.value)}
               />
             </div>
+          </div>
+
+          {/* Optional follow-up reminder.
+              Why a separate row: it's an afterthought prompt — most users
+              won't set one, and visually grouping it under the core fields
+              keeps the primary form clean. When set, it surfaces on the
+              Command Center via Next Steps until the interview is cancelled. */}
+          <div className="space-y-1.5">
+            <Label>
+              Follow-up reminder{" "}
+              <span className="font-normal text-muted-foreground">· optional</span>
+            </Label>
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "flex-1 justify-start text-left font-normal",
+                      !followUpDate && "text-muted-foreground",
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {followUpDate ? format(followUpDate, "PPP") : "e.g. send a thank-you note"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={followUpDate}
+                    onSelect={setFollowUpDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              {followUpDate && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground"
+                  onClick={() => setFollowUpDate(undefined)}
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              We'll surface this on your Command Center on the selected date.
+            </p>
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-1">

@@ -91,6 +91,13 @@ export interface Interview {
   time?: string;
   notes?: string;
   status: "scheduled" | "completed" | "cancelled";
+  /**
+   * Optional follow-up reminder (YYYY-MM-DD) the user wants to be nudged
+   * about after this interview — e.g. send a thank-you note, ping the
+   * recruiter, or check in on next steps. Surfaces in Command Center
+   * Next Steps via actionEngine until the interview is cancelled.
+   */
+  followUpDate?: string;
 }
 
 export interface JobContact {

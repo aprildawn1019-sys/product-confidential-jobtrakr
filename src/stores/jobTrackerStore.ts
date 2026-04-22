@@ -58,6 +58,7 @@ function mapInterview(row: any): Interview {
   return {
     id: row.id, jobId: row.job_id, type: row.type, date: row.date,
     time: row.time ?? undefined, notes: row.notes ?? undefined, status: row.status,
+    followUpDate: row.follow_up_date ?? undefined,
   };
 }
 
@@ -367,6 +368,7 @@ export function useJobTrackerStore() {
       user_id: userId, job_id: interview.jobId, type: interview.type,
       date: interview.date, time: interview.time || null,
       notes: interview.notes || null, status: interview.status,
+      follow_up_date: interview.followUpDate || null,
     }).select().single();
     if (data) setInterviews(prev => [...prev, mapInterview(data)]);
   };
@@ -378,6 +380,7 @@ export function useJobTrackerStore() {
     if (updates.time !== undefined) dbUpdates.time = updates.time || null;
     if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
     if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.followUpDate !== undefined) dbUpdates.follow_up_date = updates.followUpDate || null;
     await supabase.from("interviews").update(dbUpdates).eq("id", id);
     setInterviews(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));
   };
