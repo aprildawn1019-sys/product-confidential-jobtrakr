@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, ShieldOff } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useDisableLinkedInAvatars } from "@/lib/privacyPrefs";
+
+/**
+ * True when `url` points at a LinkedIn photo — either the raw CDN
+ * (`media.licdn.com`) or our cached copy in the `linkedin-avatars`
+ * Supabase storage bucket. The privacy toggle uses this to decide
+ * whether to suppress the image and force initials rendering.
+ */
+function isLinkedInDerivedAvatar(url: string): boolean {
+  return /(^|\.)licdn\.com\//i.test(url) || /\/linkedin-avatars\//i.test(url);
+}
 
 /**
  * Avatar for a *person* (vs. CompanyAvatar which is for organizations).
@@ -38,16 +49,27 @@ export default function ContactAvatar({
   size = "md",
   className,
 }: ContactAvatarProps) {
+  // Privacy preference: when the user disables LinkedIn avatars, we treat
+  // any LinkedIn-derived URL as if it weren't present at all and render
+  // initials with a small "privacy on" indicator instead.
+  const privacyDisabled = useDisableLinkedInAvatars();
+  const isLinkedInPhoto = !!avatarUrl && isLinkedInDerivedAvatar(avatarUrl);
+  const suppressedByPrivacy = privacyDisabled && isLinkedInPhoto;
+
+  // Effective URL — null when privacy mode hides it, so the rest of the
+  // component falls into the initials path naturally.
+  const effectiveUrl = suppressedByPrivacy ? null : avatarUrl;
+
   // Start in "loading" if we have a URL to try, otherwise skip straight to
   // the initials path (treated as "failed" only conceptually — we don't
   // show the error indicator unless there was actually a URL to load).
-  const [imgState, setImgState] = useState<ImgState>(avatarUrl ? "loading" : "loaded");
+  const [imgState, setImgState] = useState<ImgState>(effectiveUrl ? "loading" : "loaded");
 
   // Reset whenever the URL changes so a contact swap doesn't leave the
   // component stuck in a stale "failed" state.
   useEffect(() => {
-    setImgState(avatarUrl ? "loading" : "loaded");
-  }, [avatarUrl]);
+    setImgState(effectiveUrl ? "loading" : "loaded");
+  }, [effectiveUrl]);
 
   const dim =
     size === "lg"
@@ -61,10 +83,14 @@ export default function ContactAvatar({
   const indicatorSize =
     size === "lg" ? "h-4 w-4" : size === "sm" ? "h-2.5 w-2.5" : "h-3 w-3";
 
-  const hasUrl = !!avatarUrl;
+  const hasUrl = !!effectiveUrl;
   const showImage = hasUrl && imgState !== "failed";
   const showFailedIndicator = hasUrl && imgState === "failed";
   const showLoadingOverlay = hasUrl && imgState === "loading";
+  // Privacy badge replaces the "failed" badge when we deliberately hid the
+  // photo. Mutually exclusive — privacy wins because it's a user choice,
+  // not an error condition.
+  const showPrivacyIndicator = suppressedByPrivacy;
 
   // Accessibility:
   //   - The wrapper carries `role="img"` + `aria-label={name}` so screen
@@ -87,7 +113,7 @@ export default function ContactAvatar({
     >
       {showImage ? (
         <img
-          src={avatarUrl ?? undefined}
+          src={effectiveUrl ?? undefined}
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"
@@ -129,14 +155,41 @@ export default function ContactAvatar({
           <AlertCircle className="h-full w-full p-[1px]" />
         </span>
       )}
+
+      {/* Privacy badge: shown when the photo was suppressed by the user's
+          "disable LinkedIn avatars" preference. Uses a different icon
+          (shield) and accent so it's distinguishable from the failure
+          state at a glance. */}
+      {showPrivacyIndicator && (
+        <span
+          className={cn(
+            "absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-full",
+            "bg-background ring-1 ring-border text-primary",
+            indicatorSize,
+          )}
+          aria-hidden="true"
+        >
+          <ShieldOff className="h-full w-full p-[1px]" />
+        </span>
+      )}
     </div>
   );
 
   // Only wrap in a tooltip when there's something to explain — avoids
   // attaching listeners to every avatar in long lists.
-  if (!showFailedIndicator) {
+  if (!showFailedIndicator && !showPrivacyIndicator) {
     return avatarNode;
   }
+
+  // Choose the explanatory copy based on which indicator is showing.
+  // Privacy takes precedence (and is mutually exclusive in practice
+  // because suppressedByPrivacy hides the URL before it can fail).
+  const tooltipLabel = showPrivacyIndicator
+    ? `${name} — LinkedIn photo hidden by privacy settings.`
+    : `${name} — profile photo unavailable. Why?`;
+  const tooltipBody = showPrivacyIndicator
+    ? "LinkedIn photos are hidden because you disabled avatar proxying in Settings → Privacy. Initials are shown instead."
+    : "Profile photo unavailable. LinkedIn blocks third-party apps from displaying member photos, so we're using initials instead.";
 
   // Radix Tooltip requires a focusable trigger so keyboard users can
   // discover the explanation. We wrap the avatar in a real <button> with
@@ -150,7 +203,7 @@ export default function ContactAvatar({
         <TooltipTrigger asChild>
           <button
             type="button"
-            aria-label={`${name} — profile photo unavailable. Why?`}
+            aria-label={tooltipLabel}
             className={cn(
               "rounded-full inline-flex shrink-0",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -160,8 +213,7 @@ export default function ContactAvatar({
           </button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs text-xs">
-          Profile photo unavailable. LinkedIn blocks third-party apps from
-          displaying member photos, so we&apos;re using initials instead.
+          {tooltipBody}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Settings as SettingsIcon, UserCog, FileSpreadsheet } from "lucide-react";
+import { Settings as SettingsIcon, UserCog, FileSpreadsheet, ShieldOff } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ProfileEditor from "@/pages/ProfileEditor";
 import Reports from "@/pages/Reports";
+import PrivacySettings from "@/pages/PrivacySettings";
 
 const TABS = [
   { value: "profile", label: "Search Profile", icon: UserCog },
+  { value: "privacy", label: "Privacy", icon: ShieldOff },
   { value: "data-export", label: "Data & Export", icon: FileSpreadsheet },
 ] as const;
 
@@ -50,6 +52,9 @@ export default function Settings() {
 
         <TabsContent value="profile" className="mt-6">
           <ProfileEditor />
+        </TabsContent>
+        <TabsContent value="privacy" className="mt-6">
+          <PrivacySettings />
         </TabsContent>
         <TabsContent value="data-export" className="mt-6">
           <Reports />
