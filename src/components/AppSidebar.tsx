@@ -161,10 +161,9 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             className={({ isActive }) =>
               cn(
                 "relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
-                "before:absolute before:left-[-8px] before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r-full",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground before:bg-sidebar-primary"
-                  : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground before:bg-transparent"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )
             }
           >
@@ -179,10 +178,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
       <TooltipProvider>
         <div className="flex h-16 items-center justify-center">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <svg viewBox="0 0 32 32" className="h-5 w-5" aria-hidden="true">
-              <rect x="6" y="18" width="9" height="5" rx="2.5" transform="rotate(-20 10.5 20.5)" fill="currentColor"/>
-              <rect x="17" y="9" width="9" height="5" rx="2.5" transform="rotate(-20 21.5 11.5)" fill="currentColor"/>
-            </svg>
+            <KoudouMark className="h-5 w-5" />
           </div>
         </div>
 
@@ -255,26 +251,21 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   }
 
   // === EXPANDED ===
-  // Active route gets an amber left-bar (matches hero spec). The bar is rendered
-  // via a `before:` pseudo-element on the row so the amber color is anchored to
-  // the sidebar edge rather than the rounded button.
+  // Hero spec: active row uses a calm navy fill only — no amber accent bar.
+  // Inactive rows are muted; hover lifts contrast slightly.
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      "relative flex items-center gap-3 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
-      "before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-r-full",
+      "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
       isActive
-        ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium before:bg-sidebar-primary"
-        : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground before:bg-transparent"
+        ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+        : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
     );
 
   return (
     <>
       <div className="flex h-16 items-center gap-2.5 px-6">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-          <svg viewBox="0 0 32 32" className="h-5 w-5" aria-hidden="true">
-            <rect x="6" y="18" width="9" height="5" rx="2.5" transform="rotate(-20 10.5 20.5)" fill="currentColor"/>
-            <rect x="17" y="9" width="9" height="5" rx="2.5" transform="rotate(-20 21.5 11.5)" fill="currentColor"/>
-          </svg>
+          <KoudouMark className="h-5 w-5" />
         </div>
         <span className="font-display text-lg font-bold tracking-tight">Koudou</span>
       </div>
@@ -299,15 +290,18 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         )}
 
         {groups.map((group) => {
-          // Hero spec: section labels are bright amber, always visible (no
-          // collapsible chevron). Keeps the sidebar reading like the mockup
-          // — calm, scannable, no extra controls.
+          // Hero spec: section labels carry a leading icon + trailing chevron,
+          // rendered in the muted-gold sidebar-group-foreground tone (not bright
+          // amber) so labels read as quiet category headers, not active controls.
+          const GroupIcon = group.icon;
           return (
             <div key={group.label} className="pt-4 first:pt-1">
-              <div className="px-3 pb-1.5">
-                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-sidebar-primary">
+              <div className="flex items-center justify-between px-3 pb-1.5">
+                <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-sidebar-group-foreground">
+                  <GroupIcon className="h-3.5 w-3.5" />
                   {group.label}
                 </span>
+                <ChevronDown className="h-3.5 w-3.5 text-sidebar-group-foreground/60" />
               </div>
               <div className="space-y-0.5">
                 {group.items.map(({ to, icon: Icon, label, tourId, end }) => (
