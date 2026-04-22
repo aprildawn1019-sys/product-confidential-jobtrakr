@@ -428,7 +428,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                   }
                   aria-label="Settings"
                 >
-                  <Settings className="h-[16px] w-[16px]" strokeWidth={1.75} />
+                  <Settings className="h-4 w-4" strokeWidth={1.75} />
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="top">Settings</TooltipContent>
@@ -442,7 +442,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-primary/40"
                   aria-label="Help"
                 >
-                  <CircleHelp className="h-[16px] w-[16px]" strokeWidth={1.75} />
+                  <CircleHelp className="h-4 w-4" strokeWidth={1.75} />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top">Help</TooltipContent>
