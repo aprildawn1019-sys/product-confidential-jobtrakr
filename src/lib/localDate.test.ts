@@ -1,3 +1,4 @@
+// @vitest-environment node
 /**
  * Timezone-aware tests for `parseLocalDate` & friends.
  *
