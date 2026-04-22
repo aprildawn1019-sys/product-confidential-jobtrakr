@@ -14,12 +14,8 @@ Deno.serve(async (req) => {
     const auth = await requireUser(req, corsHeaders);
     if (auth.errorResponse) return auth.errorResponse;
 
-    const { url, forceAvatarRefresh, useAvatarProxy } = await req.json();
+    const { url } = await req.json();
     if (!url) throw new Error("Missing LinkedIn URL");
-    // `useAvatarProxy` is opt-out: undefined / true → proxy through our
-    // edge function + storage cache (the secure default). Only an
-    // explicit `false` from a privacy-conscious client bypasses it.
-    const shouldProxyAvatar = useAvatarProxy !== false;
 
     let formattedUrl = url.trim();
     if (!formattedUrl.startsWith("http")) formattedUrl = `https://${formattedUrl}`;
@@ -291,14 +287,7 @@ Deno.serve(async (req) => {
     // storage cache so the client gets a stable URL that doesn't 403.
     // We swallow proxy errors and fall back to the raw URL — the
     // ContactAvatar component already handles broken images gracefully.
-    // When the caller opts out (`useAvatarProxy: false`), we skip the
-    // proxy entirely and persist the raw URL — the user has explicitly
-    // chosen to accept the hot-link risk in exchange for not pinging
-    // our infrastructure for image caching.
-    if (avatarUrl && !shouldProxyAvatar) {
-      console.log("Avatar proxy disabled by client — storing raw URL");
-      contact.avatar_url = avatarUrl;
-    } else if (avatarUrl) {
+    if (avatarUrl) {
       try {
         const proxyResp = await fetch(
           `${Deno.env.get("SUPABASE_URL")}/functions/v1/proxy-linkedin-avatar`,
@@ -310,7 +299,7 @@ Deno.serve(async (req) => {
               Authorization: req.headers.get("Authorization") ?? "",
               apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "",
             },
-            body: JSON.stringify({ url: avatarUrl, force: forceAvatarRefresh === true }),
+            body: JSON.stringify({ url: avatarUrl }),
           },
         );
         if (proxyResp.ok) {

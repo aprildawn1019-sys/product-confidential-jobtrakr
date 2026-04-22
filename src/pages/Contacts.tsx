@@ -22,7 +22,6 @@ import StatusBadge from "@/components/StatusBadge";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import ContactsSpreadsheet from "@/components/ContactsSpreadsheet";
 import ContactAvatar from "@/components/ContactAvatar";
-import RefreshAvatarButton from "@/components/RefreshAvatarButton";
 import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact, TargetCompany, NetworkRole } from "@/types/jobTracker";
 import { RELATIONSHIP_LABELS, NETWORK_ROLES } from "@/types/jobTracker";
 
@@ -296,7 +295,7 @@ export default function Contacts({
         <div className="p-5 flex flex-col flex-1">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3 min-w-0">
-              <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="md" />
+              <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="md" dense />
               <div className="min-w-0">
                 <h3 className="font-semibold truncate">{contact.name}</h3>
                 <p className="text-sm text-muted-foreground truncate">{contact.role}</p>
@@ -340,14 +339,9 @@ export default function Contacts({
               </Badge>
             )}
           </div>
-          <div className="mt-auto pt-3 flex items-center gap-2 flex-wrap">
+          <div className="mt-auto pt-3 flex items-center gap-2">
             {contact.email && <Button variant="outline" size="sm" asChild><a href={`mailto:${contact.email}`}><Mail className="h-3.5 w-3.5 mr-1" />Email</a></Button>}
             {contact.linkedin && <Button variant="outline" size="sm" asChild><a href={`https://${contact.linkedin}`} target="_blank" rel="noopener noreferrer"><Linkedin className="h-3.5 w-3.5 mr-1" />LinkedIn</a></Button>}
-            <RefreshAvatarButton
-              contactId={contact.id}
-              linkedinUrl={contact.linkedin}
-              onRefreshed={(avatarUrl) => onUpdate(contact.id, { avatarUrl: avatarUrl ?? undefined })}
-            />
           </div>
           {contact.lastContactedAt && <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />Last contacted: {contact.lastContactedAt}</p>}
         </div>
@@ -792,7 +786,7 @@ export default function Contacts({
                   onClick={() => setExpandedContact(isExpanded ? null : contact.id)}
                   className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40 focus:outline-none focus-visible:bg-muted/40"
                 >
-                  <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="sm" />
+                  <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="sm" dense />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="truncate text-sm font-medium">{contact.name}</p>

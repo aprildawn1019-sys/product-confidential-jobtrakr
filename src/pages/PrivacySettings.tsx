@@ -1,4 +1,4 @@
-import { ShieldOff, Info, ShieldCheck } from "lucide-react";
+import { ShieldOff, Info, ShieldCheck, MessageSquareOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -7,25 +7,32 @@ import {
   setDisableLinkedInAvatars,
   useUseAvatarProxy,
   setUseAvatarProxy,
+  useDenseAvatarTooltips,
+  setDenseAvatarTooltips,
 } from "@/lib/privacyPrefs";
 
 /**
  * Settings → Privacy panel.
  *
- * Hosts two related toggles:
+ * Hosts three related toggles:
  *  1. "Hide LinkedIn profile photos" — display-side suppression. Stops
  *     rendering any LinkedIn-derived photo and shows initials instead.
  *  2. "Route LinkedIn avatars through proxy" — import-side behavior.
  *     When ON (default) newly imported contacts get their photo cached
  *     in our storage bucket. When OFF the raw LinkedIn URL is stored
  *     directly on the contact (faster import, but the browser may 403).
+ *  3. "Show avatar status tooltips in dense lists" — UX comfort.
+ *     When OFF, the small ⓘ tooltips on contact tables / kanban / sidebar
+ *     avatars are suppressed; the visual badge stays so the state is
+ *     still discoverable.
  *
- * Both prefs are local to the device — they don't change what's stored
+ * All prefs are local to the device — they don't change what's stored
  * in the database, just what the UI requests / what the importer caches.
  */
 export default function PrivacySettings() {
   const disableLinkedInAvatars = useDisableLinkedInAvatars();
   const useAvatarProxy = useUseAvatarProxy();
+  const denseAvatarTooltips = useDenseAvatarTooltips();
 
   return (
     <div className="space-y-6">
@@ -118,6 +125,45 @@ export default function PrivacySettings() {
               "Refresh avatar" button on a contact to re-import a photo with
               the current setting.
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MessageSquareOff className="h-4 w-4 text-primary" />
+            Tooltips & hints
+          </CardTitle>
+          <CardDescription>
+            Reduce on-hover noise in dense surfaces like contact tables and
+            kanban cards.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-start justify-between gap-4 rounded-md border border-border bg-card p-4">
+            <div className="space-y-1">
+              <Label
+                htmlFor="dense-avatar-tooltips"
+                className="text-sm font-medium leading-none cursor-pointer"
+              >
+                Show avatar status tooltips in dense lists
+              </Label>
+              <p className="text-xs text-muted-foreground max-w-md">
+                When enabled (default), hovering or focusing an avatar in a
+                table, kanban card, or sidebar list shows a tooltip explaining
+                why the photo is missing or hidden. Turn this off if those
+                tooltips feel distracting — the small corner badge will still
+                appear so you can spot the state at a glance, and large
+                profile cards will keep their tooltips.
+              </p>
+            </div>
+            <Switch
+              id="dense-avatar-tooltips"
+              checked={denseAvatarTooltips}
+              onCheckedChange={setDenseAvatarTooltips}
+              aria-label="Show avatar status tooltips in dense lists"
+            />
           </div>
         </CardContent>
       </Card>
