@@ -15,6 +15,20 @@ function isLinkedInDerivedAvatar(url: string): boolean {
 }
 
 /**
+ * True when the URL is a *raw* LinkedIn CDN URL that did NOT go through
+ * our caching proxy. These are the high-risk loads — LinkedIn's CDN
+ * actively blocks third-party hot-linking, so they almost always 403.
+ * We surface a slightly different failure message in this case so users
+ * understand a "Refresh avatar" action will likely fix the problem.
+ */
+function isRawLinkedInUrl(url: string): boolean {
+  return /(^|\.)licdn\.com\//i.test(url);
+}
+
+/** Hard ceiling on how long we wait before treating the image as failed. */
+const LOAD_TIMEOUT_MS = 8000;
+
+/**
  * Avatar for a *person* (vs. CompanyAvatar which is for organizations).
  *
  * Rendering rules:
