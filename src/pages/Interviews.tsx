@@ -352,9 +352,9 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
                   );
                 }
 
-                // Follow-up item
+                // Follow-up item — local-day comparisons so today reads correctly in any tz.
                 const contact = item.contact;
-                const d = new Date(contact.followUpDate!);
+                const d = parseLocalDate(contact.followUpDate!) ?? new Date(contact.followUpDate!);
                 const overdue = isPast(d) && !isToday(d);
                 const today = isToday(d);
 
