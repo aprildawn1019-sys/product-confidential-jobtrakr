@@ -196,7 +196,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 className="h-10 w-10 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                 onClick={() => { handleNavClick(); openHelp(); }}
               >
-                <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} />
+                <CircleHelp className="h-5 w-5" strokeWidth={2} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">Help</TooltipContent>
