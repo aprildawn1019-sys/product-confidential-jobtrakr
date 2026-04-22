@@ -106,25 +106,46 @@ export function BoardCard({
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {isLinked ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onUnlinkTargetCompany(board)}
-              title="Remove target company link"
-              aria-label="Remove target company link"
-            >
-              <BookmarkMinus className="h-4 w-4 text-muted-foreground" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onUnlinkTargetCompany(board)}
+                  aria-label="Unflag careers page for target company"
+                >
+                  <BookmarkMinus className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs">
+                <p className="font-medium">Unflag careers page</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {linkedCompanyName
+                    ? `Stop tracking this board as the careers page for ${linkedCompanyName}.`
+                    : "Stop tracking this board as a target company's careers page."}
+                </p>
+              </TooltipContent>
+            </Tooltip>
           ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onLinkTargetCompany(board)}
-              title="Flag as a target company's careers page"
-              aria-label="Flag as a target company's careers page"
-            >
-              <BookmarkPlus className="h-4 w-4 text-muted-foreground" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onLinkTargetCompany(board)}
+                  aria-label="Flag as a target company's careers page"
+                >
+                  <BookmarkPlus className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs">
+                <p className="font-medium">Flag as careers page</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Link this board to a target company so it shows up as their
+                  official careers page in your sourcing workflow.
+                </p>
+              </TooltipContent>
+            </Tooltip>
           )}
           {board.url && (
             <Button variant="ghost" size="icon" asChild>
