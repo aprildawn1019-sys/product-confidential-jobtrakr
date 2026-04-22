@@ -8,6 +8,38 @@ import {
 } from "@/lib/privacyPrefs";
 
 /**
+ * Subscribes to the user's OS-level "reduced motion" preference. Returns
+ * `true` when motion should be minimized — components use this to swap
+ * spinning indicators for a static fallback so users with vestibular
+ * sensitivities (or who simply prefer calmer UIs) don't get continuous
+ * rotation animation. SSR-safe: defaults to `false` when `window` /
+ * `matchMedia` aren't available.
+ */
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState<boolean>(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return false;
+    }
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    // Older Safari only supports addListener/removeListener; guard for both.
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", handler);
+      return () => mql.removeEventListener("change", handler);
+    }
+    mql.addListener(handler);
+    return () => mql.removeListener(handler);
+  }, []);
+
+  return reduced;
+}
+
+/**
  * True when `url` points at a LinkedIn photo — either the raw CDN
  * (`media.licdn.com`) or our cached copy in the `linkedin-avatars`
  * Supabase storage bucket. The privacy toggle uses this to decide
@@ -68,6 +100,11 @@ export default function ContactAvatar({
   // any LinkedIn-derived URL as if it weren't present at all and render
   // initials with a small "privacy on" indicator instead.
   const privacyDisabled = useDisableLinkedInAvatars();
+  // Honor the OS-level reduced-motion setting: when enabled, the spinner
+  // overlay swaps to a static dot so we don't run a continuous rotation
+  // on every avatar in long lists (a known accessibility pain point for
+  // users with vestibular disorders).
+  const prefersReducedMotion = usePrefersReducedMotion();
   const isLinkedInPhoto = !!avatarUrl && isLinkedInDerivedAvatar(avatarUrl);
   const suppressedByPrivacy = privacyDisabled && isLinkedInPhoto;
 
@@ -170,15 +207,34 @@ export default function ContactAvatar({
         <span aria-hidden="true">{getInitials(name)}</span>
       )}
 
-      {/* Loading spinner overlays the initials placeholder so there's a
-          subtle hint that we're trying to fetch a photo. The initials
-          remain visible behind it as a graceful fallback. */}
+      {/* Loading indicator overlays the initials placeholder so there's
+          a subtle hint that we're trying to fetch a photo. The initials
+          remain visible behind it as a graceful fallback.
+
+          When the user prefers reduced motion, we swap the spinning
+          loader for a static, dimmed dot — the visual cue (something
+          is loading here) is preserved without the continuous rotation
+          that can trigger vestibular discomfort. The polite live region
+          elsewhere in this component still announces the state change
+          to assistive tech, so no information is lost. */}
       {showLoadingOverlay && (
         <span
           className="absolute inset-0 flex items-center justify-center bg-primary/60"
           aria-hidden="true"
         >
-          <Loader2 className={cn("animate-spin text-primary-foreground", indicatorSize)} />
+          {prefersReducedMotion ? (
+            <span
+              className={cn(
+                "rounded-full bg-primary-foreground/80",
+                // Render the static fallback at roughly half the icon
+                // size so it reads as a "pending" dot rather than a
+                // full-blown indicator competing with the initials.
+                size === "lg" ? "h-2 w-2" : size === "sm" ? "h-1.5 w-1.5" : "h-1.5 w-1.5",
+              )}
+            />
+          ) : (
+            <Loader2 className={cn("animate-spin text-primary-foreground", indicatorSize)} />
+          )}
         </span>
       )}
 
