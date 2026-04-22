@@ -6,9 +6,9 @@ import {
   UserCircle2, MoreHorizontal, Compass, BookOpen,
 } from "lucide-react";
 
-// Koudou brand mark — geometric K (white upper arm + amber lower arm
-// reading as a foot mid-stride). Asset: src/assets/brand/koudou-mark.png.
-import koudouMarkSrc from "@/assets/brand/koudou-mark.png";
+// Koudou brand mark — geometric K (ivory upper arm + amber lower arm
+// reading as a foot mid-stride). Sidebar uses the dark-surface variant.
+import koudouMarkSrc from "@/assets/brand/koudou-mark-dark.png";
 const KoudouMark = ({ className }: { className?: string }) => (
   <img src={koudouMarkSrc} alt="Koudou" className={className} />
 );
