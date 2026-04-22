@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to JobTrackr will be documented in this file.
+All notable changes to Koudou will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
@@ -18,8 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Renamed** primary surfaces: `/` is now **Command Center** (prioritized next steps + widgets); `/dashboard` is now **Dashboard** (search-funnel analytics: response rate by lane, time to first interview, weekly velocity)
 
 ### Changed
+- **Renamed application** from JobTrackr / Jobtrakr to **Koudou** (Japanese for "taking a path"). Internal storage keys (`jobtrakr.*`) and event names (`jobtrakr:*`) are intentionally unchanged so existing users keep their onboarding progress, privacy preferences, and saved state.
 - Renamed terminology: "Urgency" → **Priority** (Low / Medium / High); "Fit score" → **Match score** (manual 1–5 stars, never AI-assigned)
-- Branding updated to **Jobtrakr** by Product Confidential
 - Unified Interviews and contact follow-ups into a single **Schedule** page
 
 ### Removed

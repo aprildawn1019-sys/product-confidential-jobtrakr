@@ -1,6 +1,6 @@
-# JobTrackr
+# Koudou
 
-A full-funnel job search management application built with React, TypeScript, and Supabase. Track every opportunity end-to-end — from saved leads through applications, screenings, interviews, and offers — alongside the contacts and conversations that move each one forward.
+A full-funnel job search management application built with React, TypeScript, and Supabase. Track every opportunity end-to-end — from saved leads through applications, screenings, interviews, and offers — alongside the contacts and conversations that move each one forward. (The name "Koudou" is Japanese for "taking a path" — the active sense of moving forward along your route.)
 
 [![PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0-blue.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -11,7 +11,7 @@ A full-funnel job search management application built with React, TypeScript, an
 [![Supabase](https://img.shields.io/badge/Supabase-Backend-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com)
 
 <p align="center">
-  <img src="docs/images/hero.png" alt="Jobtrakr Command Center" width="800" />
+  <img src="docs/images/hero.png" alt="Koudou Command Center" width="800" />
 </p>
 
 ## Screenshots
@@ -251,7 +251,7 @@ All 8 edge functions use a shared config helper (`supabase/functions/_shared/ai-
 
 ## Deployment
 
-JobTrackr is a static SPA — deploy the `dist/` folder to any static host:
+Koudou is a static SPA — deploy the `dist/` folder to any static host:
 
 ```bash
 npm run build
@@ -300,7 +300,7 @@ supabase/
 
 ## Authentication
 
-JobTrackr uses email-based authentication with email verification, plus optional Google OAuth. All data is scoped per user via Row-Level Security policies.
+Koudou uses email-based authentication with email verification, plus optional Google OAuth. All data is scoped per user via Row-Level Security policies.
 
 ## Changelog
 

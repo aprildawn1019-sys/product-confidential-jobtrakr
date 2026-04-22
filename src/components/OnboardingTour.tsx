@@ -78,7 +78,7 @@ interface OnboardingTourProps {
 
 /**
  * Non-linear onboarding tour highlighting the three primary entry points
- * into the Jobtrakr workflow:
+ * into the Koudou workflow:
  *   1. AI Job Search   2. Network / Contacts   3. Target Companies
  *
  * The tour navigates between routes between steps so users see each page
@@ -101,9 +101,9 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
     {
       target: "body",
       placement: "center",
-      title: "Welcome to Jobtrakr 👋",
+      title: "Welcome to Koudou 👋",
       content:
-        "Quick intro before we dive in: your job search isn't linear, so Jobtrakr gives you four ways to start. We'll point them out — pick whichever matches how you're working today.",
+        "Quick intro before we dive in: your job search isn't linear, so Koudou gives you four ways to start. We'll point them out — pick whichever matches how you're working today.",
       disableBeacon: true,
       route: "/getting-started",
     },
@@ -111,7 +111,7 @@ export default function OnboardingTour({ run, onFinish }: OnboardingTourProps) {
       target: '[data-tour="entry-card-profile"]',
       title: "Start with your profile",
       content:
-        "Add your target roles, skills, locations, and comp expectations. Your profile powers job matching, recommendations, and AI-generated cover letters across Jobtrakr.",
+        "Add your target roles, skills, locations, and comp expectations. Your profile powers job matching, recommendations, and AI-generated cover letters across Koudou.",
       placement: "bottom",
       disableBeacon: true,
       route: "/getting-started",

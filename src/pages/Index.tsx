@@ -88,7 +88,7 @@ export default function Index() {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
               <Briefcase className="h-3.5 w-3.5 text-primary-foreground" />
             </div>
-            <span className="font-display text-base font-bold tracking-tight">JobTrackr</span>
+            <span className="font-display text-base font-bold tracking-tight">Koudou</span>
           </div>
         </header>
       )}

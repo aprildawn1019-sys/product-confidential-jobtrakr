@@ -8,14 +8,14 @@ Updated: now
 - Linear/Notion-inspired aesthetic, navy & amber theme. No pill-within-pill status indicators.
 - Page headers: big title + one-line subtitle, **no buttons in the header**. Push actions into their panel.
 - Page titles are single nouns: `Jobs`, `Contacts`, `Interviews`, `Command Center`. Not `Job Pipeline`, `Connections`, `Schedule`.
-- Brand wordmark is `Jobtrakr` (lowercase t/r), amber rounded square mark in the sidebar header.
+- Brand wordmark is `Koudou` (Japanese for "taking a path"), amber rounded square mark in the sidebar header. Renamed from `Jobtrakr` / `JobTrackr` — internal `jobtrakr.*` localStorage keys and `jobtrakr:*` event names are intentionally kept to preserve user state across the rename.
 - Sidebar IA: TODAY / PIPELINE / LIBRARY / INSIGHTS. `/` Command Center, `/insights` analytics (renamed from `/dashboard`, redirects). Settings tabbed at `/settings/{profile|data-export}`.
 - Supabase Auth (registrations disabled by default). Gemini AI for edge functions.
 - Terminology: Priority (Low/Medium/High, NEVER critical), Match Score (manual 1-5 stars).
 - CONSTRAINT: Never use AI for match scoring. The user explicitly declined this.
 - No third-party scraping services. Use Edge Function + Gemini for scraping.
 - Exclude gated job boards from auto-searches; use manual check workflow.
-- Branding: 'Jobtrakr' by Product Confidential. PolyForm Noncommercial 1.0.0.
+- Branding: 'Koudou' by Product Confidential. PolyForm Noncommercial 1.0.0.
 
 ## Memories
 - [Visual Theme v2 (BINDING)](mem://style/visual-theme-v2) — Calm Operations spec; lists every spec asset and the rules they encode

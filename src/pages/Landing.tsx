@@ -57,7 +57,7 @@ export default function Landing() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
             <Briefcase className="h-4.5 w-4.5 text-primary-foreground" />
           </div>
-          <span className="font-display text-xl font-bold tracking-tight text-foreground">JobTrackr</span>
+          <span className="font-display text-xl font-bold tracking-tight text-foreground">Koudou</span>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <Button variant="ghost" size="sm" className="sm:size-default" onClick={() => navigate("/auth?mode=login")}>
@@ -82,7 +82,7 @@ export default function Landing() {
             <span className="text-primary">Track the entire funnel.</span>
           </h1>
           <p className="mt-4 sm:mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            JobTrackr follows every opportunity through each stage — saved, applied, screening, interviewing, offer — together with the contacts, conversations, and follow-ups that move it forward.
+            Koudou follows every opportunity through each stage — saved, applied, screening, interviewing, offer — together with the contacts, conversations, and follow-ups that move it forward.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6 sm:mt-8">
             <Button size="lg" className="w-full sm:w-auto gap-2 text-base px-6" onClick={() => navigate("/auth?mode=signup")}>
@@ -102,11 +102,11 @@ export default function Landing() {
               <div className="h-3 w-3 rounded-full bg-destructive/60" />
               <div className="h-3 w-3 rounded-full bg-warning/60" />
               <div className="h-3 w-3 rounded-full bg-success/60" />
-              <span className="ml-3 text-xs text-muted-foreground font-medium">JobTrackr — Command Center</span>
+              <span className="ml-3 text-xs text-muted-foreground font-medium">Koudou — Command Center</span>
             </div>
             <img
               src={dashboardMockup}
-              alt="JobTrackr Command Center showing the prioritized next-steps queue, pipeline widgets, and company avatars"
+              alt="Koudou Command Center showing the prioritized next-steps queue, pipeline widgets, and company avatars"
               className="w-full"
               loading="eager"
             />
@@ -149,7 +149,7 @@ export default function Landing() {
             Ready to take control of your job search?
           </h2>
           <p className="mt-3 text-muted-foreground text-base sm:text-lg">
-            Join JobTrackr and never lose track of an opportunity again.
+            Join Koudou and never lose track of an opportunity again.
           </p>
           <Button size="lg" className="mt-6 sm:mt-8 w-full sm:w-auto gap-2 text-base px-8" onClick={() => navigate("/auth?mode=signup")}>
             Get Started Free <ArrowRight className="h-4 w-4" />
@@ -162,7 +162,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Briefcase className="h-4 w-4" />
-            <span>JobTrackr</span>
+            <span>Koudou</span>
           </div>
           <div className="flex items-center gap-4">
             <a href="https://github.com/aprildawn1019-sys/product-confidential-jobtrakr" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</a>

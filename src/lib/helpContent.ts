@@ -36,11 +36,11 @@ export const HELP_CATEGORIES: HelpCategory[] = [
 export const HELP_ARTICLES: HelpArticle[] = [
   {
     id: "getting-started-overview",
-    title: "How Jobtrakr is organized",
+    title: "How Koudou is organized",
     category: "Getting Started",
     tags: ["intro", "overview", "tour", "navigation"],
     relatedRoutes: ["/getting-started"],
-    body: `Jobtrakr is built around four entry paths so you can start the way that fits how you actually job hunt:
+    body: `Koudou is built around four entry paths so you can start the way that fits how you actually job hunt:
 
 - Build your foundation — fill out your Search Profile so AI features can personalize results.
 - Search for live roles — use AI Job Search and Job Boards to surface openings.
@@ -104,7 +104,7 @@ We deliberately don’t use AI to auto-score matches because fit involves tradeo
     relatedRoutes: ["/jobs"],
     body: `Use the Bulk Upload option from the Job Pipeline to import CSV or XLSX files.
 
-- Headers don’t need to match exactly — an AI step maps your columns to Jobtrakr fields.
+- Headers don’t need to match exactly — an AI step maps your columns to Koudou fields.
 - Review the preview before confirming the import; you can fix mappings inline.
 - Required: title and company. Everything else (location, salary, status, notes) is optional.`,
   },
@@ -186,7 +186,7 @@ Cover letter generation is rate-limited per user (currently 20/hour) to keep cos
     category: "Profile",
     tags: ["resume", "cv", "parse", "upload", "profile"],
     relatedRoutes: ["/profile"],
-    body: `Upload a PDF, DOCX, or text resume on the Search Profile page and Jobtrakr will auto-fill your profile fields.
+    body: `Upload a PDF, DOCX, or text resume on the Search Profile page and Koudou will auto-fill your profile fields.
 
 ## What gets extracted
 - Summary, target roles, years of experience.
@@ -285,7 +285,7 @@ Use "Refresh All Skills" to re-extract skills from all current jobs (useful afte
     category: "Account",
     tags: ["password", "security", "hibp", "auth", "account"],
     relatedRoutes: ["/auth"],
-    body: `Jobtrakr uses email + password auth with leaked-password protection enabled.
+    body: `Koudou uses email + password auth with leaked-password protection enabled.
 
 ## Password rules
 - Passwords are checked against the Have I Been Pwned database during signup and password change. Breached passwords are rejected with a clear error.
@@ -301,7 +301,7 @@ Use "Refresh All Skills" to re-extract skills from all current jobs (useful afte
     category: "Account",
     tags: ["rate limit", "ai", "quota", "limits"],
     relatedRoutes: [],
-    body: `To keep AI features fast and affordable, Jobtrakr caps how often each user can call certain functions per hour:
+    body: `To keep AI features fast and affordable, Koudou caps how often each user can call certain functions per hour:
 
 - Resume parsing — 10 per hour.
 - Cover letter generation — 20 per hour.
