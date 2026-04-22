@@ -262,10 +262,12 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
 
   return (
     <>
-      {/* Brand lockup: geometric-K mark + "Koudou" wordmark, Space Grotesk 700 @ 20px. */}
+      {/* Brand lockup: geometric-K mark + "Koudou" wordmark, Space Grotesk 700 @ 20px.
+          leading-none + pt-0.5 optically centers the wordmark against the mark, which
+          carries internal padding. */}
       <div className="flex h-16 items-center gap-2.5 px-4">
         <BrandMark className="h-9 w-9" />
-        <span className="font-display text-xl font-bold tracking-tight text-sidebar-foreground">
+        <span className="font-display text-xl font-bold leading-none tracking-tight text-sidebar-foreground pt-0.5">
           Koudou
         </span>
       </div>
