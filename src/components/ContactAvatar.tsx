@@ -230,7 +230,18 @@ export default function ContactAvatar({
             aria-label={tooltipLabel}
             className={cn(
               "rounded-full inline-flex shrink-0",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              // WCAG 2.1 SC 1.4.11 (non-text contrast ≥ 3:1) and 2.4.7 (visible focus):
+              //   - Inner ring is the page background color so the focus indicator
+              //     reads as a crisp gap on any surface (cards, sidebar, dialogs)
+              //     in both light and dark themes.
+              //   - Outer ring uses --ring (navy in light, amber-tinted in dark via
+              //     sidebar surfaces) at full opacity and 3px thickness, giving
+              //     well over the 3:1 contrast minimum against both the avatar's
+              //     primary fill and the surrounding surface tokens.
+              "focus:outline-none",
+              "focus-visible:outline-none",
+              "focus-visible:ring-[3px] focus-visible:ring-ring",
+              "focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             )}
           >
             {avatarNode}
