@@ -243,21 +243,25 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   }
 
   // === EXPANDED ===
-  // Hero spec: active row uses a calm navy fill only — no amber accent bar.
-  // Inactive rows are muted; hover lifts contrast slightly.
+  // Per the new spec, the active row uses a calm navy fill *plus* a thin
+  // amber bar on the left edge — that bar is what makes "Command Center"
+  // pop in the mockup. Inactive rows stay muted; hover lifts contrast.
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
       "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
       isActive
-        ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+        ? "bg-sidebar-accent text-sidebar-foreground font-semibold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
         : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
     );
 
   return (
     <>
-      <div className="flex h-16 items-center gap-2.5 px-6">
-        <KoudouMark className="h-8 w-8 rounded-lg" />
-        <span className="font-display text-lg font-bold tracking-tight">Koudou</span>
+      {/* Brand lockup: amber square + Jobtrakr wordmark, per the v3 sidebar spec. */}
+      <div className="flex h-16 items-center gap-2.5 px-5">
+        <BrandTile className="h-6 w-6" />
+        <span className="font-display text-[17px] font-bold tracking-tight text-sidebar-foreground">
+          Jobtrakr
+        </span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1" aria-label="Primary">
@@ -274,24 +278,21 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               )
             }
           >
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="h-4 w-4" strokeWidth={1.75} />
             Getting Started
           </NavLink>
         )}
 
         {groups.map((group) => {
-          // Hero spec: section labels carry a leading icon + trailing chevron,
-          // rendered in the muted-gold sidebar-group-foreground tone (not bright
-          // amber) so labels read as quiet category headers, not active controls.
-          const GroupIcon = group.icon;
+          // Group labels: amber, uppercase, no leading icon, no chevron.
+          // The new spec treats them as quiet section headers — the navigation
+          // weight comes from the items themselves.
           return (
-            <div key={group.label} className="pt-4 first:pt-1">
-              <div className="flex items-center justify-between px-3 pb-1.5">
-                <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-sidebar-group-foreground">
-                  <GroupIcon className="h-3.5 w-3.5" />
+            <div key={group.label} className="pt-5 first:pt-1">
+              <div className="px-3 pb-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-sidebar-group-foreground">
                   {group.label}
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-sidebar-group-foreground/60" />
               </div>
               <div className="space-y-0.5">
                 {group.items.map(({ to, icon: Icon, label, tourId, end }) => (
