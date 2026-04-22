@@ -120,7 +120,7 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     const urgency = urgencyFromDate(c.followUpDate);
     if (urgency === "later") continue;
     const daysOverdue = urgency === "overdue"
-      ? Math.max(0, differenceInDays(now, parseISO(c.followUpDate)))
+      ? Math.max(0, differenceInCalendarDays(now, parseLocalDate(c.followUpDate) ?? now))
       : 0;
     const activeLinkedJob = linkedJobs.find((j) => !INACTIVE_JOB_STATUSES.has(j.status));
     const networkRole = c.networkRole as NetworkRole | undefined;
@@ -153,14 +153,14 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     const job = input.jobs.find((j) => j.id === i.jobId);
     if (!job) continue;
     const daysOverdue = urgency === "overdue"
-      ? Math.max(0, differenceInDays(now, parseISO(i.date)))
+      ? Math.max(0, differenceInCalendarDays(now, parseLocalDate(i.date) ?? now))
       : 0;
     // Subtitle includes the date so users always see WHEN the interview is,
     // not just the time. The urgency chip on the row covers "overdue/today/soon",
     // but a literal date avoids ambiguity (e.g. "Fri Apr 25 · 2:00 PM").
     const ivDate = (() => {
-      const d = i.date.length <= 10 ? parseISO(i.date) : new Date(i.date);
-      if (isNaN(d.getTime())) return i.date;
+      const d = parseLocalDate(i.date);
+      if (!d) return i.date;
       return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
     })();
     actions.push({
@@ -183,7 +183,7 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     if (r.status !== "pending") continue;
     const requested = r.requestedAt ? new Date(r.requestedAt) : null;
     if (!requested || isNaN(requested.getTime())) continue;
-    const daysSinceAsked = differenceInDays(now, requested);
+    const daysSinceAsked = differenceInCalendarDays(now, requested);
     if (daysSinceAsked < 7) continue;
     const contact = input.contacts.find((c) => c.id === r.contactId);
     if (!contact) continue;
