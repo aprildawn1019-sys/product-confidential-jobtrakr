@@ -355,21 +355,36 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         })}
       </nav>
 
-      {/* Footer: avatar + Settings + Help. Profile glyph removed (redundant
-          with avatar dropdown). All three peers share the same surface
-          treatment so they read as a single utility row. */}
-      <div className="border-t border-sidebar-border px-2 py-2.5">
-        <div className="flex items-center gap-1.5">
+      {/* Footer: name on row 1, then a single utility row of equal-sized
+          32px buttons (avatar, Settings, Help) so they align as peers. */}
+      <div className="border-t border-sidebar-border px-2 py-2.5 space-y-1.5">
+        <div className="px-1">
+          <p className="truncate text-xs font-medium text-sidebar-foreground" title={user.name}>
+            {user.name}
+          </p>
+          {user.email && user.email !== user.name && (
+            <p className="truncate text-[11px] text-sidebar-muted" title={user.email}>
+              {user.email}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-[11px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors"
-                aria-label={`Account menu for ${user.name}`}
-              >
-                {user.initials}
-              </button>
-            </DropdownMenuTrigger>
+            <Tooltip delayDuration={150}>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent text-[11px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors"
+                    aria-label={`Account menu for ${user.name}`}
+                  >
+                    {user.initials}
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="top">Account</TooltipContent>
+            </Tooltip>
             <DropdownMenuContent side="top" align="start" className="w-56">
               <div className="px-2 py-1.5">
                 <p className="text-sm font-medium truncate">{user.name}</p>
@@ -393,46 +408,41 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <span className="truncate text-xs text-sidebar-muted flex-1 min-w-0" title={user.name}>
-            {user.name}
-          </span>
+          <Tooltip delayDuration={150}>
+            <TooltipTrigger asChild>
+              <NavLink
+                to="/settings"
+                end
+                onClick={handleNavClick}
+                className={({ isActive }) =>
+                  cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
+                    isActive || location.pathname.startsWith("/settings")
+                      ? "bg-sidebar-accent text-sidebar-primary"
+                      : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                  )
+                }
+                aria-label="Settings"
+              >
+                <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
+              </NavLink>
+            </TooltipTrigger>
+            <TooltipContent side="top">Settings</TooltipContent>
+          </Tooltip>
 
-          <div className="flex items-center gap-0.5 shrink-0">
-            <Tooltip delayDuration={150}>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to="/settings"
-                  end
-                  onClick={handleNavClick}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
-                      isActive || location.pathname.startsWith("/settings")
-                        ? "bg-sidebar-accent text-sidebar-primary"
-                        : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                    )
-                  }
-                  aria-label="Settings"
-                >
-                  <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side="top">Settings</TooltipContent>
-            </Tooltip>
-            <Tooltip delayDuration={150}>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={() => { handleNavClick(); openHelp(); }}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
-                  aria-label="Help"
-                >
-                  <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Help</TooltipContent>
-            </Tooltip>
-          </div>
+          <Tooltip delayDuration={150}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => { handleNavClick(); openHelp(); }}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
+                aria-label="Help"
+              >
+                <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top">Help</TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </>
