@@ -108,6 +108,13 @@ interface CompanyAvatarProps {
    *   not the primary recognition cue.
    */
   tone?: "brand" | "neutral";
+  /**
+   * When true, skip the logo cascade entirely and always render the
+   * deterministic initial chip. Use on decorative surfaces (e.g. Command
+   * Center Next Steps) where rows aren't always companies and Google's
+   * favicon fallback returns wrong/random glyphs for non-company seeds.
+   */
+  disableLogoFetch?: boolean;
   className?: string;
 }
 
@@ -117,14 +124,15 @@ export default function CompanyAvatar({
   website,
   size = "sm",
   tone = "brand",
+  disableLogoFetch = false,
   className,
 }: CompanyAvatarProps) {
   // Index into the candidate cascade. When the current src errors, we bump
   // the index to try the next source. -1 sentinel means "all sources
   // exhausted, render the initial-chip fallback".
   const candidates = useMemo(
-    () => buildLogoCandidates({ logoUrl, website, company }),
-    [logoUrl, website, company],
+    () => (disableLogoFetch ? [] : buildLogoCandidates({ logoUrl, website, company })),
+    [disableLogoFetch, logoUrl, website, company],
   );
   const [idx, setIdx] = useState(0);
 
