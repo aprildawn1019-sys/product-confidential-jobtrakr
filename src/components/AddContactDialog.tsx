@@ -478,31 +478,58 @@ export default function AddContactDialog({
           {importError && (
             <div
               role="alert"
-              className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm"
+              // Rate-limit failures use a calmer warning palette (amber)
+              // because they're transient and self-resolving — destructive
+              // styling would over-signal severity. Hard failures keep the
+              // existing destructive treatment.
+              className={
+                importError.rateLimited
+                  ? "rounded-md border border-warning/40 bg-warning/10 p-3 text-sm"
+                  : "rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm"
+              }
             >
               <div className="flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-destructive" />
+                {importError.rateLimited ? (
+                  <Clock className="h-4 w-4 mt-0.5 shrink-0 text-warning-foreground" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-destructive" />
+                )}
                 <div className="flex-1 space-y-1.5 min-w-0">
                   <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                    <p className="font-medium text-destructive">LinkedIn import failed</p>
+                    <p
+                      className={
+                        importError.rateLimited
+                          ? "font-medium text-foreground"
+                          : "font-medium text-destructive"
+                      }
+                    >
+                      {importError.rateLimited
+                        ? "LinkedIn scraper is temporarily busy"
+                        : "LinkedIn import failed"}
+                    </p>
                     {/* Relative timestamp helps when the panel was
                         restored from sessionStorage on reopen — gives
                         the user context for whether to retry now. */}
                     <p className="text-[11px] text-muted-foreground shrink-0">
-                      Failed {formatRelativeTime(importError.failedAt)}
+                      {importError.rateLimited ? "Detected" : "Failed"}{" "}
+                      {formatRelativeTime(importError.failedAt)}
                     </p>
                   </div>
                   <p className="text-muted-foreground break-words">{importError.message}</p>
                   <p className="text-[11px] text-muted-foreground break-all font-mono">
                     {importError.attemptedUrl}
                   </p>
-                  <div className="flex gap-2 pt-1">
+                  <div className="flex items-center gap-2 pt-1 flex-wrap">
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
                       onClick={() => handleLinkedinFetch(importError.attemptedUrl)}
-                      disabled={fetchingLinkedin}
+                      // Block retry while a request is in flight OR while
+                      // the rate-limit cool-down is still counting down.
+                      // Both states would otherwise let the user fire off
+                      // a request that's almost guaranteed to 429 again.
+                      disabled={fetchingLinkedin || retryCooldown > 0}
                       aria-busy={fetchingLinkedin}
                       className="h-7 gap-1.5"
                     >
@@ -510,6 +537,11 @@ export default function AddContactDialog({
                         <>
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           Retrying…
+                        </>
+                      ) : retryCooldown > 0 ? (
+                        <>
+                          <Clock className="h-3.5 w-3.5" />
+                          Retry in {retryCooldown}s
                         </>
                       ) : (
                         <>
