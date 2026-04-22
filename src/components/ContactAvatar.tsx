@@ -1,20 +1,25 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
  * Avatar for a *person* (vs. CompanyAvatar which is for organizations).
  *
- * We always render initials for contacts. We previously attempted to use
- * LinkedIn profile photos (and a DiceBear fallback), but LinkedIn's CDN
- * blocks third-party hotlinking — every URL we captured rendered as a
- * broken image. Initials are predictable, accessible, and never break.
+ * Rendering rules — kept simple on purpose so the Contacts surface stays
+ * predictable as we wire up LinkedIn auto-import:
  *
- * The `avatarUrl` prop is intentionally accepted but ignored so existing
- * call sites and stored data don't need to change in lockstep.
+ *   1. If `avatarUrl` is present and loads → show the photo.
+ *   2. If the image 404s / 403s (LinkedIn CDN URLs can expire) → silently
+ *      fall back to initials. We never show a broken image icon.
+ *   3. If no URL → initials from the contact's name (first letter of first
+ *      and last word, max 2 chars).
+ *
+ * The styling matches the existing circular placeholder used on the
+ * Contacts page (`bg-primary text-primary-foreground`, `font-display`)
+ * so swapping a photo in/out is visually seamless.
  */
 
 interface ContactAvatarProps {
   name: string;
-  /** Accepted for back-compat; intentionally ignored. */
   avatarUrl?: string | null;
   size?: "sm" | "md" | "lg";
   className?: string;
@@ -29,15 +34,20 @@ function getInitials(name: string): string {
 
 export default function ContactAvatar({
   name,
+  avatarUrl,
   size = "md",
   className,
 }: ContactAvatarProps) {
+  const [imgFailed, setImgFailed] = useState(false);
+
   const dim =
     size === "lg"
       ? "h-14 w-14 text-base"
       : size === "sm"
-        ? "h-8 w-8 text-xs"
-        : "h-10 w-10 text-sm";
+      ? "h-8 w-8 text-xs"
+      : "h-10 w-10 text-sm";
+
+  const showImage = !!avatarUrl && !imgFailed;
 
   return (
     <div
@@ -49,7 +59,18 @@ export default function ContactAvatar({
       )}
       aria-label={name}
     >
-      <span aria-hidden="true">{getInitials(name)}</span>
+      {showImage ? (
+        <img
+          src={avatarUrl ?? undefined}
+          alt={name}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => setImgFailed(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <span aria-hidden="true">{getInitials(name)}</span>
+      )}
     </div>
   );
 }

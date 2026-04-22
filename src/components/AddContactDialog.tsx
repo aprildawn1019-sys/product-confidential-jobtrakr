@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Loader2, CheckCircle2, UserCircle2, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import ContactAvatar from "@/components/ContactAvatar";
@@ -20,6 +21,16 @@ interface AddContactDialogProps {
   defaultNetworkRole?: NetworkRole;
   hideTrigger?: boolean;
 }
+
+// Tracks what we were able to pull from a LinkedIn fetch so the UI can
+// surface a clear, honest status badge to the user.
+//   - idle:      no fetch attempted yet (or form was reset)
+//   - extracted: fetch succeeded and at least one field was populated
+//   - partial:   fetch succeeded but returned no usable fields
+//   - failed:    fetch threw / returned an error
+// Avatars are intentionally NOT part of this status — LinkedIn blocks
+// hotlinking, so contacts always render with initials regardless.
+type ImportStatus = "idle" | "extracted" | "partial" | "failed";
 
 export default function AddContactDialog({
   onAdd,
@@ -37,6 +48,8 @@ export default function AddContactDialog({
     onOpenChange?.(v);
   };
   const [fetchingLinkedin, setFetchingLinkedin] = useState(false);
+  const [importStatus, setImportStatus] = useState<ImportStatus>("idle");
+  const [extractedFields, setExtractedFields] = useState<string[]>([]);
   const [form, setForm] = useState({
     name: "", company: defaultCompany || "", role: "", email: "", phone: "", linkedin: "", notes: "",
     relationshipWarmth: "", conversationLog: "", networkRole: defaultNetworkRole || "",
@@ -62,8 +75,12 @@ export default function AddContactDialog({
       const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
       if (error || !data?.success) throw new Error(data?.error || error?.message || "Failed");
       const d = data.data;
-      // We no longer attempt to import a profile photo — LinkedIn's CDN
-      // blocks third-party requests, so the avatar always shows initials.
+      // Track which specific fields the scraper actually returned so the
+      // status badge can list them (e.g. "Extracted: name, role").
+      const got: string[] = [];
+      if (d.name) got.push("name");
+      if (d.role) got.push("role");
+      if (d.company) got.push("company");
       setForm(f => ({
         ...f,
         name: d.name || f.name,
@@ -71,11 +88,17 @@ export default function AddContactDialog({
         company: d.company || f.company,
         linkedin: d.linkedin || f.linkedin,
       }));
+      setExtractedFields(got);
+      setImportStatus(got.length > 0 ? "extracted" : "partial");
       toast({
-        title: "Contact info extracted!",
-        description: `Found: ${d.name || "Unknown"}`,
+        title: got.length > 0 ? "Contact info extracted!" : "No info extracted",
+        description: got.length > 0
+          ? `Found: ${d.name || "Unknown"}`
+          : "LinkedIn returned no usable fields — fill in manually.",
       });
     } catch (e: any) {
+      setImportStatus("failed");
+      setExtractedFields([]);
       toast({ title: "LinkedIn fetch failed", description: e.message, variant: "destructive" });
     } finally {
       setFetchingLinkedin(false);
@@ -95,7 +118,53 @@ export default function AddContactDialog({
       name: "", company: "", role: "", email: "", phone: "", linkedin: "", notes: "",
       relationshipWarmth: "", conversationLog: "", networkRole: "",
     });
+    setImportStatus("idle");
+    setExtractedFields([]);
     setOpen(false);
+  };
+
+  // Renders the import status badge shown next to the avatar. Always shows
+  // *something* so users immediately understand: (a) avatars are initials-
+  // only by design, and (b) whether their LinkedIn fetch succeeded.
+  const renderStatusBadge = () => {
+    if (fetchingLinkedin) {
+      return (
+        <Badge variant="secondary" className="gap-1">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Fetching from LinkedIn…
+        </Badge>
+      );
+    }
+    if (importStatus === "extracted") {
+      return (
+        <Badge variant="success" className="gap-1">
+          <CheckCircle2 className="h-3 w-3" />
+          Extracted: {extractedFields.join(", ")}
+        </Badge>
+      );
+    }
+    if (importStatus === "partial") {
+      return (
+        <Badge variant="warning" className="gap-1">
+          <AlertCircle className="h-3 w-3" />
+          No fields extracted
+        </Badge>
+      );
+    }
+    if (importStatus === "failed") {
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <AlertCircle className="h-3 w-3" />
+          LinkedIn fetch failed
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="outline" className="gap-1">
+        <UserCircle2 className="h-3 w-3" />
+        Using initials only
+      </Badge>
+    );
   };
 
   return (
@@ -110,15 +179,18 @@ export default function AddContactDialog({
           <DialogTitle className="font-display">Add Connection</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Avatar preview — always renders initials. We removed the
-              profile-photo URL field because LinkedIn blocks third-party
-              hotlinks, which made the photo path unreliable. */}
+          {/* Avatar + import status. Avatar is always initials (LinkedIn
+              blocks hotlinking profile photos). The badge tells the user
+              exactly what state the LinkedIn import is in so they're never
+              guessing whether the Fetch button worked. */}
           <div className="flex items-center gap-3">
             <ContactAvatar name={form.name || "?"} size="lg" />
-            <p className="text-xs text-muted-foreground">
-              Contacts use initials in their avatar — LinkedIn doesn't allow
-              external apps to display profile photos.
-            </p>
+            <div className="flex-1 space-y-1.5">
+              {renderStatusBadge()}
+              <p className="text-[11px] text-muted-foreground leading-tight">
+                Contacts use initials — LinkedIn blocks third-party apps from showing profile photos.
+              </p>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
