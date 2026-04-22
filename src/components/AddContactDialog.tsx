@@ -33,6 +33,76 @@ interface AddContactDialogProps {
 // hotlinking, so contacts always render with initials regardless.
 type ImportStatus = "idle" | "extracted" | "partial" | "failed";
 
+// We persist the most recent LinkedIn import failure across dialog
+// open/close cycles using sessionStorage. Rationale:
+//   • If the user accidentally hits Esc / clicks outside the dialog,
+//     reopening shouldn't lose the error message and the URL that broke.
+//   • sessionStorage (not localStorage) keeps it per-tab and clears on
+//     browser close — this is debugging context, not a long-lived pref.
+//   • Stored as JSON so we can include the original timestamp for the
+//     "Failed N minutes ago" hint.
+const ERROR_STORAGE_KEY = "jobtrakr.addContact.lastImportError";
+
+interface PersistedImportError {
+  message: string;
+  attemptedUrl: string;
+  failedAt: number; // Date.now() when the failure occurred
+}
+
+function loadPersistedError(): PersistedImportError | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(ERROR_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Defensive: ensure the shape is what we expect before trusting it.
+    if (
+      typeof parsed?.message === "string" &&
+      typeof parsed?.attemptedUrl === "string" &&
+      typeof parsed?.failedAt === "number"
+    ) {
+      return parsed as PersistedImportError;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function savePersistedError(err: PersistedImportError | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (err) {
+      window.sessionStorage.setItem(ERROR_STORAGE_KEY, JSON.stringify(err));
+    } else {
+      window.sessionStorage.removeItem(ERROR_STORAGE_KEY);
+    }
+  } catch {
+    /* sessionStorage unavailable — fall back to in-memory only */
+  }
+}
+
+function formatRelativeTime(timestamp: number): string {
+  const diffMs = Date.now() - timestamp;
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.round(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
+// Tracks what we were able to pull from a LinkedIn fetch so the UI can
+// surface a clear, honest status badge to the user.
+//   - idle:      no fetch attempted yet (or form was reset)
+//   - extracted: fetch succeeded and at least one field was populated
+//   - partial:   fetch succeeded but returned no usable fields
+//   - failed:    fetch threw / returned an error
+// Avatars are intentionally NOT part of this status — LinkedIn blocks
+// hotlinking, so contacts always render with initials regardless.
+type ImportStatus = "idle" | "extracted" | "partial" | "failed";
+
 export default function AddContactDialog({
   onAdd,
   open: controlledOpen,
@@ -55,11 +125,20 @@ export default function AddContactDialog({
   // error block (instead of relying solely on the toast, which disappears
   // before the user can act on it). `attemptedUrl` is preserved so the
   // retry button always hits the exact URL that originally failed, even
-  // if the user has since edited the LinkedIn input.
-  const [importError, setImportError] = useState<{
-    message: string;
-    attemptedUrl: string;
-  } | null>(null);
+  // if the user has since edited the LinkedIn input. Hydrated from
+  // sessionStorage on mount so an accidental dismissal of the dialog
+  // doesn't lose the error context.
+  const [importError, setImportError] = useState<PersistedImportError | null>(
+    () => loadPersistedError(),
+  );
+  // If we hydrated an error from storage, also restore the "failed"
+  // status badge so the UI reflects the persisted state on reopen.
+  useEffect(() => {
+    if (importError && importStatus === "idle") {
+      setImportStatus("failed");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [form, setForm] = useState({
     name: "", company: defaultCompany || "", role: "", email: "", phone: "", linkedin: "", notes: "",
     relationshipWarmth: "", conversationLog: "", networkRole: defaultNetworkRole || "",
