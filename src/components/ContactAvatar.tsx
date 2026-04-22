@@ -228,12 +228,20 @@ export default function ContactAvatar({
   // Choose the explanatory copy based on which indicator is showing.
   // Privacy takes precedence (and is mutually exclusive in practice
   // because suppressedByPrivacy hides the URL before it can fail).
+  // For failures we further distinguish raw LinkedIn URLs (proxy
+  // didn't run) from cached/proxied URLs that still failed (network
+  // stall, deleted bucket object, etc.) so the suggested next step
+  // matches reality.
+  const isRawFailure =
+    showFailedIndicator && !!effectiveUrl && isRawLinkedInUrl(effectiveUrl);
   const tooltipLabel = showPrivacyIndicator
     ? `${name} — LinkedIn photo hidden by privacy settings.`
     : `${name} — profile photo unavailable. Why?`;
   const tooltipBody = showPrivacyIndicator
     ? "LinkedIn photos are hidden because you disabled avatar proxying in Settings → Privacy. Initials are shown instead."
-    : "Profile photo unavailable. LinkedIn blocks third-party apps from displaying member photos, so we're using initials instead.";
+    : isRawFailure
+    ? "This contact's photo is a direct LinkedIn URL that the browser can't load. Use \u201CRefresh avatar\u201D to fetch and cache a fresh copy through our proxy."
+    : "Profile photo unavailable. The cached image couldn't be loaded — try \u201CRefresh avatar\u201D to fetch the latest version from LinkedIn.";
 
   // Radix Tooltip requires a focusable trigger so keyboard users can
   // discover the explanation. We wrap the avatar in a real <button> with
