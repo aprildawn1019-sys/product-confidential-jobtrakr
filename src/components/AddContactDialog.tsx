@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -229,6 +229,14 @@ export default function AddContactDialog({
   // no-op interval) for non-rate-limit errors, so calling it
   // unconditionally is safe.
   const retryCooldown = useRetryCountdown(importError);
+  // Tracks the LinkedIn URLs the user has already fetched during this
+  // dialog session. The *second* (and subsequent) fetch of the same URL
+  // is treated as an explicit re-import: we ask the avatar proxy to
+  // bypass its hash cache and re-fetch the photo from LinkedIn so an
+  // updated profile picture actually overwrites the stored bytes.
+  // A ref (vs. state) avoids re-renders — this is purely a side-channel
+  // signal for the next request.
+  const fetchedUrlsRef = useRef<Set<string>>(new Set());
   const [form, setForm] = useState({
     name: "", company: defaultCompany || "", role: "", email: "", phone: "", linkedin: "", notes: "",
     relationshipWarmth: "", conversationLog: "", networkRole: defaultNetworkRole || "",
@@ -264,7 +272,14 @@ export default function AddContactDialog({
     let invokeData: any = null;
     let invokeError: any = null;
     try {
-      const res = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
+      // Re-fetching a URL we've already pulled this session means the
+      // user is doing a deliberate re-import — flip the flag so the
+      // edge function tells the avatar proxy to overwrite its cached
+      // copy instead of returning the same stored bytes.
+      const isReimport = fetchedUrlsRef.current.has(fullUrl);
+      const res = await supabase.functions.invoke("scrape-linkedin", {
+        body: { url: fullUrl, forceRefreshAvatar: isReimport },
+      });
       invokeData = res.data;
       invokeError = res.error;
       if (invokeError || !invokeData?.success) {
@@ -272,6 +287,10 @@ export default function AddContactDialog({
         // then the FunctionsError message, falling back to a generic note.
         throw new Error(invokeData?.error || invokeError?.message || "Unknown error from scrape-linkedin");
       }
+      // Mark this URL as fetched so a subsequent click on Fetch / Retry
+      // is treated as a re-import. We only record on success — a failed
+      // attempt shouldn't promote the next try to "force refresh" mode.
+      fetchedUrlsRef.current.add(fullUrl);
       const d = invokeData.data;
       // Track which specific fields the scraper actually returned so the
       // status badge can list them (e.g. "Extracted: name, role").

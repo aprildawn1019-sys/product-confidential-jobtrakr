@@ -57,7 +57,18 @@ Deno.serve(async (req) => {
     const auth = await requireUser(req, corsHeaders);
     if (auth.errorResponse) return auth.errorResponse;
 
-    const { url } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { url } = body ?? {};
+    // `forceRefresh` opts out of the SHA-256 hash cache for this call:
+    //   • Same upstream URL → same hash → normally returns the cached
+    //     copy without ever hitting LinkedIn again.
+    //   • When the user *re-imports* the same contact and the underlying
+    //     photo was updated upstream, the URL often stays identical
+    //     (LinkedIn only swaps the bytes), so the hash matches and we
+    //     never refresh. This flag forces a re-fetch + upload (`upsert`)
+    //     to overwrite the stored bytes in place. The public URL stays
+    //     the same, so existing references keep resolving.
+    const forceRefresh = body?.forceRefresh === true;
     if (!url || typeof url !== "string") {
       return new Response(
         JSON.stringify({ success: false, error: "Missing or invalid 'url'" }),
@@ -93,19 +104,44 @@ Deno.serve(async (req) => {
 
     // ── Cache lookup ────────────────────────────────────────────────
     // List with a name filter is the cheapest way to check existence
-    // without paying for a full object download.
-    const { data: existing } = await admin.storage
-      .from(BUCKET)
-      .list("", { limit: 1, search: hash });
+    // without paying for a full object download. Skipped entirely when
+    // the caller asked for a forced refresh.
+    const { data: existing } = forceRefresh
+      ? { data: [] as { name: string }[] }
+      : await admin.storage.from(BUCKET).list("", { limit: 1, search: hash });
 
     const cached = existing?.find((o) => o.name.startsWith(`${hash}.`));
-    if (cached) {
+    if (cached && !forceRefresh) {
       const { data: pub } = admin.storage.from(BUCKET).getPublicUrl(cached.name);
       console.log("Cache HIT:", cached.name);
       return new Response(
         JSON.stringify({ success: true, cached: true, url: pub.publicUrl }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
+    }
+
+    // When forcing a refresh, proactively remove any prior objects sharing
+    // this hash. `upsert: true` already overwrites bytes for the same key,
+    // but the upstream content-type may have changed (e.g. jpg → webp),
+    // which would yield a *different* object name and leave the old file
+    // orphaned forever. Listing + bulk-removing is cheap and idempotent.
+    if (forceRefresh) {
+      const { data: stale } = await admin.storage
+        .from(BUCKET)
+        .list("", { limit: 10, search: hash });
+      const staleNames = (stale ?? [])
+        .filter((o) => o.name.startsWith(`${hash}.`))
+        .map((o) => o.name);
+      if (staleNames.length > 0) {
+        const { error: removeError } = await admin.storage
+          .from(BUCKET)
+          .remove(staleNames);
+        if (removeError) {
+          console.warn("Stale removal warning:", removeError.message);
+        } else {
+          console.log("Removed stale cache entries:", staleNames.join(", "));
+        }
+      }
     }
 
     // ── Cache miss → fetch upstream ─────────────────────────────────
