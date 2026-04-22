@@ -155,14 +155,41 @@ export default function ContactAvatar({
           <AlertCircle className="h-full w-full p-[1px]" />
         </span>
       )}
+
+      {/* Privacy badge: shown when the photo was suppressed by the user's
+          "disable LinkedIn avatars" preference. Uses a different icon
+          (shield) and accent so it's distinguishable from the failure
+          state at a glance. */}
+      {showPrivacyIndicator && (
+        <span
+          className={cn(
+            "absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-full",
+            "bg-background ring-1 ring-border text-primary",
+            indicatorSize,
+          )}
+          aria-hidden="true"
+        >
+          <ShieldOff className="h-full w-full p-[1px]" />
+        </span>
+      )}
     </div>
   );
 
   // Only wrap in a tooltip when there's something to explain — avoids
   // attaching listeners to every avatar in long lists.
-  if (!showFailedIndicator) {
+  if (!showFailedIndicator && !showPrivacyIndicator) {
     return avatarNode;
   }
+
+  // Choose the explanatory copy based on which indicator is showing.
+  // Privacy takes precedence (and is mutually exclusive in practice
+  // because suppressedByPrivacy hides the URL before it can fail).
+  const tooltipLabel = showPrivacyIndicator
+    ? `${name} — LinkedIn photo hidden by privacy settings.`
+    : `${name} — profile photo unavailable. Why?`;
+  const tooltipBody = showPrivacyIndicator
+    ? "LinkedIn photos are hidden because you disabled avatar proxying in Settings → Privacy. Initials are shown instead."
+    : "Profile photo unavailable. LinkedIn blocks third-party apps from displaying member photos, so we're using initials instead.";
 
   // Radix Tooltip requires a focusable trigger so keyboard users can
   // discover the explanation. We wrap the avatar in a real <button> with
@@ -176,7 +203,7 @@ export default function ContactAvatar({
         <TooltipTrigger asChild>
           <button
             type="button"
-            aria-label={`${name} — profile photo unavailable. Why?`}
+            aria-label={tooltipLabel}
             className={cn(
               "rounded-full inline-flex shrink-0",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
@@ -186,8 +213,7 @@ export default function ContactAvatar({
           </button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs text-xs">
-          Profile photo unavailable. LinkedIn blocks third-party apps from
-          displaying member photos, so we&apos;re using initials instead.
+          {tooltipBody}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
