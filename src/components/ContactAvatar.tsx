@@ -196,6 +196,15 @@ export default function ContactAvatar({
     return avatarNode;
   }
 
+  // User-controlled escape hatch: when this avatar lives in a dense
+  // surface and the user has opted out of dense tooltips, skip the
+  // tooltip + focusable button entirely. The visual corner badge stays
+  // so the state is still discoverable; the wrapper's aria-label still
+  // announces the contact name to screen readers.
+  if (dense && !denseTooltipsEnabled) {
+    return avatarNode;
+  }
+
   // Choose the explanatory copy based on which indicator is showing.
   // Privacy takes precedence (and is mutually exclusive in practice
   // because suppressedByPrivacy hides the URL before it can fail).
