@@ -85,6 +85,18 @@ export default function ContactAvatar({
     setImgState(effectiveUrl ? "loading" : "loaded");
   }, [effectiveUrl]);
 
+  // Watchdog: if the browser never fires onLoad/onError (network stall,
+  // hung CDN, blocked by an ad blocker, etc.) the spinner would spin
+  // forever. After LOAD_TIMEOUT_MS we give up and fall through to the
+  // initials + error indicator path so the UI keeps moving.
+  useEffect(() => {
+    if (!effectiveUrl || imgState !== "loading") return;
+    const t = window.setTimeout(() => {
+      setImgState((prev) => (prev === "loading" ? "failed" : prev));
+    }, LOAD_TIMEOUT_MS);
+    return () => window.clearTimeout(t);
+  }, [effectiveUrl, imgState]);
+
   const dim =
     size === "lg"
       ? "h-14 w-14 text-base"
