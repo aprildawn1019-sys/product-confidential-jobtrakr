@@ -5,9 +5,16 @@ type: feature
 ---
 
 The sidebar is organized into four groups, ordered by daily-use frequency.
-Footer cluster (Settings, Help, Restart walkthrough, Sign out) is pinned to the bottom.
+Footer is a single compact row: account avatar (opens menu with Restart walkthrough + Sign out) followed by inline Profile / Settings / Help glyphs — no full-width footer rows.
 Getting Started auto-hides once the user has any jobs, contacts, or target companies.
 Sidebar supports a collapsed icon-only state (56px) toggled via a floating chevron button on the right edge; choice persists in `localStorage` under `jobtrakr.sidebar.collapsed`.
+
+## Visual treatment (v3)
+
+- Brand lockup: amber rounded-square tile (`bg-sidebar-primary`, `h-6 w-6`) + "Jobtrakr" wordmark in `font-display`. The geometric-K marks (`koudou-mark-*.png`) remain canonical for landing nav and favicon, but the sidebar uses the simpler tile so it doesn't compete with content.
+- Group labels: amber, uppercase, `tracking-[0.16em]`, `text-[11px] font-bold`. **No leading icon, no chevron** — they read as quiet section headers.
+- Nav rows: thin-stroke icons (`strokeWidth={1.75}`, `h-4 w-4`) + 14px label. Active row = navy fill (`bg-sidebar-accent`) **plus** a 2px amber bar on the left edge (`before:` pseudo). Same active treatment in collapsed mode.
+- Footer row: avatar circle (8×8) inline with three compact text+icon pills (Profile / Settings / Help) at `text-xs`.
 
 ## Groups
 
