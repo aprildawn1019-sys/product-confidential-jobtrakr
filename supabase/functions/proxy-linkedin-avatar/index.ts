@@ -27,6 +27,19 @@ const corsHeaders = {
 
 const BUCKET = "linkedin-avatars";
 
+// Cache TTL — LinkedIn photos rarely change, but stale ones look bad
+// (someone updates their photo, we keep showing the old one forever).
+// 30 days is a balance between freshness and bandwidth/cost. Override
+// per-request with `force: true` to bypass entirely.
+const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** True when a stored object is older than our TTL and should be refetched. */
+function isExpired(createdAt: string | undefined | null): boolean {
+  if (!createdAt) return false; // unknown age → treat as fresh, don't churn
+  const age = Date.now() - new Date(createdAt).getTime();
+  return Number.isFinite(age) && age > CACHE_TTL_MS;
+}
+
 /** Stable, filesystem-safe key derived from the upstream URL. */
 async function hashUrl(url: string): Promise<string> {
   const data = new TextEncoder().encode(url);
@@ -57,13 +70,14 @@ Deno.serve(async (req) => {
     const auth = await requireUser(req, corsHeaders);
     if (auth.errorResponse) return auth.errorResponse;
 
-    const { url } = await req.json();
+    const { url, force } = await req.json();
     if (!url || typeof url !== "string") {
       return new Response(
         JSON.stringify({ success: false, error: "Missing or invalid 'url'" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+    const bypassCache = force === true;
 
     // Only proxy LinkedIn-hosted media. Refusing arbitrary URLs prevents
     // turning this function into an open relay.
