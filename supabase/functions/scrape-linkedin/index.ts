@@ -282,12 +282,44 @@ Deno.serve(async (req) => {
 
     const contact = JSON.parse(toolCall.function.arguments);
     contact.linkedin = contact.linkedin || formattedUrl;
-    // Attach the profile photo URL we discovered (if any). The client
-    // stores it on the contact and renders it in the avatar circle, with
-    // an automatic fallback to initials if the image fails to load.
-    if (avatarUrl) contact.avatar_url = avatarUrl;
 
-    console.log("Extracted:", contact.name, "|", contact.role, "|", contact.company, "| avatar:", avatarUrl ? "yes" : "no");
+    // If we found a LinkedIn-hosted avatar, route it through our proxy +
+    // storage cache so the client gets a stable URL that doesn't 403.
+    // We swallow proxy errors and fall back to the raw URL — the
+    // ContactAvatar component already handles broken images gracefully.
+    if (avatarUrl) {
+      try {
+        const proxyResp = await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/proxy-linkedin-avatar`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Forward the user's auth so the proxy enforces requireUser().
+              Authorization: req.headers.get("Authorization") ?? "",
+              apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+            },
+            body: JSON.stringify({ url: avatarUrl }),
+          },
+        );
+        if (proxyResp.ok) {
+          const proxyData = await proxyResp.json();
+          if (proxyData?.success && proxyData.url) {
+            console.log("Avatar cached via proxy:", proxyData.cached ? "HIT" : "MISS");
+            contact.avatar_url = proxyData.url;
+          } else {
+            contact.avatar_url = avatarUrl;
+          }
+        } else {
+          contact.avatar_url = avatarUrl;
+        }
+      } catch (e) {
+        console.log("Avatar proxy failed:", e instanceof Error ? e.message : e);
+        contact.avatar_url = avatarUrl;
+      }
+    }
+
+    console.log("Extracted:", contact.name, "|", contact.role, "|", contact.company, "| avatar:", contact.avatar_url ? "yes" : "no");
 
     return new Response(JSON.stringify({ success: true, data: contact }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
