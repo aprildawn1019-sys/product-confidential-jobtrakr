@@ -100,7 +100,7 @@ export default function Index() {
         )}
       >
         <Routes>
-          <Route index element={<Dashboard jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} jobContacts={store.jobContacts} targetCompanies={store.targetCompanies} contactActivities={store.contactActivities} recommendationRequests={store.recommendationRequests} onUpdateStatus={store.updateJobStatus} onUpdateJob={store.updateJob} onUpdateContact={store.updateContact} />} />
+          <Route index element={<Dashboard jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} jobContacts={store.jobContacts} targetCompanies={store.targetCompanies} contactActivities={store.contactActivities} recommendationRequests={store.recommendationRequests} onUpdateStatus={store.updateJobStatus} onUpdateJob={store.updateJob} onUpdateContact={store.updateContact} onAddJob={store.addJob} onAddInterview={store.addInterview} />} />
 
           {/* Insights (renamed from /dashboard) */}
           <Route path="insights" element={<Overview jobs={store.jobs} contacts={store.contacts} interviews={store.interviews} contactActivities={store.contactActivities} jobContacts={store.jobContacts} recommendationRequests={store.recommendationRequests} />} />
