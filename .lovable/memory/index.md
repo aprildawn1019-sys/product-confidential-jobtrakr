@@ -4,7 +4,7 @@ Updated: now
 # Project Memory
 
 ## Core
-- **Visual spec is binding:** read `src/assets/dashboard-mockup.jpg` + `src/assets/spec-*-v2.jpg` BEFORE redesigning any surface. Do not re-derive the look.
+- **Visual spec is binding:** read `src/assets/brand/spec/dashboard-mockup.jpg` + `src/assets/brand/spec/spec-*-v2.jpg` BEFORE redesigning any surface. Do not re-derive the look. Brand assets locked under `src/assets/brand/` (see `src/assets/brand/BRAND.md`); never import from `src/assets/_archive/`.
 - Linear/Notion-inspired aesthetic, navy & amber theme. No pill-within-pill status indicators.
 - Page headers: big title + one-line subtitle, **no buttons in the header**. Push actions into their panel.
 - Page titles are single nouns: `Jobs`, `Contacts`, `Interviews`, `Command Center`. Not `Job Pipeline`, `Connections`, `Schedule`.
@@ -18,6 +18,7 @@ Updated: now
 - Branding: 'Koudou' by Product Confidential. PolyForm Noncommercial 1.0.0.
 
 ## Memories
+- [Brand Assets Lockdown](mem://style/brand-assets-lockdown) — src/assets/brand/{marks,spec,BRAND.md} canonical; _archive/ off-limits
 - [Brand Mark](mem://style/brand-mark) — Geometric K (white upper / amber lower arm), single PNG asset for sidebar + landing + favicon
 - [Visual Theme v2 (BINDING)](mem://style/visual-theme-v2) — Calm Operations spec; lists every spec asset and the rules they encode
 - [Command Center & Dashboard](mem://features/dashboard-analytics) — Layout rules anchored to dashboard-mockup.jpg
