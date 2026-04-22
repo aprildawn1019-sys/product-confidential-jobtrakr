@@ -66,20 +66,29 @@ export default function ContactAvatar({
   const showFailedIndicator = hasUrl && imgState === "failed";
   const showLoadingOverlay = hasUrl && imgState === "loading";
 
+  // Accessibility:
+  //   - The wrapper carries `role="img"` + `aria-label={name}` so screen
+  //     readers always announce *one* name per avatar (not two — the
+  //     inner <img> uses alt="" to opt out of being announced separately).
+  //   - The initials <span> is `aria-hidden` because the role="img" name
+  //     is the canonical announcement.
+  //   - The corner failure indicator is decorative; its meaning is
+  //     conveyed through the tooltip, which is wired up below.
   const avatarNode = (
     <div
+      role="img"
+      aria-label={name}
       className={cn(
         "relative flex items-center justify-center rounded-full overflow-hidden shrink-0",
         "bg-primary font-display font-bold text-primary-foreground",
         dim,
         className,
       )}
-      aria-label={name}
     >
       {showImage ? (
         <img
           src={avatarUrl ?? undefined}
-          alt={name}
+          alt=""
           loading="lazy"
           referrerPolicy="no-referrer"
           onLoad={() => setImgState("loaded")}
@@ -106,7 +115,8 @@ export default function ContactAvatar({
       )}
 
       {/* Tiny corner badge that appears only when an image URL was present
-          but failed to load. The wrapping tooltip explains why. */}
+          but failed to load. Decorative — the wrapping tooltip carries
+          the explanatory text. */}
       {showFailedIndicator && (
         <span
           className={cn(
@@ -128,11 +138,26 @@ export default function ContactAvatar({
     return avatarNode;
   }
 
+  // Radix Tooltip requires a focusable trigger so keyboard users can
+  // discover the explanation. We wrap the avatar in a real <button> with
+  // `type="button"` so it doesn't accidentally submit any parent <form>,
+  // and `tabIndex={0}` is implicit on buttons. The button itself has no
+  // visible chrome — focus shows through the visible focus ring on the
+  // avatar's rounded outline via `focus-visible:ring`.
   return (
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className="inline-flex">{avatarNode}</span>
+          <button
+            type="button"
+            aria-label={`${name} — profile photo unavailable. Why?`}
+            className={cn(
+              "rounded-full inline-flex shrink-0",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            )}
+          >
+            {avatarNode}
+          </button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs text-xs">
           Profile photo unavailable. LinkedIn blocks third-party apps from
