@@ -94,7 +94,7 @@ function avatarSeed(action: DerivedAction): string {
 }
 
 /**
- * Spec source: src/assets/dashboard-mockup.jpg + spec-command-center-v2.jpg.
+ * Spec source: src/assets/brand/spec/dashboard-mockup.jpg + spec-command-center-v2.jpg.
  * Row composition: avatar · title/subtitle · amber stadium toggle.
  * No tinted urgency backgrounds, no left accent bars, no inline arrow.
  * The whole row is clickable to navigate; the toggle is the completion control.

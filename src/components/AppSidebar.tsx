@@ -20,7 +20,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 // We use the DARK-pane variant (white tile, navy upper arm, amber lower
 // arm) so the mark stays high-contrast against the navy sidebar background
 // — see `mem://style/brand-mark`.
-import koudouMarkSrc from "@/assets/brand/koudou-mark-dark.png";
+import koudouMarkSrc from "@/assets/brand/marks/koudou-mark-dark.png";
 const BrandMark = ({ className }: { className?: string }) => (
   <img
     src={koudouMarkSrc}

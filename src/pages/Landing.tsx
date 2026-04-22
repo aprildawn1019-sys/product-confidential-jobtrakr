@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Briefcase, BarChart3, Users, CalendarCheck, Brain, FileText, ArrowRight, Star, Target, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import dashboardMockup from "@/assets/dashboard-mockup.jpg";
-import koudouMarkSrc from "@/assets/brand/koudou-mark-light.png";
+import dashboardMockup from "@/assets/brand/spec/dashboard-mockup.jpg";
+import koudouMarkSrc from "@/assets/brand/marks/koudou-mark-light.png";
 
 const features = [
   {

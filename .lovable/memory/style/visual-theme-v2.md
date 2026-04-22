@@ -1,20 +1,22 @@
 ---
 name: Visual Theme v2 — Calm Operations
-description: Binding visual spec for Jobtrakr/Koudou. Source of truth lives in src/assets/dashboard-mockup.jpg and src/assets/spec-*-v2.jpg. Re-read those images before redesigning any surface.
+description: Binding visual spec for Jobtrakr/Koudou. Source of truth lives in src/assets/brand/spec/. Re-read those images before redesigning any surface. Brand lockdown doc at src/assets/brand/BRAND.md.
 type: design
 ---
 
 ## Source of truth (read these BEFORE designing any surface)
 
 These image assets are the canonical UX spec. If a request is ambiguous,
-align to the image, not to existing code.
+align to the image, not to existing code. Brand assets are locked under
+`src/assets/brand/` (see `src/assets/brand/BRAND.md`). Anything under
+`src/assets/_archive/` is historical exploration — do not import it.
 
-- `src/assets/dashboard-mockup.jpg` — Command Center hero (also rendered on Landing)
-- `src/assets/spec-command-center-v2.jpg` — Command Center detail
-- `src/assets/spec-sidebar-v2.jpg` — Sidebar expanded + collapsed
-- `src/assets/spec-jobs-list-v2.jpg` — Jobs list view
-- `src/assets/spec-jobs-kanban-v2.jpg` — Jobs Kanban view
-- `src/assets/spec-contacts-v2.jpg` — Contacts list view
+- `src/assets/brand/spec/dashboard-mockup.jpg` — Command Center hero (also rendered on Landing)
+- `src/assets/brand/spec/spec-command-center-v2.jpg` — Command Center detail
+- `src/assets/brand/spec/spec-sidebar-v2.jpg` — Sidebar expanded + collapsed
+- `src/assets/brand/spec/spec-jobs-list-v2.jpg` — Jobs list view
+- `src/assets/brand/spec/spec-jobs-kanban-v2.jpg` — Jobs Kanban view
+- `src/assets/brand/spec/spec-contacts-v2.jpg` — Contacts list view
 
 **Why this rule exists:** Past iterations re-derived the look on each request and drifted from the mockup (heavy urgency tints, badge-laden rows, header buttons crowding the title). Lock to the images.
 
