@@ -760,11 +760,64 @@ export default function Contacts({
         </div>
       )}
 
-      {viewMode === "grid" ? (
+      {viewMode === "grid" && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredContacts.map(renderContactCard)}
         </div>
-      ) : (
+      )}
+
+      {viewMode === "list" && (
+        // Compact horizontal rows — denser than the grid card, lighter than
+        // the spreadsheet. Designed for skimming a long contact list while
+        // keeping the most useful signals (avatar, name, role @ company,
+        // warmth, follow-up) one click away from the full detail card.
+        <div className="rounded-xl border border-border divide-y divide-border bg-card">
+          {filteredContacts.map((contact) => {
+            const isExpanded = expandedContact === contact.id;
+            return (
+              <div key={contact.id} id={`contact-${contact.id}`}>
+                <button
+                  type="button"
+                  onClick={() => setExpandedContact(isExpanded ? null : contact.id)}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40 focus:outline-none focus-visible:bg-muted/40"
+                >
+                  <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-medium">{contact.name}</p>
+                      {contact.networkRole && (
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {NETWORK_ROLES.find((r) => r.value === contact.networkRole)?.emoji}
+                        </span>
+                      )}
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {contact.role ? `${contact.role} · ` : ""}{contact.company}
+                    </p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-2 shrink-0">
+                    <WarmthBadge
+                      warmth={contact.relationshipWarmth}
+                      onChange={(w) => onUpdate(contact.id, { relationshipWarmth: w })}
+                    />
+                    <FollowUpIndicator date={contact.followUpDate} />
+                  </div>
+                  {isExpanded
+                    ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                    : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
+                </button>
+                {isExpanded && (
+                  <div className="border-t border-border bg-muted/20 p-4">
+                    {renderContactCard(contact)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {viewMode === "spreadsheet" && (
         <ContactsSpreadsheet
           contacts={filteredContacts}
           campaigns={campaigns}
