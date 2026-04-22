@@ -57,7 +57,18 @@ Deno.serve(async (req) => {
     const auth = await requireUser(req, corsHeaders);
     if (auth.errorResponse) return auth.errorResponse;
 
-    const { url } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { url } = body ?? {};
+    // `forceRefresh` opts out of the SHA-256 hash cache for this call:
+    //   • Same upstream URL → same hash → normally returns the cached
+    //     copy without ever hitting LinkedIn again.
+    //   • When the user *re-imports* the same contact and the underlying
+    //     photo was updated upstream, the URL often stays identical
+    //     (LinkedIn only swaps the bytes), so the hash matches and we
+    //     never refresh. This flag forces a re-fetch + upload (`upsert`)
+    //     to overwrite the stored bytes in place. The public URL stays
+    //     the same, so existing references keep resolving.
+    const forceRefresh = body?.forceRefresh === true;
     if (!url || typeof url !== "string") {
       return new Response(
         JSON.stringify({ success: false, error: "Missing or invalid 'url'" }),
