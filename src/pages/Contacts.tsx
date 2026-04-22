@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
-import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutGrid, Megaphone, Star, Check, ExternalLink, ArrowUpDown, Sheet, Download } from "lucide-react";
+import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutGrid, List as ListIcon, Megaphone, Star, Check, ExternalLink, ArrowUpDown, Sheet, Download } from "lucide-react";
 import { downloadContactsCsv } from "@/lib/contactsCsvExport";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -176,7 +176,7 @@ export default function Contacts({
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; contactId: string } | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "spreadsheet">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "spreadsheet">("grid");
   const [searchQuery, setSearchQuery] = useState(companyFilter || "");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
   const [followUpFilter, setFollowUpFilter] = useState<string>("all");
@@ -621,6 +621,9 @@ export default function Contacts({
           <div className="flex items-center rounded-lg border border-border p-0.5">
             <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("grid")} title="Grid view">
               <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("list")} title="List view">
+              <ListIcon className="h-4 w-4" />
             </Button>
             <Button variant={viewMode === "spreadsheet" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("spreadsheet")} title="Spreadsheet">
               <Sheet className="h-4 w-4" />
