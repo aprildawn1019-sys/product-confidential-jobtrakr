@@ -242,28 +242,31 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   }
 
   // === EXPANDED ===
-  // Per the new spec, the active row uses a calm navy fill *plus* a thin
-  // amber bar on the left edge — that bar is what makes "Command Center"
-  // pop in the mockup. Inactive rows stay muted; hover lifts contrast.
+  // Active row: soft navy fill + amber left bar + amber-tinted icon. This
+  // mirrors the marketing landing page accent treatment so the in-app nav
+  // and the public site read as one type system.
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+      "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
       isActive
-        ? "bg-sidebar-accent text-sidebar-foreground font-semibold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
+        ? "bg-sidebar-accent text-sidebar-foreground font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
         : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
     );
 
+  // Icon class: amber when active (inherits via parent), neutral otherwise.
+  const navIconClass = "h-[18px] w-[18px] shrink-0 text-sidebar-muted group-hover:text-sidebar-foreground group-[.bg-sidebar-accent]:text-sidebar-primary";
+
   return (
     <>
-      {/* Brand lockup: dark-pane geometric-K mark + Koudou wordmark. */}
-      <div className="flex h-16 items-center gap-3 px-4">
-        <BrandMark className="h-10 w-10" />
-        <span className="font-display text-[17px] font-bold tracking-tight text-sidebar-foreground">
+      {/* Brand lockup: matches landing page wordmark — Space Grotesk 700 @ 20px. */}
+      <div className="flex h-16 items-center gap-2.5 px-4">
+        <BrandMark className="h-9 w-9" />
+        <span className="font-display text-xl font-bold tracking-tight text-sidebar-foreground">
           Koudou
         </span>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1" aria-label="Primary">
+      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1" aria-label="Primary">
         {!hasData && (
           <NavLink
             to="/getting-started"
@@ -277,19 +280,19 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               )
             }
           >
-            <Sparkles className="h-4 w-4" strokeWidth={1.75} />
+            <Sparkles className="h-[18px] w-[18px]" strokeWidth={2} />
             Getting Started
           </NavLink>
         )}
 
         {groups.map((group) => {
-          // Group labels: amber, uppercase, no leading icon, no chevron.
-          // The new spec treats them as quiet section headers — the navigation
-          // weight comes from the items themselves.
+          // Group labels: muted gray small caps (no amber) — quieter section
+          // headers so the navigation rows themselves carry the visual weight,
+          // matching the rhythm of the marketing landing page nav.
           return (
             <div key={group.label} className="pt-5 first:pt-1">
-              <div className="px-3 pb-1.5">
-                <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-sidebar-group-foreground">
+              <div className="px-3 pb-2">
+                <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-sidebar-muted">
                   {group.label}
                 </span>
               </div>
@@ -300,8 +303,16 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                       <>
                         <div className="flex items-center">
                           <NavLink to={to} className={navLinkClass} end onClick={handleNavClick}>
-                            <Icon className="h-4 w-4" strokeWidth={1.75} />
-                            {label}
+                            {({ isActive }) => (
+                              <>
+                                <Icon
+                                  className="h-[18px] w-[18px] shrink-0"
+                                  strokeWidth={2}
+                                  color={isActive ? "hsl(var(--sidebar-primary))" : "currentColor"}
+                                />
+                                {label}
+                              </>
+                            )}
                           </NavLink>
                           {jobs.length > 0 && (
                             <button
@@ -338,8 +349,16 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                       </>
                     ) : (
                       <NavLink to={to} end={end} className={navLinkClass} onClick={handleNavClick}>
-                        <Icon className="h-4 w-4" strokeWidth={1.75} />
-                        {label}
+                        {({ isActive }) => (
+                          <>
+                            <Icon
+                              className="h-[18px] w-[18px] shrink-0"
+                              strokeWidth={2}
+                              color={isActive ? "hsl(var(--sidebar-primary))" : "currentColor"}
+                            />
+                            {label}
+                          </>
+                        )}
                       </NavLink>
                     )}
                   </div>
