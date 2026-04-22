@@ -299,7 +299,7 @@ Deno.serve(async (req) => {
               Authorization: req.headers.get("Authorization") ?? "",
               apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "",
             },
-            body: JSON.stringify({ url: avatarUrl }),
+            body: JSON.stringify({ url: avatarUrl, force: forceAvatarRefresh === true }),
           },
         );
         if (proxyResp.ok) {
