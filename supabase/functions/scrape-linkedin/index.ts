@@ -14,8 +14,13 @@ Deno.serve(async (req) => {
     const auth = await requireUser(req, corsHeaders);
     if (auth.errorResponse) return auth.errorResponse;
 
-    const { url } = await req.json();
+    const { url, forceRefreshAvatar } = await req.json();
     if (!url) throw new Error("Missing LinkedIn URL");
+    // When `true`, the avatar proxy is asked to bypass its hash cache
+    // and re-fetch the image from LinkedIn. This is what powers the
+    // "re-import overwrites the cached photo" UX in AddContactDialog —
+    // see the dialog's handleLinkedinFetch for the trigger.
+    const forceRefreshAvatarFlag = forceRefreshAvatar === true;
 
     let formattedUrl = url.trim();
     if (!formattedUrl.startsWith("http")) formattedUrl = `https://${formattedUrl}`;
