@@ -272,7 +272,14 @@ export default function AddContactDialog({
     let invokeData: any = null;
     let invokeError: any = null;
     try {
-      const res = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
+      // Re-fetching a URL we've already pulled this session means the
+      // user is doing a deliberate re-import — flip the flag so the
+      // edge function tells the avatar proxy to overwrite its cached
+      // copy instead of returning the same stored bytes.
+      const isReimport = fetchedUrlsRef.current.has(fullUrl);
+      const res = await supabase.functions.invoke("scrape-linkedin", {
+        body: { url: fullUrl, forceRefreshAvatar: isReimport },
+      });
       invokeData = res.data;
       invokeError = res.error;
       if (invokeError || !invokeData?.success) {
@@ -280,6 +287,10 @@ export default function AddContactDialog({
         // then the FunctionsError message, falling back to a generic note.
         throw new Error(invokeData?.error || invokeError?.message || "Unknown error from scrape-linkedin");
       }
+      // Mark this URL as fetched so a subsequent click on Fetch / Retry
+      // is treated as a re-import. We only record on success — a failed
+      // attempt shouldn't promote the next try to "force refresh" mode.
+      fetchedUrlsRef.current.add(fullUrl);
       const d = invokeData.data;
       // Track which specific fields the scraper actually returned so the
       // status badge can list them (e.g. "Extracted: name, role").
