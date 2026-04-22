@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Loader2, CheckCircle2, UserCircle2, AlertCircle } from "lucide-react";
+import { Plus, Loader2, CheckCircle2, UserCircle2, AlertCircle, RefreshCw, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import ContactAvatar from "@/components/ContactAvatar";
@@ -50,6 +50,15 @@ export default function AddContactDialog({
   const [fetchingLinkedin, setFetchingLinkedin] = useState(false);
   const [importStatus, setImportStatus] = useState<ImportStatus>("idle");
   const [extractedFields, setExtractedFields] = useState<string[]>([]);
+  // Captures the most recent fetch failure so we can render an inline
+  // error block (instead of relying solely on the toast, which disappears
+  // before the user can act on it). `attemptedUrl` is preserved so the
+  // retry button always hits the exact URL that originally failed, even
+  // if the user has since edited the LinkedIn input.
+  const [importError, setImportError] = useState<{
+    message: string;
+    attemptedUrl: string;
+  } | null>(null);
   const [form, setForm] = useState({
     name: "", company: defaultCompany || "", role: "", email: "", phone: "", linkedin: "", notes: "",
     relationshipWarmth: "", conversationLog: "", networkRole: defaultNetworkRole || "",
@@ -66,14 +75,22 @@ export default function AddContactDialog({
     }
   }, [open, defaultCompany, defaultNetworkRole]);
 
-  const handleLinkedinFetch = async () => {
-    const url = form.linkedin.trim();
+  // The `overrideUrl` parameter lets the inline retry button replay the
+  // exact URL that originally failed, even if the input has changed since.
+  const handleLinkedinFetch = async (overrideUrl?: string) => {
+    const url = (overrideUrl ?? form.linkedin).trim();
     if (!url || fetchingLinkedin) return;
     const fullUrl = url.startsWith("http") ? url : `https://${url}`;
     setFetchingLinkedin(true);
+    // Clear any prior error so the inline block disappears while retrying.
+    setImportError(null);
     try {
       const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
-      if (error || !data?.success) throw new Error(data?.error || error?.message || "Failed");
+      if (error || !data?.success) {
+        // Surface the richest error info available: explicit data.error,
+        // then the FunctionsError message, falling back to a generic note.
+        throw new Error(data?.error || error?.message || "Unknown error from scrape-linkedin");
+      }
       const d = data.data;
       // Track which specific fields the scraper actually returned so the
       // status badge can list them (e.g. "Extracted: name, role").
@@ -97,9 +114,13 @@ export default function AddContactDialog({
           : "LinkedIn returned no usable fields — fill in manually.",
       });
     } catch (e: any) {
+      const message = e?.message || "Failed to reach the LinkedIn scraper.";
       setImportStatus("failed");
       setExtractedFields([]);
-      toast({ title: "LinkedIn fetch failed", description: e.message, variant: "destructive" });
+      setImportError({ message, attemptedUrl: fullUrl });
+      // Toast is kept for users who already moved focus away, but the
+      // inline error block is now the source of truth for actionability.
+      toast({ title: "LinkedIn fetch failed", description: message, variant: "destructive" });
     } finally {
       setFetchingLinkedin(false);
     }
@@ -120,6 +141,7 @@ export default function AddContactDialog({
     });
     setImportStatus("idle");
     setExtractedFields([]);
+    setImportError(null);
     setOpen(false);
   };
 
@@ -217,7 +239,7 @@ export default function AddContactDialog({
               <Label>LinkedIn</Label>
               <div className="flex gap-2">
                 <Input value={form.linkedin} onChange={e => setForm(f => ({ ...f, linkedin: e.target.value }))} placeholder="linkedin.com/in/..." className="flex-1" />
-                <Button type="button" variant="outline" size="sm" onClick={handleLinkedinFetch} disabled={!form.linkedin.trim() || fetchingLinkedin} className="shrink-0">
+                <Button type="button" variant="outline" size="sm" onClick={() => handleLinkedinFetch()} disabled={!form.linkedin.trim() || fetchingLinkedin} className="shrink-0">
                   {fetchingLinkedin ? <Loader2 className="h-4 w-4 animate-spin" /> : "Fetch"}
                 </Button>
               </div>
@@ -235,6 +257,57 @@ export default function AddContactDialog({
               </Select>
             </div>
           </div>
+
+          {/* Inline error block — appears only when the most recent
+              LinkedIn fetch failed. Stays visible until the user retries,
+              dismisses, or successfully fetches, so they can read the
+              underlying error and act on it (vs. a toast that auto-hides).
+              Retry replays the *exact* URL that originally failed via the
+              `attemptedUrl` we captured at fetch time. */}
+          {importError && (
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm"
+            >
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-destructive" />
+                <div className="flex-1 space-y-1.5 min-w-0">
+                  <p className="font-medium text-destructive">LinkedIn import failed</p>
+                  <p className="text-muted-foreground break-words">{importError.message}</p>
+                  <p className="text-[11px] text-muted-foreground break-all font-mono">
+                    {importError.attemptedUrl}
+                  </p>
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleLinkedinFetch(importError.attemptedUrl)}
+                      disabled={fetchingLinkedin}
+                      className="h-7 gap-1.5"
+                    >
+                      {fetchingLinkedin ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      )}
+                      Retry
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setImportError(null)}
+                      className="h-7 gap-1.5 text-muted-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Dismiss
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Network Role</Label>
