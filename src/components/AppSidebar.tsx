@@ -142,6 +142,9 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   if (collapsed) {
     const settingsItem: LinkItem = { to: "/settings", icon: Settings, label: "Settings" };
 
+    // Collapsed-mode icons step up to 20px since they stand alone without
+    // a label to anchor them. Active state = bar + white icon (no amber on
+    // the glyph) so the bar carries the "you are here" signal cleanly.
     const renderIconLink = (item: LinkItem) => (
       <Tooltip key={item.to} delayDuration={150}>
         <TooltipTrigger asChild>
@@ -153,12 +156,12 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               cn(
                 "relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-primary before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
+                  ? "bg-sidebar-accent text-sidebar-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
                   : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )
             }
           >
-            <item.icon className="h-[18px] w-[18px]" strokeWidth={2} />
+            <item.icon className="h-5 w-5" strokeWidth={2} />
           </NavLink>
         </TooltipTrigger>
         <TooltipContent side="right">{item.label}</TooltipContent>
@@ -193,7 +196,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 className="h-10 w-10 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                 onClick={() => { handleNavClick(); openHelp(); }}
               >
-                <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} />
+                <CircleHelp className="h-5 w-5" strokeWidth={2} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">Help</TooltipContent>
@@ -201,12 +204,15 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
 
           <div className="my-1 h-px w-6 bg-sidebar-border/60" />
 
+          {/* Avatar matches utility-button vocabulary: 40x40 rounded-md
+              tile on the same surface as Settings/Help so the trio reads
+              as one row of equal-weight controls. */}
           <DropdownMenu>
             <Tooltip delayDuration={150}>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-primary text-[11px] font-semibold text-sidebar-primary-foreground hover:opacity-90 transition-opacity"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-sidebar-accent/60 text-[11px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                     aria-label={`Account menu for ${user.name}`}
                   >
                     {user.initials}
@@ -243,21 +249,25 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   }
 
   // === EXPANDED ===
-  // Active row: soft navy fill + amber left bar + amber-tinted icon (state-driven color).
+  // Active row: soft navy fill + amber left bar (state signal). Icon stays
+  // white in active state so the bar carries the "you are here" cue alone —
+  // hover still flashes amber on the icon as a transient affordance.
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
       "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
       isActive
-        ? "bg-sidebar-accent text-sidebar-foreground font-medium [&_svg]:text-sidebar-primary before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
+        ? "bg-sidebar-accent text-sidebar-foreground font-medium [&_svg]:text-sidebar-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
         : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-primary"
     );
 
   return (
     <>
-      {/* Brand lockup: geometric-K mark + "Koudou" wordmark, Space Grotesk 700 @ 20px. */}
+      {/* Brand lockup: geometric-K mark + "Koudou" wordmark, Space Grotesk 700 @ 20px.
+          leading-none + pt-0.5 optically centers the wordmark against the mark, which
+          carries internal padding. */}
       <div className="flex h-16 items-center gap-2.5 px-4">
         <BrandMark className="h-9 w-9" />
-        <span className="font-display text-xl font-bold tracking-tight text-sidebar-foreground">
+        <span className="font-display text-xl font-bold leading-none tracking-tight text-sidebar-foreground pt-0.5">
           Koudou
         </span>
       </div>
@@ -270,7 +280,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             cn(
               "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
               isActive
-                ? "bg-sidebar-accent text-sidebar-foreground font-medium [&_svg]:text-sidebar-primary before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
+                ? "bg-sidebar-accent text-sidebar-foreground font-medium [&_svg]:text-sidebar-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
                 : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-primary"
             )
           }
@@ -287,7 +297,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             <div key={group.label} className="pt-5 first:pt-1">
               <div className="px-3 pb-1.5">
                 <span
-                  className="font-display text-[11px] font-semibold uppercase tracking-[0.16em] text-sidebar-group-foreground/75"
+                  className="font-display text-[11px] font-semibold uppercase tracking-[0.16em] text-sidebar-group-foreground"
                 >
                   {group.label}
                 </span>
@@ -370,7 +380,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent text-[11px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent/60 text-[11px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                     aria-label={`Account menu for ${user.name}`}
                   >
                     {user.initials}

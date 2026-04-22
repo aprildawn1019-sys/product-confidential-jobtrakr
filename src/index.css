@@ -32,18 +32,31 @@ All colors MUST be HSL.
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
 
-    --success: 152 60% 40%;
+    /* Status family — equalized perceived luminance so success/warning/info/destructive
+       read as a coherent set rather than four loud strangers. */
+    --success: 152 50% 42%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 36 90% 55%;
+    /* Warning is decoupled from --accent so brand emphasis (amber) and
+       attention signals (warning) don't collapse to the same hue. */
+    --warning: 30 92% 50%;
     --warning-foreground: 222 47% 11%;
 
-    --info: 210 80% 52%;
+    --info: 210 65% 50%;
     --info-foreground: 0 0% 100%;
+
+    /* Neutral text ramp — single source of truth for body, secondary, and
+       tertiary text across the product. Surface-specific tokens (e.g.
+       --sidebar-muted) derive from this scale instead of inventing new grays. */
+    --text-primary: 222 47% 11%;
+    --text-secondary: 220 12% 38%;
+    --text-tertiary: 220 10% 55%;
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 222 60% 22%;
+    /* Higher-luminance amber so focus rings stay visible on top of an
+       active amber state bar. */
+    --ring: 36 95% 65%;
 
     --radius: 0.625rem;
 
@@ -54,9 +67,10 @@ All colors MUST be HSL.
     --sidebar-accent: 222 40% 18%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 222 30% 20%;
-    --sidebar-ring: 36 90% 55%;
+    --sidebar-ring: 36 95% 65%;
     --sidebar-muted: 220 12% 60%;
-    --sidebar-group-foreground: 36 90% 58%;
+    /* Desaturated so consumers don't need an opacity hack to tone it down. */
+    --sidebar-group-foreground: 36 35% 70%;
   }
 }
 
