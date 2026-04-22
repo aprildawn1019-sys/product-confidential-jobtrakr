@@ -87,7 +87,7 @@ function EditableCell({ value, onCommit, type = "text", placeholder, className }
         }
       }}
       className={cn(
-        "h-8 border-transparent bg-transparent px-2 text-xs shadow-none focus-visible:border-input focus-visible:bg-background",
+        "h-9 border-transparent bg-transparent px-2.5 text-sm shadow-none focus-visible:border-input focus-visible:bg-background",
         className,
       )}
     />
@@ -110,10 +110,10 @@ function CampaignCell({ contactId, selected, campaigns, onToggle }: CampaignCell
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex h-8 w-full items-center gap-1 rounded px-2 text-left text-xs hover:bg-muted/50"
+          className="flex h-9 w-full items-center gap-1 rounded px-2.5 text-left text-sm hover:bg-muted/50"
         >
           {selected.length === 0 ? (
-            <span className="text-muted-foreground">Add…</span>
+            <span className="text-muted-foreground text-xs">Add…</span>
           ) : (
             <div className="flex flex-wrap items-center gap-1 overflow-hidden">
               {selected.slice(0, 2).map((c) => (
@@ -304,7 +304,9 @@ export default function ContactsSpreadsheet({
         type="button"
         onClick={() => toggleSort(k)}
         className={cn(
-          "flex h-full w-full items-center gap-1 px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground",
+          // Match grid-view section eyebrows: same uppercase, tracking, and weight
+          // so the spreadsheet header reads as part of the same visual system.
+          "flex h-full w-full items-center gap-1 px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground",
           className,
         )}
       >
@@ -438,32 +440,39 @@ export default function ContactsSpreadsheet({
         </div>
       )}
 
-      <div className="overflow-auto rounded-lg border border-border bg-card">
-        <table className="w-full min-w-[1200px] border-collapse text-xs">
-          <thead className="sticky top-0 z-10 bg-muted/40 backdrop-blur">
-            <tr className="border-b border-border">
-              <th className="w-9 px-2">
+      {/* Match grid-view card chrome: rounded-xl + border + bg-card so the
+          spreadsheet reads as a peer of the contact cards, not a separate
+          control. Header uses the same calm muted background as section
+          eyebrows elsewhere in the app. */}
+      <div className="overflow-auto rounded-xl border border-border/60 bg-card">
+        <table className="w-full min-w-[1280px] border-collapse text-sm">
+          <thead className="sticky top-0 z-10 border-b border-border bg-muted/30 backdrop-blur">
+            <tr>
+              <th className="w-10 px-3">
                 <Checkbox
                   checked={allSelected ? true : someSelected ? "indeterminate" : false}
                   onCheckedChange={(v) => toggleAll(!!v)}
                   aria-label="Select all"
                 />
               </th>
-              <th className="min-w-[160px]"><SortHeader k="name" label="Name" /></th>
-              <th className="min-w-[160px]"><SortHeader k="company" label="Company" /></th>
-              <th className="min-w-[90px]"><SortHeader k="target" label="Target" /></th>
-              <th className="min-w-[160px]"><SortHeader k="role" label="Role" /></th>
-              <th className="min-w-[180px]"><SortHeader k="email" label="Email" /></th>
-              <th className="min-w-[130px]"><SortHeader k="phone" label="Phone" /></th>
-              <th className="min-w-[180px]">
-                <span className="block px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {/* Column widths: weighted toward the high-information fields
+                  (name, company, email) so the eye lands there first — same
+                  hierarchy the grid card uses (name/company > details). */}
+              <th className="min-w-[180px]"><SortHeader k="name" label="Name" /></th>
+              <th className="min-w-[180px]"><SortHeader k="company" label="Company" /></th>
+              <th className="w-[110px]"><SortHeader k="target" label="Target" /></th>
+              <th className="min-w-[170px]"><SortHeader k="role" label="Role" /></th>
+              <th className="min-w-[200px]"><SortHeader k="email" label="Email" /></th>
+              <th className="min-w-[140px]"><SortHeader k="phone" label="Phone" /></th>
+              <th className="min-w-[200px]">
+                <span className="block px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                   LinkedIn
                 </span>
               </th>
-              <th className="min-w-[120px]"><SortHeader k="warmth" label="Warmth" /></th>
-              <th className="min-w-[140px]"><SortHeader k="followUp" label="Follow-up" /></th>
+              <th className="w-[130px]"><SortHeader k="warmth" label="Warmth" /></th>
+              <th className="w-[150px]"><SortHeader k="followUp" label="Follow-up" /></th>
               <th className="min-w-[200px]"><SortHeader k="campaigns" label="Campaigns" /></th>
-              <th className="w-10"></th>
+              <th className="w-12"></th>
             </tr>
           </thead>
           <tbody>
@@ -482,11 +491,13 @@ export default function ContactsSpreadsheet({
                 <tr
                   key={c.id}
                   className={cn(
-                    "border-b border-border/60 transition-colors",
-                    isSel ? "bg-primary/5" : "hover:bg-muted/30",
+                    // Slightly more breathing room per row + softer divider
+                    // — matches the airier feel of the grid cards.
+                    "border-b border-border/40 transition-colors",
+                    isSel ? "bg-primary/5" : "hover:bg-muted/20",
                   )}
                 >
-                  <td className="px-2 align-middle">
+                  <td className="px-3 py-1 align-middle">
                     <Checkbox
                       checked={isSel}
                       onCheckedChange={(v) => toggleOne(c.id, !!v)}
@@ -552,7 +563,7 @@ export default function ContactsSpreadsheet({
                         onUpdate(c.id, { relationshipWarmth: v === "none" ? undefined : v })
                       }
                     >
-                      <SelectTrigger className="h-8 border-transparent bg-transparent text-xs capitalize shadow-none hover:border-input">
+                      <SelectTrigger className="h-9 border-transparent bg-transparent text-sm capitalize shadow-none hover:border-input">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -579,11 +590,11 @@ export default function ContactsSpreadsheet({
                       onToggle={onToggleContactCampaign}
                     />
                   </td>
-                  <td className="px-1 text-right align-middle">
+                  <td className="px-2 text-right align-middle">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7"
+                      className="h-8 w-8"
                       onClick={() => onDelete(c.id)}
                       aria-label={`Delete ${c.name}`}
                     >
