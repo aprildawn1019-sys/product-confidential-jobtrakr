@@ -6,17 +6,20 @@ import {
   UserCircle2, MoreHorizontal, Compass, BookOpen,
 } from "lucide-react";
 
-// Koudou brand mark — two-tone: deep navy path rising to a soft cream sun.
-// Uses explicit semantic tokens so both tones render distinctly on the amber tile.
+// Koudou brand mark — Concept 1 "Rising Arc": amber path sweeping up from
+// the bottom-left to a glowing amber sun on a navy horizon.
+// Flat vector translation of src/assets/concepts/concept-1-rising-arc-v3.png.
 const KoudouMark = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 32 32" className={className} aria-hidden="true" fill="none">
-    {/* Tone 1 — soft cream sun (light tone) */}
-    <circle cx="22" cy="10" r="3.5" className="fill-sidebar-primary-foreground" />
-    {/* Tone 2 — deep navy path (dark tone) */}
+  <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
+    {/* Navy tile background — the "night sky / horizon" */}
+    <rect width="32" height="32" rx="7" className="fill-sidebar" />
+    {/* Amber sun rising on the horizon (upper right) */}
+    <circle cx="22" cy="11" r="3.4" className="fill-sidebar-primary" />
+    {/* Amber path sweeping from bottom-left up to the sun */}
     <path
-      d="M5 28 Q 12 22 16 18 Q 20 14 22 12"
-      className="stroke-sidebar"
-      strokeWidth="3.25"
+      d="M3 30 C 10 26, 14 22, 17 17 C 19 14, 20.5 12.5, 22 11.5"
+      className="stroke-sidebar-primary"
+      strokeWidth="3"
       strokeLinecap="round"
       fill="none"
     />
@@ -177,9 +180,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
     return (
       <TooltipProvider>
         <div className="flex h-16 items-center justify-center">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <KoudouMark className="h-5 w-5" />
-          </div>
+          <KoudouMark className="h-9 w-9 rounded-lg" />
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Primary">
@@ -264,9 +265,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   return (
     <>
       <div className="flex h-16 items-center gap-2.5 px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-          <KoudouMark className="h-5 w-5" />
-        </div>
+        <KoudouMark className="h-8 w-8 rounded-lg" />
         <span className="font-display text-lg font-bold tracking-tight">Koudou</span>
       </div>
 
