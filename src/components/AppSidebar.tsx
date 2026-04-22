@@ -253,11 +253,8 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
     );
 
-  // Icon class: amber when active (inherits via parent), neutral otherwise.
-  const navIconClass = "h-[18px] w-[18px] shrink-0 text-sidebar-muted group-hover:text-sidebar-foreground group-[.bg-sidebar-accent]:text-sidebar-primary";
-
   return (
-    <>
+    <TooltipProvider>
       {/* Brand lockup: matches landing page wordmark — Space Grotesk 700 @ 20px. */}
       <div className="flex h-16 items-center gap-2.5 px-4">
         <BrandMark className="h-9 w-9" />
@@ -292,7 +289,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           return (
             <div key={group.label} className="pt-5 first:pt-1">
               <div className="px-3 pb-2">
-                <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-sidebar-muted">
+                <span className="font-sans text-xs font-semibold tracking-wide text-sidebar-foreground/55">
                   {group.label}
                 </span>
               </div>
@@ -369,12 +366,12 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         })}
       </nav>
 
-      {/* Footer per the v3 sidebar spec: a single compact row with the
-          account avatar + small Profile / Settings / Help glyphs. The
+      {/* Footer per the v3 sidebar spec: avatar + icon-only utility row so
+          everything fits within the 256px sidebar without overflow. The
           dropdown still hangs off the avatar so Restart walkthrough +
-          Sign out remain reachable without crowding the surface. */}
+          Sign out remain reachable. */}
       <div className="border-t border-sidebar-border px-3 py-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -404,48 +401,65 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <NavLink
-            to="/settings/profile"
-            onClick={handleNavClick}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs transition-colors",
-                isActive
-                  ? "text-sidebar-foreground"
-                  : "text-sidebar-muted hover:text-sidebar-foreground"
-              )
-            }
-          >
-            <UserCircle2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-            Profile
-          </NavLink>
-          <NavLink
-            to="/settings"
-            end
-            onClick={handleNavClick}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs transition-colors",
-                isActive || location.pathname === "/settings" || location.pathname === "/settings/data-export"
-                  ? "text-sidebar-foreground"
-                  : "text-sidebar-muted hover:text-sidebar-foreground"
-              )
-            }
-          >
-            <Settings className="h-3.5 w-3.5" strokeWidth={1.75} />
-            Settings
-          </NavLink>
-          <button
-            type="button"
-            onClick={() => { handleNavClick(); openHelp(); }}
-            className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-sidebar-muted hover:text-sidebar-foreground transition-colors"
-          >
-            <CircleHelp className="h-3.5 w-3.5" strokeWidth={1.75} />
-            Help
-          </button>
+          <div className="flex items-center gap-0.5">
+            <Tooltip delayDuration={150}>
+              <TooltipTrigger asChild>
+                <NavLink
+                  to="/settings/profile"
+                  onClick={handleNavClick}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-foreground"
+                        : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    )
+                  }
+                  aria-label="Profile"
+                >
+                  <UserCircle2 className="h-[18px] w-[18px]" strokeWidth={2} />
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent side="top">Profile</TooltipContent>
+            </Tooltip>
+            <Tooltip delayDuration={150}>
+              <TooltipTrigger asChild>
+                <NavLink
+                  to="/settings"
+                  end
+                  onClick={handleNavClick}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                      isActive || location.pathname === "/settings" || location.pathname === "/settings/data-export"
+                        ? "bg-sidebar-accent text-sidebar-foreground"
+                        : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    )
+                  }
+                  aria-label="Settings"
+                >
+                  <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent side="top">Settings</TooltipContent>
+            </Tooltip>
+            <Tooltip delayDuration={150}>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => { handleNavClick(); openHelp(); }}
+                  className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
+                  aria-label="Help"
+                >
+                  <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Help</TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </div>
-    </>
+    </TooltipProvider>
   );
 }
 
