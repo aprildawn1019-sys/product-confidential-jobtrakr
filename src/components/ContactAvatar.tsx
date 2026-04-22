@@ -49,16 +49,27 @@ export default function ContactAvatar({
   size = "md",
   className,
 }: ContactAvatarProps) {
+  // Privacy preference: when the user disables LinkedIn avatars, we treat
+  // any LinkedIn-derived URL as if it weren't present at all and render
+  // initials with a small "privacy on" indicator instead.
+  const privacyDisabled = useDisableLinkedInAvatars();
+  const isLinkedInPhoto = !!avatarUrl && isLinkedInDerivedAvatar(avatarUrl);
+  const suppressedByPrivacy = privacyDisabled && isLinkedInPhoto;
+
+  // Effective URL — null when privacy mode hides it, so the rest of the
+  // component falls into the initials path naturally.
+  const effectiveUrl = suppressedByPrivacy ? null : avatarUrl;
+
   // Start in "loading" if we have a URL to try, otherwise skip straight to
   // the initials path (treated as "failed" only conceptually — we don't
   // show the error indicator unless there was actually a URL to load).
-  const [imgState, setImgState] = useState<ImgState>(avatarUrl ? "loading" : "loaded");
+  const [imgState, setImgState] = useState<ImgState>(effectiveUrl ? "loading" : "loaded");
 
   // Reset whenever the URL changes so a contact swap doesn't leave the
   // component stuck in a stale "failed" state.
   useEffect(() => {
-    setImgState(avatarUrl ? "loading" : "loaded");
-  }, [avatarUrl]);
+    setImgState(effectiveUrl ? "loading" : "loaded");
+  }, [effectiveUrl]);
 
   const dim =
     size === "lg"
@@ -72,10 +83,14 @@ export default function ContactAvatar({
   const indicatorSize =
     size === "lg" ? "h-4 w-4" : size === "sm" ? "h-2.5 w-2.5" : "h-3 w-3";
 
-  const hasUrl = !!avatarUrl;
+  const hasUrl = !!effectiveUrl;
   const showImage = hasUrl && imgState !== "failed";
   const showFailedIndicator = hasUrl && imgState === "failed";
   const showLoadingOverlay = hasUrl && imgState === "loading";
+  // Privacy badge replaces the "failed" badge when we deliberately hid the
+  // photo. Mutually exclusive — privacy wins because it's a user choice,
+  // not an error condition.
+  const showPrivacyIndicator = suppressedByPrivacy;
 
   // Accessibility:
   //   - The wrapper carries `role="img"` + `aria-label={name}` so screen
