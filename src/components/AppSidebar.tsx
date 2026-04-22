@@ -3,14 +3,21 @@ import {
   LayoutDashboard, Briefcase, Users, Search, Globe, LogOut, CalendarDays,
   ChevronDown, ChevronRight, TrendingUp, Star, FileText, Settings, Network,
   Sparkles, PlayCircle, CircleHelp, BarChart3, FileStack, LucideIcon, PanelLeftClose, PanelLeft,
-  UserCircle2, MoreHorizontal, Compass, BookOpen,
+  UserCircle2, MoreHorizontal,
 } from "lucide-react";
 
-// Koudou brand mark — geometric K (ivory upper arm + amber lower arm
-// reading as a foot mid-stride). Sidebar uses the dark-surface variant.
-import koudouMarkSrc from "@/assets/brand/koudou-mark-dark.png";
-const KoudouMark = ({ className }: { className?: string }) => (
-  <img src={koudouMarkSrc} alt="Koudou" className={className} />
+// Brand lockup: per the new sidebar spec the mark is a simple amber square
+// tile (not the geometric K) paired with the "Jobtrakr" wordmark. Keeping
+// this as a small inline component so the lockup is reused in collapsed +
+// expanded modes and the Sheet drawer on mobile.
+const BrandTile = ({ className }: { className?: string }) => (
+  <div
+    className={cn(
+      "shrink-0 rounded-[6px] bg-sidebar-primary",
+      className,
+    )}
+    aria-hidden
+  />
 );
 import { useHelp } from "@/components/help/HelpProvider";
 import { NavLink, useLocation } from "react-router-dom";
@@ -66,12 +73,12 @@ interface AppSidebarProps {
   onMobileClose?: () => void;
 }
 
-// Group label icons mirror the hero spec: each section gets a small leading
-// glyph + chevron so the sidebar reads as scannable categories.
-const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
+// New sidebar spec: groups are quiet category headers (amber label, no
+// leading icon, no chevron). The visual hierarchy comes from the labels
+// themselves and an amber left-edge bar on the active row.
+const groups: { label: string; items: LinkItem[] }[] = [
   {
     label: "Today",
-    icon: Sparkles,
     items: [
       { to: "/", icon: LayoutDashboard, label: "Command Center", end: true },
       { to: "/jobs", icon: Briefcase, label: "Jobs" },
@@ -81,7 +88,6 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   },
   {
     label: "Pipeline",
-    icon: Compass,
     items: [
       { to: "/target-companies", icon: Star, label: "Target Companies", tourId: "entry-target-companies" },
       { to: "/job-boards", icon: Globe, label: "Job Boards" },
@@ -90,7 +96,6 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   },
   {
     label: "Library",
-    icon: BookOpen,
     items: [
       { to: "/resumes", icon: FileStack, label: "Resumes" },
       { to: "/cover-letters", icon: FileText, label: "Cover Letters" },
@@ -98,7 +103,6 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   },
   {
     label: "Insights",
-    icon: BarChart3,
     items: [
       { to: "/insights", icon: BarChart3, label: "Insights" },
       { to: "/skills-insights", icon: TrendingUp, label: "Skills Insights" },
