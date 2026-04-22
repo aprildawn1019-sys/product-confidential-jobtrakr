@@ -79,6 +79,7 @@ const groups: { label: string; items: LinkItem[] }[] = [
   {
     label: "Today",
     items: [
+      { to: "/getting-started", icon: Sparkles, label: "Getting Started" },
       { to: "/", icon: LayoutDashboard, label: "Command Center", end: true },
       { to: "/jobs", icon: Briefcase, label: "Jobs" },
       { to: "/contacts", icon: Users, label: "Contacts", tourId: "entry-network" },
