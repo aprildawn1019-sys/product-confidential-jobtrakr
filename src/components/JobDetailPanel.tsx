@@ -117,7 +117,12 @@ export default function JobDetailPanel({
 
   const formatDate = (d?: string) => {
     if (!d) return "—";
-    return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    // Local-day parsing so YYYY-MM-DD applied dates don't shift back a day
+    // for users west of UTC.
+    const parsed = parseLocalDate(d);
+    return parsed
+      ? parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+      : d;
   };
 
   const linkedIds = new Set(linkedContacts.map(c => c.id));
