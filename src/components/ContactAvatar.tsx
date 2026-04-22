@@ -207,15 +207,34 @@ export default function ContactAvatar({
         <span aria-hidden="true">{getInitials(name)}</span>
       )}
 
-      {/* Loading spinner overlays the initials placeholder so there's a
-          subtle hint that we're trying to fetch a photo. The initials
-          remain visible behind it as a graceful fallback. */}
+      {/* Loading indicator overlays the initials placeholder so there's
+          a subtle hint that we're trying to fetch a photo. The initials
+          remain visible behind it as a graceful fallback.
+
+          When the user prefers reduced motion, we swap the spinning
+          loader for a static, dimmed dot — the visual cue (something
+          is loading here) is preserved without the continuous rotation
+          that can trigger vestibular discomfort. The polite live region
+          elsewhere in this component still announces the state change
+          to assistive tech, so no information is lost. */}
       {showLoadingOverlay && (
         <span
           className="absolute inset-0 flex items-center justify-center bg-primary/60"
           aria-hidden="true"
         >
-          <Loader2 className={cn("animate-spin text-primary-foreground", indicatorSize)} />
+          {prefersReducedMotion ? (
+            <span
+              className={cn(
+                "rounded-full bg-primary-foreground/80",
+                // Render the static fallback at roughly half the icon
+                // size so it reads as a "pending" dot rather than a
+                // full-blown indicator competing with the initials.
+                size === "lg" ? "h-2 w-2" : size === "sm" ? "h-1.5 w-1.5" : "h-1.5 w-1.5",
+              )}
+            />
+          ) : (
+            <Loader2 className={cn("animate-spin text-primary-foreground", indicatorSize)} />
+          )}
         </span>
       )}
 
