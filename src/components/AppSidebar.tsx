@@ -420,7 +420,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 onClick={handleNavClick}
                 className={({ isActive }) =>
                   cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
+                    "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md leading-none transition-colors",
                     isActive || location.pathname.startsWith("/settings")
                       ? "bg-sidebar-accent text-sidebar-primary"
                       : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
