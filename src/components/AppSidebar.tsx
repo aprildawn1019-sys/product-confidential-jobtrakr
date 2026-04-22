@@ -380,7 +380,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent/60 text-[11px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent/60 text-[11px] font-semibold leading-none text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                     aria-label={`Account menu for ${user.name}`}
                   >
                     {user.initials}
@@ -420,7 +420,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 onClick={handleNavClick}
                 className={({ isActive }) =>
                   cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
+                    "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md leading-none transition-colors",
                     isActive || location.pathname.startsWith("/settings")
                       ? "bg-sidebar-accent text-sidebar-primary"
                       : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
@@ -439,7 +439,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               <button
                 type="button"
                 onClick={() => { handleNavClick(); openHelp(); }}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md leading-none text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
                 aria-label="Help"
               >
                 <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} />
