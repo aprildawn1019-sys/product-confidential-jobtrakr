@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
     // 30 upstream fetches / 10 minutes per user is generous for typical
     // CRM workflows but blocks pathological loops.
     const rl = await checkRateLimit({
-      userId: auth.userId,
+      userId: auth.user.id,
       functionName: "proxy-linkedin-avatar",
       maxCalls: 30,
       windowMinutes: 10,
