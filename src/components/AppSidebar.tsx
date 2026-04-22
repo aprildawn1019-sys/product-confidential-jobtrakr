@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Briefcase, Users, Search, Globe, LogOut, CalendarDays,
   ChevronDown, ChevronRight, TrendingUp, Star, FileText, Settings, Network,
   Sparkles, PlayCircle, CircleHelp, BarChart3, FileStack, LucideIcon, PanelLeftClose, PanelLeft,
-  UserCircle2, MoreHorizontal,
+  UserCircle2,
 } from "lucide-react";
 
 // Brand lockup: geometric-K mark paired with the "Jobtrakr" wordmark.
@@ -170,7 +170,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
     return (
       <TooltipProvider>
         <div className="flex h-16 items-center justify-center">
-          <BrandTile className="h-7 w-7" />
+          <BrandMark className="h-9 w-9" />
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Primary">
@@ -255,9 +255,9 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
 
   return (
     <>
-      {/* Brand lockup: amber square + Jobtrakr wordmark, per the v3 sidebar spec. */}
+      {/* Brand lockup: dark-pane geometric-K mark + Jobtrakr wordmark. */}
       <div className="flex h-16 items-center gap-2.5 px-5">
-        <BrandTile className="h-6 w-6" />
+        <BrandMark className="h-8 w-8" />
         <span className="font-display text-[17px] font-bold tracking-tight text-sidebar-foreground">
           Jobtrakr
         </span>
