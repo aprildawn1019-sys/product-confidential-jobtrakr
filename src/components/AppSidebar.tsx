@@ -439,7 +439,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               <button
                 type="button"
                 onClick={() => { handleNavClick(); openHelp(); }}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md leading-none text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
                 aria-label="Help"
               >
                 <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} />
