@@ -2,10 +2,13 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
+// Tokenized status pills — single source of truth lives in index.css.
+// low → success, medium → warning, high → destructive. Stays inside the
+// status family (no raw palette colors) per visual-theme-v2 spec.
 const priorityConfig: Record<string, { label: string; emoji: string; className: string }> = {
-  low: { label: "Low", emoji: "🟢", className: "bg-green-500/15 text-green-700 border-green-500/30" },
-  medium: { label: "Medium", emoji: "🟡", className: "bg-yellow-500/15 text-yellow-700 border-yellow-500/30" },
-  high: { label: "High", emoji: "🟠", className: "bg-orange-500/15 text-orange-700 border-orange-500/30" },
+  low: { label: "Low", emoji: "🟢", className: "bg-success/15 text-success border-success/30" },
+  medium: { label: "Medium", emoji: "🟡", className: "bg-warning/15 text-warning border-warning/30" },
+  high: { label: "High", emoji: "🟠", className: "bg-destructive/15 text-destructive border-destructive/30" },
 };
 
 interface PriorityBadgeProps {

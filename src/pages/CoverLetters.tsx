@@ -284,7 +284,7 @@ export default function CoverLetters({ jobs = [] }: CoverLettersProps) {
                     </button>
                     <div className="flex items-center gap-1 shrink-0">
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleCopy(letter.id, letter.content)}>
-                        {isCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                        {isCopied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
                       </Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleStartEdit(letter)} title="Edit">
                         <Pencil className="h-3.5 w-3.5" />

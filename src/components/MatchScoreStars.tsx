@@ -36,7 +36,7 @@ export default function MatchScoreStars({ score, onChange, size = "md" }: MatchS
                 className={cn(
                   iconSize,
                   i <= current
-                    ? "fill-yellow-500 text-yellow-500"
+                    ? "fill-accent text-accent"
                     : "text-muted-foreground/40"
                 )}
               />

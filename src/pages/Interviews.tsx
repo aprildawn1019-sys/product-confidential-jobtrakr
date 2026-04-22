@@ -18,11 +18,12 @@ import { cn } from "@/lib/utils";
 import type { Job, Interview, Contact } from "@/types/jobTracker";
 import HelpHint from "@/components/help/HelpHint";
 
+// Already on tokens — kept here for the follow-up indicator pill.
 const warmthStyles: Record<string, string> = {
-  cold: "bg-info/20 text-info border-info/30",
-  warm: "bg-warning/20 text-warning border-warning/30",
-  hot: "bg-destructive/20 text-destructive border-destructive/30",
-  champion: "bg-success/20 text-success border-success/30",
+  cold: "bg-info/15 text-info border-info/30",
+  warm: "bg-warning/15 text-warning border-warning/30",
+  hot: "bg-destructive/15 text-destructive border-destructive/30",
+  champion: "bg-success/15 text-success border-success/30",
 };
 
 interface InterviewsPageProps {
@@ -36,12 +37,15 @@ interface InterviewsPageProps {
   getContactsForJob?: (jobId: string) => Contact[];
 }
 
+// Interview type pills — quiet neutral by default; only "final" gets a
+// destructive emphasis since it's the high-stakes round. Five-color rainbow
+// was off-spec (see visual-theme-v2: navy/amber/slate single-tone family).
 const typeColors: Record<string, string> = {
-  phone: "bg-blue-500/10 text-blue-700 border-blue-200",
-  technical: "bg-purple-500/10 text-purple-700 border-purple-200",
-  behavioral: "bg-amber-500/10 text-amber-700 border-amber-200",
-  onsite: "bg-green-500/10 text-green-700 border-green-200",
-  final: "bg-red-500/10 text-red-700 border-red-200",
+  phone: "bg-muted text-foreground border-border",
+  technical: "bg-muted text-foreground border-border",
+  behavioral: "bg-muted text-foreground border-border",
+  onsite: "bg-info/15 text-info border-info/30",
+  final: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
 type FilterType = "all" | "interviews" | "followups";
@@ -325,7 +329,7 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
                                 title="Mark completed"
                                 onClick={() => onUpdate(interview.id, { status: "completed" })}
                               >
-                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                <CheckCircle2 className="h-4 w-4 text-success" />
                               </Button>
                               <Button
                                 variant="ghost"

@@ -28,7 +28,7 @@ export function SkillGapCard({
         <div className="grid gap-6 sm:grid-cols-2">
           <div>
             <h4 className="flex items-center gap-2 font-medium text-sm mb-3">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               You Have ({matchedSkills.length})
             </h4>
             <div className="flex flex-wrap gap-2">
@@ -55,7 +55,7 @@ export function SkillGapCard({
           </div>
           <div>
             <h4 className="flex items-center gap-2 font-medium text-sm mb-3">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertTriangle className="h-4 w-4 text-warning" />
               Skills Gap ({gapSkills.length})
             </h4>
             <div className="flex flex-wrap gap-2">

@@ -291,7 +291,7 @@ export default function JobDetailPanel({
                   {iv.status === "scheduled" && (
                     <>
                       <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateInterview(iv.id, { status: "completed" })} title="Complete">
-                        <CheckCircle2 className="h-3 w-3 text-green-600" />
+                        <CheckCircle2 className="h-3 w-3 text-success" />
                       </Button>
                       <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateInterview(iv.id, { status: "cancelled" })} title="Cancel">
                         <XCircle className="h-3 w-3 text-destructive" />

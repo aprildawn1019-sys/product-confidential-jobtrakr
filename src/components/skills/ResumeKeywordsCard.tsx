@@ -23,9 +23,12 @@ function getDemandTier(skill: string, demandData: RankedSkill[]): { level: "high
   return { level: "low", pct: match.pct };
 }
 
+// Demand tiers map to the status family: high → destructive (urgency),
+// moderate → warning, low → muted. Keeps demand pills consistent with
+// the rest of the product instead of inventing an orange/amber gradient.
 const tierConfig = {
-  high: { icon: Flame, color: "text-orange-500", bg: "bg-orange-500/10 border-orange-500/20", label: "High demand" },
-  moderate: { icon: TrendingUp, color: "text-amber-500", bg: "bg-amber-500/10 border-amber-500/20", label: "Moderate demand" },
+  high: { icon: Flame, color: "text-destructive", bg: "bg-destructive/10 border-destructive/20", label: "High demand" },
+  moderate: { icon: TrendingUp, color: "text-warning", bg: "bg-warning/10 border-warning/20", label: "Moderate demand" },
   low: { icon: Minus, color: "text-muted-foreground", bg: "bg-muted/50 border-border", label: "In demand" },
 };
 
@@ -85,8 +88,8 @@ export function ResumeKeywordsCard({
           </Button>
           {hasDemandData && !aiResumeKeywords && (
             <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-              <span className="flex items-center gap-1"><Flame className="h-3 w-3 text-orange-500" /> High</span>
-              <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3 text-amber-500" /> Moderate</span>
+              <span className="flex items-center gap-1"><Flame className="h-3 w-3 text-destructive" /> High</span>
+              <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3 text-warning" /> Moderate</span>
               <span className="flex items-center gap-1"><Minus className="h-3 w-3 text-muted-foreground" /> Low</span>
             </div>
           )}
