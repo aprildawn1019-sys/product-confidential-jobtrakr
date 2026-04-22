@@ -322,7 +322,14 @@ export default function AddContactDialog({
               <div className="flex gap-2">
                 <Input value={form.linkedin} onChange={e => setForm(f => ({ ...f, linkedin: e.target.value }))} placeholder="linkedin.com/in/..." className="flex-1" />
                 <Button type="button" variant="outline" size="sm" onClick={() => handleLinkedinFetch()} disabled={!form.linkedin.trim() || fetchingLinkedin} className="shrink-0">
-                  {fetchingLinkedin ? <Loader2 className="h-4 w-4 animate-spin" /> : "Fetch"}
+                  {fetchingLinkedin ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Fetching…
+                    </>
+                  ) : (
+                    "Fetch"
+                  )}
                 </Button>
               </div>
             </div>
@@ -374,19 +381,31 @@ export default function AddContactDialog({
                       variant="outline"
                       onClick={() => handleLinkedinFetch(importError.attemptedUrl)}
                       disabled={fetchingLinkedin}
+                      aria-busy={fetchingLinkedin}
                       className="h-7 gap-1.5"
                     >
                       {fetchingLinkedin ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Retrying…
+                        </>
                       ) : (
-                        <RefreshCw className="h-3.5 w-3.5" />
+                        <>
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          Retry
+                        </>
                       )}
-                      Retry
                     </Button>
                     <Button
                       type="button"
                       size="sm"
                       variant="ghost"
+                      // Lock dismissal while a retry is in flight: the user
+                      // would otherwise be able to wipe the error block
+                      // mid-request, after which the resolved fetch could
+                      // either re-create it (failure) or vanish silently
+                      // (success). Disabling keeps the UI predictable.
+                      disabled={fetchingLinkedin}
                       onClick={() => {
                         // Explicit dismissal — drop both the in-memory
                         // copy and the persisted one so reopening the
