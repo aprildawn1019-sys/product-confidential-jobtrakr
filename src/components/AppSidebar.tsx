@@ -183,7 +183,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               )
             }
           >
-            <item.icon className="h-[18px] w-[18px]" strokeWidth={2} />
+            <item.icon className="h-[18px] w-[18px]" strokeWidth={2} color={item.iconColor} />
           </NavLink>
         </TooltipTrigger>
         <TooltipContent side="right">{item.label}</TooltipContent>
