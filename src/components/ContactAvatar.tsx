@@ -107,6 +107,29 @@ export default function ContactAvatar({
   // not an error condition.
   const showPrivacyIndicator = suppressedByPrivacy;
 
+  // Build the polite, screen-reader-only status string that mirrors the
+  // current visual state of the avatar. We keep it concise and only emit
+  // a value once the state has actually transitioned away from the
+  // initial render — otherwise SRs would announce "loading" on every
+  // mount, which is noisy on lists of avatars.
+  //
+  // States announced:
+  //   - "loading" → "Loading profile photo for {name}"
+  //   - "loaded"  → "Profile photo for {name} loaded"
+  //   - "failed"  → "Profile photo for {name} unavailable, showing initials"
+  //   - privacy   → "Profile photo for {name} hidden by privacy settings"
+  // When there's no URL at all, we emit nothing — initials-only avatars
+  // don't need an extra announcement beyond the wrapper's aria-label.
+  let statusMessage = "";
+  if (showPrivacyIndicator) {
+    statusMessage = `Profile photo for ${name} hidden by privacy settings.`;
+  } else if (hasUrl) {
+    if (imgState === "loading") statusMessage = `Loading profile photo for ${name}.`;
+    else if (imgState === "loaded") statusMessage = `Profile photo for ${name} loaded.`;
+    else if (imgState === "failed")
+      statusMessage = `Profile photo for ${name} unavailable. Showing initials instead.`;
+  }
+
   // Accessibility:
   //   - The wrapper carries `role="img"` + `aria-label={name}` so screen
   //     readers always announce *one* name per avatar (not two — the
@@ -115,6 +138,10 @@ export default function ContactAvatar({
   //     is the canonical announcement.
   //   - The corner failure indicator is decorative; its meaning is
   //     conveyed through the tooltip, which is wired up below.
+  //   - A visually-hidden polite live region sits next to the image and
+  //     announces transitions (loading → loaded/failed) so non-sighted
+  //     users get parity with the spinner / corner badge UI. `role=status`
+  //     + `aria-live=polite` ensures updates don't interrupt other speech.
   const avatarNode = (
     <div
       role="img"
@@ -185,6 +212,22 @@ export default function ContactAvatar({
           aria-hidden="true"
         >
           <ShieldOff className="h-full w-full p-[1px]" />
+        </span>
+      )}
+
+      {/* Polite live region — visually hidden, but screen readers will
+          announce the message whenever it changes (e.g. spinner → image
+          loaded, or image → fallback initials). Empty string skips the
+          announcement entirely, which is what we want for initials-only
+          avatars where there's nothing to report. */}
+      {statusMessage && (
+        <span
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {statusMessage}
         </span>
       )}
     </div>
