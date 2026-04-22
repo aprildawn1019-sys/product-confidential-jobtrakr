@@ -7,6 +7,7 @@ import NextStepsList from "@/components/commandcenter/NextStepsList";
 // Weekly Review removed from Command Center — Reports page owns weekly recap.
 import UpcomingInterviewsStrip from "@/components/dashboard/UpcomingInterviewsStrip";
 import ActiveOpportunitiesPanel from "@/components/dashboard/ActiveOpportunitiesPanel";
+import QuickLogInterview from "@/components/dashboard/QuickLogInterview";
 
 import TargetsNeedingSourcing from "@/components/dashboard/TargetsNeedingSourcing";
 import { deriveActions } from "@/lib/actionEngine";
