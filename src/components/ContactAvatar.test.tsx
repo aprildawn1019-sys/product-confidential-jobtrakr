@@ -130,3 +130,98 @@ describe("ContactAvatar — blocked image URL (LinkedIn 403 case)", () => {
     expect(screen.queryByRole("button", { name: /Jane Doe/ })).not.toBeInTheDocument();
   });
 });
+
+describe("ContactAvatar — keyboard focus reveals failure tooltip", () => {
+  /**
+   * WCAG 2.1 SC 1.4.13 (Content on Hover or Focus) and 2.1.1 (Keyboard):
+   * the explanatory tooltip on a failed avatar must be reachable and
+   * readable without a mouse. Radix wires the tooltip to fire on focus
+   * of the trigger button, so we tab to it and assert the body content
+   * appears + is exposed to assistive tech.
+   */
+  it("opens the failure tooltip when the avatar button receives keyboard focus", async () => {
+    const { container } = render(
+      <ContactAvatar
+        name="Jane Doe"
+        avatarUrl="https://media.licdn.com/dms/image/blocked.jpg"
+      />,
+    );
+
+    // Drive the component into the failed-image state.
+    fireEvent.error(container.querySelector("img") as HTMLImageElement);
+
+    const button = screen.getByRole("button", { name: /Jane Doe.*Why\?/ });
+
+    // Tooltip body should not be in the document until focus/hover.
+    expect(
+      screen.queryByText(/LinkedIn blocks third-party apps/i),
+    ).not.toBeInTheDocument();
+
+    // Programmatic .focus() mirrors what Tab navigation would do —
+    // Radix listens for the focus event on the trigger.
+    button.focus();
+    expect(document.activeElement).toBe(button);
+
+    // Radix mounts the tooltip content asynchronously after focus.
+    const tooltipContent = await screen.findByText(
+      /LinkedIn blocks third-party apps from displaying member photos/i,
+    );
+    expect(tooltipContent).toBeVisible();
+  });
+
+  it("exposes the tooltip content to screen readers via role=tooltip", async () => {
+    const { container } = render(
+      <ContactAvatar
+        name="Jane Doe"
+        avatarUrl="https://media.licdn.com/dms/image/blocked.jpg"
+      />,
+    );
+    fireEvent.error(container.querySelector("img") as HTMLImageElement);
+
+    const button = screen.getByRole("button", { name: /Jane Doe.*Why\?/ });
+    button.focus();
+
+    // Radix renders the tooltip with role="tooltip" so assistive tech
+    // announces it. We wait for it to appear, then verify the body copy
+    // lives inside that announced region (not just somewhere on the page).
+    const tooltip = await screen.findByRole("tooltip");
+    expect(tooltip).toBeVisible();
+    expect(
+      within(tooltip).getByText(
+        /LinkedIn blocks third-party apps from displaying member photos/i,
+      ),
+    ).toBeInTheDocument();
+
+    // The trigger button should be associated with the tooltip via
+    // aria-describedby so SRs read the explanation alongside the name.
+    await waitFor(() => {
+      const describedBy = button.getAttribute("aria-describedby");
+      expect(describedBy).toBeTruthy();
+      const describer = document.getElementById(describedBy as string);
+      expect(describer).not.toBeNull();
+      expect(describer?.textContent).toMatch(
+        /LinkedIn blocks third-party apps/i,
+      );
+    });
+  });
+
+  it("hides the tooltip again when focus leaves the avatar button", async () => {
+    const { container } = render(
+      <ContactAvatar
+        name="Jane Doe"
+        avatarUrl="https://media.licdn.com/dms/image/blocked.jpg"
+      />,
+    );
+    fireEvent.error(container.querySelector("img") as HTMLImageElement);
+
+    const button = screen.getByRole("button", { name: /Jane Doe.*Why\?/ });
+    button.focus();
+    await screen.findByRole("tooltip");
+
+    // Blur should retract the tooltip so it doesn't linger over other UI.
+    button.blur();
+    await waitFor(() => {
+      expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    });
+  });
+});
