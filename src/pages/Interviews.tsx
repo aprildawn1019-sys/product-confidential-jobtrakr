@@ -329,7 +329,7 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
                                 title="Mark completed"
                                 onClick={() => onUpdate(interview.id, { status: "completed" })}
                               >
-                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                <CheckCircle2 className="h-4 w-4 text-success" />
                               </Button>
                               <Button
                                 variant="ghost"
