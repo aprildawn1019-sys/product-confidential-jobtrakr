@@ -156,7 +156,10 @@ export default function AddContactDialog({
     const fullUrl = url.startsWith("http") ? url : `https://${url}`;
     setFetchingLinkedin(true);
     // Clear any prior error so the inline block disappears while retrying.
+    // Also evict the persisted copy so a successful retry doesn't leave a
+    // stale "Failed N minutes ago" panel waiting in sessionStorage.
     setImportError(null);
+    savePersistedError(null);
     try {
       // Honor the user's privacy pref: when avatar proxying is disabled,
       // tell the edge function to skip the cache step and return the raw
@@ -227,6 +230,7 @@ export default function AddContactDialog({
     setImportStatus("idle");
     setExtractedFields([]);
     setImportError(null);
+    savePersistedError(null);
     setOpen(false);
   };
 
@@ -382,7 +386,13 @@ export default function AddContactDialog({
                       type="button"
                       size="sm"
                       variant="ghost"
-                      onClick={() => setImportError(null)}
+                      onClick={() => {
+                        // Explicit dismissal — drop both the in-memory
+                        // copy and the persisted one so reopening the
+                        // dialog doesn't bring the error back.
+                        setImportError(null);
+                        savePersistedError(null);
+                      }}
                       className="h-7 gap-1.5 text-muted-foreground"
                     >
                       <X className="h-3.5 w-3.5" />
