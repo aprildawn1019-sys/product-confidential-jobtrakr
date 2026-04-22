@@ -295,7 +295,7 @@ export default function Contacts({
         <div className="p-5 flex flex-col flex-1">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3 min-w-0">
-              <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="md" />
+              <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="md" dense />
               <div className="min-w-0">
                 <h3 className="font-semibold truncate">{contact.name}</h3>
                 <p className="text-sm text-muted-foreground truncate">{contact.role}</p>
@@ -786,7 +786,7 @@ export default function Contacts({
                   onClick={() => setExpandedContact(isExpanded ? null : contact.id)}
                   className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40 focus:outline-none focus-visible:bg-muted/40"
                 >
-                  <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="sm" />
+                  <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="sm" dense />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="truncate text-sm font-medium">{contact.name}</p>
