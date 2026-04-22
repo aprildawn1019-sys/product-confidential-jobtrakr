@@ -618,14 +618,19 @@ export default function Contacts({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center rounded-lg border border-border p-0.5">
-            <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("grid")} title="Grid view">
+          {/* Icon-only toggle group: each button needs an explicit aria-label
+              (icons aren't readable by SR), aria-pressed to convey toggled
+              state, and the wrapper gets role=group with a label so the trio
+              reads as a single "View" control. Labels follow the same
+              "<Name> view" pattern across all three. */}
+          <div role="group" aria-label="View mode" className="flex items-center rounded-lg border border-border p-0.5">
+            <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("grid")} title="Grid view" aria-label="Grid view" aria-pressed={viewMode === "grid"}>
               <LayoutGrid className="h-4 w-4" />
             </Button>
-            <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("list")} title="List view">
+            <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("list")} title="List view" aria-label="List view" aria-pressed={viewMode === "list"}>
               <ListIcon className="h-4 w-4" />
             </Button>
-            <Button variant={viewMode === "spreadsheet" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("spreadsheet")} title="Spreadsheet">
+            <Button variant={viewMode === "spreadsheet" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("spreadsheet")} title="Spreadsheet view" aria-label="Spreadsheet view" aria-pressed={viewMode === "spreadsheet"}>
               <Sheet className="h-4 w-4" />
             </Button>
           </div>
