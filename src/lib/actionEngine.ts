@@ -158,6 +158,14 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     const daysOverdue = urgency === "overdue"
       ? Math.max(0, differenceInDays(now, parseISO(i.date)))
       : 0;
+    // Subtitle includes the date so users always see WHEN the interview is,
+    // not just the time. The urgency chip on the row covers "overdue/today/soon",
+    // but a literal date avoids ambiguity (e.g. "Fri Apr 25 · 2:00 PM").
+    const ivDate = (() => {
+      const d = i.date.length <= 10 ? parseISO(i.date) : new Date(i.date);
+      if (isNaN(d.getTime())) return i.date;
+      return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    })();
     actions.push({
       signature: `interview:${i.id}`,
       lane: "applications",
@@ -165,7 +173,7 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
       source: "signal",
       priorityScore: scoreOf(urgency, "applications", daysOverdue) - 50, // boost interviews
       title: `${i.type[0].toUpperCase()}${i.type.slice(1)} interview — ${job.title}`,
-      subtitle: `${job.company}${i.time ? ` · ${i.time}` : ""}`,
+      subtitle: `${job.company} · ${ivDate}${i.time ? ` · ${i.time}` : ""}`,
       actionLabel: "Prep & open",
       href: `/jobs/${job.id}`,
       jobId: job.id,
