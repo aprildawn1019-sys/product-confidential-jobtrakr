@@ -1,87 +1,105 @@
 
 
-# Sidebar UX/UI Audit — Findings & Recommendations
+# Brand Palette & Icon Design — Audit + Recommendations
 
-A heuristic review of `src/components/AppSidebar.tsx` (256px expanded / 56px collapsed, navy background, Koudou wordmark, four grouped sections, footer utility row).
-
----
-
-## What's working well
-
-- **Clear IA grouping** (Today / Pipeline / Library / Insights) ordered by daily-use frequency — matches Nielsen's "match between system and real world."
-- **Persistent active-state treatment** (navy fill + 2px amber left bar) is consistent in expanded *and* collapsed modes — strong "visibility of system status."
-- **Collapsed mode preserves icons + tooltips** — meets shadcn sidebar guidance (mini-collapse, not hide).
-- **Mobile parity** via `Sheet` with the same `SidebarBody`.
-- **Tour hooks** (`tourId`) wired at the row level for onboarding.
-- **Auto-hide of "Getting Started"** once the user has data — reduces clutter for returning users.
+A focused review of the **color tokens** in `src/index.css` and the **icon system** in `src/components/AppSidebar.tsx` (the most icon-dense surface in the app, and the one that anchors brand perception).
 
 ---
 
-## Issues, ranked by impact
+## What's working
 
-### 1. Multi-color icon palette weakens scannability *(high impact)*
-Ten distinct hues (amber/navy/teal/green/violet/rose/blue/lime/sand/sky) on a navy background create a "stained-glass" effect. Users scan by **shape + position**, not hue, and a rainbow palette:
-- competes with the active-row amber accent (the actual signal),
-- makes icons of similar luminance (sand/sky/lime) hard to distinguish on dark navy,
-- fights the rest of the app's restrained navy/amber system documented in `mem://style/visual-theme-v2`.
-
-**Recommend:** collapse to a 2-tone system — neutral (`text-sidebar-muted`) for inactive, amber for active/hover. Reserve color for *state*, not identity. If you want a chromatic touch, tint icons by **group** (4 hues) instead of per-item (10 hues).
-
-### 2. Footer is cramped and inconsistent *(high impact)*
-- 256px container holds avatar + 3 icon buttons; spacing is `gap-1` then `gap-0.5`, mixing rhythms.
-- All footer icons are amber (`--sidebar-primary`) regardless of state — no visual difference between active Settings and inactive Help.
-- Avatar uses `bg-sidebar-accent` (navy tint) while utility icons sit on transparent — different surface heights for peers.
-- "Profile" icon duplicates the avatar's purpose (avatar → menu also includes profile-ish actions).
-
-**Recommend:** drop the standalone Profile icon (it's redundant with the avatar dropdown), keep avatar + Settings + Help, equalize backgrounds, and move Help into the avatar menu if space stays tight.
-
-### 3. Section-label hierarchy fights the brand *(medium)*
-Labels are `Space Grotesk 13px bold uppercase tracking-[0.18em]` in **full-saturation amber**. This pulls more attention than the nav rows themselves, inverting the intended hierarchy (rows should be primary, labels secondary). The `visual-theme-v2` memory itself calls for "muted amber" group labels.
-
-**Recommend:** drop to `text-[11px] font-semibold tracking-[0.16em]` at `--sidebar-group-foreground` with ~70% alpha, or switch to a desaturated warm-gray. Amber stays exclusive to active state + brand mark.
-
-### 4. Two competing brand lockups *(medium)*
-Sidebar shows the `koudou-mark-light.png` raster + "Koudou" wordmark, but `mem://features/sidebar-ia` specifies an **amber rounded-square tile + "Jobtrakr" wordmark** (the geometric-K is reserved for landing/favicon). The product is also branded **Jobtrakr**, not Koudou (per `mem://project/branding`).
-
-**Recommend:** restore the amber tile + "Jobtrakr" wordmark in `font-display`. This is a brand-correctness bug, not just polish.
-
-### 5. Jobs sub-list disclosure is awkward *(medium)*
-The chevron is a separate button next to the NavLink, so clicking the row navigates while clicking the chevron expands — two targets, ~14px chevron, no keyboard affordance, and the expanded list (`max-h-48 overflow-y-auto`) creates a nested scroll inside an already-scrollable nav.
-
-**Recommend:** either (a) make the row itself toggle the sub-list when already on `/jobs`, or (b) move recent jobs into a "Pinned" section above the main nav, or (c) drop the inline list and rely on the Jobs page for navigation.
-
-### 6. Collapse toggle is hard to find *(medium)*
-Floating 24px button at `-right-3 top-20` overlaps page content, has no tooltip, and uses `PanelLeftClose` / `PanelLeft` which are visually similar. Users routinely miss it.
-
-**Recommend:** add a tooltip ("Collapse sidebar" / "Expand sidebar"), increase to 28px hit target, and consider also exposing the toggle via keyboard shortcut (`[`) with the shortcut hinted in the tooltip.
-
-### 7. Inactive text contrast is borderline *(medium, accessibility)*
-`--sidebar-muted: 220 12% 60%` on `--sidebar-background: 222 47% 11%` measures roughly 5.0:1 — passes AA for normal text but fails AA for the 12px group labels if you adopt recommendation #3 at low alpha. Worth re-checking with a contrast tool after changes.
-
-### 8. No keyboard / screen-reader landmarks beyond the basics *(low/medium, a11y)*
-- `aside` has `role="navigation"` + `aria-label="Main navigation"` ✓
-- But group containers are plain `<div>` — should be `<section aria-labelledby>` or use `<ul>`/`<li>` so screen readers announce "Pipeline, list, 3 items."
-- Active route should expose `aria-current="page"` (NavLink does this by default; verify it isn't being stripped).
-
-### 9. Minor hygiene
-- `BrandMark` import lives mid-file between other imports — move to top.
-- `ICON_*` constants are unused once recommendation #1 lands — delete with the change.
-- `TooltipProvider` is mounted twice (once inside collapsed branch, once inside expanded branch). Move it to the outer `AppSidebar` so it wraps both modes once.
-- Hard-coded `top-20` on the toggle button breaks if the brand row height changes — anchor it to the brand row instead.
+- **Two-color brand spine:** Navy primary + amber accent is distinctive, owns the sidebar, and matches the Koudou mark. Amber is correctly reserved for state (active row, brand mark) rather than identity.
+- **HSL token system in `src/index.css`** with proper sidebar-scoped tokens (`--sidebar-*`) — themable and consistent.
+- **Icon stroke discipline:** All sidebar icons use Lucide at `18px` / `strokeWidth=2`, so weight reads uniformly across rows.
+- **State-driven icon color:** Inactive `text-sidebar-muted`, active/hover `text-sidebar-primary` (amber). Clean 2-tone system; no rainbow drift.
+- **Brand mark contrast handled correctly:** dark-variant asset on the navy sidebar, light-variant on light surfaces (per `mem://style/brand-mark`).
 
 ---
 
-## Suggested next step
+## Issues — palette
 
-Pick the highest-leverage fixes first. A reasonable batch for one implementation pass:
+### P1. Amber is overloaded *(high)*
+`--accent`, `--warning`, `--sidebar-primary`, and `--sidebar-ring` all resolve to **the same amber** (`36 90% 55%`). That means an active nav row, a "warning" badge, a focus ring, and a brand wordmark all share one color. The signal collapses — users can't tell "you are here" from "this needs attention."
 
-1. Brand correction → amber tile + "Jobtrakr" wordmark (fixes #4).
-2. Icon palette collapse to neutral / active-amber (fixes #1).
-3. Section-label de-emphasis (fixes #3).
-4. Footer rationalization: drop Profile glyph, equalize surfaces, add active-state contrast (fixes #2).
-5. Collapse toggle tooltip + larger hit target (fixes #6).
+**Recommend:** keep `--accent` and `--sidebar-primary` as the brand amber (`36 90% 55%`). Shift `--warning` to a slightly warmer/duskier tone (e.g. `30 92% 50%`) so warnings are distinct from brand emphasis, and tone `--sidebar-ring` to a higher-luminance variant (`36 95% 65%`) so focus rings read on top of an active amber bar.
 
-Items #5 (Jobs sub-list), #7 (contrast verify), #8 (a11y semantics), and #9 (hygiene) can follow in a second pass.
+### P2. No semantic neutral scale *(high)*
+Today there are only two grays in play (`--muted` and `--muted-foreground`). The sidebar invents a third (`--sidebar-muted: 220 12% 60%`) inline. Across the product, "secondary text," "tertiary text," and "disabled" all collapse to the same muted-foreground.
 
-Tell me which subset to implement and I'll switch to default mode and apply them.
+**Recommend:** introduce a documented 3-step neutral ramp at the token layer:
+- `--text-primary` → `222 47% 11%` (current foreground)
+- `--text-secondary` → `220 12% 38%` (≈ AA on white)
+- `--text-tertiary` → `220 10% 55%` (labels, captions, placeholder)
+
+Then derive `--muted-foreground` and `--sidebar-muted` from this ramp instead of declaring fresh values per surface.
+
+### P3. Status colors are imbalanced *(medium)*
+- `--success: 152 60% 40%` is a saturated forest green — heavier visual weight than amber/red at the same size.
+- `--info: 210 80% 52%` is a vivid blue that competes with primary navy.
+- `--destructive: 0 72% 51%` is balanced.
+
+**Recommend:** equalize perceived luminance — drop success to ~`152 50% 42%` and info to ~`210 65% 50%` so success/warning/info/destructive read as a *family*, not four loud strangers.
+
+### P4. Sidebar group label color is too saturated *(low — already partially fixed)*
+`--sidebar-group-foreground: 36 90% 58%` is full-saturation amber. The component uses `/75` opacity to compensate, but the underlying token is still loud. Anything else that consumes this token (future surfaces, charts) inherits that loudness.
+
+**Recommend:** desaturate the token itself to `36 35% 70%` and drop the `/75` opacity hack at the consumer.
+
+---
+
+## Issues — icons
+
+### I1. Mixed icon vocabularies *(medium)*
+The sidebar uses Lucide stroked icons at 18/2. But the footer mixes a **filled circular avatar tile** (`bg-sidebar-accent`, `rounded-md`) with stroked utility icons (Settings, Help). The eye reads "filled chip" vs "outlined glyph" as two different control types when they're peers.
+
+**Recommend:** make the avatar a **stroke-styled square** matching the utility buttons — same `h-8 w-8 rounded-md`, same `bg-sidebar-accent/60`, initials in `text-sidebar-foreground` at 11px. The trio reads as one row of equal-weight controls.
+
+### I2. Icon size inconsistency between expanded and collapsed *(low)*
+- Expanded: `18px` icons in `~36px` rows (50% icon-to-row ratio).
+- Collapsed: `18px` icons in `40px` square targets (45% ratio) — but the collapsed mode *visually* needs a slightly larger glyph because there's no label to anchor it.
+
+**Recommend:** bump collapsed-mode icons to `20px` (`h-5 w-5`) so they hold the eye when standing alone. Keep expanded at `18px`.
+
+### I3. Active-state icon treatment is amber-on-navy-tint, but the left bar is also amber *(low)*
+Two amber elements (the 2px left bar + the icon) compete inside a single row. The bar already signals state; the icon doesn't need to also flip to amber.
+
+**Recommend:** keep the **left bar amber** (state signal) and shift the **active icon to `text-sidebar-foreground`** (white). Hover stays amber as a transient affordance. This restores hierarchy: bar = "you are here," icon = identity, label = name.
+
+Alternative: keep the icon amber and **drop the bar** — but the bar is more accessible at small sizes.
+
+### I4. Brand mark sits next to a sans-serif wordmark with no optical alignment *(low)*
+`BrandMark h-9 w-9` + `Koudou` at `text-xl font-bold` — the wordmark baseline doesn't quite center against the mark because the mark has internal padding. Visually the wordmark drifts ~1px low.
+
+**Recommend:** wrap the wordmark in a flex container with `leading-none` and `pt-0.5` to optically center against the mark. Tiny but the lockup is the first thing users see.
+
+### I5. Footer Help/Settings active-state inconsistent with primary nav *(low)*
+The primary nav active state uses `bg-sidebar-accent + amber left bar + amber icon`. Settings (line 414) uses `bg-sidebar-accent + amber icon` but **no left bar**. Active treatment differs by zone for no functional reason.
+
+**Recommend:** either add the bar to footer active items, or — better — drop the bar from the footer and rely on the filled background alone since footer items are utility, not pipeline. Document the rule: "primary nav uses left-bar, utility nav uses fill-only."
+
+---
+
+## Recommended implementation batch
+
+A focused, low-risk pass that addresses the highest-impact items:
+
+1. **Token cleanup in `src/index.css`** — separate `--warning` from `--accent`; tone `--sidebar-ring`; add the 3-step neutral ramp; desaturate `--sidebar-group-foreground`. (P1, P2, P4)
+2. **Equalize success/info luminance.** (P3)
+3. **Avatar → stroke-styled square** in sidebar footer. (I1)
+4. **Active icon color = white, bar stays amber** in expanded primary nav. (I3)
+5. **Collapsed icons → 20px.** (I2)
+6. **Lockup optical alignment** in expanded sidebar header. (I4)
+
+Items I5 (footer active rule) and any surface-level cleanup follow in a second pass once tokens settle.
+
+---
+
+## Anti-patterns to avoid
+
+- Re-introducing per-route icon hues (the "stained-glass" regression).
+- Reusing `--accent` for warning chips, focus rings, *and* brand mark with no differentiation.
+- Adding a 4th gray inline on a new surface — extend the neutral ramp instead.
+- Wrapping `BrandMark` in another tile — the painted tile is part of the asset (per `mem://style/brand-mark`).
+
+Tell me which items to implement and I'll switch to default mode and apply them.
 
