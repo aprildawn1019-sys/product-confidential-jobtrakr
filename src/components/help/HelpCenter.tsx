@@ -88,7 +88,7 @@ export default function HelpCenter({ open, initialArticleId, initialRoute, onOpe
             <div className="flex-1">
               <SheetTitle className="font-display text-lg">Help &amp; Resources</SheetTitle>
               <SheetDescription className="text-xs">
-                Search guides for every part of Jobtrakr.
+                Search guides for every part of Koudou.
               </SheetDescription>
             </div>
           </div>

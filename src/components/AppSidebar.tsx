@@ -247,7 +247,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
           <Briefcase className="h-4 w-4 text-sidebar-primary-foreground" />
         </div>
-        <span className="font-display text-lg font-bold tracking-tight">Jobtrakr</span>
+        <span className="font-display text-lg font-bold tracking-tight">Koudou</span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1" aria-label="Primary">
