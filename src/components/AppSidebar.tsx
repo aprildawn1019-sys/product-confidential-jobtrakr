@@ -180,9 +180,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
     return (
       <TooltipProvider>
         <div className="flex h-16 items-center justify-center">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <KoudouMark className="h-5 w-5" />
-          </div>
+          <KoudouMark className="h-9 w-9 rounded-lg" />
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Primary">
@@ -267,9 +265,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   return (
     <>
       <div className="flex h-16 items-center gap-2.5 px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-          <KoudouMark className="h-5 w-5" />
-        </div>
+        <KoudouMark className="h-8 w-8 rounded-lg" />
         <span className="font-display text-lg font-bold tracking-tight">Koudou</span>
       </div>
 
