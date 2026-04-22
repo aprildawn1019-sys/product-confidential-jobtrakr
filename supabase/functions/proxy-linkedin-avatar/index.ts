@@ -196,8 +196,12 @@ Deno.serve(async (req) => {
     const { data: pub } = admin.storage.from(BUCKET).getPublicUrl(objectName);
     console.log("Cached:", objectName, `(${bytes.byteLength} bytes)`);
 
+    // Append a cache-buster derived from the current timestamp so any
+    // <img> still pointed at the previous cached URL refetches.
+    const freshUrl = `${pub.publicUrl}?v=${Date.now()}`;
+
     return new Response(
-      JSON.stringify({ success: true, cached: false, url: pub.publicUrl }),
+      JSON.stringify({ success: true, cached: false, url: freshUrl }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
