@@ -1,17 +1,16 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
  * Avatar for a *person* (vs. CompanyAvatar which is for organizations).
  *
- * Rendering rules — kept simple on purpose so the Contacts surface stays
- * predictable as we wire up LinkedIn auto-import:
+ * Rendering rules:
  *
  *   1. If `avatarUrl` is present and loads → show the photo.
- *   2. If the image 404s / 403s (LinkedIn CDN URLs can expire) → silently
- *      fall back to initials. We never show a broken image icon.
- *   3. If no URL → initials from the contact's name (first letter of first
- *      and last word, max 2 chars).
+ *   2. If the image 404s / 403s (common for expiring LinkedIn CDN URLs) →
+ *      fall back to a deterministic generated avatar so each contact still
+ *      feels visually distinct.
+ *   3. If the generated avatar fails or no URL is present → show initials.
  *
  * The styling matches the existing circular placeholder used on the
  * Contacts page (`bg-primary text-primary-foreground`, `font-display`)
@@ -32,22 +31,34 @@ function getInitials(name: string): string {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
+function getGeneratedAvatarUrl(name: string): string {
+  return `https://api.dicebear.com/9.x/identicon/svg?seed=${encodeURIComponent(name.trim().toLowerCase())}`;
+}
+
 export default function ContactAvatar({
   name,
   avatarUrl,
   size = "md",
   className,
 }: ContactAvatarProps) {
-  const [imgFailed, setImgFailed] = useState(false);
+  const generatedAvatarUrl = useMemo(() => getGeneratedAvatarUrl(name), [name]);
+  const [avatarMode, setAvatarMode] = useState<"photo" | "generated" | "initials">(
+    avatarUrl ? "photo" : "initials",
+  );
+
+  useEffect(() => {
+    setAvatarMode(avatarUrl ? "photo" : "initials");
+  }, [avatarUrl, name]);
 
   const dim =
     size === "lg"
       ? "h-14 w-14 text-base"
       : size === "sm"
-      ? "h-8 w-8 text-xs"
-      : "h-10 w-10 text-sm";
+        ? "h-8 w-8 text-xs"
+        : "h-10 w-10 text-sm";
 
-  const showImage = !!avatarUrl && !imgFailed;
+  const showPhoto = avatarMode === "photo" && !!avatarUrl;
+  const showGenerated = avatarMode === "generated";
 
   return (
     <div
@@ -59,13 +70,21 @@ export default function ContactAvatar({
       )}
       aria-label={name}
     >
-      {showImage ? (
+      {showPhoto ? (
         <img
           src={avatarUrl ?? undefined}
           alt={name}
           loading="lazy"
           referrerPolicy="no-referrer"
-          onError={() => setImgFailed(true)}
+          onError={() => setAvatarMode("generated")}
+          className="h-full w-full object-cover"
+        />
+      ) : showGenerated ? (
+        <img
+          src={generatedAvatarUrl}
+          alt={`${name} generated avatar`}
+          loading="lazy"
+          onError={() => setAvatarMode("initials")}
           className="h-full w-full object-cover"
         />
       ) : (
@@ -74,3 +93,4 @@ export default function ContactAvatar({
     </div>
   );
 }
+
