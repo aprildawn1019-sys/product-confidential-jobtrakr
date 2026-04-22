@@ -140,7 +140,7 @@ export default function NextStepRow({
         checked && "opacity-60",
       )}
     >
-      <CompanyAvatar company={avatarSeed(action)} size="md" tone="neutral" />
+      <CompanyAvatar company={avatarSeed(action)} size="md" tone="neutral" disableLogoFetch />
 
       <div className="min-w-0 flex-1">
         <p className={cn("text-sm font-medium truncate", checked && "line-through")}>
