@@ -75,7 +75,11 @@ export function BoardCard({
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <Switch checked={board.is_active} onCheckedChange={() => onToggle(board)} />
+          <Switch
+            checked={board.is_active}
+            onCheckedChange={() => onToggle(board)}
+            aria-label={`${board.is_active ? "Deactivate" : "Activate"} ${board.name}`}
+          />
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium text-sm">{board.name}</span>
@@ -102,14 +106,14 @@ export function BoardCard({
                         : "Linked to a target company"
                     }
                   >
-                    <Building2 className="h-3 w-3" />
+                    <Building2 className="h-3 w-3" aria-hidden="true" />
                     {linkedCompanyName ? `Careers · ${linkedCompanyName}` : "Target careers page"}
                   </span>
                 </>
               )}
               {board.is_gated && (
                 <span className="text-xs rounded-full bg-destructive/10 text-destructive px-2 py-0.5 flex items-center gap-1">
-                  <ShieldAlert className="h-3 w-3" /> Login Required
+                  <ShieldAlert className="h-3 w-3" aria-hidden="true" /> Login Required
                 </span>
               )}
             </div>
@@ -124,9 +128,13 @@ export function BoardCard({
                   variant="ghost"
                   size="icon"
                   onClick={() => onUnlinkTargetCompany(board)}
-                  aria-label="Unflag careers page for target company"
+                  aria-label={
+                    linkedCompanyName
+                      ? `Unlink ${board.name} from target company ${linkedCompanyName}`
+                      : `Unlink ${board.name} from target company`
+                  }
                 >
-                  <BookmarkMinus className="h-4 w-4 text-muted-foreground" />
+                  <BookmarkMinus className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-xs">
@@ -145,9 +153,9 @@ export function BoardCard({
                   variant="ghost"
                   size="icon"
                   onClick={() => onLinkTargetCompany(board)}
-                  aria-label="Flag as a target company's careers page"
+                  aria-label={`Flag ${board.name} as a target company's careers page`}
                 >
-                  <BookmarkPlus className="h-4 w-4 text-muted-foreground" />
+                  <BookmarkPlus className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-xs">
@@ -160,15 +168,35 @@ export function BoardCard({
             </Tooltip>
           )}
           {board.url && (
-            <Button variant="ghost" size="icon" asChild>
-              <a href={board.url} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" asChild>
+                  <a
+                    href={board.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Open ${board.name} in a new tab`}
+                  >
+                    <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                  </a>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">Open board in new tab</TooltipContent>
+            </Tooltip>
           )}
-          <Button variant="ghost" size="icon" onClick={() => onDelete(board)}>
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDelete(board)}
+                aria-label={`Delete job board ${board.name}`}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">Delete board</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
