@@ -303,16 +303,12 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                       <>
                         <div className="flex items-center">
                           <NavLink to={to} className={navLinkClass} end onClick={handleNavClick}>
-                            {({ isActive }) => (
-                              <>
-                                <Icon
-                                  className="h-[18px] w-[18px] shrink-0"
-                                  strokeWidth={2}
-                                  color={isActive ? "hsl(var(--sidebar-primary))" : "currentColor"}
-                                />
-                                {label}
-                              </>
-                            )}
+                            <Icon
+                              className="h-[18px] w-[18px] shrink-0"
+                              strokeWidth={2}
+                              color="hsl(var(--sidebar-primary))"
+                            />
+                            {label}
                           </NavLink>
                           {jobs.length > 0 && (
                             <button
