@@ -1,7 +1,8 @@
 import { useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Clock, MoreHorizontal } from "lucide-react";
-import { differenceInDays, isPast, isToday, parseISO } from "date-fns";
+import { differenceInCalendarDays, isPast, isToday } from "date-fns";
+import { parseLocalDate } from "@/lib/localDate";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -44,26 +45,21 @@ function UrgencyChip({ urgency, dueDate }: { urgency: ActionUrgency; dueDate?: s
     );
   }
 
-  let parsed: Date;
-  try {
-    parsed = dueDate.length <= 10 ? parseISO(dueDate) : new Date(dueDate);
-  } catch {
-    return null;
-  }
-  if (isNaN(parsed.getTime())) return null;
+  const parsed = parseLocalDate(dueDate);
+  if (!parsed) return null;
 
   let label: string;
   let toneClass: string;
 
   if (isPast(parsed) && !isToday(parsed)) {
-    const days = Math.max(1, differenceInDays(new Date(), parsed));
+    const days = Math.max(1, differenceInCalendarDays(new Date(), parsed));
     label = `Overdue ${days}d`;
     toneClass = "bg-destructive/10 text-destructive";
   } else if (isToday(parsed)) {
     label = "Today";
     toneClass = "bg-accent/15 text-accent-foreground";
   } else {
-    const days = differenceInDays(parsed, new Date());
+    const days = differenceInCalendarDays(parsed, new Date());
     const dateLabel = parsed.toLocaleDateString(undefined, {
       weekday: "short",
       month: "short",
