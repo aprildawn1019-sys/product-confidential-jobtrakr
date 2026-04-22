@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const auth = await requireUser(req, corsHeaders);
     if (auth.errorResponse) return auth.errorResponse;
 
-    const { url } = await req.json();
+    const { url, forceAvatarRefresh } = await req.json();
     if (!url) throw new Error("Missing LinkedIn URL");
 
     let formattedUrl = url.trim();
