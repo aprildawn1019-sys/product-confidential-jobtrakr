@@ -225,6 +225,10 @@ export default function AddContactDialog({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Live countdown for the rate-limit cool-down. Returns 0 (and is a
+  // no-op interval) for non-rate-limit errors, so calling it
+  // unconditionally is safe.
+  const retryCooldown = useRetryCountdown(importError);
   const [form, setForm] = useState({
     name: "", company: defaultCompany || "", role: "", email: "", phone: "", linkedin: "", notes: "",
     relationshipWarmth: "", conversationLog: "", networkRole: defaultNetworkRole || "",
