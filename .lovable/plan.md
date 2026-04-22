@@ -1,105 +1,107 @@
 
 
-# Brand Palette & Icon Design — Audit + Recommendations
+# Refine "Next steps" — earn its place on the Command Center
 
-A focused review of the **color tokens** in `src/index.css` and the **icon system** in `src/components/AppSidebar.tsx` (the most icon-dense surface in the app, and the one that anchors brand perception).
+## The question first: do we even need it?
 
----
+**Yes — but the current execution under-sells it.** The Command Center's whole reason to exist is the next-action queue. Without it, the page is just stat tiles + an interview strip — a status board, not a command center. The header subtitle even reads "12 next steps · 3 overdue · 5 today", so removing the panel would make the header a lie.
 
-## What's working
+What's wrong is not whether it exists, but that it's currently styled as a generic content card with a flat list of 6 mixed-urgency rows, an orphaned "Suggest" ghost button, and (post logo-fetch disable) a column of meaningless "T" / "F" initial chips that no longer carry signal.
 
-- **Two-color brand spine:** Navy primary + amber accent is distinctive, owns the sidebar, and matches the Koudou mark. Amber is correctly reserved for state (active row, brand mark) rather than identity.
-- **HSL token system in `src/index.css`** with proper sidebar-scoped tokens (`--sidebar-*`) — themable and consistent.
-- **Icon stroke discipline:** All sidebar icons use Lucide at `18px` / `strokeWidth=2`, so weight reads uniformly across rows.
-- **State-driven icon color:** Inactive `text-sidebar-muted`, active/hover `text-sidebar-primary` (amber). Clean 2-tone system; no rainbow drift.
-- **Brand mark contrast handled correctly:** dark-variant asset on the navy sidebar, light-variant on light surfaces (per `mem://style/brand-mark`).
+## What to change
 
----
+### 1. Promote it from "card" to "the focal area"
 
-## Issues — palette
+Drop the heavy `rounded-2xl border bg-card p-8` shell. Make it the visual anchor of the page:
 
-### P1. Amber is overloaded *(high)*
-`--accent`, `--warning`, `--sidebar-primary`, and `--sidebar-ring` all resolve to **the same amber** (`36 90% 55%`). That means an active nav row, a "warning" badge, a focus ring, and a brand wordmark all share one color. The signal collapses — users can't tell "you are here" from "this needs attention."
+- No bordered card — just generous vertical space with the section header.
+- Section header: `Next steps` (display, semibold) + a one-line meta echo: `3 overdue · 5 today · 4 later`.
+- Right side of the header: a compact **filter chip group** — `All · Today · Overdue · Networking · Applications · Referrals`. Replaces the orphaned ghost button as the primary affordance.
 
-**Recommend:** keep `--accent` and `--sidebar-primary` as the brand amber (`36 90% 55%`). Shift `--warning` to a slightly warmer/duskier tone (e.g. `30 92% 50%`) so warnings are distinct from brand emphasis, and tone `--sidebar-ring` to a higher-luminance variant (`36 95% 65%`) so focus rings read on top of an active amber bar.
+### 2. Group rows into time cohorts
 
-### P2. No semantic neutral scale *(high)*
-Today there are only two grays in play (`--muted` and `--muted-foreground`). The sidebar invents a third (`--sidebar-muted: 220 12% 60%`) inline. Across the product, "secondary text," "tertiary text," and "disabled" all collapse to the same muted-foreground.
+Replace the flat 6-row list with three tight sections, each with its own micro-header:
 
-**Recommend:** introduce a documented 3-step neutral ramp at the token layer:
-- `--text-primary` → `222 47% 11%` (current foreground)
-- `--text-secondary` → `220 12% 38%` (≈ AA on white)
-- `--text-tertiary` → `220 10% 55%` (labels, captions, placeholder)
+```text
+Overdue (3)
+  ○  Follow up with Maya Chen           Stripe · 4d overdue
+  ○  Nudge Daniel on referral ask       11 days since you asked
+  ○  Apply or archive: Staff PM         Notion · saved 22d ago
 
-Then derive `--muted-foreground` and `--sidebar-muted` from this ramp instead of declaring fresh values per surface.
+Today (2)
+  ○  Phone screen — Senior PM           Linear · 2:00 PM
+  ○  Source a Connector for Vercel      Dream company · 0 contacts
 
-### P3. Status colors are imbalanced *(medium)*
-- `--success: 152 60% 40%` is a saturated forest green — heavier visual weight than amber/red at the same size.
-- `--info: 210 80% 52%` is a vivid blue that competes with primary navy.
-- `--destructive: 0 72% 51%` is balanced.
+Later this week (3)
+  ○  Reconnect with Priya Shah          Warm · last touch 34d ago
+  ○  …
+```
 
-**Recommend:** equalize perceived luminance — drop success to ~`152 50% 42%` and info to ~`210 65% 50%` so success/warning/info/destructive read as a *family*, not four loud strangers.
+- Cohort headers are quiet (`text-xs uppercase tracking-wide text-muted-foreground`).
+- Each cohort caps at 3–4 rows; if more, "+N more in Today" inline link expands inline.
+- Removes the `visibleCount=6 + View all` mechanism — cohorts naturally bound the height.
 
-### P4. Sidebar group label color is too saturated *(low — already partially fixed)*
-`--sidebar-group-foreground: 36 90% 58%` is full-saturation amber. The component uses `/75` opacity to compensate, but the underlying token is still loud. Anything else that consumes this token (future surfaces, charts) inherits that loudness.
+### 3. Replace meaningless initial chip with **lane glyph + accent dot**
 
-**Recommend:** desaturate the token itself to `36 35% 70%` and drop the `/75` opacity hack at the consumer.
+The "T / F" initial chip post logo-fetch fix carries no information. Swap for a 28px square tile with a Lucide glyph keyed to `action.lane`:
 
----
+- Networking → `Users` (slate)
+- Referrals → `HandshakeIcon` (amber tint)
+- Applications → `Briefcase` (navy tint)
 
-## Issues — icons
+Source-based override: AI suggestions get `Sparkles`, nudges get a small dot indicator. Same visual rhythm, but the leftmost column finally means something at a glance — you can scan the column and see "all networking work" without reading titles.
 
-### I1. Mixed icon vocabularies *(medium)*
-The sidebar uses Lucide stroked icons at 18/2. But the footer mixes a **filled circular avatar tile** (`bg-sidebar-accent`, `rounded-md`) with stroked utility icons (Settings, Help). The eye reads "filled chip" vs "outlined glyph" as two different control types when they're peers.
+### 4. Fold the AI suggest action into the cohort scaffolding
 
-**Recommend:** make the avatar a **stroke-styled square** matching the utility buttons — same `h-8 w-8 rounded-md`, same `bg-sidebar-accent/60`, initials in `text-sidebar-foreground` at 11px. The trio reads as one row of equal-weight controls.
+Kill the lonely ghost button at the bottom-right. Replace with a single quiet row at the end of the list:
 
-### I2. Icon size inconsistency between expanded and collapsed *(low)*
-- Expanded: `18px` icons in `~36px` rows (50% icon-to-row ratio).
-- Collapsed: `18px` icons in `40px` square targets (45% ratio) — but the collapsed mode *visually* needs a slightly larger glyph because there's no label to anchor it.
+```text
+✨  Suggest 3 more steps with AI            (clickable row)
+```
 
-**Recommend:** bump collapsed-mode icons to `20px` (`h-5 w-5`) so they hold the eye when standing alone. Keep expanded at `18px`.
+Same component pattern as a regular row, prefixed with a Sparkles glyph. Loading state inlines a spinner. After fetch, AI rows interleave normally with a subtle `Sparkles` corner badge so users know which were machine-suggested.
 
-### I3. Active-state icon treatment is amber-on-navy-tint, but the left bar is also amber *(low)*
-Two amber elements (the 2px left bar + the icon) compete inside a single row. The bar already signals state; the icon doesn't need to also flip to amber.
+### 5. Empty state that does a job
 
-**Recommend:** keep the **left bar amber** (state signal) and shift the **active icon to `text-sidebar-foreground`** (white). Hover stays amber as a transient affordance. This restores hierarchy: bar = "you are here," icon = identity, label = name.
+Today: "Inbox zero. Nice work." → dead end.
 
-Alternative: keep the icon amber and **drop the bar** — but the bar is more accessible at small sizes.
+Replace with:
 
-### I4. Brand mark sits next to a sans-serif wordmark with no optical alignment *(low)*
-`BrandMark h-9 w-9` + `Koudou` at `text-xl font-bold` — the wordmark baseline doesn't quite center against the mark because the mark has internal padding. Visually the wordmark drifts ~1px low.
+```text
+✓  Nothing on your plate
 
-**Recommend:** wrap the wordmark in a flex container with `leading-none` and `pt-0.5` to optically center against the mark. Tiny but the lockup is the first thing users see.
+   Plan your next move:
+   → Add a target company       (link to /target-companies)
+   → Log this week's outreach   (link to /contacts)
+   → Ask AI for a fresh batch   (triggers fetchAi)
+```
 
-### I5. Footer Help/Settings active-state inconsistent with primary nav *(low)*
-The primary nav active state uses `bg-sidebar-accent + amber left bar + amber icon`. Settings (line 414) uses `bg-sidebar-accent + amber icon` but **no left bar**. Active treatment differs by zone for no functional reason.
+Three actionable links, not a dead-end congratulation.
 
-**Recommend:** either add the bar to footer active items, or — better — drop the bar from the footer and rely on the filled background alone since footer items are utility, not pipeline. Document the rule: "primary nav uses left-bar, utility nav uses fill-only."
+### 6. Minor row-level polish
 
----
+- Add a tiny tail meta on each row (right side, before checkbox): the `actionLabel` from the action engine ("Send a nudge", "Decide", "Prep & open"). It already exists in `DerivedAction.actionLabel` but isn't rendered on the row — it answers "what would I actually do?" before the user clicks.
+- Keep the existing urgency chip but only render it inside the **Overdue** cohort (the cohort already implies today / soon). This removes chip noise from the Today and Later sections.
+- Keep the circular checkbox + line-through completion. That part works.
 
-## Recommended implementation batch
+## Files to touch
 
-A focused, low-risk pass that addresses the highest-impact items:
+- `src/pages/Dashboard.tsx` — remove card shell around Next steps; pass filter state; remove ghost Suggest button.
+- `src/components/commandcenter/NextStepsList.tsx` — group by urgency cohort, render filter chips header, render AI suggest row at end, new empty state.
+- `src/components/commandcenter/NextStepRow.tsx` — replace `CompanyAvatar` with lane-glyph tile; render `actionLabel` tail; conditionally hide urgency chip outside Overdue.
+- (No changes to `actionEngine.ts` or hooks — all data already present.)
 
-1. **Token cleanup in `src/index.css`** — separate `--warning` from `--accent`; tone `--sidebar-ring`; add the 3-step neutral ramp; desaturate `--sidebar-group-foreground`. (P1, P2, P4)
-2. **Equalize success/info luminance.** (P3)
-3. **Avatar → stroke-styled square** in sidebar footer. (I1)
-4. **Active icon color = white, bar stays amber** in expanded primary nav. (I3)
-5. **Collapsed icons → 20px.** (I2)
-6. **Lockup optical alignment** in expanded sidebar header. (I4)
+## Out of scope (call out, defer)
 
-Items I5 (footer active rule) and any surface-level cleanup follow in a second pass once tokens settle.
+- Drag-to-reorder priority — interesting but not in the spec, defer.
+- Cohort persistence across sessions / "Snoozed" tab — defer.
+- Any change to `UpcomingInterviewsStrip`, stat cards, or `Pipeline & sourcing signals` — those are working as designed.
 
----
+## Memory updates after implementation
 
-## Anti-patterns to avoid
-
-- Re-introducing per-route icon hues (the "stained-glass" regression).
-- Reusing `--accent` for warning chips, focus rings, *and* brand mark with no differentiation.
-- Adding a 4th gray inline on a new surface — extend the neutral ramp instead.
-- Wrapping `BrandMark` in another tile — the painted tile is part of the asset (per `mem://style/brand-mark`).
-
-Tell me which items to implement and I'll switch to default mode and apply them.
+Update `mem://style/visual-theme-v2` Action rows section with:
+- Lane-glyph tiles (not initial chips) on the leading column.
+- Cohort grouping (Overdue / Today / Later) replaces flat list.
+- `actionLabel` tail rendered before completion control.
+- AI suggest is an inline list row, not a panel button.
 
