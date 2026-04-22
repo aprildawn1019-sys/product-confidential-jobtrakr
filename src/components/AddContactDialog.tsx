@@ -238,7 +238,7 @@ export default function AddContactDialog({
               <Label>LinkedIn</Label>
               <div className="flex gap-2">
                 <Input value={form.linkedin} onChange={e => setForm(f => ({ ...f, linkedin: e.target.value }))} placeholder="linkedin.com/in/..." className="flex-1" />
-                <Button type="button" variant="outline" size="sm" onClick={handleLinkedinFetch} disabled={!form.linkedin.trim() || fetchingLinkedin} className="shrink-0">
+                <Button type="button" variant="outline" size="sm" onClick={() => handleLinkedinFetch()} disabled={!form.linkedin.trim() || fetchingLinkedin} className="shrink-0">
                   {fetchingLinkedin ? <Loader2 className="h-4 w-4 animate-spin" /> : "Fetch"}
                 </Button>
               </div>
@@ -256,6 +256,57 @@ export default function AddContactDialog({
               </Select>
             </div>
           </div>
+
+          {/* Inline error block — appears only when the most recent
+              LinkedIn fetch failed. Stays visible until the user retries,
+              dismisses, or successfully fetches, so they can read the
+              underlying error and act on it (vs. a toast that auto-hides).
+              Retry replays the *exact* URL that originally failed via the
+              `attemptedUrl` we captured at fetch time. */}
+          {importError && (
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm"
+            >
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-destructive" />
+                <div className="flex-1 space-y-1.5 min-w-0">
+                  <p className="font-medium text-destructive">LinkedIn import failed</p>
+                  <p className="text-muted-foreground break-words">{importError.message}</p>
+                  <p className="text-[11px] text-muted-foreground break-all font-mono">
+                    {importError.attemptedUrl}
+                  </p>
+                  <div className="flex gap-2 pt-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleLinkedinFetch(importError.attemptedUrl)}
+                      disabled={fetchingLinkedin}
+                      className="h-7 gap-1.5"
+                    >
+                      {fetchingLinkedin ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      )}
+                      Retry
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setImportError(null)}
+                      className="h-7 gap-1.5 text-muted-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      Dismiss
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Network Role</Label>
