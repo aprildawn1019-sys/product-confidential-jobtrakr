@@ -6,7 +6,7 @@ import {
   UserCircle2,
 } from "lucide-react";
 
-// Brand lockup: geometric-K mark paired with the "Jobtrakr" wordmark.
+// Brand lockup: geometric-K mark paired with the "Koudou" wordmark.
 // The sidebar uses the dark-pane variant (white tile, navy upper arm,
 // amber lower arm) so the mark stays high-contrast against the navy
 // sidebar background. The light-pane variant lives in landing/footer.
@@ -14,7 +14,7 @@ import koudouMarkSrc from "@/assets/brand/koudou-mark-dark.png";
 const BrandMark = ({ className }: { className?: string }) => (
   <img
     src={koudouMarkSrc}
-    alt="Jobtrakr"
+    alt="Koudou"
     className={cn("shrink-0", className)}
   />
 );
@@ -255,11 +255,11 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
 
   return (
     <>
-      {/* Brand lockup: dark-pane geometric-K mark + Jobtrakr wordmark. */}
+      {/* Brand lockup: dark-pane geometric-K mark + Koudou wordmark. */}
       <div className="flex h-16 items-center gap-2.5 px-5">
         <BrandMark className="h-8 w-8" />
         <span className="font-display text-[17px] font-bold tracking-tight text-sidebar-foreground">
-          Jobtrakr
+          Koudou
         </span>
       </div>
 
