@@ -39,6 +39,65 @@ interface PersistedImportError {
   message: string;
   attemptedUrl: string;
   failedAt: number; // Date.now() when the failure occurred
+  // When true, this failure was identified as an upstream rate limit
+  // (HTTP 429 from the edge function or a known rate-limit phrase from
+  // the AI/Firecrawl backends). The UI swaps the destructive styling for
+  // a calmer "warning" treatment and adds a wait-and-retry suggestion.
+  rateLimited?: boolean;
+  // Suggested wait window in seconds before the next retry. Derived from
+  // upstream hints when available, otherwise a sensible default so the
+  // UI can show a live countdown on the Retry button.
+  retryAfterSeconds?: number;
+}
+
+/**
+ * Inspect a raw error from `supabase.functions.invoke` (which may be a
+ * `FunctionsHttpError`, plain `Error`, or just a string) plus the JSON
+ * body the function returned, and decide whether this looks like a
+ * rate-limit response.
+ *
+ * We can't always read the HTTP status code through the supabase-js
+ * wrapper, so we also pattern-match well-known phrases the scrape
+ * pipeline emits ("Rate limited", "Too Many Requests", "rate limit",
+ * "429"). Anything matched is treated as a soft, retry-after failure.
+ */
+function detectRateLimit(args: {
+  error: unknown;
+  data: unknown;
+}): { rateLimited: boolean; retryAfterSeconds: number; friendlyMessage: string } {
+  const DEFAULT_WAIT = 60;
+  const candidates: string[] = [];
+  const e = args.error as { message?: string; status?: number; context?: { status?: number } } | null;
+  const d = args.data as { error?: string; status?: number } | null;
+  if (e?.message) candidates.push(e.message);
+  if (typeof e?.status === "number") candidates.push(String(e.status));
+  if (typeof e?.context?.status === "number") candidates.push(String(e.context.status));
+  if (d?.error) candidates.push(d.error);
+  if (typeof d?.status === "number") candidates.push(String(d.status));
+
+  const haystack = candidates.join(" | ").toLowerCase();
+  const isRateLimited =
+    haystack.includes("429") ||
+    haystack.includes("rate limit") ||
+    haystack.includes("rate-limit") ||
+    haystack.includes("rate limited") ||
+    haystack.includes("too many requests");
+
+  // Look for an explicit "retry after N seconds" hint in any of the
+  // surfaced messages (some upstreams embed it in the error text).
+  let retryAfter = DEFAULT_WAIT;
+  const retryMatch = haystack.match(/retry[^0-9]{0,12}(\d{1,4})\s*(second|seconds|s)\b/);
+  if (retryMatch) {
+    const n = parseInt(retryMatch[1], 10);
+    if (Number.isFinite(n) && n > 0 && n <= 600) retryAfter = n;
+  }
+
+  return {
+    rateLimited: isRateLimited,
+    retryAfterSeconds: retryAfter,
+    friendlyMessage:
+      "LinkedIn’s scraper is temporarily rate-limited. Please wait a moment before retrying — this usually clears within a minute.",
+  };
 }
 
 function loadPersistedError(): PersistedImportError | null {
