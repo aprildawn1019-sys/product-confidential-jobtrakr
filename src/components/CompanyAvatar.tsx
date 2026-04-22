@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -9,12 +9,19 @@ import { cn } from "@/lib/utils";
  *      - Explicit `logoUrl` wins (e.g. user-supplied or scraped).
  *      - Otherwise we derive a domain from `website` (preferred) or by
  *        slugifying the company name (`acme-corp` → `acmecorp.com`) and
- *        request `https://logo.clearbit.com/<domain>`. Clearbit's free
- *        logo CDN silently 404s for unknown brands; the onError handler
- *        falls back to the initial chip below.
- *   2. On image error / no logo URL → render the deterministic colored
- *      initial chip ("brand" tone) or the muted round chip ("neutral"
- *      tone for decorative surfaces like Next steps / Upcoming interviews).
+ *        try a CASCADE of free public logo sources, best-quality first:
+ *          a. Clearbit's free logo CDN — transparent PNGs of actual
+ *             brand marks. Officially deprecated in 2023, so coverage
+ *             is shrinking; used as a quality upgrade when it works.
+ *          b. Google's favicon service (s2/favicons) — works for any
+ *             indexed domain, sz=128 keeps it crisp at our chip sizes.
+ *             Broad coverage fallback.
+ *      - On <img> error we advance to the next candidate; once all
+ *        sources are exhausted we render the initial-chip fallback.
+ *   2. On final image error / no logo URL → render the deterministic
+ *      colored initial chip ("brand" tone) or the muted round chip
+ *      ("neutral" tone for decorative surfaces like Next steps /
+ *      Upcoming interviews).
  *
  * The image is wrapped in the same chip dimensions / radius as the
  * fallback so swapping a logo in/out is visually seamless.
@@ -41,7 +48,7 @@ function hashStr(str: string): number {
 
 /**
  * Best-effort domain extraction. Returns a bare host (`acme.com`) suitable
- * for the Clearbit logo endpoint, or null if we can't derive anything sane.
+ * for logo endpoints, or null if we can't derive anything sane.
  */
 function deriveDomain(opts: { website?: string | null; company: string }): string | null {
   const { website, company } = opts;
@@ -59,10 +66,31 @@ function deriveDomain(opts: { website?: string | null; company: string }): strin
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, "");
-  // Names like "X" or empty strings produce useless guesses; Clearbit will
-  // 404 anyway, but skipping avoids a guaranteed wasted request.
+  // Names like "X" or empty strings produce useless guesses; skip to avoid
+  // a guaranteed wasted request.
   if (slug.length < 2) return null;
   return `${slug}.com`;
+}
+
+/**
+ * Build the cascade of logo URLs to try, best-quality-first.
+ * - Explicit `logoUrl` always comes first when present.
+ * - Clearbit gives transparent brand marks when it has the company.
+ * - Google favicon is the broad-coverage fallback (sz=128 for retina).
+ */
+function buildLogoCandidates(opts: {
+  logoUrl?: string | null;
+  website?: string | null;
+  company: string;
+}): string[] {
+  const candidates: string[] = [];
+  if (opts.logoUrl) candidates.push(opts.logoUrl);
+  const domain = deriveDomain({ website: opts.website, company: opts.company });
+  if (domain) {
+    candidates.push(`https://logo.clearbit.com/${domain}`);
+    candidates.push(`https://www.google.com/s2/favicons?domain=${domain}&sz=128`);
+  }
+  return candidates;
 }
 
 interface CompanyAvatarProps {
@@ -91,7 +119,19 @@ export default function CompanyAvatar({
   tone = "brand",
   className,
 }: CompanyAvatarProps) {
-  const [imgFailed, setImgFailed] = useState(false);
+  // Index into the candidate cascade. When the current src errors, we bump
+  // the index to try the next source. -1 sentinel means "all sources
+  // exhausted, render the initial-chip fallback".
+  const candidates = useMemo(
+    () => buildLogoCandidates({ logoUrl, website, company }),
+    [logoUrl, website, company],
+  );
+  const [idx, setIdx] = useState(0);
+
+  // Reset cascade when inputs change (e.g. parent updates company prop).
+  useEffect(() => {
+    setIdx(0);
+  }, [candidates]);
 
   const initial = company.charAt(0).toUpperCase();
   const dim =
@@ -100,13 +140,8 @@ export default function CompanyAvatar({
   // Round chip for neutral tone, square (rounded) for brand — matches prior behavior.
   const shape = tone === "neutral" ? "rounded-full" : "rounded-lg";
 
-  const resolvedLogoUrl = useMemo(() => {
-    if (logoUrl) return logoUrl;
-    const domain = deriveDomain({ website, company });
-    return domain ? `https://logo.clearbit.com/${domain}` : null;
-  }, [logoUrl, website, company]);
-
-  const showImage = !!resolvedLogoUrl && !imgFailed;
+  const currentSrc = idx >= 0 && idx < candidates.length ? candidates[idx] : null;
+  const showImage = !!currentSrc;
 
   // Fallback chip styling depends on tone, mirroring the original component.
   const fallbackChipClass =
@@ -128,11 +163,18 @@ export default function CompanyAvatar({
         aria-label={company}
       >
         <img
-          src={resolvedLogoUrl ?? undefined}
+          // key forces a fresh <img> when we advance the cascade so the
+          // browser actually retries instead of caching the failed state.
+          key={currentSrc}
+          src={currentSrc ?? undefined}
           alt={`${company} logo`}
           loading="lazy"
           referrerPolicy="no-referrer"
-          onError={() => setImgFailed(true)}
+          onError={() => {
+            // Advance to the next candidate; -1 once exhausted to render
+            // the deterministic initial chip.
+            setIdx((i) => (i + 1 < candidates.length ? i + 1 : -1));
+          }}
           className="h-full w-full object-contain"
         />
       </div>
