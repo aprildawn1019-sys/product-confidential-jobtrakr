@@ -7,10 +7,10 @@ import {
 } from "lucide-react";
 
 // Brand lockup: geometric-K mark paired with the "Koudou" wordmark.
-// The sidebar uses the dark-pane variant (white tile, navy upper arm,
-// amber lower arm) so the mark stays high-contrast against the navy
-// sidebar background. The light-pane variant lives in landing/footer.
-import koudouMarkSrc from "@/assets/brand/koudou-mark-dark.png";
+// We use the LIGHT-pane variant in the sidebar (off-white tile, navy
+// upper arm, amber lower arm) because the dark variant's navy tile
+// blends invisibly into the navy sidebar background.
+import koudouMarkSrc from "@/assets/brand/koudou-mark-light.png";
 const BrandMark = ({ className }: { className?: string }) => (
   <img
     src={koudouMarkSrc}
