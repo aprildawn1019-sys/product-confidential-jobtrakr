@@ -1,21 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 /**
  * Avatar for a *person* (vs. CompanyAvatar which is for organizations).
  *
- * Rendering rules — kept simple on purpose so the Contacts surface stays
- * predictable as we wire up LinkedIn auto-import:
- *
- *   1. If `avatarUrl` is present and loads → show the photo.
- *   2. If the image 404s / 403s (LinkedIn CDN URLs can expire) → silently
- *      fall back to initials. We never show a broken image icon.
- *   3. If no URL → initials from the contact's name (first letter of first
- *      and last word, max 2 chars).
- *
- * The styling matches the existing circular placeholder used on the
- * Contacts page (`bg-primary text-primary-foreground`, `font-display`)
- * so swapping a photo in/out is visually seamless.
+ * Rendering rules:
+ *   1. If `avatarUrl` is present → try to load it, showing a small spinner
+ *      overlay until the image either loads or fails.
+ *   2. If the image 404s / 403s (LinkedIn CDN blocks third-party hotlinks)
+ *      → fall back to initials AND show a tiny ⓘ indicator in the corner.
+ *      The indicator carries a tooltip explaining *why* the photo isn't
+ *      shown so users don't think the app is broken.
+ *   3. If no URL → just initials, no indicator (nothing to explain).
  */
 
 interface ContactAvatarProps {
@@ -32,13 +30,24 @@ function getInitials(name: string): string {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
+type ImgState = "loading" | "loaded" | "failed";
+
 export default function ContactAvatar({
   name,
   avatarUrl,
   size = "md",
   className,
 }: ContactAvatarProps) {
-  const [imgFailed, setImgFailed] = useState(false);
+  // Start in "loading" if we have a URL to try, otherwise skip straight to
+  // the initials path (treated as "failed" only conceptually — we don't
+  // show the error indicator unless there was actually a URL to load).
+  const [imgState, setImgState] = useState<ImgState>(avatarUrl ? "loading" : "loaded");
+
+  // Reset whenever the URL changes so a contact swap doesn't leave the
+  // component stuck in a stale "failed" state.
+  useEffect(() => {
+    setImgState(avatarUrl ? "loading" : "loaded");
+  }, [avatarUrl]);
 
   const dim =
     size === "lg"
@@ -47,9 +56,17 @@ export default function ContactAvatar({
       ? "h-8 w-8 text-xs"
       : "h-10 w-10 text-sm";
 
-  const showImage = !!avatarUrl && !imgFailed;
+  // Indicator size scales with the avatar so it stays proportional and
+  // doesn't overwhelm the small (sm) variant used in dense lists.
+  const indicatorSize =
+    size === "lg" ? "h-4 w-4" : size === "sm" ? "h-2.5 w-2.5" : "h-3 w-3";
 
-  return (
+  const hasUrl = !!avatarUrl;
+  const showImage = hasUrl && imgState !== "failed";
+  const showFailedIndicator = hasUrl && imgState === "failed";
+  const showLoadingOverlay = hasUrl && imgState === "loading";
+
+  const avatarNode = (
     <div
       className={cn(
         "relative flex items-center justify-center rounded-full overflow-hidden shrink-0",
@@ -65,12 +82,63 @@ export default function ContactAvatar({
           alt={name}
           loading="lazy"
           referrerPolicy="no-referrer"
-          onError={() => setImgFailed(true)}
-          className="h-full w-full object-cover"
+          onLoad={() => setImgState("loaded")}
+          onError={() => setImgState("failed")}
+          className={cn(
+            "h-full w-full object-cover transition-opacity",
+            imgState === "loading" ? "opacity-0" : "opacity-100",
+          )}
         />
       ) : (
         <span aria-hidden="true">{getInitials(name)}</span>
       )}
+
+      {/* Loading spinner overlays the initials placeholder so there's a
+          subtle hint that we're trying to fetch a photo. The initials
+          remain visible behind it as a graceful fallback. */}
+      {showLoadingOverlay && (
+        <span
+          className="absolute inset-0 flex items-center justify-center bg-primary/60"
+          aria-hidden="true"
+        >
+          <Loader2 className={cn("animate-spin text-primary-foreground", indicatorSize)} />
+        </span>
+      )}
+
+      {/* Tiny corner badge that appears only when an image URL was present
+          but failed to load. The wrapping tooltip explains why. */}
+      {showFailedIndicator && (
+        <span
+          className={cn(
+            "absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-full",
+            "bg-background ring-1 ring-border text-muted-foreground",
+            indicatorSize,
+          )}
+          aria-hidden="true"
+        >
+          <AlertCircle className="h-full w-full p-[1px]" />
+        </span>
+      )}
     </div>
+  );
+
+  // Only wrap in a tooltip when there's something to explain — avoids
+  // attaching listeners to every avatar in long lists.
+  if (!showFailedIndicator) {
+    return avatarNode;
+  }
+
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex">{avatarNode}</span>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-xs text-xs">
+          Profile photo unavailable. LinkedIn blocks third-party apps from
+          displaying member photos, so we&apos;re using initials instead.
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
