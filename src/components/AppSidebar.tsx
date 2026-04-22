@@ -16,21 +16,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// Brand lockup: amber rounded-square tile + "Jobtrakr" wordmark, per
-// `mem://features/sidebar-ia` and `mem://project/branding`. The geometric-K
-// raster mark is reserved for the public landing page + favicon. Inside the
-// product chrome we use a flat amber tile carrying the "J" so the sidebar
-// reads as Jobtrakr (the actual product name) instead of the working title.
-const BrandTile = ({ size = "md" }: { size?: "sm" | "md" }) => (
-  <div
-    className={cn(
-      "shrink-0 grid place-items-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-display font-bold",
-      size === "md" ? "h-9 w-9 text-base" : "h-10 w-10 text-lg",
-    )}
-    aria-hidden="true"
-  >
-    J
-  </div>
+// Brand lockup: geometric-K mark paired with the "Koudou" wordmark.
+// We use the DARK-pane variant (white tile, navy upper arm, amber lower
+// arm) so the mark stays high-contrast against the navy sidebar background
+// — see `mem://style/brand-mark`.
+import koudouMarkSrc from "@/assets/brand/koudou-mark-dark.png";
+const BrandMark = ({ className }: { className?: string }) => (
+  <img
+    src={koudouMarkSrc}
+    alt="Koudou"
+    className={cn("shrink-0 rounded-lg", className)}
+  />
 );
 
 // Deterministic 2-letter initials from a name or email.
@@ -172,7 +168,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
     return (
       <>
         <div className="flex h-16 items-center justify-center">
-          <BrandTile size="sm" />
+          <BrandMark className="h-10 w-10" />
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Primary">
@@ -260,9 +256,9 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
     <>
       {/* Brand lockup: amber tile + Jobtrakr wordmark, Space Grotesk 700 @ 20px. */}
       <div className="flex h-16 items-center gap-2.5 px-4">
-        <BrandTile />
+        <BrandMark className="h-9 w-9" />
         <span className="font-display text-xl font-bold tracking-tight text-sidebar-foreground">
-          Jobtrakr
+          Koudou
         </span>
       </div>
 
