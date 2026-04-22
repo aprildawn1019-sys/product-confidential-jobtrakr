@@ -459,7 +459,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           </div>
         </div>
       </div>
-    </>
+    </TooltipProvider>
   );
 }
 
