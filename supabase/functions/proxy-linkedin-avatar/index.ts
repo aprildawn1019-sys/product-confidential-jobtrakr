@@ -104,19 +104,44 @@ Deno.serve(async (req) => {
 
     // ── Cache lookup ────────────────────────────────────────────────
     // List with a name filter is the cheapest way to check existence
-    // without paying for a full object download.
-    const { data: existing } = await admin.storage
-      .from(BUCKET)
-      .list("", { limit: 1, search: hash });
+    // without paying for a full object download. Skipped entirely when
+    // the caller asked for a forced refresh.
+    const { data: existing } = forceRefresh
+      ? { data: [] as { name: string }[] }
+      : await admin.storage.from(BUCKET).list("", { limit: 1, search: hash });
 
     const cached = existing?.find((o) => o.name.startsWith(`${hash}.`));
-    if (cached) {
+    if (cached && !forceRefresh) {
       const { data: pub } = admin.storage.from(BUCKET).getPublicUrl(cached.name);
       console.log("Cache HIT:", cached.name);
       return new Response(
         JSON.stringify({ success: true, cached: true, url: pub.publicUrl }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
+    }
+
+    // When forcing a refresh, proactively remove any prior objects sharing
+    // this hash. `upsert: true` already overwrites bytes for the same key,
+    // but the upstream content-type may have changed (e.g. jpg → webp),
+    // which would yield a *different* object name and leave the old file
+    // orphaned forever. Listing + bulk-removing is cheap and idempotent.
+    if (forceRefresh) {
+      const { data: stale } = await admin.storage
+        .from(BUCKET)
+        .list("", { limit: 10, search: hash });
+      const staleNames = (stale ?? [])
+        .filter((o) => o.name.startsWith(`${hash}.`))
+        .map((o) => o.name);
+      if (staleNames.length > 0) {
+        const { error: removeError } = await admin.storage
+          .from(BUCKET)
+          .remove(staleNames);
+        if (removeError) {
+          console.warn("Stale removal warning:", removeError.message);
+        } else {
+          console.log("Removed stale cache entries:", staleNames.join(", "));
+        }
+      }
     }
 
     // ── Cache miss → fetch upstream ─────────────────────────────────
