@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import StatCard from "@/components/StatCard";
 import NextStepsList from "@/components/commandcenter/NextStepsList";
 // Weekly Review removed from Command Center — Reports page owns weekly recap.
@@ -55,7 +53,6 @@ export default function Dashboard({
   onAddInterview,
 }: DashboardProps) {
   const navigate = useNavigate();
-  const [showAllSteps, setShowAllSteps] = useState(false);
 
   const { snoozes, completed, snooze, complete } = useActionSnoozes();
   const { suggestions: aiSuggestions, loading: aiLoading, fetchSuggestions: fetchAi } = useAiSuggestedActions();
@@ -128,32 +125,27 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* Next steps — promoted directly under stats. Hero spec: panel header
-          is a single "Next steps" title; no subtitle, no buttons inside the
-          card. The Suggest button moves to a quiet ghost row beneath the list. */}
-      <div className="rounded-2xl border border-border/60 bg-card p-6 sm:p-8">
-        <h2 className="font-display text-xl font-semibold mb-4">Next steps</h2>
+      {/* Next steps — promoted from card to focal area. No bordered shell;
+          the section is the visual anchor. Filter chips + cohort grouping
+          live inside NextStepsList; AI suggest is an inline list row. */}
+      <section>
+        <div className="mb-3 flex items-baseline justify-between gap-3">
+          <h2 className="font-display text-xl font-semibold">Next steps</h2>
+          {actions.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {`${overdueCount ? `${overdueCount} overdue · ` : ""}${todayCount ? `${todayCount} today · ` : ""}${Math.max(0, actions.length - overdueCount - todayCount)} later`}
+            </p>
+          )}
+        </div>
         <NextStepsList
           actions={actions}
           completed={completed}
           onComplete={complete}
           onSnooze={snooze}
-          visibleCount={showAllSteps ? actions.length : 6}
-          onViewAll={() => setShowAllSteps(true)}
+          onRequestAi={() => fetchAi({ jobs, contacts, targetCompanies, recommendationRequests })}
+          aiLoading={aiLoading}
         />
-        <div className="mt-3 flex justify-end">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2 text-xs text-muted-foreground hover:text-foreground"
-            onClick={() => fetchAi({ jobs, contacts, targetCompanies, recommendationRequests })}
-            disabled={aiLoading}
-          >
-            {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-            Suggest next steps
-          </Button>
-        </div>
-      </div>
+      </section>
 
       {/* Secondary: interview log + upcoming interviews. The quick-log card
           sits next to Upcoming so the "I just had a screen" workflow is a
