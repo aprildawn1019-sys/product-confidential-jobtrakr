@@ -1,6 +1,14 @@
 import { useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Clock, MoreHorizontal } from "lucide-react";
+import {
+  Check,
+  Clock,
+  MoreHorizontal,
+  Users,
+  Handshake,
+  Briefcase,
+  Sparkles,
+} from "lucide-react";
 import { differenceInCalendarDays, isPast, isToday } from "date-fns";
 import { parseLocalDate } from "@/lib/localDate";
 
@@ -11,9 +19,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import CompanyAvatar from "@/components/CompanyAvatar";
 import { cn } from "@/lib/utils";
-import type { DerivedAction, ActionUrgency } from "@/lib/actionEngine";
+import type { DerivedAction, ActionLane } from "@/lib/actionEngine";
 import type { SnoozeDuration } from "@/hooks/useActionSnoozes";
 
 interface NextStepRowProps {
@@ -21,89 +28,84 @@ interface NextStepRowProps {
   isCompleted?: boolean;
   onComplete: (signature: string) => void;
   onSnooze: (signature: string, duration: SnoozeDuration) => void;
+  /** When false (Today / Later cohorts), suppress the right-side urgency chip
+   *  because the cohort header already conveys the same temporal signal. */
+  showUrgencyChip?: boolean;
 }
 
 /**
- * Compact "when is this due" chip rendered on the right of every Next Steps row.
+ * Lane glyph tile — replaces the meaningless initial-chip avatar.
  *
- * Why this exists: rows previously showed times with no date and no signal of
- * what was past-due vs. upcoming. The chip answers three questions at a glance:
- *  • Is this overdue? (red) — with how many days
- *  • Is this today? (amber)
- *  • Otherwise: when is it due? (muted, e.g. "Fri Apr 25")
- *
- * For nudges with no concrete due date we render a faint urgency word so the
- * column stays aligned and the user knows nothing is technically late.
+ * Why: post-logo-fetch-disable, the leading column showed "T" / "F" letters
+ * carrying zero signal. A glyph keyed to the action's lane lets the eye
+ * scan the leftmost column and immediately see "all networking work" or
+ * "all referral asks" without reading titles. AI-suggested actions get a
+ * Sparkles override so machine output is visually distinguishable from
+ * deterministic engine output.
  */
-function UrgencyChip({ urgency, dueDate }: { urgency: ActionUrgency; dueDate?: string }) {
-  if (!dueDate) {
-    if (urgency === "later") return null;
-    return (
-      <span className="rounded-md px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-        {urgency}
-      </span>
-    );
-  }
+function LaneGlyphTile({ action }: { action: DerivedAction }) {
+  const isAi = action.source === "ai";
+  const Icon = isAi
+    ? Sparkles
+    : action.lane === "networking"
+      ? Users
+      : action.lane === "referrals"
+        ? Handshake
+        : Briefcase;
 
+  // Tone-by-lane: keep palette restrained — slate for networking, amber for
+  // referrals (highest leverage), navy for applications. AI inherits the
+  // amber accent to keep it tied to the brand's "intelligence" surface.
+  const tone =
+    isAi || action.lane === "referrals"
+      ? "bg-accent/15 text-accent-foreground"
+      : action.lane === "applications"
+        ? "bg-primary/10 text-primary"
+        : "bg-muted text-muted-foreground";
+
+  return (
+    <div
+      className={cn(
+        "flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
+        tone,
+      )}
+      aria-hidden="true"
+    >
+      <Icon className="h-4 w-4" strokeWidth={2} />
+    </div>
+  );
+}
+
+/**
+ * Compact "when is this due" chip. Only rendered inside the Overdue cohort
+ * (Today / Later cohorts already imply the answer via their headers).
+ */
+function UrgencyChip({ dueDate }: { dueDate?: string }) {
+  if (!dueDate) return null;
   const parsed = parseLocalDate(dueDate);
   if (!parsed) return null;
 
-  let label: string;
-  let toneClass: string;
-
   if (isPast(parsed) && !isToday(parsed)) {
     const days = Math.max(1, differenceInCalendarDays(new Date(), parsed));
-    label = `Overdue ${days}d`;
-    toneClass = "bg-destructive/10 text-destructive";
-  } else if (isToday(parsed)) {
-    label = "Today";
-    toneClass = "bg-accent/15 text-accent-foreground";
-  } else {
-    const days = differenceInCalendarDays(parsed, new Date());
-    const dateLabel = parsed.toLocaleDateString(undefined, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-    label = days <= 3 ? `${dateLabel} · in ${days}d` : dateLabel;
-    toneClass = "bg-muted text-muted-foreground";
+    return (
+      <span className="rounded-md bg-destructive/10 px-1.5 py-0.5 text-[10px] font-medium text-destructive whitespace-nowrap">
+        Overdue {days}d
+      </span>
+    );
   }
-
-  return (
-    <span
-      className={cn(
-        "rounded-md px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap",
-        toneClass,
-      )}
-    >
-      {label}
-    </span>
-  );
-}
-
-/**
- * Pick a deterministic avatar seed: prefer the contact name, fall back to the
- * target company, then to the action title. Keeps avatars stable across renders.
- */
-function avatarSeed(action: DerivedAction): string {
-  return (
-    action.outreachContext?.contactName ||
-    action.outreachContext?.targetCompany ||
-    action.title
-  );
+  return null;
 }
 
 /**
  * Spec source: src/assets/brand/spec/dashboard-mockup.jpg + spec-command-center-v2.jpg.
- * Row composition: avatar · title/subtitle · amber stadium toggle.
- * No tinted urgency backgrounds, no left accent bars, no inline arrow.
- * The whole row is clickable to navigate; the toggle is the completion control.
+ * Row composition: lane glyph · title/subtitle · actionLabel tail · checkbox.
  */
 export default function NextStepRow({
   action,
   isCompleted = false,
   onComplete,
   onSnooze,
+  showUrgencyChip = false,
 }: NextStepRowProps) {
   const navigate = useNavigate();
   const [pending, setPending] = useState(false);
@@ -135,12 +137,12 @@ export default function NextStepRow({
       onClick={action.href ? handleOpen : undefined}
       onKeyDown={action.href ? handleRowKey : undefined}
       className={cn(
-        "group flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors",
+        "group flex items-center gap-3 rounded-lg px-2 py-2 transition-colors",
         action.href && "cursor-pointer hover:bg-muted/40 focus:outline-none focus:bg-muted/40",
         checked && "opacity-60",
       )}
     >
-      <CompanyAvatar company={avatarSeed(action)} size="md" tone="neutral" disableLogoFetch />
+      <LaneGlyphTile action={action} />
 
       <div className="min-w-0 flex-1">
         <p className={cn("text-sm font-medium truncate", checked && "line-through")}>
@@ -152,13 +154,17 @@ export default function NextStepRow({
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        {/* Due-date / urgency chip — answers "when?" and "is this overdue?"
-            without making the user open the item. Hidden when no signal. */}
-        {!checked && <UrgencyChip urgency={action.urgency} dueDate={action.dueDate} />}
+        {/* Tail meta: what *would I actually do?* — surfaces actionLabel
+            ("Send a nudge", "Prep & open") so users know the move before
+            opening the deep link. Hidden when completed to keep the row quiet. */}
+        {!checked && action.actionLabel && (
+          <span className="hidden sm:inline text-[11px] text-muted-foreground">
+            {action.actionLabel}
+          </span>
+        )}
 
-        {/* Completion control — reads as "mark done", not a settings toggle.
-            Empty circle with a "Done" label that becomes a filled amber
-            check once clicked. Mirrors Linear/Things/Todoist task patterns. */}
+        {!checked && showUrgencyChip && <UrgencyChip dueDate={action.dueDate} />}
+
         <button
           type="button"
           role="checkbox"
@@ -167,24 +173,14 @@ export default function NextStepRow({
           disabled={checked}
           onClick={handleToggle}
           className={cn(
-            "inline-flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1 text-xs font-medium transition-colors",
+            "inline-flex h-6 w-6 items-center justify-center rounded-full border-2 transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             checked
-              ? "text-muted-foreground cursor-default"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted",
+              ? "border-accent bg-accent text-accent-foreground cursor-default"
+              : "border-muted-foreground/40 group-hover:border-accent",
           )}
         >
-          <span
-            className={cn(
-              "inline-flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors",
-              checked
-                ? "border-accent bg-accent text-accent-foreground"
-                : "border-muted-foreground/40 group-hover:border-accent",
-            )}
-          >
-            {checked && <Check className="h-3 w-3" strokeWidth={3} />}
-          </span>
-          <span className={cn(checked && "sr-only")}>Done</span>
+          {checked && <Check className="h-3 w-3" strokeWidth={3} />}
         </button>
 
         <DropdownMenu>
@@ -215,3 +211,5 @@ export default function NextStepRow({
     </div>
   );
 }
+
+export type { ActionLane };

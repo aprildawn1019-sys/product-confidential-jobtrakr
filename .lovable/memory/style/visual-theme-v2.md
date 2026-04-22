@@ -62,18 +62,21 @@ align to the image, not to existing code. Brand assets are locked under
 Spec composition:
 
 ```
-[ avatar ] Title                           [ ○ Done ]
-           Subtitle
+[ lane glyph ] Title                    actionLabel  [ ○ ]
+               Subtitle
 ```
 
-- **No** left urgency accent bars.
-- **No** "Overdue / Today" micro-labels next to the control.
-- **No** inline hover arrow button.
-- The whole row is the click target (navigates to action.href).
-- Completion control = **circular checkbox + "Done" label** (`role="checkbox"`).
-  Reads as a task-completion action, not a settings toggle. Empty muted ring → filled amber check on click.
-- More-options dropdown (snooze) appears on hover only.
-- Completed rows: 60% opacity + line-through on the title; the "Done" text is hidden, only the filled check remains.
+- **No bordered card shell** around the panel — Next steps is the focal area, not a bordered widget.
+- Header: section title + cohort echo subtitle (`3 overdue · 5 today · 4 later`).
+- Filter chip group below the header — `All · Today · Overdue · Networking · Applications · Referrals`. Replaces the orphaned ghost "Suggest" button. Active chip = filled foreground pill; inactive = quiet text.
+- Rows are grouped into temporal **cohorts** (`Overdue` / `Today` / `Later this week`) with quiet uppercase micro-headers. Cohorts cap at 4 rows; "+N more" expands inline. No flat list, no `visibleCount` prop.
+- Leading column is a **lane glyph tile** (28px square, lucide icon) — Networking → `Users` (slate), Referrals → `Handshake` (amber), Applications → `Briefcase` (navy), AI suggestions → `Sparkles` (amber). Never use initial-letter avatars on Next steps.
+- Tail meta: `actionLabel` from `DerivedAction` ("Send a nudge", "Prep & open") rendered before the checkbox so users know the move pre-click. Hidden under `sm` breakpoint.
+- Urgency chip (`Overdue Nd`) renders **only inside the Overdue cohort** — the cohort header already conveys the temporal signal for Today/Later.
+- Completion control = circular checkbox only (`role="checkbox"`). No "Done" label text. Empty muted ring → filled amber check on click. Completed rows: 60% opacity + line-through on title.
+- AI suggest is a **list row at the bottom of the list**, not a panel button. Same row pattern with a Sparkles glyph tile.
+- Empty state replaces "Inbox zero" with three actionable links (Add target company / Log outreach / Ask AI).
+- The whole row is the click target (navigates to `action.href`). More-options dropdown (snooze) appears on hover only.
 
 ## Status / priority pills (Jobs, Contacts)
 
