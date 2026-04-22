@@ -359,10 +359,11 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         })}
       </nav>
 
-      {/* Footer: name on row 1, then a single utility row of equal-sized
-          32px buttons (avatar, Settings, Help) so they align as peers. */}
-      <div className="border-t border-sidebar-border px-2 py-2.5 space-y-1.5">
-        <div className="px-1">
+      {/* Footer: identity block + fixed-height utility dock. All three controls
+          share the same 36px outer box so alignment is driven by geometry,
+          not text/icon baselines. */}
+      <div className="border-t border-sidebar-border px-3 py-3 space-y-2">
+        <div className="px-0.5">
           <p className="truncate text-xs font-medium text-sidebar-foreground" title={user.name}>
             {user.name}
           </p>
@@ -373,17 +374,19 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           )}
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="grid grid-cols-[auto_auto_auto] items-stretch gap-1 rounded-lg bg-sidebar-accent/35 p-1">
           <DropdownMenu>
             <Tooltip delayDuration={150}>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent/60 text-[11px] font-semibold leading-none text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-sidebar-accent/80 text-sidebar-foreground transition-colors hover:bg-sidebar-accent"
                     aria-label={`Account menu for ${user.name}`}
                   >
-                    {user.initials}
+                    <span className="flex h-[18px] w-[18px] items-center justify-center font-display text-[10px] font-bold leading-none tracking-[0.08em]">
+                      {user.initials}
+                    </span>
                   </button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
@@ -420,7 +423,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 onClick={handleNavClick}
                 className={({ isActive }) =>
                   cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-md leading-none transition-colors",
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-colors",
                     isActive || location.pathname.startsWith("/settings")
                       ? "bg-sidebar-accent text-sidebar-primary"
                       : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
@@ -439,7 +442,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               <button
                 type="button"
                 onClick={() => { handleNavClick(); openHelp(); }}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md leading-none text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                 aria-label="Help"
               >
                 <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} />
