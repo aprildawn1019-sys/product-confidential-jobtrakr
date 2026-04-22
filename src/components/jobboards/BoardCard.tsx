@@ -7,8 +7,11 @@ import {
   Globe,
   ArrowRight,
   Building2,
-  Link2,
-  Link2Off,
+  // Link2/Link2Off were generic chain icons — they read as "URL link" not
+  // "flag this board as a target company's careers page". Bookmark icons
+  // convey the actual intent (save/shortlist this board against a target).
+  BookmarkPlus,
+  BookmarkMinus,
 } from "lucide-react";
 
 interface JobBoard {
@@ -102,9 +105,10 @@ export function BoardCard({
               variant="ghost"
               size="icon"
               onClick={() => onUnlinkTargetCompany(board)}
-              title="Unlink from target company"
+              title="Remove target company link"
+              aria-label="Remove target company link"
             >
-              <Link2Off className="h-4 w-4 text-muted-foreground" />
+              <BookmarkMinus className="h-4 w-4 text-muted-foreground" />
             </Button>
           ) : (
             <Button
@@ -112,8 +116,9 @@ export function BoardCard({
               size="icon"
               onClick={() => onLinkTargetCompany(board)}
               title="Flag as a target company's careers page"
+              aria-label="Flag as a target company's careers page"
             >
-              <Link2 className="h-4 w-4 text-muted-foreground" />
+              <BookmarkPlus className="h-4 w-4 text-muted-foreground" />
             </Button>
           )}
           {board.url && (
