@@ -6,17 +6,16 @@ import {
   UserCircle2, MoreHorizontal,
 } from "lucide-react";
 
-// Brand lockup: per the new sidebar spec the mark is a simple amber square
-// tile (not the geometric K) paired with the "Jobtrakr" wordmark. Keeping
-// this as a small inline component so the lockup is reused in collapsed +
-// expanded modes and the Sheet drawer on mobile.
-const BrandTile = ({ className }: { className?: string }) => (
-  <div
-    className={cn(
-      "shrink-0 rounded-[6px] bg-sidebar-primary",
-      className,
-    )}
-    aria-hidden
+// Brand lockup: geometric-K mark paired with the "Jobtrakr" wordmark.
+// The sidebar uses the dark-pane variant (white tile, navy upper arm,
+// amber lower arm) so the mark stays high-contrast against the navy
+// sidebar background. The light-pane variant lives in landing/footer.
+import koudouMarkSrc from "@/assets/brand/koudou-mark-dark.png";
+const BrandMark = ({ className }: { className?: string }) => (
+  <img
+    src={koudouMarkSrc}
+    alt="Jobtrakr"
+    className={cn("shrink-0", className)}
   />
 );
 import { useHelp } from "@/components/help/HelpProvider";
