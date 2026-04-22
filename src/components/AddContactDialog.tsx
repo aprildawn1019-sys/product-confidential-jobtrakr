@@ -50,6 +50,15 @@ export default function AddContactDialog({
   const [fetchingLinkedin, setFetchingLinkedin] = useState(false);
   const [importStatus, setImportStatus] = useState<ImportStatus>("idle");
   const [extractedFields, setExtractedFields] = useState<string[]>([]);
+  // Captures the most recent fetch failure so we can render an inline
+  // error block (instead of relying solely on the toast, which disappears
+  // before the user can act on it). `attemptedUrl` is preserved so the
+  // retry button always hits the exact URL that originally failed, even
+  // if the user has since edited the LinkedIn input.
+  const [importError, setImportError] = useState<{
+    message: string;
+    attemptedUrl: string;
+  } | null>(null);
   const [form, setForm] = useState({
     name: "", company: defaultCompany || "", role: "", email: "", phone: "", linkedin: "", notes: "",
     relationshipWarmth: "", conversationLog: "", networkRole: defaultNetworkRole || "",
@@ -66,14 +75,22 @@ export default function AddContactDialog({
     }
   }, [open, defaultCompany, defaultNetworkRole]);
 
-  const handleLinkedinFetch = async () => {
-    const url = form.linkedin.trim();
+  // The `overrideUrl` parameter lets the inline retry button replay the
+  // exact URL that originally failed, even if the input has changed since.
+  const handleLinkedinFetch = async (overrideUrl?: string) => {
+    const url = (overrideUrl ?? form.linkedin).trim();
     if (!url || fetchingLinkedin) return;
     const fullUrl = url.startsWith("http") ? url : `https://${url}`;
     setFetchingLinkedin(true);
+    // Clear any prior error so the inline block disappears while retrying.
+    setImportError(null);
     try {
       const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
-      if (error || !data?.success) throw new Error(data?.error || error?.message || "Failed");
+      if (error || !data?.success) {
+        // Surface the richest error info available: explicit data.error,
+        // then the FunctionsError message, falling back to a generic note.
+        throw new Error(data?.error || error?.message || "Unknown error from scrape-linkedin");
+      }
       const d = data.data;
       // Track which specific fields the scraper actually returned so the
       // status badge can list them (e.g. "Extracted: name, role").
@@ -97,9 +114,13 @@ export default function AddContactDialog({
           : "LinkedIn returned no usable fields — fill in manually.",
       });
     } catch (e: any) {
+      const message = e?.message || "Failed to reach the LinkedIn scraper.";
       setImportStatus("failed");
       setExtractedFields([]);
-      toast({ title: "LinkedIn fetch failed", description: e.message, variant: "destructive" });
+      setImportError({ message, attemptedUrl: fullUrl });
+      // Toast is kept for users who already moved focus away, but the
+      // inline error block is now the source of truth for actionability.
+      toast({ title: "LinkedIn fetch failed", description: message, variant: "destructive" });
     } finally {
       setFetchingLinkedin(false);
     }
