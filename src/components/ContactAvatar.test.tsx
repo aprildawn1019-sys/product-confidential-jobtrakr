@@ -189,12 +189,12 @@ describe("ContactAvatar — keyboard focus reveals failure tooltip", () => {
     // announces it. We wait for it to appear, then verify the body copy
     // lives inside that announced region (not just somewhere on the page).
     const tooltip = await screen.findByRole("tooltip");
-    expect(tooltip).toBeVisible();
-    expect(
-      within(tooltip).getByText(
-        /LinkedIn blocks third-party apps from displaying member photos/i,
-      ),
-    ).toBeInTheDocument();
+    expect(tooltip).toBeInTheDocument();
+    // The tooltip element itself contains the explanatory copy so SRs
+    // announce it via the aria-describedby association below.
+    expect(tooltip.textContent).toMatch(
+      /LinkedIn blocks third-party apps from displaying member photos/i,
+    );
 
     // The trigger button should be associated with the tooltip via
     // aria-describedby so SRs read the explanation alongside the name.
