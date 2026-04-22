@@ -246,6 +246,56 @@ export default function QuickLogInterview({ jobs, onAddJob, onAddInterview }: Pr
             </div>
           </div>
 
+          {/* Optional follow-up reminder.
+              Why a separate row: it's an afterthought prompt — most users
+              won't set one, and visually grouping it under the core fields
+              keeps the primary form clean. When set, it surfaces on the
+              Command Center via Next Steps until the interview is cancelled. */}
+          <div className="space-y-1.5">
+            <Label>
+              Follow-up reminder{" "}
+              <span className="font-normal text-muted-foreground">· optional</span>
+            </Label>
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "flex-1 justify-start text-left font-normal",
+                      !followUpDate && "text-muted-foreground",
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {followUpDate ? format(followUpDate, "PPP") : "e.g. send a thank-you note"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={followUpDate}
+                    onSelect={setFollowUpDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              {followUpDate && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground"
+                  onClick={() => setFollowUpDate(undefined)}
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              We'll surface this on your Command Center on the selected date.
+            </p>
+          </div>
+
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button
               variant="ghost"
