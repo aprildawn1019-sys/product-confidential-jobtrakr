@@ -1,0 +1,1 @@
+ALTER TABLE public.interviews ADD COLUMN follow_up_date text;

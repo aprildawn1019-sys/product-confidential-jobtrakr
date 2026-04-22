@@ -400,6 +400,7 @@ export type Database = {
         Row: {
           created_at: string
           date: string
+          follow_up_date: string | null
           google_calendar_event_id: string | null
           id: string
           job_id: string
@@ -412,6 +413,7 @@ export type Database = {
         Insert: {
           created_at?: string
           date: string
+          follow_up_date?: string | null
           google_calendar_event_id?: string | null
           id?: string
           job_id: string
@@ -424,6 +426,7 @@ export type Database = {
         Update: {
           created_at?: string
           date?: string
+          follow_up_date?: string | null
           google_calendar_event_id?: string | null
           id?: string
           job_id?: string
