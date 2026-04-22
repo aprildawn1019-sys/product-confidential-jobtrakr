@@ -141,6 +141,7 @@ export default function AddContactDialog({
     });
     setImportStatus("idle");
     setExtractedFields([]);
+    setImportError(null);
     setOpen(false);
   };
 
