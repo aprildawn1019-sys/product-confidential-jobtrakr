@@ -39,6 +39,8 @@ interface DashboardProps {
   onUpdateStatus?: (id: string, status: string) => void;
   onUpdateJob?: (id: string, updates: Partial<Job>) => void;
   onUpdateContact?: (id: string, updates: Partial<Contact>) => void;
+  onAddJob?: (job: Omit<Job, "id" | "createdAt">) => Promise<Job | undefined> | Job | void;
+  onAddInterview?: (interview: Omit<Interview, "id">) => Promise<void> | void;
 }
 
 export default function Dashboard({
