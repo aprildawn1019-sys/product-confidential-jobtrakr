@@ -1,6 +1,6 @@
 ---
 name: Visual Theme v2 — Calm Operations
-description: Binding visual spec for Jobtrakr. Source of truth lives in src/assets/dashboard-mockup.jpg and src/assets/spec-*-v2.jpg. Re-read those images before redesigning any surface.
+description: Binding visual spec for Jobtrakr/Koudou. Source of truth lives in src/assets/dashboard-mockup.jpg and src/assets/spec-*-v2.jpg. Re-read those images before redesigning any surface.
 type: design
 ---
 
@@ -23,20 +23,25 @@ align to the image, not to existing code.
 - `--background: 220 20% 97%` — cool off-white app canvas
 - `--card: 0 0% 100%` — pure white surfaces
 - `--primary: 222 60% 22%` — deep navy (CTAs, focus, primary text accents)
-- `--accent: 36 90% 55%` — amber (sidebar wordmark, active-route bar, primary toggle)
+- `--accent: 36 90% 55%` — amber, BRAND emphasis only (sidebar wordmark, active-route bar)
+- `--warning: 30 92% 50%` — duskier amber, decoupled from `--accent` so attention signals never collide with brand emphasis
+- `--success: 152 50% 42%` / `--info: 210 65% 50%` — luminance-equalized so the status family reads as one set
+- `--ring` / `--sidebar-ring: 36 95% 65%` — high-luminance amber so focus rings stay visible on top of the active amber bar
+- Neutral text ramp: `--text-primary` (222 47% 11%) · `--text-secondary` (220 12% 38%) · `--text-tertiary` (220 10% 55%). Surface-specific muted tokens (e.g. `--sidebar-muted`) derive from this scale — do not invent a 4th gray inline.
 - `--sidebar-background: 222 47% 11%` — deep navy sidebar
-- `--sidebar-group-foreground: 36 45% 68%` — muted amber section labels
-- `--sidebar-primary: 36 90% 55%` — amber wordmark square + active-route bar
+- `--sidebar-group-foreground: 36 35% 70%` — desaturated muted amber for section labels (no `/75` opacity hack at the consumer)
+- `--sidebar-primary: 36 90% 55%` — amber active-route bar + brand mark
 - Fonts: `Space Grotesk` (display/numerals), `DM Sans` (body)
 
 ## Sidebar (canonical)
 
-- Navy background, amber rounded square + "Jobtrakr" wordmark in header.
-- Section labels (`TODAY` / `PIPELINE` / `LIBRARY` / `INSIGHTS`) in amber, uppercase, tracking-widest, ~11px.
-- Active route: subtle navy-tint background + **3px amber left bar** (anchored to sidebar edge via `before:` pseudo-element).
-- Inactive: muted text, no left bar, hover lifts to `sidebar-accent/50`.
-- Footer: Settings / Help / Sign out — ghost buttons in muted text.
-- Collapsed (56px): icons only, amber left bar still appears on active icon.
+- Navy background. Brand lockup = `BrandMark` (geometric-K) + "Koudou" wordmark in `font-display text-xl font-bold leading-none pt-0.5` (optical alignment).
+- Section labels (`TODAY` / `PIPELINE` / `LIBRARY` / `INSIGHTS`) at `text-[11px] font-semibold tracking-[0.16em]` in `text-sidebar-group-foreground` (no opacity hack).
+- Primary nav active row: `bg-sidebar-accent` fill + 2px amber left bar (state signal). Icon stays `text-sidebar-foreground` (white) in active state — the bar carries the cue, the icon doesn't double up. Hover flips icon to amber as a transient affordance.
+- Inactive: `text-sidebar-muted`, hover lifts to `bg-sidebar-accent/50`.
+- Icon sizes: expanded `18px` (h-[18px]), collapsed `20px` (h-5) — collapsed glyphs scale up since they stand alone without a label.
+- Footer: name row, then a single 32px utility row of equal-weight controls — avatar (`bg-sidebar-accent/60` rounded-md), Settings, Help. Avatar uses the same surface as the utility buttons so the trio reads as peers. Utility nav uses fill-only active state (no left bar — the bar is reserved for primary nav).
+- Collapsed (56px): icons-only at 20px, amber left bar still appears on active icon, avatar restyled as 40x40 `bg-sidebar-accent/60` rounded-lg tile to match utility vocabulary.
 
 ## Page chrome (canonical)
 
@@ -76,9 +81,12 @@ Spec composition:
 
 ## Anti-patterns (do not do)
 
+- Reusing `--accent` for warning chips, focus rings, AND brand mark with no differentiation
+- Adding a 4th gray inline on a new surface — extend the neutral ramp instead
+- Wrapping `BrandMark` in another tile — the painted tile is part of the asset
+- Doubling the active-state signal on primary nav (amber bar + amber icon) — let the bar carry the cue
 - Page header with action buttons crowding the title
 - Tinted backgrounds on action rows for urgency (`bg-destructive/10`, `bg-warning/10`, etc.)
 - Left urgency accent bars on Next steps
 - Reintroducing the accented StatCard variant for the Command Center
-- Calling the app "JobTrackr" — it's "Jobtrakr"
 - Re-deriving the design from scratch each request — read the spec images first
