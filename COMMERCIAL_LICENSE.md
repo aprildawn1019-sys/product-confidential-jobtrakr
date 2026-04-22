@@ -1,8 +1,8 @@
 # Commercial License — Product Confidential
 
-JobTrackr is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE), which permits free use for personal, educational, and research purposes.
+Koudou is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE), which permits free use for personal, educational, and research purposes.
 
-**Commercial use — including deploying JobTrackr as part of a paid product, SaaS offering, or internal business tool — requires a separate commercial license.**
+**Commercial use — including deploying Koudou as part of a paid product, SaaS offering, or internal business tool — requires a separate commercial license.**
 
 ---
 
@@ -25,14 +25,14 @@ JobTrackr is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE),
 
 ### Single Company License
 
-- Use JobTrackr within **one organization**
+- Use Koudou within **one organization**
 - Unlimited internal users
 - Includes all current features and edge functions
 - Email support for setup and deployment
 
 ### OEM / Reseller License
 
-- Embed or redistribute JobTrackr as part of your own product
+- Embed or redistribute Koudou as part of your own product
 - Custom terms based on distribution scope
 - Priority support and co-branding options
 
