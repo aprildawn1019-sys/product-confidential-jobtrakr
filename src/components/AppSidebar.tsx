@@ -3,33 +3,35 @@ import {
   LayoutDashboard, Briefcase, Users, Search, Globe, LogOut, CalendarDays,
   ChevronDown, ChevronRight, TrendingUp, Star, FileText, Settings, Network,
   Sparkles, PlayCircle, CircleHelp, BarChart3, FileStack, LucideIcon, PanelLeftClose, PanelLeft,
-  UserCircle2,
 } from "lucide-react";
-
-// Brand lockup: geometric-K mark paired with the "Koudou" wordmark.
-// We use the LIGHT-pane variant in the sidebar (off-white tile, navy
-// upper arm, amber lower arm) because the dark variant's navy tile
-// blends invisibly into the navy sidebar background.
-import koudouMarkSrc from "@/assets/brand/koudou-mark-light.png";
-const BrandMark = ({ className }: { className?: string }) => (
-  <img
-    src={koudouMarkSrc}
-    alt="Koudou"
-    className={cn("shrink-0 rounded-lg", className)}
-  />
-);
 import { useHelp } from "@/components/help/HelpProvider";
 import { NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-// (Collapsible no longer used: sidebar groups are always-visible per hero spec.)
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+// Brand lockup: amber rounded-square tile + "Jobtrakr" wordmark, per
+// `mem://features/sidebar-ia` and `mem://project/branding`. The geometric-K
+// raster mark is reserved for the public landing page + favicon. Inside the
+// product chrome we use a flat amber tile carrying the "J" so the sidebar
+// reads as Jobtrakr (the actual product name) instead of the working title.
+const BrandTile = ({ size = "md" }: { size?: "sm" | "md" }) => (
+  <div
+    className={cn(
+      "shrink-0 grid place-items-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-display font-bold",
+      size === "md" ? "h-9 w-9 text-base" : "h-10 w-10 text-lg",
+    )}
+    aria-hidden="true"
+  >
+    J
+  </div>
+);
 
 // Deterministic 2-letter initials from a name or email.
 function initialsOf(label: string): string {
@@ -67,10 +69,6 @@ type LinkItem = {
   label: string;
   tourId?: string;
   end?: boolean;
-  // Per-icon hue (CSS color string). Each nav item gets its own color so
-  // the sidebar reads as a chromatic legend, matching the multi-color
-  // treatment shown in the latest hero mock.
-  iconColor: string;
 };
 
 interface AppSidebarProps {
@@ -82,53 +80,40 @@ interface AppSidebarProps {
   onMobileClose?: () => void;
 }
 
-// Per-item icon palette. Hues are pulled from the design-token family
-// (amber, info-blue, success-green, plus a couple of complementary tints)
-// so the sidebar feels colorful but stays inside the Koudou brand system.
-// Hand-picked HSL values are used (not raw token references) so each row
-// gets a *distinct* hue instead of all collapsing to the same accent.
-const ICON_AMBER = "hsl(36 95% 60%)";    // brand accent
-const ICON_NAVY  = "hsl(222 60% 65%)";   // tinted primary, readable on navy bg
-const ICON_TEAL  = "hsl(180 55% 55%)";   // calm cyan/teal
-const ICON_GREEN = "hsl(152 55% 55%)";   // success-tinted
-const ICON_VIOLET = "hsl(265 60% 68%)";  // soft violet
-const ICON_ROSE  = "hsl(345 70% 65%)";   // warm rose
-const ICON_BLUE  = "hsl(210 80% 62%)";   // info blue
-const ICON_LIME  = "hsl(80 55% 55%)";    // chartreuse
-const ICON_SAND  = "hsl(40 45% 65%)";    // warm sand
-const ICON_SKY   = "hsl(200 75% 65%)";   // sky cyan
-
+// 2-tone icon system: neutral muted for inactive, amber for active/hover.
+// Color is reserved for STATE, not identity — this protects scannability and
+// keeps amber as the single accent across the product chrome.
 const groups: { label: string; items: LinkItem[] }[] = [
   {
     label: "Today",
     items: [
-      { to: "/",           icon: LayoutDashboard, label: "Command Center", end: true,                 iconColor: ICON_AMBER },
-      { to: "/jobs",       icon: Briefcase,        label: "Jobs",                                       iconColor: ICON_BLUE  },
-      { to: "/contacts",   icon: Users,            label: "Contacts", tourId: "entry-network",          iconColor: ICON_GREEN },
-      { to: "/interviews", icon: CalendarDays,     label: "Interviews",                                 iconColor: ICON_ROSE  },
+      { to: "/",           icon: LayoutDashboard, label: "Command Center", end: true },
+      { to: "/jobs",       icon: Briefcase,        label: "Jobs" },
+      { to: "/contacts",   icon: Users,            label: "Contacts", tourId: "entry-network" },
+      { to: "/interviews", icon: CalendarDays,     label: "Interviews" },
     ],
   },
   {
     label: "Pipeline",
     items: [
-      { to: "/target-companies", icon: Star,   label: "Target Companies", tourId: "entry-target-companies", iconColor: ICON_NAVY  },
-      { to: "/job-boards",       icon: Globe,  label: "Job Boards",                                          iconColor: ICON_AMBER },
-      { to: "/job-search",       icon: Search, label: "Job Search", tourId: "entry-job-search",              iconColor: ICON_TEAL  },
+      { to: "/target-companies", icon: Star,   label: "Target Companies", tourId: "entry-target-companies" },
+      { to: "/job-boards",       icon: Globe,  label: "Job Boards" },
+      { to: "/job-search",       icon: Search, label: "Job Search", tourId: "entry-job-search" },
     ],
   },
   {
     label: "Library",
     items: [
-      { to: "/resumes",       icon: FileStack, label: "Resumes",       iconColor: ICON_SAND   },
-      { to: "/cover-letters", icon: FileText,  label: "Cover Letters", iconColor: ICON_VIOLET },
+      { to: "/resumes",       icon: FileStack, label: "Resumes" },
+      { to: "/cover-letters", icon: FileText,  label: "Cover Letters" },
     ],
   },
   {
     label: "Insights",
     items: [
-      { to: "/insights",        icon: BarChart3,  label: "Insights",        iconColor: ICON_SKY   },
-      { to: "/skills-insights", icon: TrendingUp, label: "Skills Insights", iconColor: ICON_LIME  },
-      { to: "/network-map",     icon: Network,    label: "Network Map",     iconColor: ICON_BLUE  },
+      { to: "/insights",        icon: BarChart3,  label: "Insights" },
+      { to: "/skills-insights", icon: TrendingUp, label: "Skills Insights" },
+      { to: "/network-map",     icon: Network,    label: "Network Map" },
     ],
   },
 ];
@@ -155,14 +140,11 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   const isOnJobCRM = location.pathname.startsWith("/jobs/");
   const [jobSubOpen, setJobSubOpen] = useState(isOnJobCRM);
 
-  // Sidebar groups are always-visible (no chevrons) — see hero spec.
-  // We intentionally drop per-group open/close state.
-
   const handleNavClick = () => onNavigate?.();
 
   // === COLLAPSED (icon-only) ===
   if (collapsed) {
-    const settingsItem: LinkItem = { to: "/settings", icon: Settings, label: "Settings", iconColor: ICON_AMBER };
+    const settingsItem: LinkItem = { to: "/settings", icon: Settings, label: "Settings" };
 
     const renderIconLink = (item: LinkItem) => (
       <Tooltip key={item.to} delayDuration={150}>
@@ -174,16 +156,13 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             className={({ isActive }) =>
               cn(
                 "relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
-                // Active state: amber icon + soft navy fill + amber edge bar
-                // so the collapsed mode reads with the same hierarchy as the
-                // expanded sidebar (matches landing-page accent treatment).
                 isActive
                   ? "bg-sidebar-accent text-sidebar-primary before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
                   : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )
             }
           >
-            <item.icon className="h-[18px] w-[18px]" strokeWidth={2} color={item.iconColor} />
+            <item.icon className="h-[18px] w-[18px]" strokeWidth={2} />
           </NavLink>
         </TooltipTrigger>
         <TooltipContent side="right">{item.label}</TooltipContent>
@@ -191,9 +170,9 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
     );
 
     return (
-      <TooltipProvider>
+      <>
         <div className="flex h-16 items-center justify-center">
-          <BrandMark className="h-10 w-10" />
+          <BrandTile size="sm" />
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Primary">
@@ -208,8 +187,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         </nav>
 
         <div className="border-t border-sidebar-border p-2 space-y-1 flex flex-col items-center">
-          {hasData ? null : renderIconLink({ to: "/getting-started", icon: Sparkles, label: "Getting Started", iconColor: ICON_AMBER })}
-          {renderIconLink({ to: "/settings/profile", icon: UserCircle2, label: "Profile", iconColor: ICON_AMBER })}
+          {hasData ? null : renderIconLink({ to: "/getting-started", icon: Sparkles, label: "Getting Started" })}
           {renderIconLink(settingsItem)}
           <Tooltip delayDuration={150}>
             <TooltipTrigger asChild>
@@ -219,7 +197,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 className="h-10 w-10 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                 onClick={() => { handleNavClick(); openHelp(); }}
               >
-                <CircleHelp className="h-4 w-4" />
+                <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">Help</TooltipContent>
@@ -249,6 +227,10 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 )}
               </div>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => { handleNavClick(); window.location.href = "/settings/profile"; }}>
+                <Settings className="h-4 w-4 mr-2" />
+                Profile & Settings
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleRestartTour}>
                 <PlayCircle className="h-4 w-4 mr-2" />
                 Restart walkthrough
@@ -260,29 +242,27 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </TooltipProvider>
+      </>
     );
   }
 
   // === EXPANDED ===
-  // Active row: soft navy fill + amber left bar + amber-tinted icon. This
-  // mirrors the marketing landing page accent treatment so the in-app nav
-  // and the public site read as one type system.
+  // Active row: soft navy fill + amber left bar + amber-tinted icon (state-driven color).
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
       "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
       isActive
-        ? "bg-sidebar-accent text-sidebar-foreground font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
-        : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+        ? "bg-sidebar-accent text-sidebar-foreground font-medium [&_svg]:text-sidebar-primary before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
+        : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-primary"
     );
 
   return (
-    <TooltipProvider>
-      {/* Brand lockup: matches landing page wordmark — Space Grotesk 700 @ 20px. */}
+    <>
+      {/* Brand lockup: amber tile + Jobtrakr wordmark, Space Grotesk 700 @ 20px. */}
       <div className="flex h-16 items-center gap-2.5 px-4">
-        <BrandMark className="h-9 w-9" />
+        <BrandTile />
         <span className="font-display text-xl font-bold tracking-tight text-sidebar-foreground">
-          Koudou
+          Jobtrakr
         </span>
       </div>
 
@@ -295,42 +275,37 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                  : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium [&_svg]:text-sidebar-primary"
+                  : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-primary"
               )
             }
           >
-            <Sparkles className="h-[18px] w-[18px] shrink-0" strokeWidth={2} color="hsl(var(--sidebar-primary))" />
+            <Sparkles className="h-[18px] w-[18px] shrink-0 text-sidebar-primary" strokeWidth={2} />
             Getting Started
           </NavLink>
         )}
 
         {groups.map((group) => {
-          // Group labels: muted gray small caps (no amber) — quieter section
-          // headers so the navigation rows themselves carry the visual weight,
-          // matching the rhythm of the marketing landing page nav.
+          // Section labels: quieter — 11px semibold, narrower tracking, muted
+          // amber via opacity. Rows carry primary visual weight; labels are
+          // secondary scaffolding (per visual-theme-v2 "muted amber" guidance).
           return (
             <div key={group.label} className="pt-5 first:pt-1">
-              <div className="px-3 pb-2">
+              <div className="px-3 pb-1.5">
                 <span
-                  className="font-display text-[13px] font-bold uppercase tracking-[0.18em]"
-                  style={{ color: "hsl(var(--sidebar-group-foreground))" }}
+                  className="font-display text-[11px] font-semibold uppercase tracking-[0.16em] text-sidebar-group-foreground/75"
                 >
                   {group.label}
                 </span>
               </div>
               <div className="space-y-0.5">
-                {group.items.map(({ to, icon: Icon, label, tourId, end, iconColor }) => (
+                {group.items.map(({ to, icon: Icon, label, tourId, end }) => (
                   <div key={to} data-tour={tourId}>
                     {to === "/jobs" ? (
                       <>
                         <div className="flex items-center">
                           <NavLink to={to} className={navLinkClass} end onClick={handleNavClick}>
-                            <Icon
-                              className="h-[18px] w-[18px] shrink-0"
-                              strokeWidth={2}
-                              color={iconColor}
-                            />
+                            <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
                             {label}
                           </NavLink>
                           {jobs.length > 0 && (
@@ -368,11 +343,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                       </>
                     ) : (
                       <NavLink to={to} end={end} className={navLinkClass} onClick={handleNavClick}>
-                        <Icon
-                          className="h-[18px] w-[18px] shrink-0"
-                          strokeWidth={2}
-                          color={iconColor}
-                        />
+                        <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
                         {label}
                       </NavLink>
                     )}
@@ -384,12 +355,11 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         })}
       </nav>
 
-      {/* Footer per the v3 sidebar spec: avatar + icon-only utility row so
-          everything fits within the 256px sidebar without overflow. The
-          dropdown still hangs off the avatar so Restart walkthrough +
-          Sign out remain reachable. */}
-      <div className="border-t border-sidebar-border px-2 py-2.5 overflow-hidden">
-        <div className="flex items-center gap-1">
+      {/* Footer: avatar + Settings + Help. Profile glyph removed (redundant
+          with avatar dropdown). All three peers share the same surface
+          treatment so they read as a single utility row. */}
+      <div className="border-t border-sidebar-border px-2 py-2.5">
+        <div className="flex items-center gap-1.5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -408,6 +378,10 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 )}
               </div>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => { handleNavClick(); window.location.href = "/settings/profile"; }}>
+                <Settings className="h-4 w-4 mr-2" />
+                Profile
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleRestartTour}>
                 <PlayCircle className="h-4 w-4 mr-2" />
                 Restart walkthrough
@@ -419,27 +393,11 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <div className="ml-auto flex items-center gap-0.5">
-            <Tooltip delayDuration={150}>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to="/settings/profile"
-                  onClick={handleNavClick}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
-                      isActive
-                        ? "bg-sidebar-accent"
-                        : "hover:bg-sidebar-accent/50"
-                    )
-                  }
-                  aria-label="Profile"
-                >
-                  <UserCircle2 className="h-[18px] w-[18px]" strokeWidth={2} color="hsl(var(--sidebar-primary))" />
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side="top">Profile</TooltipContent>
-            </Tooltip>
+          <span className="truncate text-xs text-sidebar-muted flex-1 min-w-0" title={user.name}>
+            {user.name}
+          </span>
+
+          <div className="flex items-center gap-0.5 shrink-0">
             <Tooltip delayDuration={150}>
               <TooltipTrigger asChild>
                 <NavLink
@@ -449,14 +407,14 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                   className={({ isActive }) =>
                     cn(
                       "flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
-                      isActive || location.pathname === "/settings" || location.pathname === "/settings/data-export"
-                        ? "bg-sidebar-accent"
-                        : "hover:bg-sidebar-accent/50"
+                      isActive || location.pathname.startsWith("/settings")
+                        ? "bg-sidebar-accent text-sidebar-primary"
+                        : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                     )
                   }
                   aria-label="Settings"
                 >
-                  <Settings className="h-[18px] w-[18px]" strokeWidth={2} color="hsl(var(--sidebar-primary))" />
+                  <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="top">Settings</TooltipContent>
@@ -466,10 +424,10 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 <button
                   type="button"
                   onClick={() => { handleNavClick(); openHelp(); }}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md hover:bg-sidebar-accent/50 transition-colors"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
                   aria-label="Help"
                 >
-                  <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} color="hsl(var(--sidebar-primary))" />
+                  <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top">Help</TooltipContent>
@@ -477,7 +435,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           </div>
         </div>
       </div>
-    </TooltipProvider>
+    </>
   );
 }
 
@@ -493,35 +451,47 @@ export default function AppSidebar({
 
   if (isMobile) {
     return (
-      <Sheet open={mobileOpen} onOpenChange={(open) => { if (!open) onMobileClose?.(); }}>
-        <SheetContent side="left" className="w-64 p-0 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col">
-          <SidebarBody jobs={jobs} hasData={hasData} collapsed={false} onNavigate={onMobileClose} />
-        </SheetContent>
-      </Sheet>
+      <TooltipProvider>
+        <Sheet open={mobileOpen} onOpenChange={(open) => { if (!open) onMobileClose?.(); }}>
+          <SheetContent side="left" className="w-64 p-0 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col">
+            <SidebarBody jobs={jobs} hasData={hasData} collapsed={false} onNavigate={onMobileClose} />
+          </SheetContent>
+        </Sheet>
+      </TooltipProvider>
     );
   }
 
   return (
-    <aside
-      className={cn(
-        "fixed left-0 top-0 z-40 flex h-screen flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-[width] duration-200",
-        collapsed ? "w-14" : "w-64"
-      )}
-      role="navigation"
-      aria-label="Main navigation"
-    >
-      <SidebarBody jobs={jobs} hasData={hasData} collapsed={collapsed} />
+    <TooltipProvider>
+      <aside
+        className={cn(
+          "fixed left-0 top-0 z-40 flex h-screen flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-[width] duration-200",
+          collapsed ? "w-14" : "w-64"
+        )}
+        role="navigation"
+        aria-label="Main navigation"
+      >
+        <SidebarBody jobs={jobs} hasData={hasData} collapsed={collapsed} />
 
-      {/* Floating collapse toggle */}
-      {onToggleCollapsed && (
-        <button
-          onClick={onToggleCollapsed}
-          className="absolute -right-3 top-20 z-50 flex h-6 w-6 items-center justify-center rounded-full border border-sidebar-border bg-sidebar text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors shadow-sm"
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? <PanelLeft className="h-3 w-3" /> : <PanelLeftClose className="h-3 w-3" />}
-        </button>
-      )}
-    </aside>
+        {/* Floating collapse toggle: anchored to the brand row (top-5 ≈ row
+            center for the 64px header), 28px hit target, with tooltip. */}
+        {onToggleCollapsed && (
+          <Tooltip delayDuration={150}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onToggleCollapsed}
+                className="absolute -right-3.5 top-5 z-50 flex h-7 w-7 items-center justify-center rounded-full border border-sidebar-border bg-sidebar text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/60 transition-colors shadow-sm"
+                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {collapsed ? <PanelLeft className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </aside>
+    </TooltipProvider>
   );
 }
