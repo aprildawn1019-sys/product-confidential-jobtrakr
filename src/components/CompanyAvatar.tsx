@@ -18,6 +18,9 @@ import { cn } from "@/lib/utils";
  *             Broad coverage fallback.
  *      - On <img> error we advance to the next candidate; once all
  *        sources are exhausted we render the initial-chip fallback.
+ *      - We also remember which (domain, source) pairs have failed in this
+ *        session and skip them on subsequent renders so a Clearbit miss for
+ *        `acme.com` doesn't re-trigger a 404 round-trip on every card.
  *   2. On final image error / no logo URL → render the deterministic
  *      colored initial chip ("brand" tone) or the muted round chip
  *      ("neutral" tone for decorative surfaces like Next steps /
@@ -73,24 +76,80 @@ function deriveDomain(opts: { website?: string | null; company: string }): strin
 }
 
 /**
+ * Stable identifier for a logo source so we can cache failures per (domain, source).
+ * "explicit" covers user/scraped URLs which we don't dedupe by domain.
+ */
+type LogoSource = "explicit" | "clearbit" | "google-favicon";
+
+interface LogoCandidate {
+  url: string;
+  source: LogoSource;
+  /** Domain key used to look up failed-source memoization. Null for "explicit". */
+  domain: string | null;
+}
+
+/**
+ * Module-level cache of (domain → Set<failed source>) discovered during this
+ * page session. Living outside React state means every CompanyAvatar instance
+ * benefits — if Clearbit 404s for `acme.com` once, no other card requests it.
+ * Cleared on page reload, which is the right granularity (logos change rarely
+ * but we don't want to permanently blacklist via localStorage).
+ */
+const failedSourcesByDomain = new Map<string, Set<LogoSource>>();
+
+function isSourceKnownBad(domain: string | null, source: LogoSource): boolean {
+  if (!domain) return false;
+  return failedSourcesByDomain.get(domain)?.has(source) ?? false;
+}
+
+function markSourceFailed(domain: string | null, source: LogoSource, url: string) {
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.debug(
+      `[CompanyAvatar] logo source failed`,
+      { source, domain, url },
+    );
+  }
+  if (!domain) return;
+  let set = failedSourcesByDomain.get(domain);
+  if (!set) {
+    set = new Set();
+    failedSourcesByDomain.set(domain, set);
+  }
+  set.add(source);
+}
+
+/**
  * Build the cascade of logo URLs to try, best-quality-first.
  * - Explicit `logoUrl` always comes first when present.
  * - Clearbit gives transparent brand marks when it has the company.
  * - Google favicon is the broad-coverage fallback (sz=128 for retina).
+ * - Candidates whose (domain, source) has already failed this session are
+ *   filtered out so we don't re-issue requests guaranteed to 404.
  */
 function buildLogoCandidates(opts: {
   logoUrl?: string | null;
   website?: string | null;
   company: string;
-}): string[] {
-  const candidates: string[] = [];
-  if (opts.logoUrl) candidates.push(opts.logoUrl);
+}): LogoCandidate[] {
+  const candidates: LogoCandidate[] = [];
+  if (opts.logoUrl) {
+    candidates.push({ url: opts.logoUrl, source: "explicit", domain: null });
+  }
   const domain = deriveDomain({ website: opts.website, company: opts.company });
   if (domain) {
-    candidates.push(`https://logo.clearbit.com/${domain}`);
-    candidates.push(`https://www.google.com/s2/favicons?domain=${domain}&sz=128`);
+    candidates.push({
+      url: `https://logo.clearbit.com/${domain}`,
+      source: "clearbit",
+      domain,
+    });
+    candidates.push({
+      url: `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+      source: "google-favicon",
+      domain,
+    });
   }
-  return candidates;
+  return candidates.filter((c) => !isSourceKnownBad(c.domain, c.source));
 }
 
 interface CompanyAvatarProps {
@@ -140,8 +199,8 @@ export default function CompanyAvatar({
   // Round chip for neutral tone, square (rounded) for brand — matches prior behavior.
   const shape = tone === "neutral" ? "rounded-full" : "rounded-lg";
 
-  const currentSrc = idx >= 0 && idx < candidates.length ? candidates[idx] : null;
-  const showImage = !!currentSrc;
+  const currentCandidate = idx >= 0 && idx < candidates.length ? candidates[idx] : null;
+  const showImage = !!currentCandidate;
 
   // Fallback chip styling depends on tone, mirroring the original component.
   const fallbackChipClass =
@@ -156,7 +215,7 @@ export default function CompanyAvatar({
     className,
   );
 
-  if (showImage) {
+  if (showImage && currentCandidate) {
     return (
       <div
         className={cn(baseChip, "bg-background ring-1 ring-border/60")}
@@ -165,12 +224,17 @@ export default function CompanyAvatar({
         <img
           // key forces a fresh <img> when we advance the cascade so the
           // browser actually retries instead of caching the failed state.
-          key={currentSrc}
-          src={currentSrc ?? undefined}
+          key={currentCandidate.url}
+          src={currentCandidate.url}
           alt={`${company} logo`}
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => {
+            markSourceFailed(
+              currentCandidate.domain,
+              currentCandidate.source,
+              currentCandidate.url,
+            );
             // Advance to the next candidate; -1 once exhausted to render
             // the deterministic initial chip.
             setIdx((i) => (i + 1 < candidates.length ? i + 1 : -1));
