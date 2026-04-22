@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, ShieldOff } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useDisableLinkedInAvatars } from "@/lib/privacyPrefs";
+
+/**
+ * True when `url` points at a LinkedIn photo — either the raw CDN
+ * (`media.licdn.com`) or our cached copy in the `linkedin-avatars`
+ * Supabase storage bucket. The privacy toggle uses this to decide
+ * whether to suppress the image and force initials rendering.
+ */
+function isLinkedInDerivedAvatar(url: string): boolean {
+  return /(^|\.)licdn\.com\//i.test(url) || /\/linkedin-avatars\//i.test(url);
+}
 
 /**
  * Avatar for a *person* (vs. CompanyAvatar which is for organizations).
