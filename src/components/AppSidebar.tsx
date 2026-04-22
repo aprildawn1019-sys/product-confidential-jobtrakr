@@ -142,6 +142,9 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   if (collapsed) {
     const settingsItem: LinkItem = { to: "/settings", icon: Settings, label: "Settings" };
 
+    // Collapsed-mode icons step up to 20px since they stand alone without
+    // a label to anchor them. Active state = bar + white icon (no amber on
+    // the glyph) so the bar carries the "you are here" signal cleanly.
     const renderIconLink = (item: LinkItem) => (
       <Tooltip key={item.to} delayDuration={150}>
         <TooltipTrigger asChild>
@@ -153,12 +156,12 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               cn(
                 "relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-primary before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
+                  ? "bg-sidebar-accent text-sidebar-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
                   : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )
             }
           >
-            <item.icon className="h-[18px] w-[18px]" strokeWidth={2} />
+            <item.icon className="h-5 w-5" strokeWidth={2} />
           </NavLink>
         </TooltipTrigger>
         <TooltipContent side="right">{item.label}</TooltipContent>
