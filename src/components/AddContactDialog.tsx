@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import ContactAvatar from "@/components/ContactAvatar";
 import type { Contact, NetworkRole } from "@/types/jobTracker";
 import { NETWORK_ROLES } from "@/types/jobTracker";
+import { getUseAvatarProxy } from "@/lib/privacyPrefs";
 
 interface AddContactDialogProps {
   onAdd: (contact: Omit<Contact, "id" | "createdAt">) => void;
@@ -85,7 +86,13 @@ export default function AddContactDialog({
     // Clear any prior error so the inline block disappears while retrying.
     setImportError(null);
     try {
-      const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
+      // Honor the user's privacy pref: when avatar proxying is disabled,
+      // tell the edge function to skip the cache step and return the raw
+      // LinkedIn URL (or no avatar at all) instead of writing to storage.
+      const useAvatarProxy = getUseAvatarProxy();
+      const { data, error } = await supabase.functions.invoke("scrape-linkedin", {
+        body: { url: fullUrl, useAvatarProxy },
+      });
       if (error || !data?.success) {
         // Surface the richest error info available: explicit data.error,
         // then the FunctionsError message, falling back to a generic note.

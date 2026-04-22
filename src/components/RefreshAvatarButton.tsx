@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { getUseAvatarProxy } from "@/lib/privacyPrefs";
 
 /**
  * Per-contact "Refresh avatar" action.
@@ -39,8 +40,12 @@ export default function RefreshAvatarButton({
     if (disabled || !linkedinUrl) return;
     setRefreshing(true);
     try {
+      // Forward the user's current proxy preference. If proxying is
+      // disabled, "refresh" still re-scrapes the LinkedIn page but stores
+      // the raw og:image URL instead of caching a copy in our bucket.
+      const useAvatarProxy = getUseAvatarProxy();
       const { data, error } = await supabase.functions.invoke("scrape-linkedin", {
-        body: { url: linkedinUrl, forceAvatarRefresh: true },
+        body: { url: linkedinUrl, forceAvatarRefresh: true, useAvatarProxy },
       });
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error ?? "Refresh failed");
