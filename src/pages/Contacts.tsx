@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
-import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutGrid, Megaphone, Star, Check, ExternalLink, ArrowUpDown, Sheet, Download } from "lucide-react";
+import { Mail, Linkedin, Trash2, Building2, Link2, Unlink, ChevronDown, ChevronUp, Plus, Briefcase, CalendarDays, MessageSquare, Clock, X, Search, LayoutGrid, List as ListIcon, Megaphone, Star, Check, ExternalLink, ArrowUpDown, Sheet, Download } from "lucide-react";
 import { downloadContactsCsv } from "@/lib/contactsCsvExport";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -176,7 +176,7 @@ export default function Contacts({
   const [editingConversation, setEditingConversation] = useState<string | null>(null);
   const [conversationDraft, setConversationDraft] = useState("");
   const [pendingConnection, setPendingConnection] = useState<{ sourceId: string; contactId: string } | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "spreadsheet">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "spreadsheet">("grid");
   const [searchQuery, setSearchQuery] = useState(companyFilter || "");
   const [warmthFilter, setWarmthFilter] = useState<string>("all");
   const [followUpFilter, setFollowUpFilter] = useState<string>("all");
@@ -622,6 +622,9 @@ export default function Contacts({
             <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("grid")} title="Grid view">
               <LayoutGrid className="h-4 w-4" />
             </Button>
+            <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("list")} title="List view">
+              <ListIcon className="h-4 w-4" />
+            </Button>
             <Button variant={viewMode === "spreadsheet" ? "secondary" : "ghost"} size="icon" className="h-7 w-7" onClick={() => setViewMode("spreadsheet")} title="Spreadsheet">
               <Sheet className="h-4 w-4" />
             </Button>
@@ -757,11 +760,64 @@ export default function Contacts({
         </div>
       )}
 
-      {viewMode === "grid" ? (
+      {viewMode === "grid" && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredContacts.map(renderContactCard)}
         </div>
-      ) : (
+      )}
+
+      {viewMode === "list" && (
+        // Compact horizontal rows — denser than the grid card, lighter than
+        // the spreadsheet. Designed for skimming a long contact list while
+        // keeping the most useful signals (avatar, name, role @ company,
+        // warmth, follow-up) one click away from the full detail card.
+        <div className="rounded-xl border border-border divide-y divide-border bg-card">
+          {filteredContacts.map((contact) => {
+            const isExpanded = expandedContact === contact.id;
+            return (
+              <div key={contact.id} id={`contact-${contact.id}`}>
+                <button
+                  type="button"
+                  onClick={() => setExpandedContact(isExpanded ? null : contact.id)}
+                  className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40 focus:outline-none focus-visible:bg-muted/40"
+                >
+                  <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-medium">{contact.name}</p>
+                      {contact.networkRole && (
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {NETWORK_ROLES.find((r) => r.value === contact.networkRole)?.emoji}
+                        </span>
+                      )}
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {contact.role ? `${contact.role} · ` : ""}{contact.company}
+                    </p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-2 shrink-0">
+                    <WarmthBadge
+                      warmth={contact.relationshipWarmth}
+                      onChange={(w) => onUpdate(contact.id, { relationshipWarmth: w })}
+                    />
+                    <FollowUpIndicator date={contact.followUpDate} />
+                  </div>
+                  {isExpanded
+                    ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                    : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
+                </button>
+                {isExpanded && (
+                  <div className="border-t border-border bg-muted/20 p-4">
+                    {renderContactCard(contact)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {viewMode === "spreadsheet" && (
         <ContactsSpreadsheet
           contacts={filteredContacts}
           campaigns={campaigns}
