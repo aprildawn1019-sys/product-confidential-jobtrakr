@@ -280,7 +280,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             cn(
               "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
               isActive
-                ? "bg-sidebar-accent text-sidebar-foreground font-medium [&_svg]:text-sidebar-primary before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
+                ? "bg-sidebar-accent text-sidebar-foreground font-medium [&_svg]:text-sidebar-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
                 : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-primary"
             )
           }
