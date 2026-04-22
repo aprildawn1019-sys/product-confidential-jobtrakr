@@ -218,14 +218,22 @@ export default function AddContactDialog({
     // stale "Failed N minutes ago" panel waiting in sessionStorage.
     setImportError(null);
     savePersistedError(null);
+    // Hoist data/error outside the try so the catch block can run
+    // rate-limit detection against the actual response payload (the
+    // FunctionsHttpError thrown by supabase-js usually only carries a
+    // generic "non-2xx status code" message).
+    let invokeData: any = null;
+    let invokeError: any = null;
     try {
-      const { data, error } = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
-      if (error || !data?.success) {
+      const res = await supabase.functions.invoke("scrape-linkedin", { body: { url: fullUrl } });
+      invokeData = res.data;
+      invokeError = res.error;
+      if (invokeError || !invokeData?.success) {
         // Surface the richest error info available: explicit data.error,
         // then the FunctionsError message, falling back to a generic note.
-        throw new Error(data?.error || error?.message || "Unknown error from scrape-linkedin");
+        throw new Error(invokeData?.error || invokeError?.message || "Unknown error from scrape-linkedin");
       }
-      const d = data.data;
+      const d = invokeData.data;
       // Track which specific fields the scraper actually returned so the
       // status badge can list them (e.g. "Extracted: name, role").
       const got: string[] = [];
@@ -248,19 +256,35 @@ export default function AddContactDialog({
           : "LinkedIn returned no usable fields — fill in manually.",
       });
     } catch (e: any) {
-      const message = e?.message || "Failed to reach the LinkedIn scraper.";
+      const rawMessage = e?.message || "Failed to reach the LinkedIn scraper.";
+      // Run detection across every signal we have: the thrown error, the
+      // resolved invoke error (FunctionsHttpError), and the JSON body the
+      // function returned. Any 429-like signal flips us into the friendlier
+      // rate-limit treatment.
+      const detection = detectRateLimit({
+        error: invokeError ?? e,
+        data: invokeData,
+      });
       setImportStatus("failed");
       setExtractedFields([]);
       const persisted: PersistedImportError = {
-        message,
+        message: detection.rateLimited ? detection.friendlyMessage : rawMessage,
         attemptedUrl: fullUrl,
         failedAt: Date.now(),
+        rateLimited: detection.rateLimited || undefined,
+        retryAfterSeconds: detection.rateLimited ? detection.retryAfterSeconds : undefined,
       };
       setImportError(persisted);
       savePersistedError(persisted);
       // Toast is kept for users who already moved focus away, but the
       // inline error block is now the source of truth for actionability.
-      toast({ title: "LinkedIn fetch failed", description: message, variant: "destructive" });
+      // Rate-limit toasts use the default (non-destructive) variant since
+      // they're a transient capacity issue, not a real failure.
+      toast({
+        title: detection.rateLimited ? "LinkedIn scraper is busy" : "LinkedIn fetch failed",
+        description: persisted.message,
+        variant: detection.rateLimited ? "default" : "destructive",
+      });
     } finally {
       setFetchingLinkedin(false);
     }
