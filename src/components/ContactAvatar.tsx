@@ -35,6 +35,14 @@ interface ContactAvatarProps {
   avatarUrl?: string | null;
   size?: "sm" | "md" | "lg";
   className?: string;
+  /**
+   * Marks this avatar as part of a dense surface (tables, kanban cards,
+   * sidebar lists). When the user has opted out of dense-list avatar
+   * tooltips in Settings → Privacy, dense avatars will skip the
+   * tooltip + focusable wrapper but keep the visual error/privacy badge.
+   * Non-dense (`false`, the default) avatars always get tooltips.
+   */
+  dense?: boolean;
 }
 
 function getInitials(name: string): string {
@@ -51,7 +59,11 @@ export default function ContactAvatar({
   avatarUrl,
   size = "md",
   className,
+  dense = false,
 }: ContactAvatarProps) {
+  // Whether dense surfaces should still attach explanatory tooltips.
+  // Defaults to true; users can opt out in Settings → Privacy.
+  const denseTooltipsEnabled = useDenseAvatarTooltips();
   // Privacy preference: when the user disables LinkedIn avatars, we treat
   // any LinkedIn-derived URL as if it weren't present at all and render
   // initials with a small "privacy on" indicator instead.
