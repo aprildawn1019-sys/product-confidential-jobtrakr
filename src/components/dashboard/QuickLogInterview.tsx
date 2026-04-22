@@ -45,6 +45,9 @@ export default function QuickLogInterview({ jobs, onAddJob, onAddInterview }: Pr
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState("");
   const [status, setStatus] = useState<Status>("scheduled");
+  // Optional follow-up — null means "no reminder". When set, we persist it on
+  // the interview record and surface it in Next Steps via actionEngine.
+  const [followUpDate, setFollowUpDate] = useState<Date | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
 
   // Distinct, alphabetised list of company names already in the tracker —
@@ -66,6 +69,7 @@ export default function QuickLogInterview({ jobs, onAddJob, onAddInterview }: Pr
     setDate(undefined);
     setTime("");
     setStatus("scheduled");
+    setFollowUpDate(undefined);
   };
 
   const handleSubmit = async () => {
@@ -104,10 +108,11 @@ export default function QuickLogInterview({ jobs, onAddJob, onAddInterview }: Pr
         date: format(date, "yyyy-MM-dd"),
         time: time || undefined,
         status,
+        followUpDate: followUpDate ? format(followUpDate, "yyyy-MM-dd") : undefined,
       });
       toast({
         title: "Interview logged",
-        description: `${company.trim()} · ${format(date, "EEE, MMM d")}${time ? ` · ${time}` : ""}`,
+        description: `${company.trim()} · ${format(date, "EEE, MMM d")}${time ? ` · ${time}` : ""}${followUpDate ? ` · follow up ${format(followUpDate, "MMM d")}` : ""}`,
       });
       reset();
       setOpen(false);
