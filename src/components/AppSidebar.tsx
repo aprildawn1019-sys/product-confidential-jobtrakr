@@ -6,24 +6,11 @@ import {
   UserCircle2, MoreHorizontal, Compass, BookOpen,
 } from "lucide-react";
 
-// Koudou brand mark — Concept 1 "Rising Arc": amber path sweeping up from
-// the bottom-left to a glowing amber sun on a navy horizon.
-// Flat vector translation of src/assets/concepts/concept-1-rising-arc-v3.png.
+// Koudou brand mark — geometric K (white upper arm + amber lower arm
+// reading as a foot mid-stride). Asset: src/assets/brand/koudou-mark.png.
+import koudouMarkSrc from "@/assets/brand/koudou-mark.png";
 const KoudouMark = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
-    {/* Navy tile background — the "night sky / horizon" */}
-    <rect width="32" height="32" rx="7" className="fill-sidebar" />
-    {/* Amber sun rising on the horizon (upper right) */}
-    <circle cx="22" cy="11" r="3.4" className="fill-sidebar-primary" />
-    {/* Amber path sweeping from bottom-left up to the sun */}
-    <path
-      d="M3 30 C 10 26, 14 22, 17 17 C 19 14, 20.5 12.5, 22 11.5"
-      className="stroke-sidebar-primary"
-      strokeWidth="3"
-      strokeLinecap="round"
-      fill="none"
-    />
-  </svg>
+  <img src={koudouMarkSrc} alt="Koudou" className={className} />
 );
 import { useHelp } from "@/components/help/HelpProvider";
 import { NavLink, useLocation } from "react-router-dom";
