@@ -155,10 +155,15 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* Secondary: upcoming interviews. Weekly Review used to live next to
-          this; it overlapped with Reports + Next Steps so we removed it and
-          let the strip span the full row. */}
-      <UpcomingInterviewsStrip interviews={interviews} jobs={jobs} />
+      {/* Secondary: interview log + upcoming interviews. The quick-log card
+          sits next to Upcoming so the "I just had a screen" workflow is a
+          single glance away from the calendar. */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {onAddJob && onAddInterview && (
+          <QuickLogInterview jobs={jobs} onAddJob={onAddJob} onAddInterview={onAddInterview} />
+        )}
+        <UpcomingInterviewsStrip interviews={interviews} jobs={jobs} />
+      </div>
 
       {/* Tertiary: pipeline & sourcing signals — visible by default. The hero
           mockup shows the dashboard scrolling into deeper context after the
