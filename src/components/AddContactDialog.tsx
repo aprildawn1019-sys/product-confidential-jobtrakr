@@ -361,7 +361,15 @@ export default function AddContactDialog({
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-destructive" />
                 <div className="flex-1 space-y-1.5 min-w-0">
-                  <p className="font-medium text-destructive">LinkedIn import failed</p>
+                  <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                    <p className="font-medium text-destructive">LinkedIn import failed</p>
+                    {/* Relative timestamp helps when the panel was
+                        restored from sessionStorage on reopen — gives
+                        the user context for whether to retry now. */}
+                    <p className="text-[11px] text-muted-foreground shrink-0">
+                      Failed {formatRelativeTime(importError.failedAt)}
+                    </p>
+                  </div>
                   <p className="text-muted-foreground break-words">{importError.message}</p>
                   <p className="text-[11px] text-muted-foreground break-all font-mono">
                     {importError.attemptedUrl}
