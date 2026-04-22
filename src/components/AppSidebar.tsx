@@ -244,8 +244,11 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   return (
     <>
       <div className="flex h-16 items-center gap-2.5 px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
-          <Briefcase className="h-4 w-4 text-sidebar-primary-foreground" />
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+          <svg viewBox="0 0 32 32" className="h-5 w-5" aria-hidden="true">
+            <rect x="6" y="18" width="9" height="5" rx="2.5" transform="rotate(-20 10.5 20.5)" fill="currentColor"/>
+            <rect x="17" y="9" width="9" height="5" rx="2.5" transform="rotate(-20 21.5 11.5)" fill="currentColor"/>
+          </svg>
         </div>
         <span className="font-display text-lg font-bold tracking-tight">Koudou</span>
       </div>
