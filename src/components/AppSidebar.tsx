@@ -204,12 +204,15 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
 
           <div className="my-1 h-px w-6 bg-sidebar-border/60" />
 
+          {/* Avatar matches utility-button vocabulary: 40x40 rounded-md
+              tile on the same surface as Settings/Help so the trio reads
+              as one row of equal-weight controls. */}
           <DropdownMenu>
             <Tooltip delayDuration={150}>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-primary text-[11px] font-semibold text-sidebar-primary-foreground hover:opacity-90 transition-opacity"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-sidebar-accent/60 text-[11px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                     aria-label={`Account menu for ${user.name}`}
                   >
                     {user.initials}
