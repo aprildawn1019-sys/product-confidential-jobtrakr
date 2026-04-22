@@ -4,7 +4,7 @@ import { Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StatCard from "@/components/StatCard";
 import NextStepsList from "@/components/commandcenter/NextStepsList";
-import WeeklyReview from "@/components/dashboard/WeeklyReview";
+// Weekly Review removed from Command Center — Reports page owns weekly recap.
 import UpcomingInterviewsStrip from "@/components/dashboard/UpcomingInterviewsStrip";
 import ActiveOpportunitiesPanel from "@/components/dashboard/ActiveOpportunitiesPanel";
 

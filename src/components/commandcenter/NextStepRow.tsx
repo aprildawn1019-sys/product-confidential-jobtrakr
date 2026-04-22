@@ -155,7 +155,11 @@ export default function NextStepRow({
         )}
       </div>
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Due-date / urgency chip — answers "when?" and "is this overdue?"
+            without making the user open the item. Hidden when no signal. */}
+        {!checked && <UrgencyChip urgency={action.urgency} dueDate={action.dueDate} />}
+
         {/* Completion control — reads as "mark done", not a settings toggle.
             Empty circle with a "Done" label that becomes a filled amber
             check once clicked. Mirrors Linear/Things/Todoist task patterns. */}
