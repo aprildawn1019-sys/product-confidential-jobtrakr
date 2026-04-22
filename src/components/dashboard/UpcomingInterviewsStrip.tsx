@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Circle } from "lucide-react";
 import CompanyAvatar from "@/components/CompanyAvatar";
 import { isScheduledInterview } from "@/lib/pipelineCounts";
+import { parseLocalDate } from "@/lib/localDate";
 import type { Interview, Job } from "@/types/jobTracker";
 
 interface Props {
@@ -10,10 +11,14 @@ interface Props {
   jobs: Job[];
 }
 
-/** Format e.g. "Tue · 2:30 PM" or "Tue · Oct 28". */
+/**
+ * Format e.g. "Tue · 2:30 PM" or "Tue · Oct 28".
+ * Date strings are parsed as the user's local day so YYYY-MM-DD values
+ * don't shift to the prior day in negative-UTC timezones.
+ */
 function fmtWhen(date: string, time?: string): string {
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return date;
+  const d = parseLocalDate(date);
+  if (!d) return date;
   const day = d.toLocaleDateString(undefined, { weekday: "short" });
   if (time) return `${day} · ${time}`;
   return `${day} · ${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
@@ -29,14 +34,22 @@ export default function UpcomingInterviewsStrip({ interviews, jobs }: Props) {
   const navigate = useNavigate();
 
   const upcoming = useMemo(() => {
-    const now = Date.now();
+    // "Today or later" judged in the user's local timezone — a YYYY-MM-DD
+    // value of today should never be filtered out as past.
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const cutoff = todayStart.getTime();
     return interviews
       .filter(isScheduledInterview)
       .filter(i => {
-        const t = new Date(i.date).getTime();
-        return Number.isNaN(t) ? true : t >= now - 86_400_000; // include today
+        const d = parseLocalDate(i.date);
+        return d ? d.getTime() >= cutoff : true;
       })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .sort((a, b) => {
+        const ta = parseLocalDate(a.date)?.getTime() ?? 0;
+        const tb = parseLocalDate(b.date)?.getTime() ?? 0;
+        return ta - tb;
+      })
       .slice(0, 4);
   }, [interviews]);
 
