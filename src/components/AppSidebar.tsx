@@ -3,14 +3,21 @@ import {
   LayoutDashboard, Briefcase, Users, Search, Globe, LogOut, CalendarDays,
   ChevronDown, ChevronRight, TrendingUp, Star, FileText, Settings, Network,
   Sparkles, PlayCircle, CircleHelp, BarChart3, FileStack, LucideIcon, PanelLeftClose, PanelLeft,
-  UserCircle2, MoreHorizontal, Compass, BookOpen,
+  UserCircle2, MoreHorizontal,
 } from "lucide-react";
 
-// Koudou brand mark — geometric K (ivory upper arm + amber lower arm
-// reading as a foot mid-stride). Sidebar uses the dark-surface variant.
-import koudouMarkSrc from "@/assets/brand/koudou-mark-dark.png";
-const KoudouMark = ({ className }: { className?: string }) => (
-  <img src={koudouMarkSrc} alt="Koudou" className={className} />
+// Brand lockup: per the new sidebar spec the mark is a simple amber square
+// tile (not the geometric K) paired with the "Jobtrakr" wordmark. Keeping
+// this as a small inline component so the lockup is reused in collapsed +
+// expanded modes and the Sheet drawer on mobile.
+const BrandTile = ({ className }: { className?: string }) => (
+  <div
+    className={cn(
+      "shrink-0 rounded-[6px] bg-sidebar-primary",
+      className,
+    )}
+    aria-hidden
+  />
 );
 import { useHelp } from "@/components/help/HelpProvider";
 import { NavLink, useLocation } from "react-router-dom";
@@ -66,12 +73,12 @@ interface AppSidebarProps {
   onMobileClose?: () => void;
 }
 
-// Group label icons mirror the hero spec: each section gets a small leading
-// glyph + chevron so the sidebar reads as scannable categories.
-const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
+// New sidebar spec: groups are quiet category headers (amber label, no
+// leading icon, no chevron). The visual hierarchy comes from the labels
+// themselves and an amber left-edge bar on the active row.
+const groups: { label: string; items: LinkItem[] }[] = [
   {
     label: "Today",
-    icon: Sparkles,
     items: [
       { to: "/", icon: LayoutDashboard, label: "Command Center", end: true },
       { to: "/jobs", icon: Briefcase, label: "Jobs" },
@@ -81,7 +88,6 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   },
   {
     label: "Pipeline",
-    icon: Compass,
     items: [
       { to: "/target-companies", icon: Star, label: "Target Companies", tourId: "entry-target-companies" },
       { to: "/job-boards", icon: Globe, label: "Job Boards" },
@@ -90,7 +96,6 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   },
   {
     label: "Library",
-    icon: BookOpen,
     items: [
       { to: "/resumes", icon: FileStack, label: "Resumes" },
       { to: "/cover-letters", icon: FileText, label: "Cover Letters" },
@@ -98,7 +103,6 @@ const groups: { label: string; icon: LucideIcon; items: LinkItem[] }[] = [
   },
   {
     label: "Insights",
-    icon: BarChart3,
     items: [
       { to: "/insights", icon: BarChart3, label: "Insights" },
       { to: "/skills-insights", icon: TrendingUp, label: "Skills Insights" },
@@ -136,9 +140,6 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
 
   // === COLLAPSED (icon-only) ===
   if (collapsed) {
-    const allItems = groups.flatMap((g, gi) => [
-      ...g.items.map((it) => ({ ...it, _group: gi })),
-    ]);
     const settingsItem = { to: "/settings", icon: Settings, label: "Settings" };
 
     const renderIconLink = (item: LinkItem) => (
@@ -151,13 +152,16 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             className={({ isActive }) =>
               cn(
                 "relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
+                // Active state mirrors the expanded mode: a small amber bar on
+                // the left edge plus a subtle navy fill, so the collapsed and
+                // expanded sidebars feel like the same surface.
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  ? "bg-sidebar-accent text-sidebar-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
                   : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )
             }
           >
-            <item.icon className="h-4 w-4" />
+            <item.icon className="h-4 w-4" strokeWidth={1.75} />
           </NavLink>
         </TooltipTrigger>
         <TooltipContent side="right">{item.label}</TooltipContent>
@@ -167,7 +171,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
     return (
       <TooltipProvider>
         <div className="flex h-16 items-center justify-center">
-          <KoudouMark className="h-9 w-9 rounded-lg" />
+          <BrandTile className="h-7 w-7" />
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Primary">
@@ -239,21 +243,25 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   }
 
   // === EXPANDED ===
-  // Hero spec: active row uses a calm navy fill only — no amber accent bar.
-  // Inactive rows are muted; hover lifts contrast slightly.
+  // Per the new spec, the active row uses a calm navy fill *plus* a thin
+  // amber bar on the left edge — that bar is what makes "Command Center"
+  // pop in the mockup. Inactive rows stay muted; hover lifts contrast.
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
       "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
       isActive
-        ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+        ? "bg-sidebar-accent text-sidebar-foreground font-semibold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
         : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
     );
 
   return (
     <>
-      <div className="flex h-16 items-center gap-2.5 px-6">
-        <KoudouMark className="h-8 w-8 rounded-lg" />
-        <span className="font-display text-lg font-bold tracking-tight">Koudou</span>
+      {/* Brand lockup: amber square + Jobtrakr wordmark, per the v3 sidebar spec. */}
+      <div className="flex h-16 items-center gap-2.5 px-5">
+        <BrandTile className="h-6 w-6" />
+        <span className="font-display text-[17px] font-bold tracking-tight text-sidebar-foreground">
+          Jobtrakr
+        </span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1" aria-label="Primary">
@@ -270,24 +278,21 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               )
             }
           >
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="h-4 w-4" strokeWidth={1.75} />
             Getting Started
           </NavLink>
         )}
 
         {groups.map((group) => {
-          // Hero spec: section labels carry a leading icon + trailing chevron,
-          // rendered in the muted-gold sidebar-group-foreground tone (not bright
-          // amber) so labels read as quiet category headers, not active controls.
-          const GroupIcon = group.icon;
+          // Group labels: amber, uppercase, no leading icon, no chevron.
+          // The new spec treats them as quiet section headers — the navigation
+          // weight comes from the items themselves.
           return (
-            <div key={group.label} className="pt-4 first:pt-1">
-              <div className="flex items-center justify-between px-3 pb-1.5">
-                <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-sidebar-group-foreground">
-                  <GroupIcon className="h-3.5 w-3.5" />
+            <div key={group.label} className="pt-5 first:pt-1">
+              <div className="px-3 pb-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-sidebar-group-foreground">
                   {group.label}
                 </span>
-                <ChevronDown className="h-3.5 w-3.5 text-sidebar-group-foreground/60" />
               </div>
               <div className="space-y-0.5">
                 {group.items.map(({ to, icon: Icon, label, tourId, end }) => (
@@ -296,7 +301,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                       <>
                         <div className="flex items-center">
                           <NavLink to={to} className={navLinkClass} end onClick={handleNavClick}>
-                            <Icon className="h-4 w-4" />
+                            <Icon className="h-4 w-4" strokeWidth={1.75} />
                             {label}
                           </NavLink>
                           {jobs.length > 0 && (
@@ -334,7 +339,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                       </>
                     ) : (
                       <NavLink to={to} end={end} className={navLinkClass} onClick={handleNavClick}>
-                        <Icon className="h-4 w-4" />
+                        <Icon className="h-4 w-4" strokeWidth={1.75} />
                         {label}
                       </NavLink>
                     )}
@@ -346,82 +351,81 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-3 space-y-0.5">
-        {/* Profile / Settings / Help — quiet utility links matching the hero spec */}
-        <NavLink
-          to="/settings/profile"
-          onClick={handleNavClick}
-          className={({ isActive }) =>
-            cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-              isActive
-                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-            )
-          }
-        >
-          <UserCircle2 className="h-4 w-4" />
-          Profile
-        </NavLink>
-        <NavLink
-          to="/settings"
-          end
-          onClick={handleNavClick}
-          className={({ isActive }) =>
-            cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-              isActive || location.pathname === "/settings" || location.pathname === "/settings/data-export"
-                ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-            )
-          }
-        >
-          <Settings className="h-4 w-4" />
-          Settings
-        </NavLink>
-        <button
-          type="button"
-          onClick={() => { handleNavClick(); openHelp(); }}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
-        >
-          <CircleHelp className="h-4 w-4" />
-          Help
-        </button>
-
-        {/* Account row — avatar + name, opens menu with Restart walkthrough + Sign out.
-            Tucking these inside the avatar menu keeps walkthrough discoverable but out of
-            the daily-use surface, and prevents accidental sign-outs. */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="mt-2 flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-sidebar-accent/50 group"
-              aria-label={`Account menu for ${user.name}`}
-            >
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[11px] font-semibold text-sidebar-primary-foreground">
+      {/* Footer per the v3 sidebar spec: a single compact row with the
+          account avatar + small Profile / Settings / Help glyphs. The
+          dropdown still hangs off the avatar so Restart walkthrough +
+          Sign out remain reachable without crowding the surface. */}
+      <div className="border-t border-sidebar-border px-3 py-3">
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[11px] font-semibold text-sidebar-primary-foreground hover:opacity-90 transition-opacity"
+                aria-label={`Account menu for ${user.name}`}
+              >
                 {user.initials}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">{user.name}</p>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="start" className="w-56">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium truncate">{user.name}</p>
                 {user.email && user.email !== user.name && (
-                  <p className="text-[11px] text-sidebar-muted truncate">{user.email}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                 )}
               </div>
-              <MoreHorizontal className="h-4 w-4 text-sidebar-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="end" className="w-56">
-            <DropdownMenuItem onClick={handleRestartTour}>
-              <PlayCircle className="h-4 w-4 mr-2" />
-              Restart walkthrough
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleRestartTour}>
+                <PlayCircle className="h-4 w-4 mr-2" />
+                Restart walkthrough
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <NavLink
+            to="/settings/profile"
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs transition-colors",
+                isActive
+                  ? "text-sidebar-foreground"
+                  : "text-sidebar-muted hover:text-sidebar-foreground"
+              )
+            }
+          >
+            <UserCircle2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Profile
+          </NavLink>
+          <NavLink
+            to="/settings"
+            end
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs transition-colors",
+                isActive || location.pathname === "/settings" || location.pathname === "/settings/data-export"
+                  ? "text-sidebar-foreground"
+                  : "text-sidebar-muted hover:text-sidebar-foreground"
+              )
+            }
+          >
+            <Settings className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Settings
+          </NavLink>
+          <button
+            type="button"
+            onClick={() => { handleNavClick(); openHelp(); }}
+            className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-xs text-sidebar-muted hover:text-sidebar-foreground transition-colors"
+          >
+            <CircleHelp className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Help
+          </button>
+        </div>
       </div>
     </>
   );
