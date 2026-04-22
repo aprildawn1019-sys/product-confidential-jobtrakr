@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Loader2, AlertCircle, ShieldOff } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useDisableLinkedInAvatars } from "@/lib/privacyPrefs";
+import {
+  useDisableLinkedInAvatars,
+  useDenseAvatarTooltips,
+} from "@/lib/privacyPrefs";
 
 /**
  * True when `url` points at a LinkedIn photo — either the raw CDN
