@@ -22,6 +22,7 @@ import StatusBadge from "@/components/StatusBadge";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import ContactsSpreadsheet from "@/components/ContactsSpreadsheet";
 import ContactAvatar from "@/components/ContactAvatar";
+import RefreshAvatarButton from "@/components/RefreshAvatarButton";
 import type { Contact, ContactConnection, ContactActivity, Job, Campaign, ContactCampaign, RecommendationRequest, JobContact, TargetCompany, NetworkRole } from "@/types/jobTracker";
 import { RELATIONSHIP_LABELS, NETWORK_ROLES } from "@/types/jobTracker";
 
@@ -339,9 +340,14 @@ export default function Contacts({
               </Badge>
             )}
           </div>
-          <div className="mt-auto pt-3 flex items-center gap-2">
+          <div className="mt-auto pt-3 flex items-center gap-2 flex-wrap">
             {contact.email && <Button variant="outline" size="sm" asChild><a href={`mailto:${contact.email}`}><Mail className="h-3.5 w-3.5 mr-1" />Email</a></Button>}
             {contact.linkedin && <Button variant="outline" size="sm" asChild><a href={`https://${contact.linkedin}`} target="_blank" rel="noopener noreferrer"><Linkedin className="h-3.5 w-3.5 mr-1" />LinkedIn</a></Button>}
+            <RefreshAvatarButton
+              contactId={contact.id}
+              linkedinUrl={contact.linkedin}
+              onRefreshed={(avatarUrl) => onUpdate(contact.id, { avatarUrl: avatarUrl ?? undefined })}
+            />
           </div>
           {contact.lastContactedAt && <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />Last contacted: {contact.lastContactedAt}</p>}
         </div>

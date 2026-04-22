@@ -27,6 +27,19 @@ const corsHeaders = {
 
 const BUCKET = "linkedin-avatars";
 
+// Cache TTL — LinkedIn photos rarely change, but stale ones look bad
+// (someone updates their photo, we keep showing the old one forever).
+// 30 days is a balance between freshness and bandwidth/cost. Override
+// per-request with `force: true` to bypass entirely.
+const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** True when a stored object is older than our TTL and should be refetched. */
+function isExpired(createdAt: string | undefined | null): boolean {
+  if (!createdAt) return false; // unknown age → treat as fresh, don't churn
+  const age = Date.now() - new Date(createdAt).getTime();
+  return Number.isFinite(age) && age > CACHE_TTL_MS;
+}
+
 /** Stable, filesystem-safe key derived from the upstream URL. */
 async function hashUrl(url: string): Promise<string> {
   const data = new TextEncoder().encode(url);
@@ -57,13 +70,14 @@ Deno.serve(async (req) => {
     const auth = await requireUser(req, corsHeaders);
     if (auth.errorResponse) return auth.errorResponse;
 
-    const { url } = await req.json();
+    const { url, force } = await req.json();
     if (!url || typeof url !== "string") {
       return new Response(
         JSON.stringify({ success: false, error: "Missing or invalid 'url'" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+    const bypassCache = force === true;
 
     // Only proxy LinkedIn-hosted media. Refusing arbitrary URLs prevents
     // turning this function into an open relay.
@@ -93,19 +107,35 @@ Deno.serve(async (req) => {
 
     // ── Cache lookup ────────────────────────────────────────────────
     // List with a name filter is the cheapest way to check existence
-    // without paying for a full object download.
+    // without paying for a full object download. We also use the
+    // returned `created_at` to enforce the TTL.
     const { data: existing } = await admin.storage
       .from(BUCKET)
       .list("", { limit: 1, search: hash });
 
     const cached = existing?.find((o) => o.name.startsWith(`${hash}.`));
-    if (cached) {
+    if (cached && !bypassCache && !isExpired(cached.created_at)) {
       const { data: pub } = admin.storage.from(BUCKET).getPublicUrl(cached.name);
       console.log("Cache HIT:", cached.name);
+      // Bust browser caches by appending the storage object's mtime — same
+      // bytes still resolve from CDN, but a stale `<img>` will refetch
+      // when we return a different URL.
+      const bust = cached.updated_at || cached.created_at || "";
+      const url = bust ? `${pub.publicUrl}?v=${encodeURIComponent(bust)}` : pub.publicUrl;
       return new Response(
-        JSON.stringify({ success: true, cached: true, url: pub.publicUrl }),
+        JSON.stringify({ success: true, cached: true, url }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
+    }
+
+    // Stale or forced refresh — drop the existing object so the upload
+    // path below replaces it cleanly even if the extension changes.
+    if (cached && (bypassCache || isExpired(cached.created_at))) {
+      console.log(
+        bypassCache ? "Force refresh, evicting:" : "TTL expired, evicting:",
+        cached.name,
+      );
+      await admin.storage.from(BUCKET).remove([cached.name]);
     }
 
     // ── Cache miss → fetch upstream ─────────────────────────────────
@@ -166,8 +196,12 @@ Deno.serve(async (req) => {
     const { data: pub } = admin.storage.from(BUCKET).getPublicUrl(objectName);
     console.log("Cached:", objectName, `(${bytes.byteLength} bytes)`);
 
+    // Append a cache-buster derived from the current timestamp so any
+    // <img> still pointed at the previous cached URL refetches.
+    const freshUrl = `${pub.publicUrl}?v=${Date.now()}`;
+
     return new Response(
-      JSON.stringify({ success: true, cached: false, url: pub.publicUrl }),
+      JSON.stringify({ success: true, cached: false, url: freshUrl }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {

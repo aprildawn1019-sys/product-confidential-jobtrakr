@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const auth = await requireUser(req, corsHeaders);
     if (auth.errorResponse) return auth.errorResponse;
 
-    const { url } = await req.json();
+    const { url, forceAvatarRefresh } = await req.json();
     if (!url) throw new Error("Missing LinkedIn URL");
 
     let formattedUrl = url.trim();
@@ -299,7 +299,7 @@ Deno.serve(async (req) => {
               Authorization: req.headers.get("Authorization") ?? "",
               apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "",
             },
-            body: JSON.stringify({ url: avatarUrl }),
+            body: JSON.stringify({ url: avatarUrl, force: forceAvatarRefresh === true }),
           },
         );
         if (proxyResp.ok) {
