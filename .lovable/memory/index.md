@@ -18,6 +18,7 @@ Updated: now
 - Branding: 'Koudou' by Product Confidential. PolyForm Noncommercial 1.0.0.
 
 ## Memories
+- [Brand Mark](mem://style/brand-mark) — Geometric K (white upper / amber lower arm), single PNG asset for sidebar + landing + favicon
 - [Visual Theme v2 (BINDING)](mem://style/visual-theme-v2) — Calm Operations spec; lists every spec asset and the rules they encode
 - [Command Center & Dashboard](mem://features/dashboard-analytics) — Layout rules anchored to dashboard-mockup.jpg
 - [Sidebar IA & Surfaces](mem://features/sidebar-ia) — TODAY/PIPELINE/LIBRARY/INSIGHTS, /insights rename, Resumes versioning, Settings tabbed hub
