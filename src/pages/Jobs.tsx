@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Job, Contact, JobStatus, Interview, TargetCompany, JobActivity } from "@/types/jobTracker";
 import { isActiveJob, countActiveJobs } from "@/lib/pipelineCounts";
+import { parseLocalDate } from "@/lib/localDate";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import PipelineFunnel from "@/components/PipelineFunnel";
