@@ -380,7 +380,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent text-[11px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-sidebar-accent/60 text-[11px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                     aria-label={`Account menu for ${user.name}`}
                   >
                     {user.initials}
