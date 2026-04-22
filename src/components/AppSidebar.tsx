@@ -254,7 +254,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
 
   return (
     <>
-      {/* Brand lockup: amber tile + Jobtrakr wordmark, Space Grotesk 700 @ 20px. */}
+      {/* Brand lockup: geometric-K mark + "Koudou" wordmark, Space Grotesk 700 @ 20px. */}
       <div className="flex h-16 items-center gap-2.5 px-4">
         <BrandMark className="h-9 w-9" />
         <span className="font-display text-xl font-bold tracking-tight text-sidebar-foreground">
