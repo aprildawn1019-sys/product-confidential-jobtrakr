@@ -211,7 +211,7 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     if (j.status !== "saved") continue;
     const created = new Date(j.createdAt);
     if (isNaN(created.getTime())) continue;
-    const days = differenceInDays(now, created);
+    const days = differenceInCalendarDays(now, created);
     if (days < 14) continue;
     const urgency: ActionUrgency = days > 30 ? "overdue" : "soon";
     actions.push({
@@ -260,7 +260,7 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
       .sort((a, b) => b - a)[0];
     const lastTouch = lastActivity ?? (c.lastContactedAt ? new Date(c.lastContactedAt).getTime() : null);
     if (!lastTouch) continue;
-    const days = differenceInDays(now, new Date(lastTouch));
+    const days = differenceInCalendarDays(now, new Date(lastTouch));
     if (days < 30) continue;
     const networkRole = c.networkRole as NetworkRole | undefined;
     actions.push({
