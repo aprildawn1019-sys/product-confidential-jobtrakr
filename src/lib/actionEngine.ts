@@ -1,4 +1,5 @@
-import { differenceInDays, isPast, isToday, parseISO } from "date-fns";
+import { differenceInCalendarDays, isPast, isToday } from "date-fns";
+import { parseLocalDate } from "./localDate";
 import type {
   Job,
   Contact,
@@ -60,17 +61,13 @@ const LANE_WEIGHT: Record<ActionLane, number> = {
 };
 
 function urgencyFromDate(iso: string | undefined): ActionUrgency {
-  if (!iso) return "later";
-  let d: Date;
-  try {
-    d = iso.length <= 10 ? parseISO(iso) : new Date(iso);
-  } catch {
-    return "later";
-  }
-  if (isNaN(d.getTime())) return "later";
+  // Parse calendar dates as the user's *local* day so a YYYY-MM-DD value
+  // doesn't get pushed to the prior day in negative-UTC timezones.
+  const d = parseLocalDate(iso);
+  if (!d) return "later";
   if (isPast(d) && !isToday(d)) return "overdue";
   if (isToday(d)) return "today";
-  const diff = differenceInDays(d, new Date());
+  const diff = differenceInCalendarDays(d, new Date());
   if (diff <= 3) return "soon";
   return "later";
 }
