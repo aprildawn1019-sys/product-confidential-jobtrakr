@@ -83,17 +83,29 @@ export function BoardCard({
                 {categoryLabels[board.category] || board.category}
               </span>
               {isLinked && (
-                <span
-                  className="text-xs rounded-full bg-accent/10 text-accent-foreground border border-accent/30 px-2 py-0.5 flex items-center gap-1"
-                  title={
-                    linkedCompanyName
-                      ? `Careers page for ${linkedCompanyName}`
-                      : "Linked to a target company"
-                  }
-                >
-                  <Building2 className="h-3 w-3" />
-                  {linkedCompanyName ? `Careers · ${linkedCompanyName}` : "Target careers page"}
-                </span>
+                <>
+                  <span
+                    className="text-xs rounded-full bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 font-medium"
+                    title={
+                      linkedCompanyName
+                        ? `Linked to target company ${linkedCompanyName}`
+                        : "Linked to a target company"
+                    }
+                  >
+                    Target company
+                  </span>
+                  <span
+                    className="text-xs rounded-full bg-accent/10 text-accent-foreground border border-accent/30 px-2 py-0.5 flex items-center gap-1"
+                    title={
+                      linkedCompanyName
+                        ? `Careers page for ${linkedCompanyName}`
+                        : "Linked to a target company"
+                    }
+                  >
+                    <Building2 className="h-3 w-3" />
+                    {linkedCompanyName ? `Careers · ${linkedCompanyName}` : "Target careers page"}
+                  </span>
+                </>
               )}
               {board.is_gated && (
                 <span className="text-xs rounded-full bg-destructive/10 text-destructive px-2 py-0.5 flex items-center gap-1">
