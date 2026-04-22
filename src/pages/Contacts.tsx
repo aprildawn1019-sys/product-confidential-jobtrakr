@@ -67,7 +67,9 @@ interface ContactsProps {
 
 function FollowUpIndicator({ date }: { date?: string }) {
   if (!date) return null;
-  const d = new Date(date);
+  // Parse YYYY-MM-DD as local-day so "today" reads correctly worldwide.
+  const d = parseLocalDate(date);
+  if (!d) return null;
   const overdue = isPast(d) && !isToday(d);
   const today = isToday(d);
   const text = overdue
