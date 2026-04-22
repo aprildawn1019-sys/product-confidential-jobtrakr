@@ -144,6 +144,41 @@ function formatRelativeTime(timestamp: number): string {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
+/**
+ * Returns the remaining seconds in a rate-limit cool-down window. Ticks
+ * every second while > 0, then settles at 0. Pass `null` (no error or
+ * non-rate-limit error) to disable the timer entirely.
+ */
+function useRetryCountdown(error: PersistedImportError | null): number {
+  const [remaining, setRemaining] = useState<number>(() => {
+    if (!error?.rateLimited || !error.retryAfterSeconds) return 0;
+    const elapsed = Math.floor((Date.now() - error.failedAt) / 1000);
+    return Math.max(0, error.retryAfterSeconds - elapsed);
+  });
+
+  useEffect(() => {
+    if (!error?.rateLimited || !error.retryAfterSeconds) {
+      setRemaining(0);
+      return;
+    }
+    const tick = () => {
+      const elapsed = Math.floor((Date.now() - error.failedAt) / 1000);
+      const next = Math.max(0, (error.retryAfterSeconds ?? 0) - elapsed);
+      setRemaining(next);
+      return next;
+    };
+    // Seed immediately so the UI reflects the latest value on mount /
+    // dependency change, then tick every second until we hit zero.
+    if (tick() === 0) return;
+    const id = window.setInterval(() => {
+      if (tick() === 0) window.clearInterval(id);
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [error?.rateLimited, error?.retryAfterSeconds, error?.failedAt]);
+
+  return remaining;
+}
+
 // Tracks what we were able to pull from a LinkedIn fetch so the UI can
 // surface a clear, honest status badge to the user.
 //   - idle:      no fetch attempted yet (or form was reset)
