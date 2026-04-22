@@ -275,9 +275,10 @@ export function createHandler(deps: HandlerDeps) {
 }
 
 // Production wiring: build the real admin client + handler and serve.
-// Wrapped in a guard so the test file can import this module without
-// triggering `Deno.serve` (which would try to bind a port).
-if (import.meta.main) {
+// Tests set `PROXY_LINKEDIN_AVATAR_SKIP_SERVE=1` so importing this module
+// doesn't try to bind a port. In the live edge function runtime that env
+// var is unset, so `Deno.serve` runs as normal.
+if (!Deno.env.get("PROXY_LINKEDIN_AVATAR_SKIP_SERVE")) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const admin = createClient(supabaseUrl, serviceKey);
