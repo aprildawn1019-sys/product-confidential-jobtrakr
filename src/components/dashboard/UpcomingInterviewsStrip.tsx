@@ -25,7 +25,7 @@ function fmtWhen(date: string, time?: string): string {
 }
 
 /**
- * Spec source: src/assets/dashboard-mockup.jpg.
+ * Spec source: src/assets/brand/spec/dashboard-mockup.jpg.
  * Vertical list of upcoming interviews — one row per item with avatar +
  * company/role + amber circle on the right (matches Next steps row visually).
  * Renders even when empty so the two-column dashboard layout stays balanced.
