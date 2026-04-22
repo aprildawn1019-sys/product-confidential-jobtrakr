@@ -301,7 +301,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                       <>
                         <div className="flex items-center">
                           <NavLink to={to} className={navLinkClass} end onClick={handleNavClick}>
-                            <Icon className="h-4 w-4" />
+                            <Icon className="h-4 w-4" strokeWidth={1.75} />
                             {label}
                           </NavLink>
                           {jobs.length > 0 && (
@@ -339,7 +339,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                       </>
                     ) : (
                       <NavLink to={to} end={end} className={navLinkClass} onClick={handleNavClick}>
-                        <Icon className="h-4 w-4" />
+                        <Icon className="h-4 w-4" strokeWidth={1.75} />
                         {label}
                       </NavLink>
                     )}
