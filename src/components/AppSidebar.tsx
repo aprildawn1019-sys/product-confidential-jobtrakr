@@ -277,7 +277,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               )
             }
           >
-            <Sparkles className="h-[18px] w-[18px]" strokeWidth={2} />
+            <Sparkles className="h-[18px] w-[18px] shrink-0" strokeWidth={2} color="hsl(var(--sidebar-primary))" />
             Getting Started
           </NavLink>
         )}
@@ -289,7 +289,10 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           return (
             <div key={group.label} className="pt-5 first:pt-1">
               <div className="px-3 pb-2">
-                <span className="font-sans text-xs font-semibold tracking-wide text-sidebar-foreground/55">
+                <span
+                  className="font-sans text-[11px] font-semibold uppercase tracking-[0.14em]"
+                  style={{ color: "hsl(var(--sidebar-group-foreground) / 0.85)" }}
+                >
                   {group.label}
                 </span>
               </div>
@@ -300,16 +303,12 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                       <>
                         <div className="flex items-center">
                           <NavLink to={to} className={navLinkClass} end onClick={handleNavClick}>
-                            {({ isActive }) => (
-                              <>
-                                <Icon
-                                  className="h-[18px] w-[18px] shrink-0"
-                                  strokeWidth={2}
-                                  color={isActive ? "hsl(var(--sidebar-primary))" : "currentColor"}
-                                />
-                                {label}
-                              </>
-                            )}
+                            <Icon
+                              className="h-[18px] w-[18px] shrink-0"
+                              strokeWidth={2}
+                              color="hsl(var(--sidebar-primary))"
+                            />
+                            {label}
                           </NavLink>
                           {jobs.length > 0 && (
                             <button
@@ -346,16 +345,12 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                       </>
                     ) : (
                       <NavLink to={to} end={end} className={navLinkClass} onClick={handleNavClick}>
-                        {({ isActive }) => (
-                          <>
-                            <Icon
-                              className="h-[18px] w-[18px] shrink-0"
-                              strokeWidth={2}
-                              color={isActive ? "hsl(var(--sidebar-primary))" : "currentColor"}
-                            />
-                            {label}
-                          </>
-                        )}
+                        <Icon
+                          className="h-[18px] w-[18px] shrink-0"
+                          strokeWidth={2}
+                          color="hsl(var(--sidebar-primary))"
+                        />
+                        {label}
                       </NavLink>
                     )}
                   </div>
@@ -370,13 +365,13 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           everything fits within the 256px sidebar without overflow. The
           dropdown still hangs off the avatar so Restart walkthrough +
           Sign out remain reachable. */}
-      <div className="border-t border-sidebar-border px-3 py-3">
-        <div className="flex items-center justify-between gap-1">
+      <div className="border-t border-sidebar-border px-2 py-2.5 overflow-hidden">
+        <div className="flex items-center gap-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[11px] font-semibold text-sidebar-primary-foreground hover:opacity-90 transition-opacity"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-[11px] font-semibold text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors"
                 aria-label={`Account menu for ${user.name}`}
               >
                 {user.initials}
@@ -401,7 +396,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <div className="flex items-center gap-0.5">
+          <div className="ml-auto flex items-center gap-0.5">
             <Tooltip delayDuration={150}>
               <TooltipTrigger asChild>
                 <NavLink
@@ -409,15 +404,15 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                   onClick={handleNavClick}
                   className={({ isActive }) =>
                     cn(
-                      "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
                       isActive
-                        ? "bg-sidebar-accent text-sidebar-foreground"
-                        : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                        ? "bg-sidebar-accent"
+                        : "hover:bg-sidebar-accent/50"
                     )
                   }
                   aria-label="Profile"
                 >
-                  <UserCircle2 className="h-[18px] w-[18px]" strokeWidth={2} />
+                  <UserCircle2 className="h-[18px] w-[18px]" strokeWidth={2} color="hsl(var(--sidebar-primary))" />
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="top">Profile</TooltipContent>
@@ -430,15 +425,15 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                   onClick={handleNavClick}
                   className={({ isActive }) =>
                     cn(
-                      "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors",
                       isActive || location.pathname === "/settings" || location.pathname === "/settings/data-export"
-                        ? "bg-sidebar-accent text-sidebar-foreground"
-                        : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                        ? "bg-sidebar-accent"
+                        : "hover:bg-sidebar-accent/50"
                     )
                   }
                   aria-label="Settings"
                 >
-                  <Settings className="h-[18px] w-[18px]" strokeWidth={2} />
+                  <Settings className="h-[18px] w-[18px]" strokeWidth={2} color="hsl(var(--sidebar-primary))" />
                 </NavLink>
               </TooltipTrigger>
               <TooltipContent side="top">Settings</TooltipContent>
@@ -448,10 +443,10 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 <button
                   type="button"
                   onClick={() => { handleNavClick(); openHelp(); }}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md hover:bg-sidebar-accent/50 transition-colors"
                   aria-label="Help"
                 >
-                  <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} />
+                  <CircleHelp className="h-[18px] w-[18px]" strokeWidth={2} color="hsl(var(--sidebar-primary))" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top">Help</TooltipContent>
