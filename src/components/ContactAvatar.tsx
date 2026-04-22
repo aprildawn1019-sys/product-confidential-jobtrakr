@@ -137,33 +137,51 @@ export default function ContactAvatar({
         className,
       )}
     >
-      {showImage ? (
-        <img
-          src={effectiveUrl ?? undefined}
-          alt=""
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          onLoad={() => setImgState("loaded")}
-          onError={() => setImgState("failed")}
-          className={cn(
-            "h-full w-full object-cover transition-opacity",
-            imgState === "loading" ? "opacity-0" : "opacity-100",
-          )}
-        />
-      ) : (
-        <span aria-hidden="true">{getInitials(name)}</span>
+      {/* Initials always render in the background. While the image is
+          loading they show through the transparent <img>; if the image
+          fails or is suppressed they become the only visible content.
+          Marked aria-hidden because the wrapper's role="img"+aria-label
+          already announces the contact name. */}
+      {!showImage && <span aria-hidden="true">{getInitials(name)}</span>}
+      {showImage && (
+        <>
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 flex items-center justify-center"
+          >
+            {getInitials(name)}
+          </span>
+          <img
+            src={effectiveUrl ?? undefined}
+            alt=""
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onLoad={() => setImgState("loaded")}
+            onError={() => setImgState("failed")}
+            className={cn(
+              "relative h-full w-full object-cover transition-opacity",
+              imgState === "loading" ? "opacity-0" : "opacity-100",
+            )}
+          />
+        </>
       )}
 
-      {/* Loading spinner overlays the initials placeholder so there's a
-          subtle hint that we're trying to fetch a photo. The initials
-          remain visible behind it as a graceful fallback. */}
+      {/* Loading overlay: dims the initials behind a spinner so users see
+          "we're working on it" rather than initials snapping to a photo
+          with no transition. The visible spinner is decorative; the
+          aria-live region below carries the announcement for AT users. */}
       {showLoadingOverlay && (
-        <span
-          className="absolute inset-0 flex items-center justify-center bg-primary/60"
-          aria-hidden="true"
-        >
-          <Loader2 className={cn("animate-spin text-primary-foreground", indicatorSize)} />
-        </span>
+        <>
+          <span
+            className="absolute inset-0 flex items-center justify-center bg-primary/60"
+            aria-hidden="true"
+          >
+            <Loader2 className={cn("animate-spin text-primary-foreground", indicatorSize)} />
+          </span>
+          <span role="status" aria-live="polite" className="sr-only">
+            Loading profile photo for {name}
+          </span>
+        </>
       )}
 
       {/* Tiny corner badge that appears only when an image URL was present
