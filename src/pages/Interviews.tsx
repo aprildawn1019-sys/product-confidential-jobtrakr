@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { format, parseISO, isToday, isTomorrow, isPast, formatDistanceToNow } from "date-fns";
+import { parseLocalDate } from "@/lib/localDate";
 import { Calendar as CalendarIcon, Clock, Plus, Trash2, CheckCircle2, XCircle, Briefcase, Users, Pencil, X, Download } from "lucide-react";
 import { downloadInterviewsCsv } from "@/lib/interviewsCsvExport";
 import { useToast } from "@/hooks/use-toast";
@@ -352,9 +353,9 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
                   );
                 }
 
-                // Follow-up item
+                // Follow-up item — local-day comparisons so today reads correctly in any tz.
                 const contact = item.contact;
-                const d = new Date(contact.followUpDate!);
+                const d = parseLocalDate(contact.followUpDate!) ?? new Date(contact.followUpDate!);
                 const overdue = isPast(d) && !isToday(d);
                 const today = isToday(d);
 

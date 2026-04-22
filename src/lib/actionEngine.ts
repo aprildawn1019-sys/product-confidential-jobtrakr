@@ -1,4 +1,5 @@
-import { differenceInDays, isPast, isToday, parseISO } from "date-fns";
+import { differenceInCalendarDays, isPast, isToday } from "date-fns";
+import { parseLocalDate } from "./localDate";
 import type {
   Job,
   Contact,
@@ -60,17 +61,13 @@ const LANE_WEIGHT: Record<ActionLane, number> = {
 };
 
 function urgencyFromDate(iso: string | undefined): ActionUrgency {
-  if (!iso) return "later";
-  let d: Date;
-  try {
-    d = iso.length <= 10 ? parseISO(iso) : new Date(iso);
-  } catch {
-    return "later";
-  }
-  if (isNaN(d.getTime())) return "later";
+  // Parse calendar dates as the user's *local* day so a YYYY-MM-DD value
+  // doesn't get pushed to the prior day in negative-UTC timezones.
+  const d = parseLocalDate(iso);
+  if (!d) return "later";
   if (isPast(d) && !isToday(d)) return "overdue";
   if (isToday(d)) return "today";
-  const diff = differenceInDays(d, new Date());
+  const diff = differenceInCalendarDays(d, new Date());
   if (diff <= 3) return "soon";
   return "later";
 }
@@ -123,7 +120,7 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     const urgency = urgencyFromDate(c.followUpDate);
     if (urgency === "later") continue;
     const daysOverdue = urgency === "overdue"
-      ? Math.max(0, differenceInDays(now, parseISO(c.followUpDate)))
+      ? Math.max(0, differenceInCalendarDays(now, parseLocalDate(c.followUpDate) ?? now))
       : 0;
     const activeLinkedJob = linkedJobs.find((j) => !INACTIVE_JOB_STATUSES.has(j.status));
     const networkRole = c.networkRole as NetworkRole | undefined;
@@ -156,14 +153,14 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     const job = input.jobs.find((j) => j.id === i.jobId);
     if (!job) continue;
     const daysOverdue = urgency === "overdue"
-      ? Math.max(0, differenceInDays(now, parseISO(i.date)))
+      ? Math.max(0, differenceInCalendarDays(now, parseLocalDate(i.date) ?? now))
       : 0;
     // Subtitle includes the date so users always see WHEN the interview is,
     // not just the time. The urgency chip on the row covers "overdue/today/soon",
     // but a literal date avoids ambiguity (e.g. "Fri Apr 25 · 2:00 PM").
     const ivDate = (() => {
-      const d = i.date.length <= 10 ? parseISO(i.date) : new Date(i.date);
-      if (isNaN(d.getTime())) return i.date;
+      const d = parseLocalDate(i.date);
+      if (!d) return i.date;
       return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
     })();
     actions.push({
@@ -186,7 +183,7 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     if (r.status !== "pending") continue;
     const requested = r.requestedAt ? new Date(r.requestedAt) : null;
     if (!requested || isNaN(requested.getTime())) continue;
-    const daysSinceAsked = differenceInDays(now, requested);
+    const daysSinceAsked = differenceInCalendarDays(now, requested);
     if (daysSinceAsked < 7) continue;
     const contact = input.contacts.find((c) => c.id === r.contactId);
     if (!contact) continue;
@@ -214,7 +211,7 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
     if (j.status !== "saved") continue;
     const created = new Date(j.createdAt);
     if (isNaN(created.getTime())) continue;
-    const days = differenceInDays(now, created);
+    const days = differenceInCalendarDays(now, created);
     if (days < 14) continue;
     const urgency: ActionUrgency = days > 30 ? "overdue" : "soon";
     actions.push({
@@ -263,7 +260,7 @@ export function deriveActions(input: ActionEngineInput): DerivedAction[] {
       .sort((a, b) => b - a)[0];
     const lastTouch = lastActivity ?? (c.lastContactedAt ? new Date(c.lastContactedAt).getTime() : null);
     if (!lastTouch) continue;
-    const days = differenceInDays(now, new Date(lastTouch));
+    const days = differenceInCalendarDays(now, new Date(lastTouch));
     if (days < 30) continue;
     const networkRole = c.networkRole as NetworkRole | undefined;
     actions.push({

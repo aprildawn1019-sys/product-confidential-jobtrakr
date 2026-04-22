@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Job, Contact, JobStatus, Interview, TargetCompany, JobActivity } from "@/types/jobTracker";
 import { isActiveJob, countActiveJobs } from "@/lib/pipelineCounts";
+import { parseLocalDate } from "@/lib/localDate";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import TargetCompanyBadge from "@/components/TargetCompanyBadge";
 import PipelineFunnel from "@/components/PipelineFunnel";
@@ -136,7 +137,12 @@ export default function Jobs({
 
   const formatDate = (d?: string) => {
     if (!d) return null;
-    return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    // Local-day parsing — applied/created date strings stored as YYYY-MM-DD
+    // should always render as the calendar day the user picked.
+    const parsed = parseLocalDate(d);
+    return parsed
+      ? parsed.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      : d;
   };
 
   const filteredJobs = useMemo(() => {

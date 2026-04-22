@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { parseLocalDate, isLocalPast, isLocalToday } from "@/lib/localDate";
 import AddContactDialog from "@/components/AddContactDialog";
 import LinkedInImportDialog from "@/components/LinkedInImportDialog";
 import BulkContactUploadDialog from "@/components/BulkContactUploadDialog";
@@ -67,7 +68,9 @@ interface ContactsProps {
 
 function FollowUpIndicator({ date }: { date?: string }) {
   if (!date) return null;
-  const d = new Date(date);
+  // Parse YYYY-MM-DD as local-day so "today" reads correctly worldwide.
+  const d = parseLocalDate(date);
+  if (!d) return null;
   const overdue = isPast(d) && !isToday(d);
   const today = isToday(d);
   const text = overdue
@@ -219,9 +222,11 @@ export default function Contacts({
       const q = searchQuery.toLowerCase();
       if (q && !c.name.toLowerCase().includes(q) && !c.company.toLowerCase().includes(q) && !(c.role || "").toLowerCase().includes(q)) return false;
       if (warmthFilter !== "all" && (c.relationshipWarmth || "none") !== warmthFilter) return false;
-      if (followUpFilter === "overdue" && (!c.followUpDate || !isPast(new Date(c.followUpDate)) || isToday(new Date(c.followUpDate)))) return false;
-      if (followUpFilter === "today" && (!c.followUpDate || !isToday(new Date(c.followUpDate)))) return false;
-      if (followUpFilter === "upcoming" && (!c.followUpDate || isPast(new Date(c.followUpDate)))) return false;
+      // Follow-up filters use local-day comparisons so YYYY-MM-DD values
+      // bucket the way the user expects in their own timezone.
+      if (followUpFilter === "overdue" && (!c.followUpDate || !isLocalPast(c.followUpDate))) return false;
+      if (followUpFilter === "today" && !isLocalToday(c.followUpDate)) return false;
+      if (followUpFilter === "upcoming" && (!c.followUpDate || isLocalPast(c.followUpDate) || isLocalToday(c.followUpDate))) return false;
       if (followUpFilter === "none" && c.followUpDate) return false;
       if (campaignFilter !== "all") {
         const contactCampaignIds = contactCampaigns.filter(cc => cc.contactId === c.id).map(cc => cc.campaignId);
@@ -384,11 +389,11 @@ export default function Contacts({
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className="h-7 text-xs">
               <CalendarDays className="h-3 w-3 mr-1" />
-              {contact.followUpDate ? format(new Date(contact.followUpDate), "MMM d, yyyy") : "Set date"}
+              {contact.followUpDate ? format(parseLocalDate(contact.followUpDate)!, "MMM d, yyyy") : "Set date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <Calendar mode="single" selected={contact.followUpDate ? new Date(contact.followUpDate) : undefined} onSelect={d => onUpdate(contact.id, { followUpDate: d ? format(d, "yyyy-MM-dd") : undefined })} initialFocus className="p-3 pointer-events-auto" />
+            <Calendar mode="single" selected={contact.followUpDate ? parseLocalDate(contact.followUpDate) ?? undefined : undefined} onSelect={d => onUpdate(contact.id, { followUpDate: d ? format(d, "yyyy-MM-dd") : undefined })} initialFocus className="p-3 pointer-events-auto" />
           </PopoverContent>
         </Popover>
         {contact.followUpDate && <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => onUpdate(contact.id, { followUpDate: undefined })}><X className="h-3 w-3" /></Button>}
