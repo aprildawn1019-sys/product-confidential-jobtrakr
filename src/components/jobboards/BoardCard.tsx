@@ -133,6 +133,8 @@ export function BoardCard({
                       ? `Unlink ${board.name} from target company ${linkedCompanyName}`
                       : `Unlink ${board.name} from target company`
                   }
+                  aria-pressed={true}
+                  className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:bg-accent/40"
                 >
                   <BookmarkMinus className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 </Button>
@@ -154,6 +156,8 @@ export function BoardCard({
                   size="icon"
                   onClick={() => onLinkTargetCompany(board)}
                   aria-label={`Flag ${board.name} as a target company's careers page`}
+                  aria-pressed={false}
+                  className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:bg-accent/40"
                 >
                   <BookmarkPlus className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 </Button>
