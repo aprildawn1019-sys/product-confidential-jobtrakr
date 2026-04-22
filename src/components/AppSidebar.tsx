@@ -320,7 +320,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 </span>
               </div>
               <div className="space-y-0.5">
-                {group.items.map(({ to, icon: Icon, label, tourId, end }) => (
+                {group.items.map(({ to, icon: Icon, label, tourId, end, iconColor }) => (
                   <div key={to} data-tour={tourId}>
                     {to === "/jobs" ? (
                       <>
