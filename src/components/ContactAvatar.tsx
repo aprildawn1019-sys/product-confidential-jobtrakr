@@ -113,7 +113,7 @@ export default function ContactAvatar({
     >
       {showImage ? (
         <img
-          src={avatarUrl ?? undefined}
+          src={effectiveUrl ?? undefined}
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"
