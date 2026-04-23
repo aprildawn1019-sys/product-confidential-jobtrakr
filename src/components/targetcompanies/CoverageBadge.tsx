@@ -1,6 +1,6 @@
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { pillClass, type PillTone } from "@/lib/pillStyles";
 import type { CoverageInfo } from "./coverageUtils";
 import { COVERAGE_LABELS } from "./coverageUtils";
 
@@ -10,32 +10,28 @@ interface CoverageBadgeProps {
   className?: string;
 }
 
-// Coverage joins the unified pill family. The earlier ad-hoc 4-tone mapping
-// (accent/20, accent/5, background, muted) is replaced with the canonical
-// tones from `src/lib/pillStyles.ts` so coverage chips read as peers of
-// status / priority / warmth chips, not a separate visual language.
-//   booster   → amber-strong  (warm relationship — brand emphasis)
-//   connector → amber-soft    (warm intent — bridge to a booster)
-//   recruiter → navy-muted    (in-pipeline, passive signal)
-//   cold      → slate         (no coverage)
-const STATE_TONE: Record<CoverageInfo["state"], PillTone> = {
-  booster:   "amber-strong",
-  connector: "amber-soft",
-  recruiter: "navy-muted",
-  cold:      "slate",
+// Single-tone navy/amber/slate family — no greens/blues/reds. Coverage
+// is a 4-state taxonomy mapped onto a 3-tone palette via two amber tiers:
+//   booster   → amber filled (warm relationship, brand emphasis)
+//   connector → amber outline (warm intent — bridge to a booster)
+//   recruiter → slate outline (cool, passive signal)
+//   cold      → slate muted   (no coverage at all)
+// Differentiating boosters/connectors with the same hue (amber) at two
+// densities preserves the "warm vs warmer" relationship without leaking
+// blue/green into a navy/amber/slate chrome.
+const STATE_STYLES: Record<CoverageInfo["state"], string> = {
+  booster:   "bg-accent/20 text-accent-foreground border-accent/40 hover:bg-accent/30",
+  connector: "bg-accent/5 text-accent-foreground border-accent/30 hover:bg-accent/15",
+  recruiter: "bg-background text-muted-foreground border-border hover:bg-muted/50",
+  cold:      "bg-muted text-muted-foreground border-border hover:bg-muted/70",
 };
 
 export default function CoverageBadge({ coverage, onClick, className }: CoverageBadgeProps) {
   const conf = COVERAGE_LABELS[coverage.state];
-  const tone = STATE_TONE[coverage.state];
   let detail = conf.label;
   if (coverage.state === "booster" && coverage.boosters[0]) detail = `Booster: ${coverage.boosters[0].name}`;
   else if (coverage.state === "connector" && coverage.connectors[0]) detail = `Ask ${coverage.connectors[0].name} for intro`;
   else if (coverage.state === "recruiter" && coverage.recruiters[0]) detail = `Recruiter: ${coverage.recruiters[0].name}`;
-
-  const extraCount = coverage.state === "booster" && coverage.boosters.length > 1
-    ? coverage.boosters.length - 1
-    : 0;
 
   return (
     <Tooltip>
@@ -44,17 +40,15 @@ export default function CoverageBadge({ coverage, onClick, className }: Coverage
           type="button"
           onClick={onClick}
           className={cn(
-            pillClass(tone, "sm", "gap-1 cursor-pointer hover:brightness-95"),
+            "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer",
+            STATE_STYLES[coverage.state],
             className,
           )}
         >
           <span aria-hidden>{conf.emoji}</span>
           <span className="truncate max-w-[160px]">{conf.short}</span>
-          {extraCount > 0 && (
-            // Inline "+N" runs as a sibling text node, not a nested pill,
-            // so we don't violate the "no pills inside pills" rule from
-            // visual-theme-v2.
-            <span className="ml-0.5 text-[10px] font-semibold opacity-80">+{extraCount}</span>
+          {coverage.state === "booster" && coverage.boosters.length > 1 && (
+            <Badge variant="secondary" className="h-4 px-1 text-[10px] ml-0.5">+{coverage.boosters.length - 1}</Badge>
           )}
         </button>
       </TooltipTrigger>

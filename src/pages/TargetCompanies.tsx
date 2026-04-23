@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe, AlertTriangle, GitMerge, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -20,8 +19,9 @@ import CoverageBadge from "@/components/targetcompanies/CoverageBadge";
 import SourcingPanel from "@/components/targetcompanies/SourcingPanel";
 import { getCoverageInfo, coverageGapComparator, COVERAGE_LABELS, type CoverageState } from "@/components/targetcompanies/coverageUtils";
 import { companiesMatch } from "@/stores/jobTrackerStore";
+import { pillClass, TARGET_PRIORITY_PILLS, TARGET_STATUS_PILLS } from "@/lib/pillStyles";
+import PillLegend, { COVERAGE_LEGEND, TARGET_PRIORITY_LEGEND, TARGET_STATUS_LEGEND } from "@/components/PillLegend";
 import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact, NetworkRole } from "@/types/jobTracker";
-import { pillClass, type PillTone } from "@/lib/pillStyles";
 
 interface TargetCompaniesProps {
   targetCompanies: TargetCompany[];
@@ -38,31 +38,9 @@ interface TargetCompaniesProps {
   ) => Promise<void>;
 }
 
-// Single-tone navy/amber/slate family — defers to `src/lib/pillStyles.ts`
-// so target-company priority/status pills read as peers of every other
-// status/type chip in the app. Priority signals INTENT (how badly you
-// want it), status signals MOTION (where you are with them).
-//
-// Priority: dream = amber-strong (brand-emphasis warm), strong = navy-muted
-//           (committed-but-cool), interested = slate (quiet on the list).
-// Status:   researching = slate, applied = navy-muted, connected =
-//           amber-strong (warm relationship), archived = slate.
-//
-// "Strong priority" and "Applied status" intentionally share the navy
-// tone — both are the "active/committed" signal in their respective axes,
-// and they appear on different pills so collision isn't a scannability risk.
-const priorityToneMap: Record<TargetCompanyPriority, { label: string; tone: PillTone }> = {
-  dream:      { label: "Dream",      tone: "amber-strong" },
-  strong:     { label: "Strong",     tone: "navy-muted" },
-  interested: { label: "Interested", tone: "slate" },
-};
-
-const statusToneMap: Record<TargetCompanyStatus, { label: string; tone: PillTone }> = {
-  researching: { label: "Researching", tone: "slate" },
-  applied:     { label: "Applied",     tone: "navy-muted" },
-  connected:   { label: "Connected",   tone: "amber-strong" },
-  archived:    { label: "Archived",    tone: "slate" },
-};
+// Priority + status pill tones live in `src/lib/pillStyles.ts` so this page,
+// the dashboard's TargetsNeedingSourcing widget, and PillLegend stay in sync
+// by construction. See `TARGET_PRIORITY_PILLS` / `TARGET_STATUS_PILLS`.
 
 const emptyForm = {
   name: "", website: "", careersUrl: "", industry: "", size: "",
@@ -240,11 +218,14 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
               </button>
             );
           })}
-          {filterCoverage !== "all" && (
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs ml-auto" onClick={() => setFilterCoverage("all")}>
-              Clear
-            </Button>
-          )}
+          <div className="ml-auto flex items-center gap-1">
+            {filterCoverage !== "all" && (
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setFilterCoverage("all")}>
+                Clear
+              </Button>
+            )}
+            <PillLegend groups={[COVERAGE_LEGEND, TARGET_PRIORITY_LEGEND, TARGET_STATUS_LEGEND]} />
+          </div>
         </div>
       )}
 
@@ -308,8 +289,8 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map(({ company: tc, coverage }) => {
             const stats = getStats(tc.name);
-            const pConf = priorityToneMap[tc.priority];
-            const sConf = statusToneMap[tc.status];
+            const pConf = TARGET_PRIORITY_PILLS[tc.priority];
+            const sConf = TARGET_STATUS_PILLS[tc.status];
             return (
               <Card key={tc.id} className="group hover:shadow-md transition-shadow">
                 <CardContent className="p-5 space-y-3">
@@ -321,12 +302,12 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
                         {tc.industry && <p className="text-xs text-muted-foreground truncate">{tc.industry}{tc.size ? ` · ${tc.size}` : ""}</p>}
                       </div>
                     </div>
-                    <span className={pillClass(pConf.tone, "sm", "shrink-0")}>{pConf.label}</span>
+                    {pConf && <span className={pillClass(pConf.tone, "sm", "shrink-0")}>{pConf.label}</span>}
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
                     <CoverageBadge coverage={coverage} onClick={() => setSourcingCompanyId(tc.id)} />
-                    <span className={pillClass(sConf.tone, "sm")}>{sConf.label}</span>
+                    {sConf && <span className={pillClass(sConf.tone, "sm")}>{sConf.label}</span>}
                   </div>
 
                   <div className="flex gap-4 text-xs text-muted-foreground">

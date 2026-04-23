@@ -8,8 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Megaphone, Trash2, Edit2, X } from "lucide-react";
 import type { Campaign } from "@/types/jobTracker";
-import { cn } from "@/lib/utils";
-import { pillClass } from "@/lib/pillStyles";
 
 interface CampaignManagerProps {
   campaigns: Campaign[];
@@ -29,15 +27,12 @@ const campaignTypes = [
   { value: "other", label: "Other" },
 ];
 
-// Campaign workflow status on the unified pill family.
-// active = navy-muted (in motion), paused = amber-soft (warm/holding),
-// completed = amber-strong (warm/closed-positive), draft/archived = slate.
-const statusTones: Record<string, import("@/lib/pillStyles").PillTone> = {
-  draft:     "slate",
-  active:    "navy-muted",
-  paused:    "amber-soft",
-  completed: "amber-strong",
-  archived:  "slate",
+const statusColors: Record<string, string> = {
+  draft: "bg-muted text-muted-foreground",
+  active: "bg-primary/10 text-primary",
+  paused: "bg-warning/10 text-warning",
+  completed: "bg-success/10 text-success",
+  archived: "bg-muted text-muted-foreground",
 };
 
 export default function CampaignManager({ campaigns, contactCounts, onAdd, onUpdate, onDelete }: CampaignManagerProps) {
@@ -144,7 +139,7 @@ export default function CampaignManager({ campaigns, contactCounts, onAdd, onUpd
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm">{c.name}</span>
-                      <span className={cn(pillClass(statusTones[c.status] ?? "slate", "xs"), "capitalize")}>{c.status}</span>
+                      <Badge className={`text-[10px] capitalize ${statusColors[c.status] || ""}`}>{c.status}</Badge>
                       <Badge variant="outline" className="text-[10px] capitalize">{c.type}</Badge>
                       <Badge variant="outline" className="text-[10px] gap-1">👤 {contactCounts[c.id] || 0}</Badge>
                     </div>
