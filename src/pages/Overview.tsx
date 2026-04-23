@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { cn } from "@/lib/utils";
+
 import type {
   Job, Contact, Interview, ContactActivity, JobContact, RecommendationRequest,
 } from "@/types/jobTracker";
 import { parseLocalDate } from "@/lib/localDate";
 import { WeeklyPlanCard } from "@/components/insights/WeeklyPlanCard";
+import { PipelineLaneFunnel } from "@/components/insights/PipelineLaneFunnel";
 
 interface OverviewProps {
   jobs: Job[];
@@ -29,18 +30,6 @@ interface OverviewProps {
  */
 type Lane = "cold" | "warm" | "referral";
 
-const LANE_LABEL: Record<Lane, string> = {
-  cold: "Cold",
-  warm: "Warm",
-  referral: "Referral",
-};
-
-const LANE_DOT: Record<Lane, string> = {
-  cold: "bg-[hsl(var(--text-tertiary))]",
-  warm: "bg-[hsl(var(--info))]",
-  referral: "bg-[hsl(var(--success))]",
-};
-
 const MIN_LANE_N = 5;
 type WindowKey = "30d" | "90d" | "all";
 const WINDOW_DAYS: Record<WindowKey, number | null> = { "30d": 30, "90d": 90, "all": null };
@@ -51,59 +40,6 @@ function PlaceholderHint({ note }: { note: string }) {
     <div className="mt-2 flex items-start gap-2 rounded-md border border-dashed border-border bg-muted/30 p-2.5">
       <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
       <p className="text-[11px] text-muted-foreground">{note}</p>
-    </div>
-  );
-}
-
-interface LaneBarProps {
-  label: string;
-  total: number;
-  counts: { cold: number; warm: number; referral: number; total: number };
-}
-
-function LaneBar({ label, total, counts }: LaneBarProps) {
-  const lanes: Lane[] = ["referral", "warm", "cold"];
-  return (
-    <div>
-      <div className="flex items-baseline justify-between gap-3 mb-1.5">
-        <div className="text-xs font-medium text-foreground">
-          {label}{" "}
-          <span className="text-muted-foreground tabular-nums">
-            (n={total})
-          </span>
-        </div>
-        <div className="text-[11px] text-muted-foreground tabular-nums">
-          {lanes
-            .filter(l => counts[l] > 0)
-            .map(l => `${LANE_LABEL[l]} ${total > 0 ? Math.round((counts[l] / total) * 100) : 0}%`)
-            .join(" · ")}
-        </div>
-      </div>
-      <div className="flex h-6 w-full overflow-hidden rounded-md bg-muted/50">
-        {total === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-[10px] text-muted-foreground">
-            No data
-          </div>
-        ) : (
-          lanes.map((lane) => {
-            const pct = (counts[lane] / total) * 100;
-            if (pct === 0) return null;
-            return (
-              <div
-                key={lane}
-                className={cn(
-                  "flex items-center justify-center text-[10px] font-medium text-white tabular-nums",
-                  LANE_DOT[lane],
-                )}
-                style={{ width: `${pct}%` }}
-                title={`${LANE_LABEL[lane]}: ${counts[lane]} (${Math.round(pct)}%)`}
-              >
-                {pct >= 8 ? `${Math.round(pct)}%` : ""}
-              </div>
-            );
-          })
-        )}
-      </div>
     </div>
   );
 }
@@ -280,53 +216,24 @@ export default function Overview({
             </div>
           ) : (
             <>
-              {/* Stacked bars: applications + interviews */}
-              <div className="space-y-3">
-                <LaneBar
-                  label="Applications"
-                  total={pipelineByLane.applications.total}
-                  counts={pipelineByLane.applications}
-                />
-                <LaneBar
-                  label="Interviews"
-                  total={pipelineByLane.interviews.total}
-                  counts={pipelineByLane.interviews}
-                />
-              </div>
-
-              {/* Legend */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
-                {(["referral", "warm", "cold"] as Lane[]).map((lane) => (
-                  <div key={lane} className="flex items-center gap-1.5">
-                    <span className={cn("h-2 w-2 rounded-sm", LANE_DOT[lane])} />
-                    <span>{LANE_LABEL[lane]}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Conversion strip */}
-              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-border/60">
-                {(["cold", "warm", "referral"] as Lane[]).map((lane) => {
-                  const apps = pipelineByLane.applications[lane];
-                  const ivs = pipelineByLane.interviews[lane];
-                  const rate = pipelineByLane.conversion[lane];
-                  const sparse = apps < MIN_LANE_N;
-                  return (
-                    <div key={lane} className="space-y-1 text-center">
-                      <div className="flex items-center justify-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                        <span className={cn("h-2 w-2 rounded-sm", LANE_DOT[lane])} />
-                        {LANE_LABEL[lane]}
-                      </div>
-                      <div className="font-display text-2xl font-semibold tabular-nums leading-none">
-                        {sparse ? "—" : `${Math.round(rate * 100)}%`}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground tabular-nums">
-                        {ivs} / {apps} {apps === 1 ? "app" : "apps"}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              {/* Pendo-style left-to-right funnel */}
+              <PipelineLaneFunnel
+                data={{
+                  referral: {
+                    applications: pipelineByLane.applications.referral,
+                    interviews: pipelineByLane.interviews.referral,
+                  },
+                  warm: {
+                    applications: pipelineByLane.applications.warm,
+                    interviews: pipelineByLane.interviews.warm,
+                  },
+                  cold: {
+                    applications: pipelineByLane.applications.cold,
+                    interviews: pipelineByLane.interviews.cold,
+                  },
+                }}
+                minLaneN={MIN_LANE_N}
+              />
 
               {(["cold", "warm", "referral"] as Lane[]).every(
                 l => pipelineByLane.applications[l] < MIN_LANE_N,
@@ -341,7 +248,7 @@ export default function Overview({
                 <div className="flex items-center justify-center gap-2 text-xs">
                   <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="uppercase tracking-wider font-medium text-muted-foreground">
-                    Avg time to interview
+                    Median time to interview
                   </span>
                   {pipelineByLane.medianDaysToInterview === null ? (
                     <span className="text-muted-foreground">— No interviews yet</span>
