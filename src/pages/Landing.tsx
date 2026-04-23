@@ -164,7 +164,7 @@ export default function Landing() {
             <span>Koudou</span>
           </div>
           <div className="flex items-center gap-4">
-            <a href="https://github.com/aprildawn1019-sys/product-confidential-jobtrakr" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</a>
+            <a href="https://github.com/koudou-app/koudou" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GitHub</a>
             <span>Built with <a href="https://lovable.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Lovable</a></span>
           </div>
         </div>

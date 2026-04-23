@@ -1,6 +1,6 @@
 ---
 name: Visual Theme v2 — Calm Operations
-description: Binding visual spec for Jobtrakr/Koudou. Source of truth lives in src/assets/brand/spec/. Re-read those images before redesigning any surface. Brand lockdown doc at src/assets/brand/BRAND.md.
+description: Binding visual spec for Koudou. Source of truth lives in src/assets/brand/spec/. Re-read those images before redesigning any surface. Brand lockdown doc at src/assets/brand/BRAND.md.
 type: design
 ---
 
