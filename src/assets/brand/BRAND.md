@@ -73,6 +73,13 @@ src/assets/brand/
 - The amber lower arm is invariant — it's the "forward motion" cue. Do not recolor.
 - **Asset provenance (binding):** `koudou-mark-light.png` is the hand-authored canonical asset. `koudou-mark-dark.png` is generated from it by per-pixel color-swap (navy↔white, amber preserved) — see `/tmp/invert_mark.py` and `.lovable/memory/style/brand-mark.md`. Never re-paint the dark variant with an image model: the legs of the K must stay crisp, and the only way to guarantee that is to derive the dark variant from the clean light variant. If the light variant changes, regenerate the dark variant the same way; do not hand-edit `koudou-mark-dark.png`.
 
+### Mark geometry (locked)
+
+- **K footprint inside the tile:** the K fills **~72% of the tile height** ("Confident" padding, ~14% margin on each side). This is the locked density — it matches modern app-icon conventions (Apple/Google home-screen marks) and prevents the **"lost K" failure mode** where the earlier airy ~45% coverage made the mark read as a colored square at favicon sizes.
+- **Padding is baked into the PNG, not applied in CSS.** The tile-radius is the only geometric thing CSS owns (see `BrandMark`). Do not try to "fix" perceived padding with extra `p-*` utilities at the call site — that double-pads the mark and shrinks the K back into a square.
+- **Re-export procedure:** if the K is ever redrawn or re-exported, re-run the rescale to **target a 72% bbox-height K** on a full-bleed flat-color tile *before* regenerating the dark variant. Order matters — the color-swap inherits whatever padding the light master has.
+- **Edge classifier rule (navy↔white swap):** snap antialiased edge pixels to **navy or white, never amber**. Amber is preserved only when a pixel is unambiguously amber — i.e. *closer to amber than to navy* AND *closer to amber than to white*. This eliminates the **amber-halo artifact** that scaling antialiased edges introduces (the "amber rim around the K" bug from the first dark-variant regeneration).
+
 ## Sidebar surface (the navy rail)
 
 The navy sidebar is the most-seen brand surface, so its treatment is locked here:
