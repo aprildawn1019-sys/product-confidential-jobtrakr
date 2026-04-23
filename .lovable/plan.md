@@ -1,51 +1,73 @@
 
 
-## Update BRAND.md with recent favicon + mark-padding changes
+## Build "Pipeline by lane" — replace Response Rate by Lane on Insights
 
-Bring `src/assets/brand/BRAND.md` in sync with the last two rounds of work: the K's "Confident" 14% padding inside the tile, and the full favicon suite with adaptive light/dark theming.
+Replace the current placeholder panel with a single dense panel that shows **application mix vs. interview mix** side-by-side, with per-lane conversion rates as supporting detail. The insight lives in the **gap** between where effort goes and where interviews actually come from.
 
-### Changes to BRAND.md
+### Lane definitions (locked)
 
-**1. Mark geometry section (new subsection under "Mark usage")**
+For each job in the selected window:
 
-Add a binding rule for the K's footprint inside the tile:
+- **Referral** — the job has ≥1 linked contact (`job_contacts`) **AND** at least one of those contacts has a logged `contact_activity` dated **on or before** `applied_date`. Interpretation: someone at the company knew you were applying *before* you applied.
+- **Warm** — the job has ≥1 linked contact, but no qualifying activity before `applied_date`. Interpretation: you have a connection there, but the apply was not actively championed (or outreach happened after).
+- **Cold** — the job has zero linked contacts. Pure cold apply.
 
-- The K fills **~72% of the tile height** ("Confident" padding, ~14% margin on each side). This is the locked density — matches modern app-icon conventions (Apple/Google) and prevents the "lost K" failure mode where the airy ~45% coverage made the mark read as a colored square at small sizes.
-- Padding is baked into the PNG, not applied in CSS. If the K is ever re-exported, re-run the rescale (target 72% bbox height) before regenerating the dark variant.
-- Edge classifier rule for the navy↔white swap: snap antialiased edge pixels to navy or white, never amber. Amber pixels are preserved only when they are unambiguously amber (closer to amber than to navy AND closer to amber than to white). This eliminates the amber-halo artifact that scaling antialiased edges can introduce.
+Numerator for "interview" = the job has ≥1 row in `interviews` (any status). We don't filter on interview outcome — the question is "did the apply convert to a real conversation."
 
-**2. Favicon suite (new subsection at the end, "Favicons & app icons")**
+A job must have a non-null `applied_date` to be counted at all. Jobs in `saved`/`tracking` status without an apply date are excluded — they're not yet "effort spent."
 
-Document the locked icon set in `public/` and the adaptive theming wiring in `index.html`:
+### What the panel shows
 
-| File | Size | Variant | Purpose |
-|------|------|---------|---------|
-| `public/favicon.ico` | multi (16/32/48) | dark-tile | Legacy fallback for older browsers |
-| `public/favicon-16.png` | 16×16 | dark-tile | Browser tab (small) |
-| `public/favicon-32.png` | 32×32 | dark-tile | Browser tab (retina) |
-| `public/favicon-light.png` | 32×32 | dark-tile (navy on white) | Used when browser chrome is **light** |
-| `public/favicon-dark.png` | 32×32 | light-tile (white on navy) | Used when browser chrome is **dark** |
-| `public/apple-touch-icon.png` | 180×180 | dark-tile | iOS home screen |
-| `public/icon-192.png` | 192×192 | dark-tile | PWA / Android home screen |
-| `public/icon-512.png` | 512×512 | dark-tile | PWA splash |
-| `public/favicon.png` | 512×512 | dark-tile | Generic fallback (kept in sync with `icon-512.png`) |
+One card titled **"Pipeline by lane"** with subtitle *"Where your effort goes vs. where interviews come from."*
 
-Adaptive-theming rule (binding):
-- `index.html` uses `media="(prefers-color-scheme: dark)"` / `light` on the 32px favicon links so Safari/Firefox swap variants automatically. The contrast rule is the same as the in-app rule: **dark browser chrome → light-tile mark; light browser chrome → dark-tile mark**.
-- Never collapse to a single favicon variant — that re-introduces the "mark disappears against matching surface" bug.
+Three stacked elements inside:
 
-Regeneration recipe (so a future agent can rebuild the suite without guessing):
-1. Hand-author / update `marks/koudou-mark-light.png` (light-tile master).
-2. Run the per-pixel color-swap to produce `marks/koudou-mark-dark.png` (dark-tile sibling).
-3. Downscale **both** masters with LANCZOS to produce the 16/32/180/192/512 PNGs above. Use the dark-tile master for everything except `favicon-dark.png`.
-4. Build `favicon.ico` as a multi-resolution bundle (16/32/48) from the dark-tile master.
-5. Copy the 512px dark-tile output to `public/favicon.png` to keep the generic fallback in sync.
+**1. Two stacked horizontal bars (the headline visual)**
+```
+Applications (n=47)   [██ cold ████████ | ▓ warm ▓▓ | █ ref █]   72% · 19% · 9%
+Interviews   (n=6)    [██ cold ██ | ▓ warm ▓▓ | █ ref ████████]   33% · 33% · 33%
+```
+- Same horizontal scale (0–100%), same color mapping, segments labeled with % when ≥8% wide.
+- Lane colors: **Referral** = `--success` (green, "highest leverage"), **Warm** = `--info` (blue, "in motion"), **Cold** = `--text-tertiary` (neutral gray, "default channel"). This avoids reusing brand amber and keeps the chart calm.
+- The bar with the bigger `n` shows total counts; both bars normalize to 100% width so mix is visually comparable.
 
-**3. Wordmark color (small edit to existing "Sidebar surface" section)**
+**2. Conversion strip (supporting detail, below the bars)**
+A row of three compact stat tiles:
+```
+Cold       Warm       Referral
+3%         22%        50%
+2 / 47     1 / 5      3 / 6
+```
+- Conversion rate = interviews-from-lane / applications-in-lane.
+- Subline shows raw numerator/denominator so users can see when sample size is too thin to trust.
+- If a lane has fewer than **5 applications** in the window, the rate renders as `—` with a "not enough data" caption — honest empty state instead of a misleading 0% or 100%.
 
-Confirm the locked wordmark color: "Koudou" wordmark on the navy rail is painted in **brand amber** (`text-sidebar-primary`, HSL `36 90% 55%`) — same token as the active-row bar and the mark's lower arm. This is already documented from the previous turn; verify the wording still reads as binding ("never white, never muted amber on the rail") and tighten if needed.
+**3. Window selector (top-right of card header)**
+Small segmented control: `30d · 90d · All time`. Default to `90d`. Filters by `applied_date` within window for the denominator; interviews are counted if the underlying job's `applied_date` falls in the window (so the conversion math stays consistent — interviews and applications come from the same job set).
 
-### Files touched
+### Empty / sparse states
 
-- `src/assets/brand/BRAND.md` — add the two new subsections above and tighten the wordmark line. No code changes.
+- **Zero applied jobs in window:** single muted line — *"No applications in the last 90 days. Switch to All time or log an apply date on tracked jobs."*
+- **All three lanes < 5 apps:** still render bars, but all three conversion tiles show `—` with a caption *"Add more applications to unlock lane conversion."* Bars alone are still useful (they show mix).
+- **One lane is empty:** that segment is omitted from both bars; conversion tile shows `0 / 0` and `—`.
+
+### Files to touch
+
+- `src/pages/Overview.tsx` — replace the entire "Response rate by lane" `<Card>` block (lines ~210–255) with the new panel. Remove the now-unused `responseRateData` memo, `LANE_COLORS`/`LANE_LABEL` constants, and the `BarChart`/`Bar`/`Cell` Recharts imports if they're not used elsewhere on the page (they aren't — `LineChart` is used for velocity, the bars were only here).
+- Add a new memo `pipelineByLane` that computes `{ window, applications: { cold, warm, referral, total }, interviews: { cold, warm, referral, total }, conversion: { cold, warm, referral } }`.
+- Add a new `useState` for the window selector (`'30d' | '90d' | 'all'`, default `'90d'`).
+- Build the visual with **plain `<div>`s + Tailwind flex/width-percent**, not Recharts. Two thin stacked bars + a 3-tile strip is simpler, denser, and lighter than a Recharts chart at this size — and Recharts' stacked horizontal bars are clumsy for a 2-row dataset.
+- Keep the `PlaceholderHint` helper available for the other panels (Time to first interview, Weekly velocity) which we'll review next — but **remove the `PlaceholderHint` from this panel**: the formula is now locked.
+
+### What this is NOT
+
+- Not a Recharts chart. Two bars and a 3-cell strip is plain DOM.
+- Not three separate panels. Mix + conversion live in one frame so the gap is visible.
+- Not a "response" metric. The numerator is **interview scheduled**, full stop.
+- Not filtered by interview outcome. We're measuring conversion of effort to conversation, not offer rate.
+
+### Out of scope for this turn
+
+- The other two Insights panels (Time to first interview, Weekly velocity). Those come in subsequent turns once this one is approved.
+- Any change to the data model or edge functions. This is pure presentation over existing `jobs`, `job_contacts`, `contact_activities`, `interviews`.
 
