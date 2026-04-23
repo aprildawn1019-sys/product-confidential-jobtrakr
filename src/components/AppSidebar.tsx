@@ -152,7 +152,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
                 "relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
                 isActive
                   ? "bg-sidebar-accent text-sidebar-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
-                  : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                  : "text-sidebar-primary/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )
             }
           >
@@ -188,7 +188,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                className="h-10 w-10 text-sidebar-primary/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                 onClick={() => { handleNavClick(); openHelp(); }}
               >
                 <CircleHelp className="h-5 w-5" strokeWidth={2} />
@@ -247,12 +247,16 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
   // Active row: soft navy fill + amber left bar (state signal). Icon stays
   // white in active state so the bar carries the "you are here" cue alone —
   // hover still flashes amber on the icon as a transient affordance.
+  // Inverted icon palette (per spec refresh): glyphs default to muted amber
+  // so the iconography reads as the brand accent against the navy rail; on
+  // hover the glyph lifts to white alongside the row tint. Label text keeps
+  // the quiet muted ramp so only the icon carries the amber signal.
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
       "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
       isActive
         ? "bg-sidebar-accent text-sidebar-foreground font-medium [&_svg]:text-sidebar-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
-        : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-primary"
+        : "text-sidebar-muted [&_svg]:text-sidebar-primary/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-foreground"
     );
 
   return (
@@ -276,7 +280,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
               isActive
                 ? "bg-sidebar-accent text-sidebar-foreground font-medium [&_svg]:text-sidebar-foreground before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:rounded-full before:bg-sidebar-primary"
-                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-primary"
+                : "text-sidebar-muted [&_svg]:text-sidebar-primary/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-foreground"
             )
           }
         >
@@ -369,7 +373,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors",
               isActive
                 ? "bg-sidebar-accent text-sidebar-foreground [&_svg]:text-sidebar-foreground"
-                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                : "text-sidebar-muted [&_svg]:text-sidebar-primary/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-foreground"
             )
           }
         >
@@ -386,7 +390,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors",
               isActive || (location.pathname.startsWith("/settings") && !location.pathname.startsWith("/settings/profile"))
                 ? "bg-sidebar-accent text-sidebar-foreground [&_svg]:text-sidebar-foreground"
-                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                : "text-sidebar-muted [&_svg]:text-sidebar-primary/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-foreground"
             )
           }
         >
@@ -397,7 +401,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         <button
           type="button"
           onClick={() => { handleNavClick(); openHelp(); }}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-1.5 text-sm text-sidebar-muted transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-1.5 text-sm text-sidebar-muted [&_svg]:text-sidebar-primary/80 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-foreground"
         >
           <CircleHelp className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
           Help
