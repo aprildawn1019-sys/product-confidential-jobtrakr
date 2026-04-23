@@ -315,6 +315,15 @@ export default function GettingStarted({
           </div>
         </div>
       </section>
+
+      {onImportJobs && (
+        <ImportJobsWizard
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          onImport={onImportJobs}
+          existingJobs={jobs}
+        />
+      )}
     </div>
   );
 }
@@ -506,19 +515,34 @@ function QuickActionCard({
   description,
   icon: Icon,
   onClick,
+  accent = false,
 }: {
   title: string;
   description: string;
   icon: ComponentType<{ className?: string }>;
   onClick: () => void;
+  /** Highlights the card with the brand accent — use for the primary first-run action. */
+  accent?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="rounded-2xl border border-border bg-background p-4 text-left transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      className={cn(
+        "rounded-2xl border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        accent
+          ? "border-accent/40 bg-accent/10 hover:border-accent/60"
+          : "border-border bg-background hover:border-accent/40",
+      )}
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted text-foreground">
+      <div
+        className={cn(
+          "flex h-10 w-10 items-center justify-center rounded-xl border",
+          accent
+            ? "border-accent/40 bg-accent/20 text-accent-foreground"
+            : "border-border bg-muted text-foreground",
+        )}
+      >
         <Icon className="h-4 w-4" />
       </div>
       <h4 className="mt-4 text-base font-semibold tracking-tight text-foreground">{title}</h4>
