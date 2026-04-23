@@ -415,31 +415,24 @@ export default function Overview({
               )}
 
               {/* Footer: median time to interview across all lanes */}
-              <div className="mt-2 pt-5 pb-5 -mx-6 px-6 border-t border-border/60 bg-gradient-to-b from-transparent to-muted/30 rounded-b-xl text-center">
-                <div className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-wider font-medium text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>Avg time to interview</span>
-                </div>
-                {pipelineByLane.medianDaysToInterview === null ? (
-                  <>
-                    <div className="mt-1 font-display text-4xl font-bold tracking-tight tabular-nums text-muted-foreground">
-                      —
-                    </div>
-                    <div className="text-[11px] text-muted-foreground mt-1">
-                      No interviews yet
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="mt-1 font-display text-4xl font-bold tracking-tight tabular-nums text-foreground">
+              <div className="mt-2 -mx-6 px-6 py-3 border-t border-border/60 bg-gradient-to-b from-transparent to-muted/30 rounded-b-xl">
+                <div className="flex items-center justify-center gap-2 text-xs">
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="uppercase tracking-wider font-medium text-muted-foreground">
+                    Avg time to interview
+                  </span>
+                  {pipelineByLane.medianDaysToInterview === null ? (
+                    <span className="text-muted-foreground">— No interviews yet</span>
+                  ) : (
+                    <span className="font-display text-base font-semibold tabular-nums text-foreground">
                       {pipelineByLane.medianDaysToInterview}
-                      <span className="text-2xl text-muted-foreground ml-0.5 font-medium">d</span>
-                    </div>
-                    <div className="text-[11px] text-muted-foreground mt-1">
-                      median across all lanes
-                    </div>
-                  </>
-                )}
+                      <span className="text-muted-foreground font-medium ml-0.5">d</span>
+                      <span className="ml-1.5 text-[11px] font-normal text-muted-foreground normal-case tracking-normal">
+                        median across all lanes
+                      </span>
+                    </span>
+                  )}
+                </div>
               </div>
             </>
           )}
