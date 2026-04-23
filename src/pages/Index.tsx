@@ -20,6 +20,7 @@ import CoverLetters from "@/pages/CoverLetters";
 import Resumes from "@/pages/Resumes";
 import Settings from "@/pages/Settings";
 import GettingStarted from "@/pages/GettingStarted";
+import NetworkingPipeline from "@/pages/NetworkingPipeline";
 import Help from "@/pages/Help";
 import OgPreview from "@/pages/OgPreview";
 import { HelpProvider } from "@/components/help/HelpProvider";
@@ -209,6 +210,17 @@ export default function Index() {
 
           <Route path="job-boards" element={<JobBoards />} />
           <Route path="skills-insights" element={<SkillsInsights />} />
+          <Route path="networking" element={
+            <NetworkingPipeline
+              outreaches={store.outreaches}
+              contacts={store.contacts}
+              targetCompanies={store.targetCompanies}
+              jobs={store.jobs}
+              onAddOutreach={store.addOutreach}
+              onUpdateOutreach={store.updateOutreach}
+              onDeleteOutreach={store.deleteOutreach}
+            />
+          } />
           <Route path="target-companies" element={
             <TargetCompanies
               targetCompanies={store.targetCompanies}

@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Briefcase, Users, Search, Globe, LogOut, CalendarDays,
   ChevronDown, ChevronRight, TrendingUp, Star, FileText, Settings, Cog, Network,
   Sparkles, PlayCircle, CircleHelp, BarChart3, FileStack, LucideIcon, PanelLeftClose, PanelLeft,
-  User as UserIcon,
+  User as UserIcon, Handshake,
 } from "lucide-react";
 import { useHelp } from "@/components/help/HelpProvider";
 import { NavLink, useLocation } from "react-router-dom";
@@ -85,11 +85,12 @@ const groups: { label: string; items: LinkItem[] }[] = [
     ],
   },
   {
-    label: "Sources",
+    label: "Pipeline",
     items: [
-      { to: "/target-companies", icon: Star,   label: "Target Companies", tourId: "entry-target-companies" },
-      { to: "/job-boards",       icon: Globe,  label: "Job Boards" },
-      { to: "/job-search",       icon: Search, label: "Job Search", tourId: "entry-job-search" },
+      { to: "/networking",       icon: Handshake, label: "Networking Pipeline" },
+      { to: "/target-companies", icon: Star,      label: "Target Companies", tourId: "entry-target-companies" },
+      { to: "/job-boards",       icon: Globe,     label: "Job Boards" },
+      { to: "/job-search",       icon: Search,    label: "Job Search", tourId: "entry-job-search" },
     ],
   },
   {
