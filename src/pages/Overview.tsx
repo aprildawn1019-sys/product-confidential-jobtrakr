@@ -84,6 +84,7 @@ export default function Overview({
 
     const apps = { cold: 0, warm: 0, referral: 0, total: 0 };
     const ivs = { cold: 0, warm: 0, referral: 0, total: 0 };
+    const offers = { cold: 0, warm: 0, referral: 0, total: 0 };
     const daysToInterview: number[] = [];
 
     for (const j of jobs) {
