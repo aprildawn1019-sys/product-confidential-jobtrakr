@@ -1,107 +1,51 @@
 
 
-# Refine "Next steps" — earn its place on the Command Center
+## Update BRAND.md with recent favicon + mark-padding changes
 
-## The question first: do we even need it?
+Bring `src/assets/brand/BRAND.md` in sync with the last two rounds of work: the K's "Confident" 14% padding inside the tile, and the full favicon suite with adaptive light/dark theming.
 
-**Yes — but the current execution under-sells it.** The Command Center's whole reason to exist is the next-action queue. Without it, the page is just stat tiles + an interview strip — a status board, not a command center. The header subtitle even reads "12 next steps · 3 overdue · 5 today", so removing the panel would make the header a lie.
+### Changes to BRAND.md
 
-What's wrong is not whether it exists, but that it's currently styled as a generic content card with a flat list of 6 mixed-urgency rows, an orphaned "Suggest" ghost button, and (post logo-fetch disable) a column of meaningless "T" / "F" initial chips that no longer carry signal.
+**1. Mark geometry section (new subsection under "Mark usage")**
 
-## What to change
+Add a binding rule for the K's footprint inside the tile:
 
-### 1. Promote it from "card" to "the focal area"
+- The K fills **~72% of the tile height** ("Confident" padding, ~14% margin on each side). This is the locked density — matches modern app-icon conventions (Apple/Google) and prevents the "lost K" failure mode where the airy ~45% coverage made the mark read as a colored square at small sizes.
+- Padding is baked into the PNG, not applied in CSS. If the K is ever re-exported, re-run the rescale (target 72% bbox height) before regenerating the dark variant.
+- Edge classifier rule for the navy↔white swap: snap antialiased edge pixels to navy or white, never amber. Amber pixels are preserved only when they are unambiguously amber (closer to amber than to navy AND closer to amber than to white). This eliminates the amber-halo artifact that scaling antialiased edges can introduce.
 
-Drop the heavy `rounded-2xl border bg-card p-8` shell. Make it the visual anchor of the page:
+**2. Favicon suite (new subsection at the end, "Favicons & app icons")**
 
-- No bordered card — just generous vertical space with the section header.
-- Section header: `Next steps` (display, semibold) + a one-line meta echo: `3 overdue · 5 today · 4 later`.
-- Right side of the header: a compact **filter chip group** — `All · Today · Overdue · Networking · Applications · Referrals`. Replaces the orphaned ghost button as the primary affordance.
+Document the locked icon set in `public/` and the adaptive theming wiring in `index.html`:
 
-### 2. Group rows into time cohorts
+| File | Size | Variant | Purpose |
+|------|------|---------|---------|
+| `public/favicon.ico` | multi (16/32/48) | dark-tile | Legacy fallback for older browsers |
+| `public/favicon-16.png` | 16×16 | dark-tile | Browser tab (small) |
+| `public/favicon-32.png` | 32×32 | dark-tile | Browser tab (retina) |
+| `public/favicon-light.png` | 32×32 | dark-tile (navy on white) | Used when browser chrome is **light** |
+| `public/favicon-dark.png` | 32×32 | light-tile (white on navy) | Used when browser chrome is **dark** |
+| `public/apple-touch-icon.png` | 180×180 | dark-tile | iOS home screen |
+| `public/icon-192.png` | 192×192 | dark-tile | PWA / Android home screen |
+| `public/icon-512.png` | 512×512 | dark-tile | PWA splash |
+| `public/favicon.png` | 512×512 | dark-tile | Generic fallback (kept in sync with `icon-512.png`) |
 
-Replace the flat 6-row list with three tight sections, each with its own micro-header:
+Adaptive-theming rule (binding):
+- `index.html` uses `media="(prefers-color-scheme: dark)"` / `light` on the 32px favicon links so Safari/Firefox swap variants automatically. The contrast rule is the same as the in-app rule: **dark browser chrome → light-tile mark; light browser chrome → dark-tile mark**.
+- Never collapse to a single favicon variant — that re-introduces the "mark disappears against matching surface" bug.
 
-```text
-Overdue (3)
-  ○  Follow up with Maya Chen           Stripe · 4d overdue
-  ○  Nudge Daniel on referral ask       11 days since you asked
-  ○  Apply or archive: Staff PM         Notion · saved 22d ago
+Regeneration recipe (so a future agent can rebuild the suite without guessing):
+1. Hand-author / update `marks/koudou-mark-light.png` (light-tile master).
+2. Run the per-pixel color-swap to produce `marks/koudou-mark-dark.png` (dark-tile sibling).
+3. Downscale **both** masters with LANCZOS to produce the 16/32/180/192/512 PNGs above. Use the dark-tile master for everything except `favicon-dark.png`.
+4. Build `favicon.ico` as a multi-resolution bundle (16/32/48) from the dark-tile master.
+5. Copy the 512px dark-tile output to `public/favicon.png` to keep the generic fallback in sync.
 
-Today (2)
-  ○  Phone screen — Senior PM           Linear · 2:00 PM
-  ○  Source a Connector for Vercel      Dream company · 0 contacts
+**3. Wordmark color (small edit to existing "Sidebar surface" section)**
 
-Later this week (3)
-  ○  Reconnect with Priya Shah          Warm · last touch 34d ago
-  ○  …
-```
+Confirm the locked wordmark color: "Koudou" wordmark on the navy rail is painted in **brand amber** (`text-sidebar-primary`, HSL `36 90% 55%`) — same token as the active-row bar and the mark's lower arm. This is already documented from the previous turn; verify the wording still reads as binding ("never white, never muted amber on the rail") and tighten if needed.
 
-- Cohort headers are quiet (`text-xs uppercase tracking-wide text-muted-foreground`).
-- Each cohort caps at 3–4 rows; if more, "+N more in Today" inline link expands inline.
-- Removes the `visibleCount=6 + View all` mechanism — cohorts naturally bound the height.
+### Files touched
 
-### 3. Replace meaningless initial chip with **lane glyph + accent dot**
-
-The "T / F" initial chip post logo-fetch fix carries no information. Swap for a 28px square tile with a Lucide glyph keyed to `action.lane`:
-
-- Networking → `Users` (slate)
-- Referrals → `HandshakeIcon` (amber tint)
-- Applications → `Briefcase` (navy tint)
-
-Source-based override: AI suggestions get `Sparkles`, nudges get a small dot indicator. Same visual rhythm, but the leftmost column finally means something at a glance — you can scan the column and see "all networking work" without reading titles.
-
-### 4. Fold the AI suggest action into the cohort scaffolding
-
-Kill the lonely ghost button at the bottom-right. Replace with a single quiet row at the end of the list:
-
-```text
-✨  Suggest 3 more steps with AI            (clickable row)
-```
-
-Same component pattern as a regular row, prefixed with a Sparkles glyph. Loading state inlines a spinner. After fetch, AI rows interleave normally with a subtle `Sparkles` corner badge so users know which were machine-suggested.
-
-### 5. Empty state that does a job
-
-Today: "Inbox zero. Nice work." → dead end.
-
-Replace with:
-
-```text
-✓  Nothing on your plate
-
-   Plan your next move:
-   → Add a target company       (link to /target-companies)
-   → Log this week's outreach   (link to /contacts)
-   → Ask AI for a fresh batch   (triggers fetchAi)
-```
-
-Three actionable links, not a dead-end congratulation.
-
-### 6. Minor row-level polish
-
-- Add a tiny tail meta on each row (right side, before checkbox): the `actionLabel` from the action engine ("Send a nudge", "Decide", "Prep & open"). It already exists in `DerivedAction.actionLabel` but isn't rendered on the row — it answers "what would I actually do?" before the user clicks.
-- Keep the existing urgency chip but only render it inside the **Overdue** cohort (the cohort already implies today / soon). This removes chip noise from the Today and Later sections.
-- Keep the circular checkbox + line-through completion. That part works.
-
-## Files to touch
-
-- `src/pages/Dashboard.tsx` — remove card shell around Next steps; pass filter state; remove ghost Suggest button.
-- `src/components/commandcenter/NextStepsList.tsx` — group by urgency cohort, render filter chips header, render AI suggest row at end, new empty state.
-- `src/components/commandcenter/NextStepRow.tsx` — replace `CompanyAvatar` with lane-glyph tile; render `actionLabel` tail; conditionally hide urgency chip outside Overdue.
-- (No changes to `actionEngine.ts` or hooks — all data already present.)
-
-## Out of scope (call out, defer)
-
-- Drag-to-reorder priority — interesting but not in the spec, defer.
-- Cohort persistence across sessions / "Snoozed" tab — defer.
-- Any change to `UpcomingInterviewsStrip`, stat cards, or `Pipeline & sourcing signals` — those are working as designed.
-
-## Memory updates after implementation
-
-Update `mem://style/visual-theme-v2` Action rows section with:
-- Lane-glyph tiles (not initial chips) on the leading column.
-- Cohort grouping (Overdue / Today / Later) replaces flat list.
-- `actionLabel` tail rendered before completion control.
-- AI suggest is an inline list row, not a panel button.
+- `src/assets/brand/BRAND.md` — add the two new subsections above and tighten the wordmark line. No code changes.
 
