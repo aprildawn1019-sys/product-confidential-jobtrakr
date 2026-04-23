@@ -4,12 +4,16 @@ import { Badge } from "@/components/ui/badge";
 import { NETWORK_ROLES, RELATIONSHIP_LABELS } from "@/types/jobTracker";
 import type { Contact, Job, TargetCompany, ContactActivity, ContactConnection, RecommendationRequest } from "@/types/jobTracker";
 import { format } from "date-fns";
+import { pillClass, type PillTone } from "@/lib/pillStyles";
 
-const warmthConfig: Record<string, { label: string; className: string }> = {
-  cold: { label: "❄️ Cold", className: "bg-info/20 text-info border-info/30" },
-  warm: { label: "🌤️ Warm", className: "bg-warning/20 text-warning border-warning/30" },
-  hot: { label: "🔥 Hot", className: "bg-destructive/20 text-destructive border-destructive/30" },
-  champion: { label: "🏆 Champion", className: "bg-success/20 text-success border-success/30" },
+// Warmth chips defer to the shared pill family — see `src/lib/pillStyles.ts`.
+// Same tone mapping as `WarmthBadge` so the network panel and the contact
+// list show identical chips for the same warmth value.
+const warmthConfig: Record<string, { label: string; tone: PillTone }> = {
+  cold:     { label: "Cold",     tone: "slate" },
+  warm:     { label: "Warm",     tone: "amber-soft" },
+  hot:      { label: "Hot",      tone: "amber-strong" },
+  champion: { label: "Champion", tone: "amber-strong" },
 };
 
 interface NetworkDetailPanelProps {
