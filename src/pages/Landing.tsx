@@ -55,7 +55,7 @@ export default function Landing() {
       {/* Nav */}
       <nav className="flex items-center justify-between px-4 sm:px-6 py-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-2.5">
-          <img src={koudouMarkSrc} alt="Koudou" className="h-9 w-9" />
+          <BrandMark size="md" surface="light" />
           <span className="font-display text-xl font-bold tracking-tight text-foreground">Koudou</span>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
@@ -160,7 +160,7 @@ export default function Landing() {
       <footer className="px-4 sm:px-6 py-6 sm:py-8 border-t border-border">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <img src={koudouMarkSrc} alt="Koudou" className="h-5 w-5" />
+            <BrandMark size="sm" surface="light" />
             <span>Koudou</span>
           </div>
           <div className="flex items-center gap-4">
