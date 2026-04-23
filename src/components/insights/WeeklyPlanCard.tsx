@@ -6,16 +6,18 @@ import {
 import {
   Sparkles, RefreshCw, ChevronDown, ChevronUp, TrendingUp, TrendingDown,
   Minus, Send, Users, CalendarCheck, Loader2, AlertCircle, Target,
-  MessageCircle, ClipboardList, Compass,
+  MessageCircle, ClipboardList, Compass, Pin, PinOff, Info,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { CelebrationBurst } from "@/components/insights/CelebrationBurst";
+import { usePinnedPlanActions } from "@/hooks/usePinnedPlanActions";
 import { format, formatDistanceToNow, parseISO } from "date-fns";
 
 interface ScoreboardMetric { current: number; previous: number; delta: number }
