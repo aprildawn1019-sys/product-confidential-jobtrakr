@@ -227,14 +227,17 @@ export default function Overview({
                   referral: {
                     applications: pipelineByLane.applications.referral,
                     interviews: pipelineByLane.interviews.referral,
+                    offers: pipelineByLane.offers.referral,
                   },
                   warm: {
                     applications: pipelineByLane.applications.warm,
                     interviews: pipelineByLane.interviews.warm,
+                    offers: pipelineByLane.offers.warm,
                   },
                   cold: {
                     applications: pipelineByLane.applications.cold,
                     interviews: pipelineByLane.interviews.cold,
+                    offers: pipelineByLane.offers.cold,
                   },
                 }}
                 minLaneN={MIN_LANE_N}
