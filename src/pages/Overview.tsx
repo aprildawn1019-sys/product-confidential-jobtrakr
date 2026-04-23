@@ -413,6 +413,22 @@ export default function Overview({
                   Add more applications (≥{MIN_LANE_N} per lane) to unlock lane conversion.
                 </p>
               )}
+
+              {/* Footer: median time to interview across all lanes */}
+              <div className="flex items-center justify-between gap-3 pt-3 border-t border-border/60 text-[11px]">
+                <span className="uppercase tracking-wider font-medium text-muted-foreground">
+                  Avg time to interview
+                </span>
+                <span className="tabular-nums">
+                  {pipelineByLane.medianDaysToInterview === null ? (
+                    <span className="text-muted-foreground">— No interviews yet</span>
+                  ) : (
+                    <span className="text-foreground font-medium">
+                      {pipelineByLane.medianDaysToInterview}d
+                    </span>
+                  )}
+                </span>
+              </div>
             </>
           )}
         </CardContent>
