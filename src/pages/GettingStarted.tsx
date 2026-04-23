@@ -18,10 +18,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useHelp } from "@/components/help/HelpProvider";
 import type { Contact, Interview, Job, TargetCompany } from "@/types/jobTracker";
 
-// Light-pane variant: white tile + navy/amber K. Sits on the page card
-// surface so the onboarding screen carries the same lockup as the sidebar
-// (which uses the dark-pane variant on navy). See `mem://style/brand-mark`.
-import koudouMarkSrc from "@/assets/brand/marks/koudou-mark-light.png";
+// Two-variant lockup: light-pane on light surfaces, dark-pane on dark.
+// Both render simultaneously and `dark:` utilities toggle visibility so the
+// swap is automatic with the app theme — no flash, no JS state. See
+// `mem://style/brand-mark`: pick variant by surface contrast.
+import koudouMarkLightSrc from "@/assets/brand/marks/koudou-mark-light.png";
+import koudouMarkDarkSrc from "@/assets/brand/marks/koudou-mark-dark.png";
 
 interface GettingStartedProps {
   jobs?: Job[];
@@ -184,9 +186,15 @@ export default function GettingStarted({
                 same leading-none + pt-0.5 optical alignment as AppSidebar. */}
             <div className="mb-5 flex items-center gap-2.5">
               <img
-                src={koudouMarkSrc}
+                src={koudouMarkLightSrc}
                 alt="Koudou"
-                className="h-9 w-9 shrink-0"
+                className="h-9 w-9 shrink-0 dark:hidden"
+              />
+              <img
+                src={koudouMarkDarkSrc}
+                alt=""
+                aria-hidden="true"
+                className="hidden h-9 w-9 shrink-0 dark:block"
               />
               <span className="font-display text-xl font-bold leading-none tracking-tight text-foreground pt-0.5">
                 Koudou
