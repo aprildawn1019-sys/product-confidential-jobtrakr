@@ -439,69 +439,6 @@ export default function Overview({
         </CardContent>
       </Card>
 
-      {/* Time to first interview */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-              <CardTitle className="font-display text-base flex items-center gap-2">
-                <Activity className="h-4 w-4 text-warning" />
-                Time to first interview
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Days from application to the earliest scheduled interview, per job.
-              </CardDescription>
-            </div>
-            {avgTimeToFirstInterview !== null && (
-              <Badge variant="secondary" className="text-xs">
-                Avg {avgTimeToFirstInterview} day{avgTimeToFirstInterview === 1 ? "" : "s"}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {timeToFirstInterview.length === 0 ? (
-            <div className="py-10 text-center text-xs text-muted-foreground">
-              No applied jobs with scheduled interviews yet.
-            </div>
-          ) : (
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={timeToFirstInterview}
-                  layout="vertical"
-                  margin={{ top: 8, right: 12, bottom: 8, left: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                  <XAxis
-                    type="number"
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                    unit="d"
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="jobLabel"
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                    width={140}
-                  />
-                  <RechartsTooltip
-                    contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: 8,
-                      fontSize: 12,
-                    }}
-                    formatter={(v: number) => [`${v} day${v === 1 ? "" : "s"}`, "Days to first interview"]}
-                  />
-                  <Bar dataKey="days" fill="hsl(var(--warning))" radius={[0, 6, 6, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-          <PlaceholderHint note="Placeholder formula: per job, max(0, days from job.appliedDate to earliest interview.date). Top 10 longest shown. Awaiting your final definition (e.g. include withdrawn? exclude rejections?)." />
-        </CardContent>
-      </Card>
-
       {/* Weekly velocity */}
       <Card>
         <CardHeader>
