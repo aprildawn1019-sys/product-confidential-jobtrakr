@@ -85,7 +85,7 @@ const groups: { label: string; items: LinkItem[] }[] = [
     ],
   },
   {
-    label: "Pipeline",
+    label: "Sources",
     items: [
       { to: "/target-companies", icon: Star,   label: "Target Companies", tourId: "entry-target-companies" },
       { to: "/job-boards",       icon: Globe,  label: "Job Boards" },
