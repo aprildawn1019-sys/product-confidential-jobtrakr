@@ -179,7 +179,7 @@ export function WeeklyPlanCard() {
           <div>
             <CardTitle className="font-display text-base flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-accent" />
-              Weekly Plan
+              Weekly Review &amp; Plan
             </CardTitle>
             <CardDescription className="text-xs">
               {weekLabel} — your scoreboard and AI-recommended next moves.
@@ -204,7 +204,7 @@ export function WeeklyPlanCard() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-6">
         {/* Loading skeleton on first load */}
         {loading && !scoreboard && (
           <div className="py-12 text-center text-sm text-muted-foreground">
@@ -224,47 +224,86 @@ export function WeeklyPlanCard() {
           </div>
         )}
 
-        {/* Scoreboard */}
+        {/* ============ SECTION 1: This Week's Scoreboard ============ */}
         {scoreboard && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <ScoreTile
-              label="Applications"
-              icon={Send}
-              metric={scoreboard.applications}
-              accent="primary"
-              celebrate={celebrate && scoreboard.applications.delta > 0}
-            />
-            <ScoreTile
-              label="Outreach"
-              icon={Users}
-              metric={scoreboard.outreach}
-              accent="info"
-              celebrate={celebrate && scoreboard.outreach.delta > 0}
-            />
-            <ScoreTile
-              label="Interviews"
-              icon={CalendarCheck}
-              metric={scoreboard.interviews}
-              accent="success"
-              celebrate={celebrate && scoreboard.interviews.delta > 0}
-            />
+          <section aria-labelledby="weekly-scoreboard-heading" className="space-y-3">
+            <div className="flex items-baseline justify-between gap-2">
+              <h3
+                id="weekly-scoreboard-heading"
+                className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+              >
+                This week's scoreboard
+              </h3>
+              <span className="text-[11px] text-muted-foreground">vs. previous 7 days</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <ScoreTile
+                label="Applications"
+                icon={Send}
+                metric={scoreboard.applications}
+                accent="primary"
+                celebrate={celebrate && scoreboard.applications.delta > 0}
+              />
+              <ScoreTile
+                label="Outreach"
+                icon={Users}
+                metric={scoreboard.outreach}
+                accent="info"
+                celebrate={celebrate && scoreboard.outreach.delta > 0}
+              />
+              <ScoreTile
+                label="Interviews"
+                icon={CalendarCheck}
+                metric={scoreboard.interviews}
+                accent="success"
+                celebrate={celebrate && scoreboard.interviews.delta > 0}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Visual divider between Review and Plan */}
+        {scoreboard && plan.length > 0 && (
+          <div className="relative" aria-hidden="true">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-dashed border-border" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-card px-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                Looking ahead
+              </span>
+            </div>
           </div>
         )}
 
-        {/* AI Plan */}
+        {/* ============ SECTION 2: Plan for Next Week ============ */}
         {scoreboard && plan.length > 0 && (
-          <div className="rounded-lg border border-border bg-gradient-to-b from-muted/20 to-transparent p-4 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              <Sparkles className="h-3.5 w-3.5 text-accent" />
-              Recommended for next week
+          <section
+            aria-labelledby="weekly-plan-heading"
+            className="rounded-lg border border-accent/30 bg-accent/[0.03] p-4 space-y-3"
+          >
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <h3
+                  id="weekly-plan-heading"
+                  className="font-display text-sm font-semibold text-foreground flex items-center gap-1.5"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-accent" />
+                  Plan for next week
+                </h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  AI-generated from your last 4 weeks of activity. Pin any item to add it to your Command Center.
+                </p>
+              </div>
             </div>
             <ol className="space-y-2.5">
               {plan.map((action, idx) => {
                 const Icon = CATEGORY_ICON[action.category || "strategy"] || Sparkles;
+                const pinned = isPinned(action.id);
                 return (
                   <li
                     key={action.id}
-                    className="flex items-start gap-3 rounded-md border border-border/60 bg-card p-3 animate-fade-in"
+                    className="group flex items-start gap-3 rounded-md border border-border/60 bg-card p-3 animate-fade-in transition-colors hover:border-border"
                     style={{ animationDelay: `${idx * 80}ms` }}
                   >
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
@@ -286,12 +325,59 @@ export function WeeklyPlanCard() {
                           {action.rationale}
                         </p>
                       )}
+                      <div className="mt-2 flex items-center gap-2">
+                        <TooltipProvider delayDuration={200}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant={pinned ? "secondary" : "ghost"}
+                                size="sm"
+                                className={cn(
+                                  "h-6 px-2 text-[11px] gap-1",
+                                  pinned ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                                )}
+                                onClick={() => {
+                                  togglePin({
+                                    id: action.id,
+                                    title: action.title,
+                                    rationale: action.rationale,
+                                    category: action.category,
+                                  });
+                                  toast({
+                                    title: pinned ? "Removed from Command Center" : "Added to Command Center",
+                                    description: pinned
+                                      ? undefined
+                                      : "Find it in your Next Steps list.",
+                                  });
+                                }}
+                              >
+                                {pinned ? (
+                                  <>
+                                    <PinOff className="h-3 w-3" />
+                                    Pinned
+                                  </>
+                                ) : (
+                                  <>
+                                    <Pin className="h-3 w-3" />
+                                    Add to Command Center
+                                  </>
+                                )}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="text-xs">
+                              {pinned
+                                ? "Remove from your Next Steps list"
+                                : "Pin this action to your Command Center"}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                     </div>
                   </li>
                 );
               })}
             </ol>
-          </div>
+          </section>
         )}
 
         {/* Collapsible 8-week trend */}
@@ -327,6 +413,14 @@ export function WeeklyPlanCard() {
                     <Line type="monotone" dataKey="outreach" stroke="hsl(var(--info))" strokeWidth={2} dot={{ r: 3 }} />
                   </LineChart>
                 </ResponsiveContainer>
+              </div>
+              <div className="mt-2 flex items-start gap-2 rounded-md border border-dashed border-border bg-muted/30 p-2.5">
+                <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <span className="font-medium text-foreground">Applications</span> counts jobs whose status moved to <em>applied</em> that week.{" "}
+                  <span className="font-medium text-foreground">Outreach</span> counts contact activities (messages, calls, meetings) logged that week.{" "}
+                  <span className="font-medium text-foreground">Interviews</span> counts interviews dated that week, regardless of status. Weeks start Monday in your local timezone.
+                </p>
               </div>
             </CollapsibleContent>
           </Collapsible>
