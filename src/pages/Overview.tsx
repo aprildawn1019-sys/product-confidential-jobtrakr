@@ -59,6 +59,59 @@ function PlaceholderHint({ note }: { note: string }) {
   );
 }
 
+interface LaneBarProps {
+  label: string;
+  total: number;
+  counts: { cold: number; warm: number; referral: number; total: number };
+}
+
+function LaneBar({ label, total, counts }: LaneBarProps) {
+  const lanes: Lane[] = ["referral", "warm", "cold"];
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-3 mb-1.5">
+        <div className="text-xs font-medium text-foreground">
+          {label}{" "}
+          <span className="text-muted-foreground tabular-nums">
+            (n={total})
+          </span>
+        </div>
+        <div className="text-[11px] text-muted-foreground tabular-nums">
+          {lanes
+            .filter(l => counts[l] > 0)
+            .map(l => `${LANE_LABEL[l]} ${total > 0 ? Math.round((counts[l] / total) * 100) : 0}%`)
+            .join(" · ")}
+        </div>
+      </div>
+      <div className="flex h-6 w-full overflow-hidden rounded-md bg-muted/50">
+        {total === 0 ? (
+          <div className="flex-1 flex items-center justify-center text-[10px] text-muted-foreground">
+            No data
+          </div>
+        ) : (
+          lanes.map((lane) => {
+            const pct = (counts[lane] / total) * 100;
+            if (pct === 0) return null;
+            return (
+              <div
+                key={lane}
+                className={cn(
+                  "flex items-center justify-center text-[10px] font-medium text-white tabular-nums",
+                  LANE_DOT[lane],
+                )}
+                style={{ width: `${pct}%` }}
+                title={`${LANE_LABEL[lane]}: ${counts[lane]} (${Math.round(pct)}%)`}
+              >
+                {pct >= 8 ? `${Math.round(pct)}%` : ""}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Overview({
   jobs, contacts, interviews, contactActivities, jobContacts, recommendationRequests,
 }: OverviewProps) {
