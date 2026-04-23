@@ -37,15 +37,28 @@ interface InterviewsPageProps {
   getContactsForJob?: (jobId: string) => Contact[];
 }
 
-// Interview type pills — quiet neutral by default; only "final" gets a
-// destructive emphasis since it's the high-stakes round. Five-color rainbow
-// was off-spec (see visual-theme-v2: navy/amber/slate single-tone family).
+// Interview-type pills — single-tone navy/amber/slate family.
+// All five rounds are pipeline stages (not statuses), so the pill carries
+// IDENTITY, not urgency. Slate for the early/neutral rounds, amber for the
+// brand-emphasis rounds (onsite + final) where prep matters most. We do
+// NOT use destructive red here — "final round" is high-stakes but not an
+// error condition, and the urgency cue belongs to the date, not the type.
 const typeColors: Record<string, string> = {
-  phone: "bg-muted text-foreground border-border",
-  technical: "bg-muted text-foreground border-border",
-  behavioral: "bg-muted text-foreground border-border",
-  onsite: "bg-info/15 text-info border-info/30",
-  final: "bg-destructive/15 text-destructive border-destructive/30",
+  phone:      "bg-muted text-muted-foreground border-border",
+  technical:  "bg-muted text-muted-foreground border-border",
+  behavioral: "bg-muted text-muted-foreground border-border",
+  onsite:     "bg-accent/15 text-accent-foreground border-accent/30",
+  final:      "bg-accent/15 text-accent-foreground border-accent/30",
+};
+
+// Interview-status pills — same family. Scheduled = navy (active),
+// completed = slate (resolved/quiet), cancelled = slate with strikethrough
+// affordance via opacity in the row itself. Avoid shadcn's default
+// destructive variant for "cancelled" so the row doesn't shout.
+const statusColors: Record<string, string> = {
+  scheduled: "bg-primary/15 text-primary border-primary/30",
+  completed: "bg-muted text-muted-foreground border-border",
+  cancelled: "bg-muted text-muted-foreground border-border",
 };
 
 type FilterType = "all" | "interviews" | "followups";
@@ -277,7 +290,7 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
                             <Badge variant="outline" className={cn("text-xs capitalize", typeColors[interview.type])}>
                               {interview.type}
                             </Badge>
-                            <Badge variant={interview.status === "scheduled" ? "default" : interview.status === "completed" ? "secondary" : "destructive"} className="text-xs capitalize">
+                            <Badge variant="outline" className={cn("text-xs capitalize", statusColors[interview.status])}>
                               {interview.status}
                             </Badge>
                           </div>

@@ -37,23 +37,29 @@ interface TargetCompaniesProps {
   ) => Promise<void>;
 }
 
-// Tokenized pill families — single-tone, no raw palette colors.
-// Priority: dream = brand accent (amber), strong = info, interested = muted.
-// Status:   researching = info, applied = success, connected = primary,
-//           archived = muted. Picking distinct tokens (info vs primary) so
-//           "strong priority" and "connected status" don't collapse to the
-//           same blue when both render on a row.
+// Single-tone navy/amber/slate family — no greens, blues, or reds on
+// pipeline-state pills. Priority signals INTENT (how badly you want it),
+// status signals MOTION (where you are with them).
+//
+// Priority: dream = amber (brand-emphasis), strong = navy (primary intent),
+//           interested = slate (quiet on the list).
+// Status:   researching = slate, applied = navy, connected = amber
+//           (warm relationship, brand emphasis), archived = slate.
+//
+// "Strong priority" (navy) and "Applied status" (navy) intentionally share
+// a tone — both are the "active/committed" signal in their respective axes,
+// and they appear on different pills so collision isn't a scannability risk.
 const priorityConfig: Record<TargetCompanyPriority, { label: string; color: string }> = {
-  dream: { label: "Dream", color: "bg-accent/15 text-accent-foreground border-accent/30" },
-  strong: { label: "Strong", color: "bg-info/15 text-info border-info/30" },
+  dream:      { label: "Dream",      color: "bg-accent/15 text-accent-foreground border-accent/30" },
+  strong:     { label: "Strong",     color: "bg-primary/15 text-primary border-primary/30" },
   interested: { label: "Interested", color: "bg-muted text-muted-foreground border-border" },
 };
 
 const statusConfig: Record<TargetCompanyStatus, { label: string; color: string }> = {
-  researching: { label: "Researching", color: "bg-info/15 text-info border-info/30" },
-  applied: { label: "Applied", color: "bg-success/15 text-success border-success/30" },
-  connected: { label: "Connected", color: "bg-primary/15 text-primary border-primary/30" },
-  archived: { label: "Archived", color: "bg-muted text-muted-foreground border-border" },
+  researching: { label: "Researching", color: "bg-muted text-muted-foreground border-border" },
+  applied:     { label: "Applied",     color: "bg-primary/15 text-primary border-primary/30" },
+  connected:   { label: "Connected",   color: "bg-accent/15 text-accent-foreground border-accent/30" },
+  archived:    { label: "Archived",    color: "bg-muted text-muted-foreground border-border" },
 };
 
 const emptyForm = {
