@@ -199,53 +199,9 @@ export default function Overview({
     return { applications: apps, interviews: ivs, conversion, medianDaysToInterview };
   }, [jobs, jobContacts, contactActivities, interviews, windowKey]);
 
-  // ---------- Weekly velocity (PLACEHOLDER) ----------
-  // TODO(metric): Replace with the agreed formula once provided.
-  // Current stub: applications/week, interviews scheduled/week, contact activities/week, last 8 ISO weeks.
-  const velocityData = useMemo(() => {
-    const now = new Date();
-    const weeks: { iso: string; label: string; start: number }[] = [];
-    for (let i = 7; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i * 7);
-      const ws = startOfWeek(d, { weekStartsOn: 1 });
-      const iso = ws.toISOString().slice(0, 10);
-      if (!weeks.find(w => w.iso === iso)) {
-        weeks.push({ iso, label: format(ws, "MMM d"), start: ws.getTime() });
-      }
-    }
+  // Weekly velocity chart now lives inside <WeeklyPlanCard /> (collapsible 8-week trend),
+  // sourced from the same data via the generate-weekly-plan edge function.
 
-    const bucket = (ts: number) => {
-      // last week index whose start <= ts
-      for (let i = weeks.length - 1; i >= 0; i--) {
-        if (ts >= weeks[i].start) return i;
-      }
-      return -1;
-    };
-
-    const counts = weeks.map(w => ({ week: w.label, applications: 0, interviews: 0, outreach: 0 }));
-
-    for (const j of jobs) {
-      if (!j.appliedDate) continue;
-      let t: number;
-      try { t = parseISO(j.appliedDate).getTime(); } catch { continue; }
-      const idx = bucket(t);
-      if (idx >= 0) counts[idx].applications++;
-    }
-    for (const i of interviews) {
-      let t: number;
-      try { t = parseISO(i.date).getTime(); } catch { continue; }
-      const idx = bucket(t);
-      if (idx >= 0) counts[idx].interviews++;
-    }
-    for (const a of contactActivities) {
-      let t: number;
-      try { t = parseISO(a.activityDate).getTime(); } catch { continue; }
-      const idx = bucket(t);
-      if (idx >= 0) counts[idx].outreach++;
-    }
-    return counts;
-  }, [jobs, interviews, contactActivities]);
 
   const totalSamples = jobs.length + contacts.length;
 
