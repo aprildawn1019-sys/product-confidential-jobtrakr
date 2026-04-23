@@ -141,7 +141,7 @@ export default function NetworkingPipeline({
         )}
       >
         <div className="flex items-start gap-2.5">
-          {contact && <ContactAvatar contact={contact} size="sm" />}
+          {contact && <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="sm" />}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <p className="truncate text-sm font-semibold text-foreground">{contact?.name ?? "Unknown contact"}</p>
@@ -280,7 +280,7 @@ export default function NetworkingPipeline({
                   )}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  {contactsAtCompany.slice(0, 5).map(c => <ContactAvatar key={c.id} contact={c} size="sm" />)}
+                  {contactsAtCompany.slice(0, 5).map(c => <ContactAvatar key={c.id} name={c.name} avatarUrl={c.avatarUrl} size="sm" />)}
                   {contactsAtCompany.length > 5 && (
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground">
                       +{contactsAtCompany.length - 5}
