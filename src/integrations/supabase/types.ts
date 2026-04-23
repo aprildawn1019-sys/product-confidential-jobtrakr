@@ -806,6 +806,85 @@ export type Database = {
           },
         ]
       }
+      outreaches: {
+        Row: {
+          closed_at: string | null
+          contact_id: string
+          created_at: string
+          goal: string | null
+          id: string
+          job_id: string | null
+          next_step_date: string | null
+          next_step_label: string | null
+          notes: string | null
+          outcome: string | null
+          referral_asked_at: string | null
+          referral_made_at: string | null
+          stage: string
+          target_company_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          contact_id: string
+          created_at?: string
+          goal?: string | null
+          id?: string
+          job_id?: string | null
+          next_step_date?: string | null
+          next_step_label?: string | null
+          notes?: string | null
+          outcome?: string | null
+          referral_asked_at?: string | null
+          referral_made_at?: string | null
+          stage?: string
+          target_company_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          contact_id?: string
+          created_at?: string
+          goal?: string | null
+          id?: string
+          job_id?: string | null
+          next_step_date?: string | null
+          next_step_label?: string | null
+          notes?: string | null
+          outcome?: string | null
+          referral_asked_at?: string | null
+          referral_made_at?: string | null
+          stage?: string
+          target_company_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outreaches_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outreaches_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outreaches_target_company_id_fkey"
+            columns: ["target_company_id"]
+            isOneToOne: false
+            referencedRelation: "target_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recommendation_requests: {
         Row: {
           contact_id: string

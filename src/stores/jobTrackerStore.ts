@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Job, Contact, Interview, JobStatus, JobContact, ContactConnection, ContactActivity, Campaign, ContactCampaign, RecommendationRequest, SkillsSnapshot, JobActivity, TargetCompany } from "@/types/jobTracker";
+import type { Outreach, OutreachStage, OutreachOutcome } from "@/types/outreach";
 
 /** Normalize a company name for fuzzy matching */
 function normalizeCompany(name: string): string {
@@ -119,6 +120,26 @@ function mapTargetCompany(row: any): TargetCompany {
   };
 }
 
+function mapOutreach(row: any): Outreach {
+  return {
+    id: row.id,
+    contactId: row.contact_id,
+    targetCompanyId: row.target_company_id,
+    jobId: row.job_id ?? undefined,
+    stage: row.stage,
+    outcome: row.outcome ?? undefined,
+    goal: row.goal ?? undefined,
+    notes: row.notes ?? undefined,
+    referralAskedAt: row.referral_asked_at ?? undefined,
+    referralMadeAt: row.referral_made_at ?? undefined,
+    nextStepDate: row.next_step_date ?? undefined,
+    nextStepLabel: row.next_step_label ?? undefined,
+    closedAt: row.closed_at ?? undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 async function getUserId() {
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id;
@@ -136,11 +157,12 @@ export function useJobTrackerStore() {
   const [recommendationRequests, setRecommendationRequests] = useState<RecommendationRequest[]>([]);
   const [jobActivities, setJobActivities] = useState<JobActivity[]>([]);
   const [targetCompanies, setTargetCompanies] = useState<TargetCompany[]>([]);
+  const [outreaches, setOutreaches] = useState<Outreach[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes, activitiesRes, campaignsRes, contactCampaignsRes, recReqRes, jobActRes, targetCoRes] = await Promise.all([
+    const [jobsRes, contactsRes, interviewsRes, jobContactsRes, connectionsRes, activitiesRes, campaignsRes, contactCampaignsRes, recReqRes, jobActRes, targetCoRes, outreachRes] = await Promise.all([
       supabase.from("jobs").select("*").order("created_at", { ascending: false }).range(0, 9999),
       supabase.from("contacts").select("*").order("created_at", { ascending: false }).range(0, 9999),
       supabase.from("interviews").select("*").order("date", { ascending: true }).range(0, 9999),
@@ -152,6 +174,7 @@ export function useJobTrackerStore() {
       supabase.from("recommendation_requests").select("*").order("requested_at", { ascending: false }).range(0, 9999),
       supabase.from("job_activities").select("*").order("activity_date", { ascending: false }).range(0, 9999),
       supabase.from("target_companies").select("*").order("created_at", { ascending: false }).range(0, 9999),
+      supabase.from("outreaches").select("*").order("updated_at", { ascending: false }).range(0, 9999),
     ]);
     if (jobsRes.data) setJobs(jobsRes.data.map(mapJob));
     if (contactsRes.data) setContacts(contactsRes.data.map(mapContact));
@@ -164,6 +187,7 @@ export function useJobTrackerStore() {
     if (recReqRes.data) setRecommendationRequests(recReqRes.data.map(mapRecommendationRequest));
     if (jobActRes.data) setJobActivities(jobActRes.data.map(mapJobActivity));
     if (targetCoRes.data) setTargetCompanies(targetCoRes.data.map(mapTargetCompany));
+    if (outreachRes.data) setOutreaches(outreachRes.data.map(mapOutreach));
     setLoading(false);
   }, []);
 
@@ -684,13 +708,102 @@ export function useJobTrackerStore() {
     await fetchAll();
   };
 
+  // === OUTREACHES (Networking Pipeline) ===
+  // Auto-stamps stage milestones (referral_asked_at, referral_made_at,
+  // closed_at) when stage transitions, so the funnel and timeline don't
+  // need users to set them manually.
+  const addOutreach = async (
+    outreach: Omit<Outreach, "id" | "createdAt" | "updatedAt">,
+  ): Promise<Outreach | undefined> => {
+    const userId = await getUserId();
+    if (!userId) return;
+    const today = new Date().toISOString().split("T")[0];
+    const stampedAsked = outreach.stage === "referral_asked" || outreach.stage === "referral_made" || outreach.stage === "closed"
+      ? (outreach.referralAskedAt || today) : outreach.referralAskedAt || null;
+    const stampedMade = outreach.stage === "referral_made" || outreach.stage === "closed"
+      ? (outreach.referralMadeAt || today) : outreach.referralMadeAt || null;
+    const stampedClosed = outreach.stage === "closed"
+      ? (outreach.closedAt || today) : outreach.closedAt || null;
+    const { data, error } = await supabase.from("outreaches").insert({
+      user_id: userId,
+      contact_id: outreach.contactId,
+      target_company_id: outreach.targetCompanyId,
+      job_id: outreach.jobId || null,
+      stage: outreach.stage,
+      outcome: outreach.outcome || null,
+      goal: outreach.goal || null,
+      notes: outreach.notes || null,
+      referral_asked_at: stampedAsked,
+      referral_made_at: stampedMade,
+      next_step_date: outreach.nextStepDate || null,
+      next_step_label: outreach.nextStepLabel || null,
+      closed_at: stampedClosed,
+    }).select().single();
+    if (error || !data) return;
+    const created = mapOutreach(data);
+    setOutreaches(prev => [created, ...prev]);
+    return created;
+  };
+
+  const updateOutreach = async (id: string, updates: Partial<Outreach>) => {
+    const current = outreaches.find(o => o.id === id);
+    if (!current) return;
+    const today = new Date().toISOString().split("T")[0];
+    const dbUpdates: any = {};
+    if (updates.contactId !== undefined) dbUpdates.contact_id = updates.contactId;
+    if (updates.targetCompanyId !== undefined) dbUpdates.target_company_id = updates.targetCompanyId;
+    if (updates.jobId !== undefined) dbUpdates.job_id = updates.jobId || null;
+    if (updates.outcome !== undefined) dbUpdates.outcome = updates.outcome || null;
+    if (updates.goal !== undefined) dbUpdates.goal = updates.goal || null;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
+    if (updates.nextStepDate !== undefined) dbUpdates.next_step_date = updates.nextStepDate || null;
+    if (updates.nextStepLabel !== undefined) dbUpdates.next_step_label = updates.nextStepLabel || null;
+    if (updates.referralAskedAt !== undefined) dbUpdates.referral_asked_at = updates.referralAskedAt || null;
+    if (updates.referralMadeAt !== undefined) dbUpdates.referral_made_at = updates.referralMadeAt || null;
+    if (updates.closedAt !== undefined) dbUpdates.closed_at = updates.closedAt || null;
+
+    if (updates.stage !== undefined && updates.stage !== current.stage) {
+      dbUpdates.stage = updates.stage;
+      // Auto-stamp milestones when advancing into them.
+      if ((updates.stage === "referral_asked" || updates.stage === "referral_made" || updates.stage === "closed")
+          && !current.referralAskedAt && updates.referralAskedAt === undefined) {
+        dbUpdates.referral_asked_at = today;
+      }
+      if ((updates.stage === "referral_made" || updates.stage === "closed")
+          && !current.referralMadeAt && updates.referralMadeAt === undefined) {
+        dbUpdates.referral_made_at = today;
+      }
+      if (updates.stage === "closed" && !current.closedAt && updates.closedAt === undefined) {
+        dbUpdates.closed_at = today;
+      }
+      // Clear closed_at if moving back out of closed
+      if (updates.stage !== "closed" && current.closedAt) {
+        dbUpdates.closed_at = null;
+        dbUpdates.outcome = null;
+      }
+    }
+
+    const { data } = await supabase.from("outreaches").update(dbUpdates).eq("id", id).select().single();
+    if (data) setOutreaches(prev => prev.map(o => o.id === id ? mapOutreach(data) : o));
+  };
+
+  const deleteOutreach = async (id: string) => {
+    await supabase.from("outreaches").delete().eq("id", id);
+    setOutreaches(prev => prev.filter(o => o.id !== id));
+  };
+
+  const getOutreachesForContact = (contactId: string) => outreaches.filter(o => o.contactId === contactId);
+  const getOutreachesForJob = (jobId: string) => outreaches.filter(o => o.jobId === jobId);
+  const getOutreachesForTargetCompany = (targetCompanyId: string) =>
+    outreaches.filter(o => o.targetCompanyId === targetCompanyId);
+
   // === HELPERS ===
   const getJobsByStatus = (status: JobStatus) => jobs.filter(j => j.status === status);
   const getContactForJob = (contactId?: string) => contacts.find(c => c.id === contactId);
   const getInterviewsForJob = (jobId: string) => interviews.filter(i => i.jobId === jobId);
 
   return {
-    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, jobActivities, targetCompanies, loading,
+    jobs, contacts, interviews, jobContacts, contactConnections, contactActivities, campaigns, contactCampaigns, recommendationRequests, jobActivities, targetCompanies, outreaches, loading,
     addJob, addJobsBulk, updateJobStatus, updateJob, deleteJob,
     addContact, addContactsBulk, updateContact, deleteContact,
     addInterview, updateInterview, deleteInterview,
@@ -701,6 +814,7 @@ export function useJobTrackerStore() {
     addRecommendationRequest, updateRecommendationRequest, deleteRecommendationRequest, getRecommendationRequestsForContact,
     addJobActivity, deleteJobActivity, getJobActivitiesForJob,
     addTargetCompany, updateTargetCompany, deleteTargetCompany, isTargetCompany, getTargetCompanyMatch, mergeTargetCompanies,
+    addOutreach, updateOutreach, deleteOutreach, getOutreachesForContact, getOutreachesForJob, getOutreachesForTargetCompany,
     getJobsByStatus, getContactForJob, getInterviewsForJob,
   };
 }
