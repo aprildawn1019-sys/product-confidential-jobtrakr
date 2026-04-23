@@ -18,6 +18,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useHelp } from "@/components/help/HelpProvider";
 import type { Contact, Interview, Job, TargetCompany } from "@/types/jobTracker";
 
+// Light-pane variant: white tile + navy/amber K. Sits on the page card
+// surface so the onboarding screen carries the same lockup as the sidebar
+// (which uses the dark-pane variant on navy). See `mem://style/brand-mark`.
+import koudouMarkSrc from "@/assets/brand/marks/koudou-mark-light.png";
+
 interface GettingStartedProps {
   jobs?: Job[];
   contacts?: Contact[];
@@ -173,6 +178,20 @@ export default function GettingStarted({
         <div className="relative overflow-hidden bg-gradient-to-br from-background via-card to-accent/10 p-6 sm:p-8 lg:p-10">
           <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-gradient-to-l from-primary/5 to-transparent lg:block" />
           <div className="relative max-w-3xl">
+            {/* Brand lockup mirrors the sidebar so the onboarding hero
+                reads as part of the same product chrome, not a detached
+                marketing splash. Wordmark uses Space Grotesk 700 with the
+                same leading-none + pt-0.5 optical alignment as AppSidebar. */}
+            <div className="mb-5 flex items-center gap-2.5">
+              <img
+                src={koudouMarkSrc}
+                alt="Koudou"
+                className="h-9 w-9 shrink-0"
+              />
+              <span className="font-display text-xl font-bold leading-none tracking-tight text-foreground pt-0.5">
+                Koudou
+              </span>
+            </div>
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="gap-1.5 border-accent/40 bg-accent/10 text-accent-foreground">
                 <Sparkles className="h-3 w-3" /> Getting Started
