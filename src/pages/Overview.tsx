@@ -313,7 +313,7 @@ export default function Overview({
                 <div className="flex items-center justify-center gap-2 text-xs">
                   <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="uppercase tracking-wider font-medium text-muted-foreground">
-                    Avg time to interview
+                    Median time to interview
                   </span>
                   {pipelineByLane.medianDaysToInterview === null ? (
                     <span className="text-muted-foreground">— No interviews yet</span>
