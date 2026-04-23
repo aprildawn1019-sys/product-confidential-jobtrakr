@@ -68,8 +68,8 @@ src/assets/brand/
   - On a **light** surface (off-white app canvas, white card): use **`koudou-mark-dark.png`** — the navy tile pops off the white.
   - In `BrandMark`, pass `surface="dark"` when *the surface is dark* and the component will load the correct (light-tile) asset for you. Same for `surface="light"`. Never pick the filename directly at the call site.
 - Mixing variants (dark mark on dark surface, light mark on light surface) collapses contrast and the mark disappears — this is the failure mode the rule prevents.
-- Always render via `<img src={...} alt="Koudou" />`. Do **not** rebuild as inline SVG.
-- Do **not** wrap the mark in another tile — the painted tile is part of the asset.
+- Always render via `BrandMark` (which wraps `<img>`). Do **not** rebuild as inline SVG, and do **not** import the PNG directly — the component owns the surface-mapping and tile-radius rules.
+- **Tile shape is always a rounded square, never a hard square.** Corner radius is component-owned (size-proportional via Tailwind `rounded`/`rounded-md`/`rounded-lg`) so every surface reads consistently. Source PNGs are intentionally full-bleed flat-color tiles; the rounded clip is applied in CSS so we can re-tune the radius without re-exporting assets.
 - The amber lower arm is invariant — it's the "forward motion" cue. Do not recolor.
 
 ## Spec images = binding UX reference
