@@ -266,7 +266,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           carries internal padding. */}
       <div className="flex h-16 items-center gap-2.5 px-4">
         <BrandMark size="md" surface="dark" />
-        <span className="font-display text-xl font-bold leading-none tracking-tight text-sidebar-foreground pt-0.5">
+        <span className="font-display text-xl font-bold leading-none tracking-tight text-sidebar-primary pt-0.5">
           Koudou
         </span>
       </div>
