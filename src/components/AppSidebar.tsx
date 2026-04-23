@@ -353,96 +353,97 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         })}
       </nav>
 
-      {/* Footer: identity row anchored left, utility icons right.
-          All three controls share the same muted-outline vocabulary —
-          no filled tiles, no container background. Alignment is driven
-          by an identical 32px square box per control. */}
-      <div className="border-t border-sidebar-border px-3 py-3">
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <Tooltip delayDuration={150}>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-sidebar-border/60 text-sidebar-muted transition-colors hover:border-sidebar-border hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-primary/40"
-                    aria-label={`Account menu for ${user.name}`}
-                  >
-                    <span className="font-display text-[10px] font-semibold leading-none tracking-[0.06em]">
-                      {user.initials}
-                    </span>
-                  </button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="top">{user.name}</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent side="top" align="start" className="w-56">
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-medium truncate">{user.name}</p>
-                {user.email && user.email !== user.name && (
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                )}
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => { handleNavClick(); window.location.href = "/settings/profile"; }}>
-                <Settings className="h-4 w-4 mr-2" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleRestartTour}>
-                <PlayCircle className="h-4 w-4 mr-2" />
-                Restart walkthrough
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      {/* Footer (per spec-sidebar-v2): vertical stack of labeled utility
+          rows — Profile, Settings, Help — followed by the identity row
+          (avatar + name) at the very bottom. Utility rows mirror the
+          primary-nav row vocabulary (icon + label, hover lifts to
+          sidebar-accent/50) but use a quieter weight so they don't
+          compete with primary navigation. */}
+      <div className="border-t border-sidebar-border px-3 py-3 space-y-0.5">
+        <NavLink
+          to="/settings/profile"
+          onClick={handleNavClick}
+          className={({ isActive }) =>
+            cn(
+              "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors",
+              isActive
+                ? "bg-sidebar-accent text-sidebar-foreground [&_svg]:text-sidebar-foreground"
+                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+            )
+          }
+        >
+          <UserIcon className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+          Profile
+        </NavLink>
 
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-medium text-sidebar-foreground" title={user.name}>
-              {user.name}
-            </p>
-          </div>
+        <NavLink
+          to="/settings"
+          end
+          onClick={handleNavClick}
+          className={({ isActive }) =>
+            cn(
+              "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors",
+              isActive || (location.pathname.startsWith("/settings") && !location.pathname.startsWith("/settings/profile"))
+                ? "bg-sidebar-accent text-sidebar-foreground [&_svg]:text-sidebar-foreground"
+                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+            )
+          }
+        >
+          <Cog className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+          Settings
+        </NavLink>
 
-          <div className="flex items-center">
-            <Tooltip delayDuration={150}>
-              <TooltipTrigger asChild>
-                <NavLink
-                  to="/settings"
-                  end
-                  onClick={handleNavClick}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-primary/40",
-                      isActive || location.pathname.startsWith("/settings")
-                        ? "text-sidebar-foreground"
-                        : "text-sidebar-muted hover:text-sidebar-foreground"
-                    )
-                  }
-                  aria-label="Settings"
-                >
-                  <Cog className="h-4 w-4" strokeWidth={1.75} />
-                </NavLink>
-              </TooltipTrigger>
-              <TooltipContent side="top">Settings</TooltipContent>
-            </Tooltip>
+        <button
+          type="button"
+          onClick={() => { handleNavClick(); openHelp(); }}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-1.5 text-sm text-sidebar-muted transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+        >
+          <CircleHelp className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+          Help
+        </button>
 
-            <Tooltip delayDuration={150}>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={() => { handleNavClick(); openHelp(); }}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sidebar-muted transition-colors hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-primary/40"
-                  aria-label="Help"
-                >
-                  <CircleHelp className="h-4 w-4" strokeWidth={1.75} />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Help</TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
+        {/* Identity row — avatar + name, anchored at the very bottom.
+            DropdownMenu trigger wraps the full row so name + avatar both
+            open the account menu (matches spec affordance). */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="mt-1 flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-sidebar-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-primary/40"
+              aria-label={`Account menu for ${user.name}`}
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[11px] font-semibold text-sidebar-primary-foreground">
+                {user.initials}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-xs font-medium text-sidebar-foreground" title={user.name}>
+                  {user.name}
+                </span>
+              </span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start" className="w-56">
+            <div className="px-2 py-1.5">
+              <p className="text-sm font-medium truncate">{user.name}</p>
+              {user.email && user.email !== user.name && (
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              )}
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => { handleNavClick(); window.location.href = "/settings/profile"; }}>
+              <Settings className="h-4 w-4 mr-2" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleRestartTour}>
+              <PlayCircle className="h-4 w-4 mr-2" />
+              Restart walkthrough
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </>
   );
