@@ -373,7 +373,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors",
               isActive
                 ? "bg-sidebar-accent text-sidebar-foreground [&_svg]:text-sidebar-foreground"
-                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                : "text-sidebar-muted [&_svg]:text-sidebar-primary/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-foreground"
             )
           }
         >
@@ -390,7 +390,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
               "flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors",
               isActive || (location.pathname.startsWith("/settings") && !location.pathname.startsWith("/settings/profile"))
                 ? "bg-sidebar-accent text-sidebar-foreground [&_svg]:text-sidebar-foreground"
-                : "text-sidebar-muted hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                : "text-sidebar-muted [&_svg]:text-sidebar-primary/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-foreground"
             )
           }
         >
@@ -401,7 +401,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         <button
           type="button"
           onClick={() => { handleNavClick(); openHelp(); }}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-1.5 text-sm text-sidebar-muted transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-1.5 text-sm text-sidebar-muted [&_svg]:text-sidebar-primary/80 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground hover:[&_svg]:text-sidebar-foreground"
         >
           <CircleHelp className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
           Help
