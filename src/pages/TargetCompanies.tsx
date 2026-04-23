@@ -22,6 +22,7 @@ import { getCoverageInfo, coverageGapComparator, COVERAGE_LABELS, type CoverageS
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact, NetworkRole } from "@/types/jobTracker";
 import { pillClass, type PillTone } from "@/lib/pillStyles";
+import PillLegend, { COVERAGE_LEGEND } from "@/components/PillLegend";
 
 interface TargetCompaniesProps {
   targetCompanies: TargetCompany[];
