@@ -3,6 +3,7 @@ import {
   LayoutDashboard, Briefcase, Users, Search, Globe, LogOut, CalendarDays,
   ChevronDown, ChevronRight, TrendingUp, Star, FileText, Settings, Cog, Network,
   Sparkles, PlayCircle, CircleHelp, BarChart3, FileStack, LucideIcon, PanelLeftClose, PanelLeft,
+  User as UserIcon,
 } from "lucide-react";
 import { useHelp } from "@/components/help/HelpProvider";
 import { NavLink, useLocation } from "react-router-dom";
