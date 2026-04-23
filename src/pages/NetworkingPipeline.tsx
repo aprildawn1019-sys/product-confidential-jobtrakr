@@ -3,13 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Plus, ExternalLink, Building2, Briefcase, Calendar, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ContactAvatar } from "@/components/ContactAvatar";
+import ContactAvatar from "@/components/ContactAvatar";
 import { pillClass } from "@/lib/pillStyles";
 import { cn } from "@/lib/utils";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { Contact, Job, TargetCompany } from "@/types/jobTracker";
 import type { Outreach, OutreachStage } from "@/types/outreach";
-import { OUTREACH_STAGES, OUTREACH_STAGE_LABEL } from "@/types/outreach";
+import { OUTREACH_STAGE_LABEL } from "@/types/outreach";
 import OutreachDialog from "@/components/networking/OutreachDialog";
 
 interface NetworkingPipelineProps {
