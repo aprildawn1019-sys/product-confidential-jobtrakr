@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { statusStyles, statusToneMap, statusLabels } from "@/components/StatusBadge";
+import { statusToneMap, statusLabels } from "@/components/StatusBadge";
 import { pillDotClass, pillTriggerClass } from "@/lib/pillStyles";
 import type { JobStatus } from "@/types/jobTracker";
 
@@ -28,7 +28,6 @@ export default function StatusSelect({ value, onValueChange, className }: Status
         )}
       >
         <SelectValue />
-      </SelectTrigger>
       </SelectTrigger>
       <SelectContent>
         {allStatuses.map((s) => (
