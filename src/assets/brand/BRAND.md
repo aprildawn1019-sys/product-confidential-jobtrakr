@@ -12,8 +12,8 @@ Anything inside `src/assets/_archive/` is historical exploration — do **not** 
 src/assets/brand/
 ├── BRAND.md                  ← you are here
 ├── marks/
-│   ├── koudou-mark-light.png ← navy tile · white K · amber lower arm  (use on LIGHT surfaces)
-│   └── koudou-mark-dark.png  ← white tile · navy K · amber lower arm  (use on the navy SIDEBAR)
+│   ├── koudou-mark-light.png ← LIGHT tile (white) · navy K · amber lower arm  → use on DARK surfaces (navy sidebar, dark hero)
+│   └── koudou-mark-dark.png  ← DARK  tile (navy)  · white K · amber lower arm  → use on LIGHT surfaces (off-white app canvas, white cards)
 └── spec/                     ← canonical UX reference images. Re-read before redesigning a surface.
     ├── dashboard-mockup.jpg          (Command Center hero)
     ├── spec-command-center-v2.jpg
@@ -23,7 +23,7 @@ src/assets/brand/
     └── spec-contacts-v2.jpg
 ```
 
-`public/favicon.png` is a copy of `marks/koudou-mark-light.png` — keep them in sync.
+`public/favicon.png` is a copy of `marks/koudou-mark-dark.png` — keep them in sync (the favicon sits on a light browser-tab background).
 
 ---
 
@@ -63,7 +63,11 @@ src/assets/brand/
 
 ## Mark usage
 
-- Pick the variant by **surface contrast**, not preference: dark variant on dark surfaces, light variant on light. Mixing them collapses contrast and the mark disappears.
+- **Contrast rule (binding):** pick the variant by **inverted-contrast** to the surface, not by filename intuition.
+  - On a **dark** surface (navy sidebar, dark hero): use **`koudou-mark-light.png`** — the white tile pops off the navy.
+  - On a **light** surface (off-white app canvas, white card): use **`koudou-mark-dark.png`** — the navy tile pops off the white.
+  - In `BrandMark`, pass `surface="dark"` when *the surface is dark* and the component will load the correct (light-tile) asset for you. Same for `surface="light"`. Never pick the filename directly at the call site.
+- Mixing variants (dark mark on dark surface, light mark on light surface) collapses contrast and the mark disappears — this is the failure mode the rule prevents.
 - Always render via `<img src={...} alt="Koudou" />`. Do **not** rebuild as inline SVG.
 - Do **not** wrap the mark in another tile — the painted tile is part of the asset.
 - The amber lower arm is invariant — it's the "forward motion" cue. Do not recolor.
