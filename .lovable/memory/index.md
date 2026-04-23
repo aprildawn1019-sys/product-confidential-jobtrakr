@@ -13,6 +13,7 @@ Updated: now
 - Supabase Auth (registrations disabled by default). Gemini AI for edge functions.
 - Terminology: Priority (Low/Medium/High, NEVER critical), Match Score (manual 1-5 stars).
 - CONSTRAINT: Never use AI for match scoring. The user explicitly declined this.
+- ICONOGRAPHY: `Sparkles` icon is reserved for AI features ONLY (AI section headers, "Generate with AI" buttons, AI badges). Never use it for per-item content, generic strategy, or decoration. Per-item icons must be domain-appropriate; fallback is `Lightbulb`.
 - No third-party scraping services. Use Edge Function + Gemini for scraping.
 - Exclude gated job boards from auto-searches; use manual check workflow.
 - Branding: 'Koudou — Your Job Search Command Center'. Tagline: "From first lead to signed offer. Track the entire funnel." PolyForm Noncommercial 1.0.0.
@@ -21,6 +22,7 @@ Updated: now
 - [Brand Assets Lockdown](mem://style/brand-assets-lockdown) — src/assets/brand/{marks,spec,BRAND.md} canonical; _archive/ off-limits
 - [Brand Mark](mem://style/brand-mark) — Geometric K (white upper / amber lower arm), single PNG asset for sidebar + landing + favicon
 - [Visual Theme v2 (BINDING)](mem://style/visual-theme-v2) — Calm Operations spec; lists every spec asset and the rules they encode
+- [Iconography](mem://style/iconography) — Sparkles is AI-only; per-category icon registry (outreach/applications/follow-up/preparation/strategy)
 - [Command Center & Dashboard](mem://features/dashboard-analytics) — Layout rules anchored to dashboard-mockup.jpg
 - [Sidebar IA & Surfaces](mem://features/sidebar-ia) — TODAY/PIPELINE/LIBRARY/INSIGHTS, /insights rename, Resumes versioning, Settings tabbed hub
 - [Visual Theme (legacy)](mem://style/visual-theme) — Earlier Linear/Notion notes; superseded by visual-theme-v2
