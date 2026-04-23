@@ -260,7 +260,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           leading-none + pt-0.5 optically centers the wordmark against the mark, which
           carries internal padding. */}
       <div className="flex h-16 items-center gap-2.5 px-4">
-        <BrandMark className="h-9 w-9" />
+        <BrandMark size="md" surface="dark" />
         <span className="font-display text-xl font-bold leading-none tracking-tight text-sidebar-foreground pt-0.5">
           Koudou
         </span>
