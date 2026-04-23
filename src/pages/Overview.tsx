@@ -26,23 +26,35 @@ interface OverviewProps {
 }
 
 /**
- * Placeholder bucket for the three lanes used elsewhere in the app.
- * Final response-rate formulas pending — see TODO in component.
+ * Three lanes of effort. All applications fall into exactly one.
+ *  - referral: ≥1 linked contact AND ≥1 contact_activity for that contact dated ON OR BEFORE applied_date
+ *  - warm:     ≥1 linked contact, but no qualifying pre-apply activity
+ *  - cold:     0 linked contacts
  */
-const LANES = ["referrals", "networking", "applications"] as const;
-type Lane = typeof LANES[number];
-
-const LANE_COLORS: Record<Lane, string> = {
-  referrals: "hsl(var(--success))",
-  networking: "hsl(var(--info))",
-  applications: "hsl(var(--primary))",
-};
+type Lane = "cold" | "warm" | "referral";
 
 const LANE_LABEL: Record<Lane, string> = {
-  referrals: "Referrals",
-  networking: "Networking",
-  applications: "Applications",
+  cold: "Cold",
+  warm: "Warm",
+  referral: "Referral",
 };
+
+const LANE_BG: Record<Lane, string> = {
+  cold: "bg-[hsl(var(--text-tertiary))]",
+  warm: "bg-[hsl(var(--info))]",
+  referral: "bg-[hsl(var(--success))]",
+};
+
+const LANE_DOT: Record<Lane, string> = {
+  cold: "bg-[hsl(var(--text-tertiary))]",
+  warm: "bg-[hsl(var(--info))]",
+  referral: "bg-[hsl(var(--success))]",
+};
+
+const MIN_LANE_N = 5;
+type WindowKey = "30d" | "90d" | "all";
+const WINDOW_DAYS: Record<WindowKey, number | null> = { "30d": 30, "90d": 90, "all": null };
+const WINDOW_LABEL: Record<WindowKey, string> = { "30d": "30 days", "90d": "90 days", "all": "all time" };
 
 function PlaceholderHint({ note }: { note: string }) {
   return (
