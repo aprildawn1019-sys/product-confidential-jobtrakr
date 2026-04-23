@@ -100,6 +100,7 @@ export function WeeklyPlanCard() {
   const [celebrationKey, setCelebrationKey] = useState(0);
   const [didInitialFetch, setDidInitialFetch] = useState(false);
   const { isPinned, toggle: togglePin } = usePinnedPlanActions();
+  const [pinCelebrations, setPinCelebrations] = useState<Record<string, number>>({});
 
   const fetchPlan = useCallback(async (force: boolean) => {
     setLoading(true);
@@ -306,7 +307,8 @@ export function WeeklyPlanCard() {
                     className="group flex items-start gap-3 rounded-md border border-border/60 bg-card p-3 animate-fade-in transition-colors hover:border-border"
                     style={{ animationDelay: `${idx * 80}ms` }}
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
+                    <div className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent overflow-visible">
+                      <CelebrationBurst trigger={pinCelebrations[action.id] ?? 0} color="hsl(var(--accent))" />
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -337,15 +339,19 @@ export function WeeklyPlanCard() {
                                   pinned ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                                 )}
                                 onClick={() => {
+                                  const wasPinned = pinned;
                                   togglePin({
                                     id: action.id,
                                     title: action.title,
                                     rationale: action.rationale,
                                     category: action.category,
                                   });
+                                  if (!wasPinned) {
+                                    setPinCelebrations((prev) => ({ ...prev, [action.id]: (prev[action.id] ?? 0) + 1 }));
+                                  }
                                   toast({
-                                    title: pinned ? "Removed from Command Center" : "Added to Command Center",
-                                    description: pinned
+                                    title: wasPinned ? "Removed from Command Center" : "Added to Command Center",
+                                    description: wasPinned
                                       ? undefined
                                       : "Find it in your Next Steps list.",
                                   });
