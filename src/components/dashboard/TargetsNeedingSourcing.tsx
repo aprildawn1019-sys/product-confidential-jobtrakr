@@ -23,9 +23,11 @@ const STATE_WEIGHT: Record<CoverageState, number> = {
   booster: 0, // never shown
 };
 
-const PRIORITY_LABEL: Record<string, { label: string; className: string }> = {
-  dream: { label: "Dream", className: "bg-success/10 text-success border-success/30" },
-  strong: { label: "Strong", className: "bg-info/10 text-info border-info/30" },
+// Target-company priority on the unified pill family — same tones as
+// `TargetCompanies` page so the dashboard chip matches the source surface.
+const PRIORITY_LABEL: Record<string, { label: string; tone: import("@/lib/pillStyles").PillTone }> = {
+  dream:  { label: "Dream",  tone: "amber-strong" },
+  strong: { label: "Strong", tone: "navy-muted" },
 };
 
 const STATE_META: Record<CoverageState, { label: string; icon: LucideIcon; tone: string }> = {

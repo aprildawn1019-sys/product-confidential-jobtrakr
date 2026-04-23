@@ -27,12 +27,15 @@ const campaignTypes = [
   { value: "other", label: "Other" },
 ];
 
-const statusColors: Record<string, string> = {
-  draft: "bg-muted text-muted-foreground",
-  active: "bg-primary/10 text-primary",
-  paused: "bg-warning/10 text-warning",
-  completed: "bg-success/10 text-success",
-  archived: "bg-muted text-muted-foreground",
+// Campaign workflow status on the unified pill family.
+// active = navy-muted (in motion), paused = amber-soft (warm/holding),
+// completed = amber-strong (warm/closed-positive), draft/archived = slate.
+const statusTones: Record<string, import("@/lib/pillStyles").PillTone> = {
+  draft:     "slate",
+  active:    "navy-muted",
+  paused:    "amber-soft",
+  completed: "amber-strong",
+  archived:  "slate",
 };
 
 export default function CampaignManager({ campaigns, contactCounts, onAdd, onUpdate, onDelete }: CampaignManagerProps) {
