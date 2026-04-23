@@ -249,50 +249,106 @@ export default function Overview({
         </Card>
       )}
 
-      {/* Response rate by lane */}
+      {/* Pipeline by lane */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <CardTitle className="font-display text-base flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                Response rate by lane
+                <GitBranch className="h-4 w-4 text-primary" />
+                Pipeline by lane
               </CardTitle>
               <CardDescription className="text-xs">
-                Share of efforts in each lane that received a response.
+                Where your effort goes vs. where interviews come from.
               </CardDescription>
             </div>
+            <ToggleGroup
+              type="single"
+              size="sm"
+              value={windowKey}
+              onValueChange={(v) => v && setWindowKey(v as WindowKey)}
+              className="h-8"
+            >
+              <ToggleGroupItem value="30d" className="h-7 px-2.5 text-xs">30d</ToggleGroupItem>
+              <ToggleGroupItem value="90d" className="h-7 px-2.5 text-xs">90d</ToggleGroupItem>
+              <ToggleGroupItem value="all" className="h-7 px-2.5 text-xs">All time</ToggleGroupItem>
+            </ToggleGroup>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={responseRateData} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="lane" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-                <YAxis
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                  unit="%"
-                  domain={[0, 100]}
+        <CardContent className="space-y-5">
+          {pipelineByLane.applications.total === 0 ? (
+            <div className="py-10 text-center text-xs text-muted-foreground">
+              No applications in the last {WINDOW_LABEL[windowKey]}.{" "}
+              {windowKey !== "all" && (
+                <button
+                  type="button"
+                  onClick={() => setWindowKey("all")}
+                  className="underline underline-offset-2 hover:text-foreground"
+                >
+                  Switch to All time
+                </button>
+              )}
+              {windowKey !== "all" && " or log an apply date on tracked jobs."}
+            </div>
+          ) : (
+            <>
+              {/* Stacked bars: applications + interviews */}
+              <div className="space-y-3">
+                <LaneBar
+                  label="Applications"
+                  total={pipelineByLane.applications.total}
+                  counts={pipelineByLane.applications}
                 />
-                <RechartsTooltip
-                  contentStyle={{
-                    background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                  formatter={(value: number, _name, item) => [`${value}%`, `${LANE_LABEL[(item.payload as { key: Lane }).key]} · n=${(item.payload as { sample: number }).sample}`]}
+                <LaneBar
+                  label="Interviews"
+                  total={pipelineByLane.interviews.total}
+                  counts={pipelineByLane.interviews}
                 />
-                <Bar dataKey="rate" radius={[6, 6, 0, 0]}>
-                  {responseRateData.map((d) => (
-                    <Cell key={d.key} fill={LANE_COLORS[d.key]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <PlaceholderHint note="Placeholder formula. Referrals = contacts linked to a job/recommendation; Networking = remaining contacts; Applications = applied jobs that progressed past 'applied'. Awaiting your final definitions." />
+              </div>
+
+              {/* Legend */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
+                {(["referral", "warm", "cold"] as Lane[]).map((lane) => (
+                  <div key={lane} className="flex items-center gap-1.5">
+                    <span className={cn("h-2 w-2 rounded-sm", LANE_DOT[lane])} />
+                    <span>{LANE_LABEL[lane]}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Conversion strip */}
+              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-border/60">
+                {(["cold", "warm", "referral"] as Lane[]).map((lane) => {
+                  const apps = pipelineByLane.applications[lane];
+                  const ivs = pipelineByLane.interviews[lane];
+                  const rate = pipelineByLane.conversion[lane];
+                  const sparse = apps < MIN_LANE_N;
+                  return (
+                    <div key={lane} className="space-y-1">
+                      <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                        <span className={cn("h-2 w-2 rounded-sm", LANE_DOT[lane])} />
+                        {LANE_LABEL[lane]}
+                      </div>
+                      <div className="font-display text-2xl font-semibold tabular-nums leading-none">
+                        {sparse ? "—" : `${Math.round(rate * 100)}%`}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground tabular-nums">
+                        {ivs} / {apps} {apps === 1 ? "app" : "apps"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {(["cold", "warm", "referral"] as Lane[]).every(
+                l => pipelineByLane.applications[l] < MIN_LANE_N,
+              ) && (
+                <p className="text-[11px] text-muted-foreground">
+                  Add more applications (≥{MIN_LANE_N} per lane) to unlock lane conversion.
+                </p>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
 
