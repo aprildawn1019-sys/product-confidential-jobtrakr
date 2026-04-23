@@ -18,12 +18,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useHelp } from "@/components/help/HelpProvider";
 import type { Contact, Interview, Job, TargetCompany } from "@/types/jobTracker";
 
-// Two-variant lockup: light-pane on light surfaces, dark-pane on dark.
-// Both render simultaneously and `dark:` utilities toggle visibility so the
-// swap is automatic with the app theme — no flash, no JS state. See
-// `mem://style/brand-mark`: pick variant by surface contrast.
-import koudouMarkLightSrc from "@/assets/brand/marks/koudou-mark-light.png";
-import koudouMarkDarkSrc from "@/assets/brand/marks/koudou-mark-dark.png";
+// Single tokenized brand component handles the light/dark variant swap
+// internally — see `src/components/brand/BrandMark.tsx`.
+import { BrandMark } from "@/components/brand/BrandMark";
 
 interface GettingStartedProps {
   jobs?: Job[];
@@ -185,17 +182,7 @@ export default function GettingStarted({
                 marketing splash. Wordmark uses Space Grotesk 700 with the
                 same leading-none + pt-0.5 optical alignment as AppSidebar. */}
             <div className="mb-5 flex items-center gap-2.5">
-              <img
-                src={koudouMarkLightSrc}
-                alt="Koudou"
-                className="h-9 w-9 shrink-0 dark:hidden"
-              />
-              <img
-                src={koudouMarkDarkSrc}
-                alt=""
-                aria-hidden="true"
-                className="hidden h-9 w-9 shrink-0 dark:block"
-              />
+              <BrandMark size="md" />
               <span className="font-display text-xl font-bold leading-none tracking-tight text-foreground pt-0.5">
                 Koudou
               </span>

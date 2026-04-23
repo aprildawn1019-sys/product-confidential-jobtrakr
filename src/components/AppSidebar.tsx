@@ -17,21 +17,11 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Brand lockup: geometric-K mark paired with the "Koudou" wordmark.
-// We use the DARK-pane variant (white tile, navy upper arm, amber lower
-// arm) so the mark stays high-contrast against the navy sidebar background
-// — see `mem://style/brand-mark`.
-import koudouMarkSrc from "@/assets/brand/marks/koudou-mark-dark.png";
-// The painted tile (white squircle on navy) is part of the dark-pane asset
-// itself — do NOT wrap in another tile or add a `rounded-*` class on the
-// <img>, since the asset already carries its own corners. See BRAND.md
-// "Mark usage" + visual-theme-v2 anti-patterns.
-const BrandMark = ({ className }: { className?: string }) => (
-  <img
-    src={koudouMarkSrc}
-    alt="Koudou"
-    className={cn("shrink-0", className)}
-  />
-);
+// The sidebar is permanently navy, so we force the DARK-pane variant via
+// `surface="dark"` regardless of the user's color-scheme preference.
+// Sizing is token-driven (`size="lg"` collapsed, `size="md"` expanded) —
+// never pass `h-*`/`w-*` here. See `src/components/brand/BrandMark.tsx`.
+import { BrandMark } from "@/components/brand/BrandMark";
 
 // Deterministic 2-letter initials from a name or email.
 function initialsOf(label: string): string {
@@ -175,7 +165,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
     return (
       <>
         <div className="flex h-16 items-center justify-center">
-          <BrandMark className="h-10 w-10" />
+          <BrandMark size="lg" surface="dark" />
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Primary">
@@ -270,7 +260,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           leading-none + pt-0.5 optically centers the wordmark against the mark, which
           carries internal padding. */}
       <div className="flex h-16 items-center gap-2.5 px-4">
-        <BrandMark className="h-9 w-9" />
+        <BrandMark size="md" surface="dark" />
         <span className="font-display text-xl font-bold leading-none tracking-tight text-sidebar-foreground pt-0.5">
           Koudou
         </span>
