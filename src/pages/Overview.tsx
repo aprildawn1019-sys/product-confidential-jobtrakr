@@ -11,6 +11,7 @@ import type {
 } from "@/types/jobTracker";
 import { parseLocalDate } from "@/lib/localDate";
 import { WeeklyPlanCard } from "@/components/insights/WeeklyPlanCard";
+import { PipelineLaneFunnel } from "@/components/insights/PipelineLaneFunnel";
 
 interface OverviewProps {
   jobs: Job[];
