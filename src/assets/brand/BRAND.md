@@ -104,3 +104,40 @@ The files in `spec/` are the canonical reference for layout, density, type scale
 - `_archive/concepts/` — generative concept variants (rising arc, road horizon, twin rails, etc.). None became the final mark.
 
 If you find yourself wanting to import from `_archive/`, stop and reconsider — the answer is in `marks/` or `spec/`.
+
+## Favicons & app icons
+
+The favicon suite in `public/` is generated from the same two canonical mark masters in `marks/` — never hand-paint a favicon. The browser-tab favicon is **adaptively themed** so the mark always renders in inverted contrast against the browser chrome (same rule as in-app surfaces).
+
+### Locked icon set
+
+| File                          | Size              | Variant                          | Purpose                                           |
+|-------------------------------|-------------------|----------------------------------|---------------------------------------------------|
+| `public/favicon.ico`          | multi (16/32/48)  | dark-tile (navy)                 | Legacy fallback for older browsers                |
+| `public/favicon-16.png`       | 16×16             | dark-tile (navy)                 | Browser tab (small)                               |
+| `public/favicon-32.png`       | 32×32             | dark-tile (navy)                 | Browser tab (retina)                              |
+| `public/favicon-light.png`    | 32×32             | dark-tile (navy on white)        | Used when browser chrome is **light**             |
+| `public/favicon-dark.png`     | 32×32             | light-tile (white tile, navy K)  | Used when browser chrome is **dark**              |
+| `public/apple-touch-icon.png` | 180×180           | dark-tile (navy)                 | iOS home screen                                   |
+| `public/icon-192.png`         | 192×192           | dark-tile (navy)                 | PWA / Android home screen                         |
+| `public/icon-512.png`         | 512×512           | dark-tile (navy)                 | PWA splash                                        |
+| `public/favicon.png`          | 512×512           | dark-tile (navy)                 | Generic fallback (kept in sync with `icon-512.png`) |
+
+### Adaptive theming (binding)
+
+- `index.html` wires the 32px favicons with `media="(prefers-color-scheme: dark)"` and `media="(prefers-color-scheme: light)"` so Safari/Firefox swap variants automatically as the user toggles OS theme.
+- The contrast rule is **identical** to the in-app rule from "Mark usage": **dark browser chrome → light-tile mark; light browser chrome → dark-tile mark.** The chrome is the surface; the mark inverts against it.
+- **Never collapse to a single favicon variant.** That re-introduces the "mark disappears against matching surface" failure mode (e.g. a dark-tile favicon vanishes into Safari's dark tab strip).
+- iOS / PWA / Android icons (`apple-touch-icon`, `icon-192`, `icon-512`) intentionally use **only the dark-tile variant** — home-screen backgrounds vary too much to media-query, and the navy tile reads cleanly on every wallpaper we tested.
+
+### Regeneration recipe
+
+If you ever need to rebuild the suite (e.g. after the K is redrawn), follow this order — do not skip steps, and do not reorder them:
+
+1. Hand-author / update `marks/koudou-mark-light.png` (light-tile master, K at 72% bbox height — see "Mark geometry").
+2. Run the per-pixel color-swap (see `.lovable/memory/style/brand-mark.md`) to produce `marks/koudou-mark-dark.png` (dark-tile sibling). Use the strict edge classifier so amber pixels don't bleed.
+3. Downscale **both** masters with **LANCZOS** to produce the 16 / 32 / 180 / 192 / 512 PNGs above. Use the **dark-tile master for everything except `favicon-dark.png`**, which uses the light-tile master.
+4. Build `favicon.ico` as a multi-resolution bundle (16 / 32 / 48) from the dark-tile master.
+5. Copy the 512px dark-tile output to `public/favicon.png` to keep the generic fallback in sync with `icon-512.png`.
+
+LANCZOS is non-negotiable at small sizes — bilinear/bicubic blurs the K's legs at 16px and the mark loses its identity.
