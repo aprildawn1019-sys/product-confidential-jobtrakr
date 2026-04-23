@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { ArrowLeft, GitBranch, LineChart as LineIcon, Activity, Info, Clock } from "lucide-react";
+import { ArrowLeft, GitBranch, LineChart as LineIcon, Info, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import type {
   Job, Contact, Interview, ContactActivity, JobContact, RecommendationRequest,
 } from "@/types/jobTracker";
-import { differenceInCalendarDays, parseISO, startOfWeek, format } from "date-fns";
+import { parseISO, startOfWeek, format } from "date-fns";
 import { parseLocalDate } from "@/lib/localDate";
 
 interface OverviewProps {
@@ -202,36 +202,6 @@ export default function Overview({
 
     return { applications: apps, interviews: ivs, conversion, medianDaysToInterview };
   }, [jobs, jobContacts, contactActivities, interviews, windowKey]);
-
-  // ---------- Time to first interview (PLACEHOLDER) ----------
-  // TODO(metric): Replace with the agreed formula once provided.
-  // Current stub: per-job days from job.appliedDate to the earliest scheduled interview.date.
-  const timeToFirstInterview = useMemo(() => {
-    const rows: { jobLabel: string; days: number }[] = [];
-    for (const j of jobs) {
-      if (!j.appliedDate) continue;
-      const jobInterviews = interviews
-        .filter(i => i.jobId === j.id)
-        .map(i => {
-          try { return parseISO(i.date).getTime(); } catch { return NaN; }
-        })
-        .filter(t => !isNaN(t))
-        .sort((a, b) => a - b);
-      if (jobInterviews.length === 0) continue;
-      const applied = parseISO(j.appliedDate);
-      if (isNaN(applied.getTime())) continue;
-      const days = Math.max(0, differenceInCalendarDays(new Date(jobInterviews[0]), applied));
-      rows.push({ jobLabel: `${j.company} · ${j.title}`.slice(0, 30), days });
-    }
-    rows.sort((a, b) => b.days - a.days);
-    return rows.slice(0, 10);
-  }, [jobs, interviews]);
-
-  const avgTimeToFirstInterview = useMemo(() => {
-    if (timeToFirstInterview.length === 0) return null;
-    const sum = timeToFirstInterview.reduce((acc, r) => acc + r.days, 0);
-    return Math.round(sum / timeToFirstInterview.length);
-  }, [timeToFirstInterview]);
 
   // ---------- Weekly velocity (PLACEHOLDER) ----------
   // TODO(metric): Replace with the agreed formula once provided.
@@ -436,69 +406,6 @@ export default function Overview({
               </div>
             </>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Time to first interview */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-              <CardTitle className="font-display text-base flex items-center gap-2">
-                <Activity className="h-4 w-4 text-warning" />
-                Time to first interview
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Days from application to the earliest scheduled interview, per job.
-              </CardDescription>
-            </div>
-            {avgTimeToFirstInterview !== null && (
-              <Badge variant="secondary" className="text-xs">
-                Avg {avgTimeToFirstInterview} day{avgTimeToFirstInterview === 1 ? "" : "s"}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {timeToFirstInterview.length === 0 ? (
-            <div className="py-10 text-center text-xs text-muted-foreground">
-              No applied jobs with scheduled interviews yet.
-            </div>
-          ) : (
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={timeToFirstInterview}
-                  layout="vertical"
-                  margin={{ top: 8, right: 12, bottom: 8, left: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                  <XAxis
-                    type="number"
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                    unit="d"
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="jobLabel"
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                    width={140}
-                  />
-                  <RechartsTooltip
-                    contentStyle={{
-                      background: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: 8,
-                      fontSize: 12,
-                    }}
-                    formatter={(v: number) => [`${v} day${v === 1 ? "" : "s"}`, "Days to first interview"]}
-                  />
-                  <Bar dataKey="days" fill="hsl(var(--warning))" radius={[0, 6, 6, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-          <PlaceholderHint note="Placeholder formula: per job, max(0, days from job.appliedDate to earliest interview.date). Top 10 longest shown. Awaiting your final definition (e.g. include withdrawn? exclude rejections?)." />
         </CardContent>
       </Card>
 
