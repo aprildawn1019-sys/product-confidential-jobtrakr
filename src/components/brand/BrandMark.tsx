@@ -26,15 +26,36 @@ import koudouMarkDarkSrc from "@/assets/brand/marks/koudou-mark-dark.png";
  * | token | px      | used on                                              |
  * |-------|---------|------------------------------------------------------|
  * | `sm`  | 20×20   | Landing footer                                       |
- * | `md`  | 36×36   | Sidebar (expanded), Landing nav, Getting Started hero|
- * | `lg`  | 40×40   | Sidebar (collapsed)                                  |
+ * | `md`  | 36×36   | Sidebar (expanded), Landing nav, Getting Started hero (mobile) |
+ * | `lg`  | 40×40   | Sidebar (collapsed), Getting Started hero (≥sm)      |
  *
  * If a new surface needs a different size, add a token here — do NOT add an
  * inline `className="h-..."` at the call site.
+ *
+ * ## Crispness contract
+ * Source PNGs are 1024×1024 (well above the largest rendered token × 3× DPR
+ * = 120 device px), so a single `src` is enough — no per-DPR `srcset` files
+ * are required. To keep that headroom honest we:
+ *
+ * - Set explicit `width`/`height` attributes equal to the CSS-pixel size,
+ *   so the browser allocates the exact intrinsic box and never has to guess
+ *   on a fractional pixel boundary (which is what produces the "scaling
+ *   blur" artifact users perceive).
+ * - Add `decoding="async"` + `loading="eager"` for above-the-fold paint.
+ * - Add `srcSet` declaring the asset's intrinsic resolution density (`3x`
+ *   relative to our largest 40-px token) so the browser knows it has spare
+ *   pixels and can downsample with high-quality resampling instead of
+ *   bilinear stretching from an undersized source.
  */
 
 type BrandMarkSize = "sm" | "md" | "lg";
 type BrandMarkSurface = "auto" | "light" | "dark";
+
+const SIZE_PX: Record<BrandMarkSize, number> = {
+  sm: 20,
+  md: 36,
+  lg: 40,
+};
 
 const SIZE_CLASSES: Record<BrandMarkSize, string> = {
   sm: "h-5 w-5",
@@ -52,6 +73,41 @@ interface BrandMarkProps {
   className?: string;
 }
 
+interface MarkImgProps {
+  src: string;
+  alt: string;
+  ariaHidden?: boolean;
+  size: BrandMarkSize;
+  className?: string;
+}
+
+/**
+ * Internal renderer. Centralizes the crispness attributes so we never ship
+ * an `<img>` of the brand mark without intrinsic dimensions + DPR-aware
+ * srcSet, regardless of which surface variant is rendered.
+ */
+function MarkImg({ src, alt, ariaHidden, size, className }: MarkImgProps) {
+  const px = SIZE_PX[size];
+  return (
+    <img
+      src={src}
+      // Single high-res source declared at 3× the largest size token. Tells
+      // the browser this asset has DPR headroom so it picks high-quality
+      // downsampling on retina/3× displays instead of bilinear-blurring from
+      // an undersized bitmap. (Source PNGs are 1024², far above this floor.)
+      srcSet={`${src} 3x`}
+      width={px}
+      height={px}
+      alt={alt}
+      aria-hidden={ariaHidden ? "true" : undefined}
+      decoding="async"
+      loading="eager"
+      draggable={false}
+      className={cn("shrink-0", className)}
+    />
+  );
+}
+
 export function BrandMark({
   size = "md",
   surface = "auto",
@@ -61,20 +117,22 @@ export function BrandMark({
 
   if (surface === "light") {
     return (
-      <img
+      <MarkImg
         src={koudouMarkLightSrc}
         alt="Koudou"
-        className={cn("shrink-0", sizeCls, className)}
+        size={size}
+        className={cn(sizeCls, className)}
       />
     );
   }
 
   if (surface === "dark") {
     return (
-      <img
+      <MarkImg
         src={koudouMarkDarkSrc}
         alt="Koudou"
-        className={cn("shrink-0", sizeCls, className)}
+        size={size}
+        className={cn(sizeCls, className)}
       />
     );
   }
@@ -83,16 +141,18 @@ export function BrandMark({
   // owns the alt text; the dark variant is decorative duplicate content.
   return (
     <>
-      <img
+      <MarkImg
         src={koudouMarkLightSrc}
         alt="Koudou"
-        className={cn("shrink-0 dark:hidden", sizeCls, className)}
+        size={size}
+        className={cn("dark:hidden", sizeCls, className)}
       />
-      <img
+      <MarkImg
         src={koudouMarkDarkSrc}
         alt=""
-        aria-hidden="true"
-        className={cn("hidden shrink-0 dark:block", sizeCls, className)}
+        ariaHidden
+        size={size}
+        className={cn("hidden dark:block", sizeCls, className)}
       />
     </>
   );
