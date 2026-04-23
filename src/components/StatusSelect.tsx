@@ -13,8 +13,8 @@ interface StatusSelectProps {
 }
 
 export default function StatusSelect({ value, onValueChange, className }: StatusSelectProps) {
-  const tone = statusToneMap[value as JobStatus];
-  const config = statusStyles[value as JobStatus];
+  const status = value as JobStatus;
+  const tone = statusToneMap[status];
 
   return (
     <Select value={value} onValueChange={onValueChange}>
@@ -23,11 +23,12 @@ export default function StatusSelect({ value, onValueChange, className }: Status
           // Pill-trigger recipe — same tone wash as the resting pill so the
           // trigger reads as the pill itself, not a separate control wrapper.
           tone ? pillTriggerClass(tone) : "rounded-full border h-7 min-w-[100px] px-2.5 text-[11px] uppercase tracking-wider",
-          config?.label?.toLowerCase() === "closed" && "line-through",
+          status === "closed" && "line-through",
           className,
         )}
       >
         <SelectValue />
+      </SelectTrigger>
       </SelectTrigger>
       <SelectContent>
         {allStatuses.map((s) => (
