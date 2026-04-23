@@ -177,13 +177,17 @@ export default function GettingStarted({
         <div className="relative overflow-hidden bg-gradient-to-br from-background via-card to-accent/10 p-6 sm:p-8 lg:p-10">
           <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-gradient-to-l from-primary/5 to-transparent lg:block" />
           <div className="relative max-w-3xl">
-            {/* Brand lockup mirrors the sidebar so the onboarding hero
-                reads as part of the same product chrome, not a detached
-                marketing splash. Wordmark uses Space Grotesk 700 with the
-                same leading-none + pt-0.5 optical alignment as AppSidebar. */}
-            <div className="mb-5 flex items-center gap-2.5">
-              <BrandMark size="md" />
-              <span className="font-display text-xl font-bold leading-none tracking-tight text-foreground pt-0.5">
+            {/* Brand lockup mirrors the sidebar header rhythm: h-16 row,
+                gap-2.5 between mark and wordmark, Space Grotesk 700 with
+                leading-none + pt-0.5 optical alignment. On mobile we use
+                the expanded-sidebar size (md/text-xl) so the lockup is
+                identical to what the user sees in the side rail; ≥sm we
+                step up one token (lg/text-2xl) so it carries weight on
+                the larger hero surface without changing optical alignment. */}
+            <div className="-mx-1 mb-5 flex h-16 items-center gap-2.5">
+              <BrandMark size="md" className="sm:hidden" />
+              <BrandMark size="lg" className="hidden sm:block" />
+              <span className="pt-0.5 font-display text-xl font-bold leading-none tracking-tight text-foreground sm:text-2xl">
                 Koudou
               </span>
             </div>
