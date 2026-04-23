@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import type { Job, Interview, Contact } from "@/types/jobTracker";
 import HelpHint from "@/components/help/HelpHint";
 import { pillClass, type PillTone } from "@/lib/pillStyles";
+import PillLegend, { INTERVIEW_TYPE_LEGEND, INTERVIEW_STATUS_LEGEND } from "@/components/PillLegend";
 
 // Warmth pill — same tone mapping as `WarmthBadge` so the follow-up
 // indicator on the Interviews page matches the contact list's chip for
@@ -145,6 +146,7 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <PillLegend groups={[INTERVIEW_TYPE_LEGEND, INTERVIEW_STATUS_LEGEND]} />
           <Button
             variant="outline"
             size="sm"

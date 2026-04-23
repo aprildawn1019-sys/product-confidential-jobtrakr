@@ -22,6 +22,7 @@ import { getCoverageInfo, coverageGapComparator, COVERAGE_LABELS, type CoverageS
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact, NetworkRole } from "@/types/jobTracker";
 import { pillClass, type PillTone } from "@/lib/pillStyles";
+import PillLegend, { COVERAGE_LEGEND } from "@/components/PillLegend";
 
 interface TargetCompaniesProps {
   targetCompanies: TargetCompany[];
@@ -240,11 +241,14 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
               </button>
             );
           })}
-          {filterCoverage !== "all" && (
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs ml-auto" onClick={() => setFilterCoverage("all")}>
-              Clear
-            </Button>
-          )}
+          <div className="ml-auto flex items-center gap-1">
+            {filterCoverage !== "all" && (
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setFilterCoverage("all")}>
+                Clear
+              </Button>
+            )}
+            <PillLegend groups={[COVERAGE_LEGEND]} />
+          </div>
         </div>
       )}
 
