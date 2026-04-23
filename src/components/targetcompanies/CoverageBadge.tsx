@@ -10,13 +10,20 @@ interface CoverageBadgeProps {
   className?: string;
 }
 
-// Single-tone status pills using the design-system status family.
-// booster → success, connector → info, recruiter → warning, cold → muted.
+// Single-tone navy/amber/slate family — no greens/blues/reds. Coverage
+// is a 4-state taxonomy mapped onto a 3-tone palette via two amber tiers:
+//   booster   → amber filled (warm relationship, brand emphasis)
+//   connector → amber outline (warm intent — bridge to a booster)
+//   recruiter → slate outline (cool, passive signal)
+//   cold      → slate muted   (no coverage at all)
+// Differentiating boosters/connectors with the same hue (amber) at two
+// densities preserves the "warm vs warmer" relationship without leaking
+// blue/green into a navy/amber/slate chrome.
 const STATE_STYLES: Record<CoverageInfo["state"], string> = {
-  booster: "bg-success/15 text-success border-success/30 hover:bg-success/25",
-  connector: "bg-info/15 text-info border-info/30 hover:bg-info/25",
-  recruiter: "bg-warning/15 text-warning border-warning/30 hover:bg-warning/25",
-  cold: "bg-muted text-muted-foreground border-border hover:bg-muted/70",
+  booster:   "bg-accent/20 text-accent-foreground border-accent/40 hover:bg-accent/30",
+  connector: "bg-accent/5 text-accent-foreground border-accent/30 hover:bg-accent/15",
+  recruiter: "bg-background text-muted-foreground border-border hover:bg-muted/50",
+  cold:      "bg-muted text-muted-foreground border-border hover:bg-muted/70",
 };
 
 export default function CoverageBadge({ coverage, onClick, className }: CoverageBadgeProps) {
