@@ -238,77 +238,60 @@ export default function NetworkingPipeline({
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-5">
       {/* ── HEADER ─────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
             Networking Pipeline
           </h1>
-          <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
-            One outcome: <span className="font-medium text-foreground">an inside referral</span>. Three entry points: open jobs, target companies, and warm contacts. Move outreach forward stage by stage.
+          <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
+            One outcome: <span className="font-medium text-foreground">an inside referral</span>. Three entry points: open jobs, target companies, warm contacts.
           </p>
         </div>
-        <Button onClick={() => openNew()} className="shrink-0">
+        <Button onClick={() => openNew()} className="shrink-0" size="sm">
           <Plus className="h-4 w-4" />
           New outreach
         </Button>
       </div>
 
-      {/* ── SCOREBOARD ─────────────────────────────────────────── */}
-      {/* Each tile maps to a step in the funnel. Tone intensifies as you near the referral, so the eye lands on the milestone metrics. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card className="relative overflow-hidden p-4">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-muted-foreground/30" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Active outreach</p>
-          <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-foreground">{totalActive}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">in flight</p>
-        </Card>
-        <Card className="relative overflow-hidden p-4">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-accent/50" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Referrals asked</p>
-          <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-foreground">{referralsAsked}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">explicitly requested</p>
-        </Card>
-        <Card className="relative overflow-hidden p-4">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-accent" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-accent-foreground/80">Referrals made</p>
-          <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-foreground">{referralsMade}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">put forward to DM</p>
-        </Card>
-        <Card className="relative overflow-hidden p-4">
-          <div className="absolute inset-x-0 top-0 h-0.5 bg-primary/60" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Conversion</p>
-          <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-foreground">
-            {referralsAsked > 0 ? `${Math.round((referralsMade / referralsAsked) * 100)}%` : "—"}
-          </p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">asked → made</p>
-        </Card>
-      </div>
-
-      {/* ── ZONE 1: HOT OPENINGS (Job-triggered — primary/navy identity) ── */}
-      <section>
-        <header className="mb-4 flex items-end justify-between gap-3 border-l-[3px] border-primary/70 pl-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Flame className="h-4 w-4 text-primary" />
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Job 1 · Open Roles</p>
+      {/* ── SCOREBOARD (single compact strip) ──────────────────── */}
+      <Card className="flex divide-x divide-border overflow-hidden p-0">
+        {[
+          { label: "Active",         value: totalActive,    sub: "in flight",    bar: "bg-muted-foreground/30" },
+          { label: "Referrals asked",value: referralsAsked, sub: "requested",    bar: "bg-accent/50" },
+          { label: "Referrals made", value: referralsMade,  sub: "to DM",        bar: "bg-accent" },
+          { label: "Conversion",     value: referralsAsked > 0 ? `${Math.round((referralsMade / referralsAsked) * 100)}%` : "—", sub: "asked → made", bar: "bg-primary/60" },
+        ].map(tile => (
+          <div key={tile.label} className="relative flex-1 px-3 py-2.5">
+            <div className={cn("absolute inset-x-0 top-0 h-0.5", tile.bar)} />
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{tile.label}</p>
+            <div className="mt-0.5 flex items-baseline gap-1.5">
+              <p className="font-display text-xl font-semibold tracking-tight text-foreground">{tile.value}</p>
+              <p className="text-[10px] text-muted-foreground">{tile.sub}</p>
             </div>
-            <h2 className="mt-1 font-display text-xl font-semibold tracking-tight text-foreground">
+          </div>
+        ))}
+      </Card>
+
+      {/* ── ZONE 1: HOT OPENINGS — compact horizontal row cards ── */}
+      <section>
+        <header className="mb-2 flex items-center justify-between gap-3 border-l-[3px] border-primary/70 pl-2.5">
+          <div className="flex items-baseline gap-2">
+            <Flame className="h-3.5 w-3.5 self-center text-primary" />
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">Job 1 · Open Roles</p>
+            <h2 className="font-display text-sm font-semibold tracking-tight text-foreground">
               Hot openings — who can help?
             </h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Active job postings, ranked by referral path strength.
-            </p>
           </div>
         </header>
         {hotOpenings.length === 0 ? (
-          <Card className="p-6 text-sm text-muted-foreground">
-            No active job postings yet. <button className="text-primary hover:underline" onClick={() => navigate("/jobs")}>Add a job</button> to start tracking.
+          <Card className="px-3 py-2 text-xs text-muted-foreground">
+            No active job postings yet. <button className="text-primary hover:underline" onClick={() => navigate("/jobs")}>Add a job</button>.
           </Card>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {hotOpenings.slice(0, 9).map(({ job, headline, contactsAtCompany, targetCompany }) => {
+          <div className="space-y-1.5">
+            {hotOpenings.slice(0, 5).map(({ job, headline, contactsAtCompany, targetCompany }) => {
               const tone = headline ? STAGE_TONE[headline.stage] : (contactsAtCompany.length > 0 ? "amber-soft" : "slate");
               const accentBar =
                 headline?.stage === "referral_made" ? "bg-accent" :
@@ -316,189 +299,189 @@ export default function NetworkingPipeline({
                 headline ? "bg-primary/50" :
                 contactsAtCompany.length > 0 ? "bg-accent/40" : "bg-muted-foreground/20";
               return (
-                <Card key={job.id} className="relative overflow-hidden p-4 transition-all hover:-translate-y-0.5 hover:shadow-md">
+                <Card key={job.id} className="relative flex items-center gap-3 overflow-hidden py-2 pl-3 pr-2 transition-colors hover:bg-muted/30">
                   <div className={cn("absolute inset-y-0 left-0 w-1", accentBar)} />
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-foreground">{job.title}</p>
-                      <p className="truncate text-xs text-muted-foreground">{job.company}</p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 shrink-0"
-                      onClick={() => navigate(`/jobs/${job.id}`)}
-                      aria-label="Open job"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Button>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold leading-tight text-foreground">{job.title}</p>
+                    <p className="truncate text-[11px] leading-tight text-muted-foreground">{job.company}</p>
                   </div>
-                  <div className="mt-3">
+                  {contactsAtCompany.length > 0 && (
+                    <div className="hidden shrink-0 items-center -space-x-1.5 sm:flex">
+                      {contactsAtCompany.slice(0, 3).map(c => (
+                        <div key={c.id} className="ring-2 ring-card rounded-full">
+                          <ContactAvatar name={c.name} avatarUrl={c.avatarUrl} size="sm" />
+                        </div>
+                      ))}
+                      {contactsAtCompany.length > 3 && (
+                        <span className="ml-2 text-[10px] font-semibold text-muted-foreground">
+                          +{contactsAtCompany.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div className="shrink-0">
                     {headline ? (
                       <span className={cn(pillClass(tone, "sm"), "uppercase tracking-wider")}>
                         {OUTREACH_STAGE_LABEL[headline.stage]}
                       </span>
                     ) : contactsAtCompany.length > 0 ? (
                       <span className={cn(pillClass("amber-soft", "sm"), "uppercase tracking-wider")}>
-                        {contactsAtCompany.length} contact{contactsAtCompany.length === 1 ? "" : "s"} — start outreach
+                        {contactsAtCompany.length} contact{contactsAtCompany.length === 1 ? "" : "s"}
                       </span>
                     ) : (
                       <span className={cn(pillClass("slate", "sm"), "uppercase tracking-wider")}>
-                        No contact yet
+                        No contact
                       </span>
                     )}
                   </div>
-                  {contactsAtCompany.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {contactsAtCompany.slice(0, 5).map(c => <ContactAvatar key={c.id} name={c.name} avatarUrl={c.avatarUrl} size="sm" />)}
-                      {contactsAtCompany.length > 5 && (
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground">
-                          +{contactsAtCompany.length - 5}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  <div className="mt-3 flex gap-2">
+                  <div className="flex shrink-0 items-center gap-1">
                     {headline ? (
-                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => openEdit(headline)}>
-                        Update outreach
-                        <ArrowRight className="ml-1 h-3 w-3" />
+                      <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => openEdit(headline)}>
+                        Update
+                        <ArrowRight className="ml-0.5 h-3 w-3" />
                       </Button>
                     ) : contactsAtCompany.length > 0 ? (
                       <Button
                         size="sm"
-                        className="h-8 text-xs"
+                        className="h-7 px-2 text-xs"
                         onClick={() => openNew({
                           contactId: contactsAtCompany[0].id,
                           targetCompanyId: targetCompany?.id,
                           jobId: job.id,
                         })}
                       >
-                        Start outreach
+                        Start
                       </Button>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate("/contacts")}>
-                        Find a contact
+                      <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => navigate("/contacts")}>
+                        Find contact
                       </Button>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => navigate(`/jobs/${job.id}`)}
+                      aria-label="Open job"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </Card>
               );
             })}
+            {hotOpenings.length > 5 && (
+              <button onClick={() => navigate("/jobs")} className="text-[11px] text-muted-foreground hover:text-foreground hover:underline">
+                +{hotOpenings.length - 5} more openings →
+              </button>
+            )}
           </div>
         )}
       </section>
 
-      {/* ── ZONE 2: TARGET COMPANIES (Company-triggered — accent/amber identity) ── */}
+      {/* ── ZONE 2: TARGET COMPANIES — compact horizontal row cards ── */}
       <section>
-        <header className="mb-4 flex items-end justify-between gap-3 border-l-[3px] border-accent pl-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-accent-foreground" />
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-accent-foreground">Job 2 · Dream Companies</p>
-            </div>
-            <h2 className="mt-1 font-display text-xl font-semibold tracking-tight text-foreground">
+        <header className="mb-2 flex items-center justify-between gap-3 border-l-[3px] border-accent pl-2.5">
+          <div className="flex items-baseline gap-2">
+            <Target className="h-3.5 w-3.5 self-center text-accent-foreground" />
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-accent-foreground">Job 2 · Dream Companies</p>
+            <h2 className="font-display text-sm font-semibold tracking-tight text-foreground">
               Target companies — relationship status
             </h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Where you stand on getting an inside referral, even if no role is open.
-            </p>
           </div>
-          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => navigate("/target-companies")}>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => navigate("/target-companies")}>
             Manage
           </Button>
         </header>
         {targetWithStatus.length === 0 ? (
-          <Card className="p-6 text-sm text-muted-foreground">
+          <Card className="px-3 py-2 text-xs text-muted-foreground">
             No target companies yet.{" "}
-            <button className="text-primary hover:underline" onClick={() => navigate("/target-companies")}>
-              Add one
-            </button>{" "}
-            to start tracking referral readiness.
+            <button className="text-primary hover:underline" onClick={() => navigate("/target-companies")}>Add one</button>.
           </Card>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {targetWithStatus.slice(0, 9).map(({ target, headline, contactsAtCompany }) => {
+          <div className="space-y-1.5">
+            {targetWithStatus.slice(0, 5).map(({ target, headline, contactsAtCompany }) => {
               const accentBar =
                 headline?.stage === "referral_made" ? "bg-accent" :
                 headline?.stage === "referral_asked" ? "bg-accent/60" :
                 headline ? "bg-primary/50" :
                 contactsAtCompany.length > 0 ? "bg-accent/40" : "bg-muted-foreground/20";
               return (
-                <Card key={target.id} className="relative overflow-hidden p-4 transition-all hover:-translate-y-0.5 hover:shadow-md">
+                <Card key={target.id} className="relative flex items-center gap-3 overflow-hidden py-2 pl-3 pr-2 transition-colors hover:bg-muted/30">
                   <div className={cn("absolute inset-y-0 left-0 w-1", accentBar)} />
-                  <div className="flex items-start gap-2.5">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/10 ring-1 ring-accent/20">
-                      <Building2 className="h-4 w-4 text-accent-foreground" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-foreground">{target.name}</p>
-                      {target.industry && (
-                        <p className="truncate text-xs text-muted-foreground">{target.industry}</p>
-                      )}
-                    </div>
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent/10 ring-1 ring-accent/20">
+                    <Building2 className="h-3.5 w-3.5 text-accent-foreground" />
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold leading-tight text-foreground">{target.name}</p>
+                    {target.industry && (
+                      <p className="truncate text-[11px] leading-tight text-muted-foreground">{target.industry}</p>
+                    )}
+                  </div>
+                  {contactsAtCompany.length > 0 && (
+                    <span className="hidden shrink-0 items-center gap-1 text-[11px] text-muted-foreground sm:inline-flex">
+                      <Users className="h-3 w-3" />
+                      {contactsAtCompany.length}
+                    </span>
+                  )}
+                  <div className="shrink-0">
                     {headline ? (
                       <span className={cn(pillClass(STAGE_TONE[headline.stage], "sm"), "uppercase tracking-wider")}>
                         {OUTREACH_STAGE_LABEL[headline.stage]}
                       </span>
                     ) : contactsAtCompany.length > 0 ? (
                       <span className={cn(pillClass("amber-soft", "sm"), "uppercase tracking-wider")}>
-                        {contactsAtCompany.length} contact{contactsAtCompany.length === 1 ? "" : "s"} — no outreach
+                        No outreach
                       </span>
                     ) : (
                       <span className={cn(pillClass("slate", "sm"), "uppercase tracking-wider")}>
-                        No contact yet
-                      </span>
-                    )}
-                    {contactsAtCompany.length > 0 && (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                        <Users className="h-3 w-3" />
-                        {contactsAtCompany.length}
+                        No contact
                       </span>
                     )}
                   </div>
-                  <div className="mt-3 flex gap-2">
+                  <div className="shrink-0">
                     {headline ? (
-                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => openEdit(headline)}>
+                      <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => openEdit(headline)}>
                         Update
-                        <ArrowRight className="ml-1 h-3 w-3" />
+                        <ArrowRight className="ml-0.5 h-3 w-3" />
                       </Button>
                     ) : contactsAtCompany.length > 0 ? (
                       <Button
                         size="sm"
-                        className="h-8 text-xs"
+                        className="h-7 px-2 text-xs"
                         onClick={() => openNew({
                           contactId: contactsAtCompany[0].id,
                           targetCompanyId: target.id,
                         })}
                       >
-                        Start outreach
+                        Start
                       </Button>
                     ) : (
-                      <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => navigate("/contacts")}>
-                        Find a contact
+                      <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => navigate("/contacts")}>
+                        Find contact
                       </Button>
                     )}
                   </div>
                 </Card>
               );
             })}
+            {targetWithStatus.length > 5 && (
+              <button onClick={() => navigate("/target-companies")} className="text-[11px] text-muted-foreground hover:text-foreground hover:underline">
+                +{targetWithStatus.length - 5} more companies →
+              </button>
+            )}
           </div>
         )}
       </section>
 
       {/* ── ZONE 3: KANBAN (the engine — neutral surface, stage-tinted columns) ── */}
       <section>
-        <header className="mb-4 border-l-[3px] border-foreground/40 pl-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">The Engine</p>
-          <h2 className="mt-1 font-display text-xl font-semibold tracking-tight text-foreground">
+        <header className="mb-2 flex items-baseline gap-2 border-l-[3px] border-foreground/40 pl-2.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">The Engine</p>
+          <h2 className="font-display text-sm font-semibold tracking-tight text-foreground">
             Outreach in flight
           </h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Every active referral effort. Click a card to update stage and notes. Warmth builds left-to-right.
-          </p>
+          <p className="text-[11px] text-muted-foreground">— warmth builds left-to-right</p>
         </header>
 
         {/* Progression rail — visualizes the journey, even when columns are empty */}
