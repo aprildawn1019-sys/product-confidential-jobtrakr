@@ -5,6 +5,7 @@ import {
   BookOpen,
   CalendarCheck,
   Compass,
+  FileSpreadsheet,
   Info,
   Search,
   Sparkles,
@@ -16,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useHelp } from "@/components/help/HelpProvider";
+import { ImportJobsWizard } from "@/components/onboarding/ImportJobsWizard";
+import { cn } from "@/lib/utils";
 import type { Contact, Interview, Job, TargetCompany } from "@/types/jobTracker";
 
 // Single tokenized brand component handles the light/dark variant swap
@@ -28,6 +31,8 @@ interface GettingStartedProps {
   targetCompanies?: TargetCompany[];
   interviews?: Interview[];
   coverLetterCount?: number;
+  /** Bulk-insert callback wired from the job tracker store. */
+  onImportJobs?: (jobs: Omit<Job, "id" | "createdAt">[]) => void | Promise<void>;
 }
 
 interface EntryPath {
@@ -50,11 +55,13 @@ export default function GettingStarted({
   contacts = [],
   targetCompanies = [],
   interviews = [],
+  onImportJobs,
 }: GettingStartedProps) {
   const navigate = useNavigate();
   const { openHelp } = useHelp();
   const [profileScore, setProfileScore] = useState<number | null>(null);
   const [tourProgress, setTourProgress] = useState<{ step: number; total: number } | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const startTour = () => window.dispatchEvent(new Event("jobtrakr:start-tour"));
 
@@ -273,6 +280,15 @@ export default function GettingStarted({
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            {onImportJobs && (
+              <QuickActionCard
+                title="Import existing jobs"
+                description="Upload a CSV or XLSX (LinkedIn, Indeed, ATS exports) to seed your tracker in one go."
+                icon={FileSpreadsheet}
+                accent
+                onClick={() => setImportOpen(true)}
+              />
+            )}
             <QuickActionCard
               title="Job Tracker"
               description="Manage applications, statuses, and notes."
@@ -300,6 +316,15 @@ export default function GettingStarted({
           </div>
         </div>
       </section>
+
+      {onImportJobs && (
+        <ImportJobsWizard
+          open={importOpen}
+          onOpenChange={setImportOpen}
+          onImport={onImportJobs}
+          existingJobs={jobs}
+        />
+      )}
     </div>
   );
 }
@@ -491,19 +516,34 @@ function QuickActionCard({
   description,
   icon: Icon,
   onClick,
+  accent = false,
 }: {
   title: string;
   description: string;
   icon: ComponentType<{ className?: string }>;
   onClick: () => void;
+  /** Highlights the card with the brand accent — use for the primary first-run action. */
+  accent?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="rounded-2xl border border-border bg-background p-4 text-left transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      className={cn(
+        "rounded-2xl border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        accent
+          ? "border-accent/40 bg-accent/10 hover:border-accent/60"
+          : "border-border bg-background hover:border-accent/40",
+      )}
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted text-foreground">
+      <div
+        className={cn(
+          "flex h-10 w-10 items-center justify-center rounded-xl border",
+          accent
+            ? "border-accent/40 bg-accent/20 text-accent-foreground"
+            : "border-border bg-muted text-foreground",
+        )}
+      >
         <Icon className="h-4 w-4" />
       </div>
       <h4 className="mt-4 text-base font-semibold tracking-tight text-foreground">{title}</h4>

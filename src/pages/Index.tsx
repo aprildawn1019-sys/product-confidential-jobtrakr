@@ -237,6 +237,7 @@ export default function Index() {
               targetCompanies={store.targetCompanies}
               interviews={store.interviews}
               coverLetterCount={store.jobs.filter(j => j.status === "applied" || j.status === "screening" || j.status === "interviewing" || j.status === "offer").length}
+              onImportJobs={store.addJobsBulk}
             />
           } />
           <Route path="network-map" element={
