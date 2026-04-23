@@ -11,6 +11,9 @@ import Auth from "./pages/Auth.tsx";
 import Landing from "./pages/Landing.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import NotFound from "./pages/NotFound.tsx";
+// Dev-only diagnostic overlay. Render at the App root so it's available
+// on every route (signed-in or not). Self-gates via `?qa=1` or Ctrl+Shift+Q.
+import { UiQaMode } from "@/components/qa/UiQaMode";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +46,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <UiQaMode />
         <BrowserRouter>
           <Routes>
             <Route path="/reset-password" element={<ResetPassword />} />
