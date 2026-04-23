@@ -128,6 +128,7 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <PillLegend groups={[INTERVIEW_TYPE_LEGEND, INTERVIEW_STATUS_LEGEND]} />
           <Button
             variant="outline"
             size="sm"
@@ -273,12 +274,12 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
                       <div className="flex items-start justify-between">
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={cn("text-xs capitalize", typeColors[interview.type])}>
+                            <span className={pillClass(INTERVIEW_TYPE_PILLS[interview.type]?.tone ?? "slate", "sm", "capitalize")}>
                               {interview.type}
-                            </Badge>
-                            <Badge variant="outline" className={cn("text-xs capitalize", statusColors[interview.status])}>
+                            </span>
+                            <span className={pillClass(INTERVIEW_STATUS_PILLS[interview.status]?.tone ?? "slate", "sm", "capitalize")}>
                               {interview.status}
-                            </Badge>
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
@@ -388,10 +389,10 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
                           <Users className="h-3.5 w-3.5 text-muted-foreground" />
                           <span className="font-medium text-sm">{contact.name}</span>
                           <span className="text-sm text-muted-foreground">at {contact.company}</span>
-                          {contact.relationshipWarmth && (
-                            <Badge variant="outline" className={cn("text-xs capitalize", warmthStyles[contact.relationshipWarmth] || "")}>
+                          {contact.relationshipWarmth && warmthTones[contact.relationshipWarmth] && (
+                            <span className={pillClass(warmthTones[contact.relationshipWarmth], "xs", "capitalize")}>
                               {contact.relationshipWarmth}
-                            </Badge>
+                            </span>
                           )}
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">

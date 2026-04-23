@@ -285,8 +285,8 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map(({ company: tc, coverage }) => {
             const stats = getStats(tc.name);
-            const pConf = priorityConfig[tc.priority];
-            const sConf = statusConfig[tc.status];
+            const pConf = TARGET_PRIORITY_PILLS[tc.priority];
+            const sConf = TARGET_STATUS_PILLS[tc.status];
             return (
               <Card key={tc.id} className="group hover:shadow-md transition-shadow">
                 <CardContent className="p-5 space-y-3">
@@ -298,12 +298,12 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
                         {tc.industry && <p className="text-xs text-muted-foreground truncate">{tc.industry}{tc.size ? ` · ${tc.size}` : ""}</p>}
                       </div>
                     </div>
-                    <Badge variant="outline" className={`shrink-0 text-xs ${pConf.color}`}>{pConf.label}</Badge>
+                    {pConf && <span className={pillClass(pConf.tone, "sm", "shrink-0")}>{pConf.label}</span>}
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
                     <CoverageBadge coverage={coverage} onClick={() => setSourcingCompanyId(tc.id)} />
-                    <Badge variant="secondary" className={`text-xs ${sConf.color}`}>{sConf.label}</Badge>
+                    {sConf && <span className={pillClass(sConf.tone, "sm")}>{sConf.label}</span>}
                   </div>
 
                   <div className="flex gap-4 text-xs text-muted-foreground">
