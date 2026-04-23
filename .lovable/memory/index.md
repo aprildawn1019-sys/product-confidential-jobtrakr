@@ -25,6 +25,7 @@ Updated: now
 - [Iconography](mem://style/iconography) — Sparkles is AI-only; per-category icon registry (outreach/applications/follow-up/preparation/strategy)
 - [Command Center & Dashboard](mem://features/dashboard-analytics) — Layout rules anchored to dashboard-mockup.jpg
 - [Sidebar IA & Surfaces](mem://features/sidebar-ia) — TODAY/PIPELINE/LIBRARY/INSIGHTS, /insights rename, Resumes versioning, Settings tabbed hub
+- [Networking Pipeline](mem://features/networking-pipeline) — /networking surface + outreaches entity (6 stages); JTBD: one inside-referral outcome, three entry triggers
 - [Visual Theme (legacy)](mem://style/visual-theme) — Earlier Linear/Notion notes; superseded by visual-theme-v2
 - [Infrastructure](mem://tech/infrastructure) — Self-hosted, fictional records in docs/images/hero.png
 - [AI Job Search](mem://features/ai-job-search) — Hybrid search, 50 results limit, staged progress UI
