@@ -476,14 +476,12 @@ export default function NetworkingPipeline({
 
       {/* ── ZONE 3: KANBAN (the engine — neutral surface, stage-tinted columns) ── */}
       <section>
-        <header className="mb-4 border-l-[3px] border-foreground/40 pl-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">The Engine</p>
-          <h2 className="mt-1 font-display text-xl font-semibold tracking-tight text-foreground">
+        <header className="mb-2 flex items-baseline gap-2 border-l-[3px] border-foreground/40 pl-2.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">The Engine</p>
+          <h2 className="font-display text-sm font-semibold tracking-tight text-foreground">
             Outreach in flight
           </h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Every active referral effort. Click a card to update stage and notes. Warmth builds left-to-right.
-          </p>
+          <p className="text-[11px] text-muted-foreground">— warmth builds left-to-right</p>
         </header>
 
         {/* Progression rail — visualizes the journey, even when columns are empty */}
