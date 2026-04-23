@@ -36,12 +36,6 @@ const LANE_LABEL: Record<Lane, string> = {
   referral: "Referral",
 };
 
-const LANE_DOT: Record<Lane, string> = {
-  cold: "bg-[hsl(var(--text-tertiary))]",
-  warm: "bg-[hsl(var(--info))]",
-  referral: "bg-[hsl(var(--success))]",
-};
-
 const MIN_LANE_N = 5;
 type WindowKey = "30d" | "90d" | "all";
 const WINDOW_DAYS: Record<WindowKey, number | null> = { "30d": 30, "90d": 90, "all": null };
@@ -52,59 +46,6 @@ function PlaceholderHint({ note }: { note: string }) {
     <div className="mt-2 flex items-start gap-2 rounded-md border border-dashed border-border bg-muted/30 p-2.5">
       <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
       <p className="text-[11px] text-muted-foreground">{note}</p>
-    </div>
-  );
-}
-
-interface LaneBarProps {
-  label: string;
-  total: number;
-  counts: { cold: number; warm: number; referral: number; total: number };
-}
-
-function LaneBar({ label, total, counts }: LaneBarProps) {
-  const lanes: Lane[] = ["referral", "warm", "cold"];
-  return (
-    <div>
-      <div className="flex items-baseline justify-between gap-3 mb-1.5">
-        <div className="text-xs font-medium text-foreground">
-          {label}{" "}
-          <span className="text-muted-foreground tabular-nums">
-            (n={total})
-          </span>
-        </div>
-        <div className="text-[11px] text-muted-foreground tabular-nums">
-          {lanes
-            .filter(l => counts[l] > 0)
-            .map(l => `${LANE_LABEL[l]} ${total > 0 ? Math.round((counts[l] / total) * 100) : 0}%`)
-            .join(" · ")}
-        </div>
-      </div>
-      <div className="flex h-6 w-full overflow-hidden rounded-md bg-muted/50">
-        {total === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-[10px] text-muted-foreground">
-            No data
-          </div>
-        ) : (
-          lanes.map((lane) => {
-            const pct = (counts[lane] / total) * 100;
-            if (pct === 0) return null;
-            return (
-              <div
-                key={lane}
-                className={cn(
-                  "flex items-center justify-center text-[10px] font-medium text-white tabular-nums",
-                  LANE_DOT[lane],
-                )}
-                style={{ width: `${pct}%` }}
-                title={`${LANE_LABEL[lane]}: ${counts[lane]} (${Math.round(pct)}%)`}
-              >
-                {pct >= 8 ? `${Math.round(pct)}%` : ""}
-              </div>
-            );
-          })
-        )}
-      </div>
     </div>
   );
 }
