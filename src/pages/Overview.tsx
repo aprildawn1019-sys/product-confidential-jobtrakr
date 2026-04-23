@@ -281,53 +281,24 @@ export default function Overview({
             </div>
           ) : (
             <>
-              {/* Stacked bars: applications + interviews */}
-              <div className="space-y-3">
-                <LaneBar
-                  label="Applications"
-                  total={pipelineByLane.applications.total}
-                  counts={pipelineByLane.applications}
-                />
-                <LaneBar
-                  label="Interviews"
-                  total={pipelineByLane.interviews.total}
-                  counts={pipelineByLane.interviews}
-                />
-              </div>
-
-              {/* Legend */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
-                {(["referral", "warm", "cold"] as Lane[]).map((lane) => (
-                  <div key={lane} className="flex items-center gap-1.5">
-                    <span className={cn("h-2 w-2 rounded-sm", LANE_DOT[lane])} />
-                    <span>{LANE_LABEL[lane]}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Conversion strip */}
-              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-border/60">
-                {(["cold", "warm", "referral"] as Lane[]).map((lane) => {
-                  const apps = pipelineByLane.applications[lane];
-                  const ivs = pipelineByLane.interviews[lane];
-                  const rate = pipelineByLane.conversion[lane];
-                  const sparse = apps < MIN_LANE_N;
-                  return (
-                    <div key={lane} className="space-y-1 text-center">
-                      <div className="flex items-center justify-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                        <span className={cn("h-2 w-2 rounded-sm", LANE_DOT[lane])} />
-                        {LANE_LABEL[lane]}
-                      </div>
-                      <div className="font-display text-2xl font-semibold tabular-nums leading-none">
-                        {sparse ? "—" : `${Math.round(rate * 100)}%`}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground tabular-nums">
-                        {ivs} / {apps} {apps === 1 ? "app" : "apps"}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              {/* Pendo-style left-to-right funnel */}
+              <PipelineLaneFunnel
+                data={{
+                  referral: {
+                    applications: pipelineByLane.applications.referral,
+                    interviews: pipelineByLane.interviews.referral,
+                  },
+                  warm: {
+                    applications: pipelineByLane.applications.warm,
+                    interviews: pipelineByLane.interviews.warm,
+                  },
+                  cold: {
+                    applications: pipelineByLane.applications.cold,
+                    interviews: pipelineByLane.interviews.cold,
+                  },
+                }}
+                minLaneN={MIN_LANE_N}
+              />
 
               {(["cold", "warm", "referral"] as Lane[]).every(
                 l => pipelineByLane.applications[l] < MIN_LANE_N,
