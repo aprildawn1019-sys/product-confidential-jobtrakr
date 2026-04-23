@@ -203,36 +203,6 @@ export default function Overview({
     return { applications: apps, interviews: ivs, conversion, medianDaysToInterview };
   }, [jobs, jobContacts, contactActivities, interviews, windowKey]);
 
-  // ---------- Time to first interview (PLACEHOLDER) ----------
-  // TODO(metric): Replace with the agreed formula once provided.
-  // Current stub: per-job days from job.appliedDate to the earliest scheduled interview.date.
-  const timeToFirstInterview = useMemo(() => {
-    const rows: { jobLabel: string; days: number }[] = [];
-    for (const j of jobs) {
-      if (!j.appliedDate) continue;
-      const jobInterviews = interviews
-        .filter(i => i.jobId === j.id)
-        .map(i => {
-          try { return parseISO(i.date).getTime(); } catch { return NaN; }
-        })
-        .filter(t => !isNaN(t))
-        .sort((a, b) => a - b);
-      if (jobInterviews.length === 0) continue;
-      const applied = parseISO(j.appliedDate);
-      if (isNaN(applied.getTime())) continue;
-      const days = Math.max(0, differenceInCalendarDays(new Date(jobInterviews[0]), applied));
-      rows.push({ jobLabel: `${j.company} · ${j.title}`.slice(0, 30), days });
-    }
-    rows.sort((a, b) => b.days - a.days);
-    return rows.slice(0, 10);
-  }, [jobs, interviews]);
-
-  const avgTimeToFirstInterview = useMemo(() => {
-    if (timeToFirstInterview.length === 0) return null;
-    const sum = timeToFirstInterview.reduce((acc, r) => acc + r.days, 0);
-    return Math.round(sum / timeToFirstInterview.length);
-  }, [timeToFirstInterview]);
-
   // ---------- Weekly velocity (PLACEHOLDER) ----------
   // TODO(metric): Replace with the agreed formula once provided.
   // Current stub: applications/week, interviews scheduled/week, contact activities/week, last 8 ISO weeks.
