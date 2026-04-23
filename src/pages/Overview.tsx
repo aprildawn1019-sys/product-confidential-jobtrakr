@@ -1,10 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
-} from "recharts";
-import { ArrowLeft, GitBranch, LineChart as LineIcon, Info, Clock } from "lucide-react";
+import { ArrowLeft, GitBranch, Info, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,8 +9,8 @@ import { cn } from "@/lib/utils";
 import type {
   Job, Contact, Interview, ContactActivity, JobContact, RecommendationRequest,
 } from "@/types/jobTracker";
-import { parseISO, startOfWeek, format } from "date-fns";
 import { parseLocalDate } from "@/lib/localDate";
+import { WeeklyPlanCard } from "@/components/insights/WeeklyPlanCard";
 
 interface OverviewProps {
   jobs: Job[];
@@ -203,53 +199,9 @@ export default function Overview({
     return { applications: apps, interviews: ivs, conversion, medianDaysToInterview };
   }, [jobs, jobContacts, contactActivities, interviews, windowKey]);
 
-  // ---------- Weekly velocity (PLACEHOLDER) ----------
-  // TODO(metric): Replace with the agreed formula once provided.
-  // Current stub: applications/week, interviews scheduled/week, contact activities/week, last 8 ISO weeks.
-  const velocityData = useMemo(() => {
-    const now = new Date();
-    const weeks: { iso: string; label: string; start: number }[] = [];
-    for (let i = 7; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i * 7);
-      const ws = startOfWeek(d, { weekStartsOn: 1 });
-      const iso = ws.toISOString().slice(0, 10);
-      if (!weeks.find(w => w.iso === iso)) {
-        weeks.push({ iso, label: format(ws, "MMM d"), start: ws.getTime() });
-      }
-    }
+  // Weekly velocity chart now lives inside <WeeklyPlanCard /> (collapsible 8-week trend),
+  // sourced from the same data via the generate-weekly-plan edge function.
 
-    const bucket = (ts: number) => {
-      // last week index whose start <= ts
-      for (let i = weeks.length - 1; i >= 0; i--) {
-        if (ts >= weeks[i].start) return i;
-      }
-      return -1;
-    };
-
-    const counts = weeks.map(w => ({ week: w.label, applications: 0, interviews: 0, outreach: 0 }));
-
-    for (const j of jobs) {
-      if (!j.appliedDate) continue;
-      let t: number;
-      try { t = parseISO(j.appliedDate).getTime(); } catch { continue; }
-      const idx = bucket(t);
-      if (idx >= 0) counts[idx].applications++;
-    }
-    for (const i of interviews) {
-      let t: number;
-      try { t = parseISO(i.date).getTime(); } catch { continue; }
-      const idx = bucket(t);
-      if (idx >= 0) counts[idx].interviews++;
-    }
-    for (const a of contactActivities) {
-      let t: number;
-      try { t = parseISO(a.activityDate).getTime(); } catch { continue; }
-      const idx = bucket(t);
-      if (idx >= 0) counts[idx].outreach++;
-    }
-    return counts;
-  }, [jobs, interviews, contactActivities]);
 
   const totalSamples = jobs.length + contacts.length;
 
@@ -409,46 +361,8 @@ export default function Overview({
         </CardContent>
       </Card>
 
-      {/* Weekly velocity */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <CardTitle className="font-display text-base flex items-center gap-2">
-                <LineIcon className="h-4 w-4 text-info" />
-                Weekly velocity
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Applications submitted, interviews scheduled, and outreach activities — last 8 weeks.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={velocityData} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="week" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-                <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} allowDecimals={false} />
-                <RechartsTooltip
-                  contentStyle={{
-                    background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line type="monotone" dataKey="applications" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="interviews" stroke="hsl(var(--warning))" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="outreach" stroke="hsl(var(--info))" strokeWidth={2} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <PlaceholderHint note="Placeholder formula: weeks start Monday. Applications = jobs whose appliedDate falls in week. Interviews = interviews whose date falls in week (any status). Outreach = contact_activities in week. Awaiting your final definition (status filter? rolling avg?)." />
-        </CardContent>
-      </Card>
+      {/* Weekly Plan — scoreboard + AI-recommended actions + collapsible 8-week trend */}
+      <WeeklyPlanCard />
     </div>
   );
 }
