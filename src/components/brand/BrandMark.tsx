@@ -5,18 +5,28 @@ import koudouMarkDarkSrc from "@/assets/brand/marks/koudou-mark-dark.png";
 /**
  * BrandMark — single source for the Koudou geometric-K mark.
  *
- * One component, one prop (`size`), one render path. Callers do **not** pass
- * Tailwind sizing classes; doing so re-introduces the drift this component
- * was created to remove (h-9 vs h-10 vs h-8 across surfaces).
+ * One component, one prop pair (`size`, `surface`), one render path. Callers
+ * do **not** pass Tailwind sizing classes; doing so re-introduces the drift
+ * this component was created to remove (h-9 vs h-10 vs h-8 across surfaces).
  *
- * ## Variant selection
- * Both light and dark variants render in the DOM; `dark:` utilities toggle
- * visibility. This makes the swap automatic with the app theme — no JS, no
- * flash. See `mem://style/brand-mark` and `src/assets/brand/BRAND.md`.
+ * ## Variant selection — INVERTED CONTRAST RULE
  *
- * Surface override: pass `surface="dark"` for a permanently-dark surface
- * (e.g. the navy sidebar) where we want the dark-pane variant regardless of
- * the user's color-scheme preference. Default `surface="auto"` follows theme.
+ * The `surface` prop describes **the surface the mark sits on**, not the
+ * appearance of the mark itself. The component picks the inverted-contrast
+ * asset so the mark always pops:
+ *
+ *   surface="dark"  → loads `koudou-mark-light.png` (white tile, navy K)
+ *                     for use on the navy sidebar / dark hero.
+ *   surface="light" → loads `koudou-mark-dark.png`  (navy tile, white K)
+ *                     for use on the off-white app canvas / white cards.
+ *   surface="auto"  → renders both; `dark:` utilities toggle visibility so
+ *                     the swap follows the user's color-scheme preference
+ *                     with no JS and no flash.
+ *
+ * This is the contrast rule defined in `src/assets/brand/BRAND.md` ("Mark
+ * usage"). Do NOT bypass this component by importing the PNGs directly —
+ * the mapping intentionally lives in one place so the rule cannot be
+ * violated by accident.
  *
  * ## Sizing tokens
  * The painted tile is part of the asset, so the `<img>` IS the mark — there
@@ -35,17 +45,10 @@ import koudouMarkDarkSrc from "@/assets/brand/marks/koudou-mark-dark.png";
  * ## Crispness contract
  * Source PNGs are 1024×1024 (well above the largest rendered token × 3× DPR
  * = 120 device px), so a single `src` is enough — no per-DPR `srcset` files
- * are required. To keep that headroom honest we:
- *
- * - Set explicit `width`/`height` attributes equal to the CSS-pixel size,
- *   so the browser allocates the exact intrinsic box and never has to guess
- *   on a fractional pixel boundary (which is what produces the "scaling
- *   blur" artifact users perceive).
- * - Add `decoding="async"` + `loading="eager"` for above-the-fold paint.
- * - Add `srcSet` declaring the asset's intrinsic resolution density (`3x`
- *   relative to our largest 40-px token) so the browser knows it has spare
- *   pixels and can downsample with high-quality resampling instead of
- *   bilinear stretching from an undersized source.
+ * are required. To keep that headroom honest we set explicit width/height
+ * (intrinsic box, no fractional-pixel guesses), `decoding="async"`,
+ * `loading="eager"`, and a `srcSet` declaring 3× DPR headroom so the
+ * browser uses high-quality downsampling.
  */
 
 type BrandMarkSize = "sm" | "md" | "lg";
@@ -91,10 +94,6 @@ function MarkImg({ src, alt, ariaHidden, size, className }: MarkImgProps) {
   return (
     <img
       src={src}
-      // Single high-res source declared at 3× the largest size token. Tells
-      // the browser this asset has DPR headroom so it picks high-quality
-      // downsampling on retina/3× displays instead of bilinear-blurring from
-      // an undersized bitmap. (Source PNGs are 1024², far above this floor.)
       srcSet={`${src} 3x`}
       width={px}
       height={px}
@@ -115,7 +114,10 @@ export function BrandMark({
 }: BrandMarkProps) {
   const sizeCls = SIZE_CLASSES[size];
 
-  if (surface === "light") {
+  // Inverted-contrast mapping — see BRAND.md "Mark usage".
+  // surface="dark"  (sidebar, dark hero)  → light-tile asset
+  // surface="light" (canvas, white card)  → dark-tile asset
+  if (surface === "dark") {
     return (
       <MarkImg
         src={koudouMarkLightSrc}
@@ -126,7 +128,7 @@ export function BrandMark({
     );
   }
 
-  if (surface === "dark") {
+  if (surface === "light") {
     return (
       <MarkImg
         src={koudouMarkDarkSrc}
@@ -137,18 +139,20 @@ export function BrandMark({
     );
   }
 
-  // surface="auto": render both, toggle with `dark:`. The light variant
-  // owns the alt text; the dark variant is decorative duplicate content.
+  // surface="auto": render both, toggle with `dark:` so the variant follows
+  // the active color scheme. In light mode the dark-tile (navy) pops off
+  // the white canvas; in dark mode the light-tile (white) pops off the
+  // dark canvas.
   return (
     <>
       <MarkImg
-        src={koudouMarkLightSrc}
+        src={koudouMarkDarkSrc}
         alt="Koudou"
         size={size}
         className={cn("dark:hidden", sizeCls, className)}
       />
       <MarkImg
-        src={koudouMarkDarkSrc}
+        src={koudouMarkLightSrc}
         alt=""
         ariaHidden
         size={size}
