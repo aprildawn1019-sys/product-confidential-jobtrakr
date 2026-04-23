@@ -146,11 +146,8 @@ export function PipelineLaneFunnel({
     return hoveredLane === lane ? Math.min(1, base + 0.15) : base * 0.25;
   };
 
-  const handleEnter = (lane: FunnelLane) => (e: React.MouseEvent) => {
+  const handleEnter = (lane: FunnelLane) => () => {
     setHoveredLane(lane);
-    const rect = e.currentTarget.getBoundingClientRect();
-    const parent = (e.currentTarget.ownerSVGElement as SVGSVGElement).getBoundingClientRect();
-    setTooltipPos({ x: rect.left - parent.left + rect.width / 2, y: rect.top - parent.top });
   };
   const handleMove = (e: React.MouseEvent) => {
     const svg = (e.currentTarget as SVGElement).ownerSVGElement;
