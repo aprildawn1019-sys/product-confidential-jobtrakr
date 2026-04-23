@@ -165,7 +165,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
     return (
       <>
         <div className="flex h-16 items-center justify-center">
-          <BrandMark className="h-10 w-10" />
+          <BrandMark size="lg" surface="dark" />
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Primary">
