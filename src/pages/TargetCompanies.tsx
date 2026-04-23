@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Search, ExternalLink, Building2, Users, Briefcase, Star, Pencil, Trash2, Archive, Globe, AlertTriangle, GitMerge, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -20,6 +19,8 @@ import CoverageBadge from "@/components/targetcompanies/CoverageBadge";
 import SourcingPanel from "@/components/targetcompanies/SourcingPanel";
 import { getCoverageInfo, coverageGapComparator, COVERAGE_LABELS, type CoverageState } from "@/components/targetcompanies/coverageUtils";
 import { companiesMatch } from "@/stores/jobTrackerStore";
+import { pillClass, TARGET_PRIORITY_PILLS, TARGET_STATUS_PILLS } from "@/lib/pillStyles";
+import PillLegend, { COVERAGE_LEGEND, TARGET_PRIORITY_LEGEND, TARGET_STATUS_LEGEND } from "@/components/PillLegend";
 import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact, NetworkRole } from "@/types/jobTracker";
 
 interface TargetCompaniesProps {
