@@ -99,6 +99,7 @@ export function WeeklyPlanCard() {
   const [chartOpen, setChartOpen] = useState(false);
   const [celebrationKey, setCelebrationKey] = useState(0);
   const [didInitialFetch, setDidInitialFetch] = useState(false);
+  const { isPinned, toggle: togglePin } = usePinnedPlanActions();
 
   const fetchPlan = useCallback(async (force: boolean) => {
     setLoading(true);
