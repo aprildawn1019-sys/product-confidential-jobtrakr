@@ -1,17 +1,20 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Cell,
+  Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { ArrowLeft, BarChart3, LineChart as LineIcon, Activity, Info } from "lucide-react";
+import { ArrowLeft, GitBranch, LineChart as LineIcon, Activity, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 import type {
   Job, Contact, Interview, ContactActivity, JobContact, RecommendationRequest,
 } from "@/types/jobTracker";
 import { differenceInCalendarDays, parseISO, startOfWeek, format } from "date-fns";
+import { parseLocalDate } from "@/lib/localDate";
 
 interface OverviewProps {
   jobs: Job[];
@@ -23,23 +26,29 @@ interface OverviewProps {
 }
 
 /**
- * Placeholder bucket for the three lanes used elsewhere in the app.
- * Final response-rate formulas pending — see TODO in component.
+ * Three lanes of effort. All applications fall into exactly one.
+ *  - referral: ≥1 linked contact AND ≥1 contact_activity for that contact dated ON OR BEFORE applied_date
+ *  - warm:     ≥1 linked contact, but no qualifying pre-apply activity
+ *  - cold:     0 linked contacts
  */
-const LANES = ["referrals", "networking", "applications"] as const;
-type Lane = typeof LANES[number];
-
-const LANE_COLORS: Record<Lane, string> = {
-  referrals: "hsl(var(--success))",
-  networking: "hsl(var(--info))",
-  applications: "hsl(var(--primary))",
-};
+type Lane = "cold" | "warm" | "referral";
 
 const LANE_LABEL: Record<Lane, string> = {
-  referrals: "Referrals",
-  networking: "Networking",
-  applications: "Applications",
+  cold: "Cold",
+  warm: "Warm",
+  referral: "Referral",
 };
+
+const LANE_DOT: Record<Lane, string> = {
+  cold: "bg-[hsl(var(--text-tertiary))]",
+  warm: "bg-[hsl(var(--info))]",
+  referral: "bg-[hsl(var(--success))]",
+};
+
+const MIN_LANE_N = 5;
+type WindowKey = "30d" | "90d" | "all";
+const WINDOW_DAYS: Record<WindowKey, number | null> = { "30d": 30, "90d": 90, "all": null };
+const WINDOW_LABEL: Record<WindowKey, string> = { "30d": "30 days", "90d": "90 days", "all": "all time" };
 
 function PlaceholderHint({ note }: { note: string }) {
   return (
@@ -50,50 +59,130 @@ function PlaceholderHint({ note }: { note: string }) {
   );
 }
 
+interface LaneBarProps {
+  label: string;
+  total: number;
+  counts: { cold: number; warm: number; referral: number; total: number };
+}
+
+function LaneBar({ label, total, counts }: LaneBarProps) {
+  const lanes: Lane[] = ["referral", "warm", "cold"];
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-3 mb-1.5">
+        <div className="text-xs font-medium text-foreground">
+          {label}{" "}
+          <span className="text-muted-foreground tabular-nums">
+            (n={total})
+          </span>
+        </div>
+        <div className="text-[11px] text-muted-foreground tabular-nums">
+          {lanes
+            .filter(l => counts[l] > 0)
+            .map(l => `${LANE_LABEL[l]} ${total > 0 ? Math.round((counts[l] / total) * 100) : 0}%`)
+            .join(" · ")}
+        </div>
+      </div>
+      <div className="flex h-6 w-full overflow-hidden rounded-md bg-muted/50">
+        {total === 0 ? (
+          <div className="flex-1 flex items-center justify-center text-[10px] text-muted-foreground">
+            No data
+          </div>
+        ) : (
+          lanes.map((lane) => {
+            const pct = (counts[lane] / total) * 100;
+            if (pct === 0) return null;
+            return (
+              <div
+                key={lane}
+                className={cn(
+                  "flex items-center justify-center text-[10px] font-medium text-white tabular-nums",
+                  LANE_DOT[lane],
+                )}
+                style={{ width: `${pct}%` }}
+                title={`${LANE_LABEL[lane]}: ${counts[lane]} (${Math.round(pct)}%)`}
+              >
+                {pct >= 8 ? `${Math.round(pct)}%` : ""}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Overview({
   jobs, contacts, interviews, contactActivities, jobContacts, recommendationRequests,
 }: OverviewProps) {
   const navigate = useNavigate();
+  const [windowKey, setWindowKey] = useState<WindowKey>("90d");
 
-  // ---------- Response rate by lane (PLACEHOLDER) ----------
-  // TODO(metric): Replace with the agreed formula once provided.
-  // Current stub: ratio of contacts with ≥1 logged activity to total contacts in each lane bucket.
-  const responseRateData = useMemo(() => {
-    // Lane assignment for contacts is approximate until you confirm the rule:
-    //  - referrals  = contacts linked to a job (job_contacts) OR with a recommendation_request
-    //  - networking = contacts NOT in referrals (general network)
-    //  - applications = jobs themselves (denominator: applications submitted, numerator: jobs with status beyond `applied`)
-    const referralContactIds = new Set<string>([
-      ...jobContacts.map(jc => jc.contactId),
-      ...recommendationRequests.map(r => r.contactId),
-    ]);
+  // ---------- Pipeline by lane ----------
+  // For each applied job in the selected window, classify into cold/warm/referral
+  // and compute (a) application mix, (b) interview mix, (c) per-lane conversion.
+  const pipelineByLane = useMemo(() => {
+    const days = WINDOW_DAYS[windowKey];
+    const cutoff = days === null ? null : Date.now() - days * 24 * 60 * 60 * 1000;
 
-    const networkingContacts = contacts.filter(c => !referralContactIds.has(c.id));
-    const referralContacts = contacts.filter(c => referralContactIds.has(c.id));
+    // Pre-index for fast lookup.
+    const contactsByJob = new Map<string, string[]>();
+    for (const jc of jobContacts) {
+      const arr = contactsByJob.get(jc.jobId) ?? [];
+      arr.push(jc.contactId);
+      contactsByJob.set(jc.jobId, arr);
+    }
+    const activitiesByContact = new Map<string, number[]>();
+    for (const a of contactActivities) {
+      const d = parseLocalDate(a.activityDate);
+      if (!d) continue;
+      const arr = activitiesByContact.get(a.contactId) ?? [];
+      arr.push(d.getTime());
+      activitiesByContact.set(a.contactId, arr);
+    }
+    const jobInterviewCount = new Map<string, number>();
+    for (const i of interviews) {
+      jobInterviewCount.set(i.jobId, (jobInterviewCount.get(i.jobId) ?? 0) + 1);
+    }
 
-    const hasActivity = (cid: string) => contactActivities.some(a => a.contactId === cid);
+    const apps = { cold: 0, warm: 0, referral: 0, total: 0 };
+    const ivs = { cold: 0, warm: 0, referral: 0, total: 0 };
 
-    const referralsRate = referralContacts.length > 0
-      ? Math.round((referralContacts.filter(c => hasActivity(c.id)).length / referralContacts.length) * 100)
-      : 0;
-    const networkingRate = networkingContacts.length > 0
-      ? Math.round((networkingContacts.filter(c => hasActivity(c.id)).length / networkingContacts.length) * 100)
-      : 0;
+    for (const j of jobs) {
+      if (!j.appliedDate) continue;
+      const appliedAt = parseLocalDate(j.appliedDate);
+      if (!appliedAt) continue;
+      if (cutoff !== null && appliedAt.getTime() < cutoff) continue;
 
-    const applied = jobs.filter(j => j.appliedDate);
-    const responded = applied.filter(j =>
-      ["screening", "interviewing", "offer", "rejected"].includes(j.status),
-    );
-    const applicationsRate = applied.length > 0
-      ? Math.round((responded.filter(j => j.status !== "rejected").length / applied.length) * 100)
-      : 0;
+      const linkedContacts = contactsByJob.get(j.id) ?? [];
+      let lane: Lane;
+      if (linkedContacts.length === 0) {
+        lane = "cold";
+      } else {
+        const appliedTs = appliedAt.getTime();
+        const hasPreApplyActivity = linkedContacts.some(cid => {
+          const acts = activitiesByContact.get(cid);
+          return acts?.some(t => t <= appliedTs) ?? false;
+        });
+        lane = hasPreApplyActivity ? "referral" : "warm";
+      }
 
-    return [
-      { lane: LANE_LABEL.referrals, rate: referralsRate, key: "referrals" as Lane, sample: referralContacts.length },
-      { lane: LANE_LABEL.networking, rate: networkingRate, key: "networking" as Lane, sample: networkingContacts.length },
-      { lane: LANE_LABEL.applications, rate: applicationsRate, key: "applications" as Lane, sample: applied.length },
-    ];
-  }, [contacts, contactActivities, jobContacts, recommendationRequests, jobs]);
+      apps[lane]++;
+      apps.total++;
+      if ((jobInterviewCount.get(j.id) ?? 0) > 0) {
+        ivs[lane]++;
+        ivs.total++;
+      }
+    }
+
+    const conversion = {
+      cold: apps.cold > 0 ? ivs.cold / apps.cold : 0,
+      warm: apps.warm > 0 ? ivs.warm / apps.warm : 0,
+      referral: apps.referral > 0 ? ivs.referral / apps.referral : 0,
+    };
+
+    return { applications: apps, interviews: ivs, conversion };
+  }, [jobs, jobContacts, contactActivities, interviews, windowKey]);
 
   // ---------- Time to first interview (PLACEHOLDER) ----------
   // TODO(metric): Replace with the agreed formula once provided.
@@ -207,50 +296,106 @@ export default function Overview({
         </Card>
       )}
 
-      {/* Response rate by lane */}
+      {/* Pipeline by lane */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
             <div>
               <CardTitle className="font-display text-base flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                Response rate by lane
+                <GitBranch className="h-4 w-4 text-primary" />
+                Pipeline by lane
               </CardTitle>
               <CardDescription className="text-xs">
-                Share of efforts in each lane that received a response.
+                Where your effort goes vs. where interviews come from.
               </CardDescription>
             </div>
+            <ToggleGroup
+              type="single"
+              size="sm"
+              value={windowKey}
+              onValueChange={(v) => v && setWindowKey(v as WindowKey)}
+              className="h-8"
+            >
+              <ToggleGroupItem value="30d" className="h-7 px-2.5 text-xs">30d</ToggleGroupItem>
+              <ToggleGroupItem value="90d" className="h-7 px-2.5 text-xs">90d</ToggleGroupItem>
+              <ToggleGroupItem value="all" className="h-7 px-2.5 text-xs">All time</ToggleGroupItem>
+            </ToggleGroup>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={responseRateData} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="lane" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-                <YAxis
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                  unit="%"
-                  domain={[0, 100]}
+        <CardContent className="space-y-5">
+          {pipelineByLane.applications.total === 0 ? (
+            <div className="py-10 text-center text-xs text-muted-foreground">
+              No applications in the last {WINDOW_LABEL[windowKey]}.{" "}
+              {windowKey !== "all" && (
+                <button
+                  type="button"
+                  onClick={() => setWindowKey("all")}
+                  className="underline underline-offset-2 hover:text-foreground"
+                >
+                  Switch to All time
+                </button>
+              )}
+              {windowKey !== "all" && " or log an apply date on tracked jobs."}
+            </div>
+          ) : (
+            <>
+              {/* Stacked bars: applications + interviews */}
+              <div className="space-y-3">
+                <LaneBar
+                  label="Applications"
+                  total={pipelineByLane.applications.total}
+                  counts={pipelineByLane.applications}
                 />
-                <RechartsTooltip
-                  contentStyle={{
-                    background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                  formatter={(value: number, _name, item) => [`${value}%`, `${LANE_LABEL[(item.payload as { key: Lane }).key]} · n=${(item.payload as { sample: number }).sample}`]}
+                <LaneBar
+                  label="Interviews"
+                  total={pipelineByLane.interviews.total}
+                  counts={pipelineByLane.interviews}
                 />
-                <Bar dataKey="rate" radius={[6, 6, 0, 0]}>
-                  {responseRateData.map((d) => (
-                    <Cell key={d.key} fill={LANE_COLORS[d.key]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <PlaceholderHint note="Placeholder formula. Referrals = contacts linked to a job/recommendation; Networking = remaining contacts; Applications = applied jobs that progressed past 'applied'. Awaiting your final definitions." />
+              </div>
+
+              {/* Legend */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
+                {(["referral", "warm", "cold"] as Lane[]).map((lane) => (
+                  <div key={lane} className="flex items-center gap-1.5">
+                    <span className={cn("h-2 w-2 rounded-sm", LANE_DOT[lane])} />
+                    <span>{LANE_LABEL[lane]}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Conversion strip */}
+              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-border/60">
+                {(["cold", "warm", "referral"] as Lane[]).map((lane) => {
+                  const apps = pipelineByLane.applications[lane];
+                  const ivs = pipelineByLane.interviews[lane];
+                  const rate = pipelineByLane.conversion[lane];
+                  const sparse = apps < MIN_LANE_N;
+                  return (
+                    <div key={lane} className="space-y-1">
+                      <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                        <span className={cn("h-2 w-2 rounded-sm", LANE_DOT[lane])} />
+                        {LANE_LABEL[lane]}
+                      </div>
+                      <div className="font-display text-2xl font-semibold tabular-nums leading-none">
+                        {sparse ? "—" : `${Math.round(rate * 100)}%`}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground tabular-nums">
+                        {ivs} / {apps} {apps === 1 ? "app" : "apps"}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {(["cold", "warm", "referral"] as Lane[]).every(
+                l => pipelineByLane.applications[l] < MIN_LANE_N,
+              ) && (
+                <p className="text-[11px] text-muted-foreground">
+                  Add more applications (≥{MIN_LANE_N} per lane) to unlock lane conversion.
+                </p>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
 
