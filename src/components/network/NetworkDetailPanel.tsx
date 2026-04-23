@@ -68,7 +68,7 @@ export default function NetworkDetailPanel({
             <div className="space-y-1">
               <p className="text-muted-foreground">{data.role} at {data.company}</p>
               {data.warmth && warmthConfig[data.warmth] && (
-                <Badge variant="outline" className={`text-[10px] ${warmthConfig[data.warmth].className}`}>{warmthConfig[data.warmth].label}</Badge>
+                <span className={pillClass(warmthConfig[data.warmth].tone, "xs")}>{warmthConfig[data.warmth].label}</span>
               )}
               {data.networkRole && (
                 <Badge variant="outline" className="text-[10px]">

@@ -37,29 +37,30 @@ interface TargetCompaniesProps {
   ) => Promise<void>;
 }
 
-// Single-tone navy/amber/slate family — no greens, blues, or reds on
-// pipeline-state pills. Priority signals INTENT (how badly you want it),
-// status signals MOTION (where you are with them).
+// Single-tone navy/amber/slate family — defers to `src/lib/pillStyles.ts`
+// so target-company priority/status pills read as peers of every other
+// status/type chip in the app. Priority signals INTENT (how badly you
+// want it), status signals MOTION (where you are with them).
 //
-// Priority: dream = amber (brand-emphasis), strong = navy (primary intent),
-//           interested = slate (quiet on the list).
-// Status:   researching = slate, applied = navy, connected = amber
-//           (warm relationship, brand emphasis), archived = slate.
+// Priority: dream = amber-strong (brand-emphasis warm), strong = navy-muted
+//           (committed-but-cool), interested = slate (quiet on the list).
+// Status:   researching = slate, applied = navy-muted, connected =
+//           amber-strong (warm relationship), archived = slate.
 //
-// "Strong priority" (navy) and "Applied status" (navy) intentionally share
-// a tone — both are the "active/committed" signal in their respective axes,
+// "Strong priority" and "Applied status" intentionally share the navy
+// tone — both are the "active/committed" signal in their respective axes,
 // and they appear on different pills so collision isn't a scannability risk.
-const priorityConfig: Record<TargetCompanyPriority, { label: string; color: string }> = {
-  dream:      { label: "Dream",      color: "bg-accent/15 text-accent-foreground border-accent/30" },
-  strong:     { label: "Strong",     color: "bg-primary/15 text-primary border-primary/30" },
-  interested: { label: "Interested", color: "bg-muted text-muted-foreground border-border" },
+const priorityToneMap: Record<TargetCompanyPriority, { label: string; tone: PillTone }> = {
+  dream:      { label: "Dream",      tone: "amber-strong" },
+  strong:     { label: "Strong",     tone: "navy-muted" },
+  interested: { label: "Interested", tone: "slate" },
 };
 
-const statusConfig: Record<TargetCompanyStatus, { label: string; color: string }> = {
-  researching: { label: "Researching", color: "bg-muted text-muted-foreground border-border" },
-  applied:     { label: "Applied",     color: "bg-primary/15 text-primary border-primary/30" },
-  connected:   { label: "Connected",   color: "bg-accent/15 text-accent-foreground border-accent/30" },
-  archived:    { label: "Archived",    color: "bg-muted text-muted-foreground border-border" },
+const statusToneMap: Record<TargetCompanyStatus, { label: string; tone: PillTone }> = {
+  researching: { label: "Researching", tone: "slate" },
+  applied:     { label: "Applied",     tone: "navy-muted" },
+  connected:   { label: "Connected",   tone: "amber-strong" },
+  archived:    { label: "Archived",    tone: "slate" },
 };
 
 const emptyForm = {
