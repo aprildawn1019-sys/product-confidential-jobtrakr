@@ -108,9 +108,9 @@ export default function TargetsNeedingSourcing({ targetCompanies, contacts, limi
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="truncate text-sm font-medium">{company.name}</span>
                     {prio && (
-                      <Badge variant="outline" className={cn("h-4 px-1.5 text-[10px]", prio.className)}>
+                      <span className={pillClass(prio.tone, "xs")}>
                         {prio.label}
-                      </Badge>
+                      </span>
                     )}
                   </div>
                   <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">

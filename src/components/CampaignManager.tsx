@@ -142,7 +142,7 @@ export default function CampaignManager({ campaigns, contactCounts, onAdd, onUpd
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm">{c.name}</span>
-                      <Badge className={`text-[10px] capitalize ${statusColors[c.status] || ""}`}>{c.status}</Badge>
+                      <span className={cn(pillClass(statusTones[c.status] ?? "slate", "xs"), "capitalize")}>{c.status}</span>
                       <Badge variant="outline" className="text-[10px] capitalize">{c.type}</Badge>
                       <Badge variant="outline" className="text-[10px] gap-1">👤 {contactCounts[c.id] || 0}</Badge>
                     </div>
