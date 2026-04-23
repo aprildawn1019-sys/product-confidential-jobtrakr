@@ -88,7 +88,19 @@ interface MarkImgProps {
  * Internal renderer. Centralizes the crispness attributes so we never ship
  * an `<img>` of the brand mark without intrinsic dimensions + DPR-aware
  * srcSet, regardless of which surface variant is rendered.
+ *
+ * Tile corner radius is owned by the component (not baked into the PNG).
+ * This is the binding rule from BRAND.md "Mark usage" — the Koudou mark
+ * always renders on a tile with **rounded corners**, never as a hard
+ * square. Radius scales with size token so the corner reads at every
+ * surface (sm 20px → ~4px, md 36px → ~6px, lg 40px → ~8px).
  */
+const SIZE_RADIUS: Record<BrandMarkSize, string> = {
+  sm: "rounded",
+  md: "rounded-md",
+  lg: "rounded-lg",
+};
+
 function MarkImg({ src, alt, ariaHidden, size, className }: MarkImgProps) {
   const px = SIZE_PX[size];
   return (
@@ -102,7 +114,7 @@ function MarkImg({ src, alt, ariaHidden, size, className }: MarkImgProps) {
       decoding="async"
       loading="eager"
       draggable={false}
-      className={cn("shrink-0", className)}
+      className={cn("shrink-0 overflow-hidden", SIZE_RADIUS[size], className)}
     />
   );
 }
