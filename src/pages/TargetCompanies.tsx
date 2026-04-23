@@ -21,6 +21,7 @@ import SourcingPanel from "@/components/targetcompanies/SourcingPanel";
 import { getCoverageInfo, coverageGapComparator, COVERAGE_LABELS, type CoverageState } from "@/components/targetcompanies/coverageUtils";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { TargetCompany, TargetCompanyPriority, TargetCompanyStatus, Job, Contact, NetworkRole } from "@/types/jobTracker";
+import { pillClass, type PillTone } from "@/lib/pillStyles";
 
 interface TargetCompaniesProps {
   targetCompanies: TargetCompany[];
@@ -307,8 +308,8 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map(({ company: tc, coverage }) => {
             const stats = getStats(tc.name);
-            const pConf = priorityConfig[tc.priority];
-            const sConf = statusConfig[tc.status];
+            const pConf = priorityToneMap[tc.priority];
+            const sConf = statusToneMap[tc.status];
             return (
               <Card key={tc.id} className="group hover:shadow-md transition-shadow">
                 <CardContent className="p-5 space-y-3">
@@ -320,12 +321,12 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
                         {tc.industry && <p className="text-xs text-muted-foreground truncate">{tc.industry}{tc.size ? ` · ${tc.size}` : ""}</p>}
                       </div>
                     </div>
-                    <Badge variant="outline" className={`shrink-0 text-xs ${pConf.color}`}>{pConf.label}</Badge>
+                    <span className={pillClass(pConf.tone, "sm", "shrink-0")}>{pConf.label}</span>
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
                     <CoverageBadge coverage={coverage} onClick={() => setSourcingCompanyId(tc.id)} />
-                    <Badge variant="secondary" className={`text-xs ${sConf.color}`}>{sConf.label}</Badge>
+                    <span className={pillClass(sConf.tone, "sm")}>{sConf.label}</span>
                   </div>
 
                   <div className="flex gap-4 text-xs text-muted-foreground">
