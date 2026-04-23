@@ -1,0 +1,87 @@
+/**
+ * UI QA Mode — diagnostic overlay styles.
+ *
+ * Activated by `data-qa-mode="on"` on <html>. Each diagnostic has its own
+ * sub-attribute (`data-qa-spacing`, `data-qa-active`, `data-qa-slots`) so
+ * QA flags can be toggled independently without re-running JS.
+ *
+ * Design choices:
+ *   - Use `outline` (not `border`) for spacing/slot warnings so they do
+ *     NOT shift layout — outlines render outside the box model.
+ *   - Use semantic tokens (--accent, --destructive, --info) rather than
+ *     raw hex so QA matches the product palette.
+ *   - All effects scoped under [data-qa-mode="on"] so this CSS is inert
+ *     when QA is off.
+ */
+
+/* ---------- Spacing outlines ---------- */
+[data-qa-mode="on"][data-qa-spacing="on"] main,
+[data-qa-mode="on"][data-qa-spacing="on"] header,
+[data-qa-mode="on"][data-qa-spacing="on"] nav,
+[data-qa-mode="on"][data-qa-spacing="on"] aside,
+[data-qa-mode="on"][data-qa-spacing="on"] section,
+[data-qa-mode="on"][data-qa-spacing="on"] article {
+  outline: 1px dashed hsl(var(--info) / 0.45);
+  outline-offset: -1px;
+}
+
+[data-qa-mode="on"][data-qa-spacing="on"] [class*="grid"],
+[data-qa-mode="on"][data-qa-spacing="on"] [class*="flex"] {
+  outline: 1px dotted hsl(var(--info) / 0.25);
+  outline-offset: -1px;
+}
+
+/* ---------- Active route + focus rings ---------- */
+[data-qa-mode="on"][data-qa-active="on"] a.active,
+[data-qa-mode="on"][data-qa-active="on"] a[aria-current="page"],
+[data-qa-mode="on"][data-qa-active="on"] [data-state="active"] {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: 2px;
+  position: relative;
+}
+
+[data-qa-mode="on"][data-qa-active="on"] a.active::after,
+[data-qa-mode="on"][data-qa-active="on"] a[aria-current="page"]::after {
+  content: "active";
+  position: absolute;
+  top: -8px;
+  right: -4px;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 9px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  pointer-events: none;
+  z-index: 50;
+}
+
+[data-qa-mode="on"][data-qa-active="on"] *:focus-visible {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: 2px;
+}
+
+/* ---------- Missing icon / label slots ---------- */
+[data-qa-mode="on"][data-qa-slots="on"] [data-qa-slot-issue] {
+  outline: 2px dashed hsl(var(--destructive));
+  outline-offset: 2px;
+  position: relative;
+}
+
+[data-qa-mode="on"][data-qa-slots="on"] [data-qa-slot-issue]::before {
+  content: "⚠ " attr(data-qa-slot-issue);
+  position: absolute;
+  left: 0;
+  top: -14px;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 9px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 50;
+}
