@@ -17,13 +17,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { cn } from "@/lib/utils";
 import type { Job, Interview, Contact } from "@/types/jobTracker";
 import HelpHint from "@/components/help/HelpHint";
+import { pillClass, type PillTone } from "@/lib/pillStyles";
 
-// Already on tokens — kept here for the follow-up indicator pill.
-const warmthStyles: Record<string, string> = {
-  cold: "bg-info/15 text-info border-info/30",
-  warm: "bg-warning/15 text-warning border-warning/30",
-  hot: "bg-destructive/15 text-destructive border-destructive/30",
-  champion: "bg-success/15 text-success border-success/30",
+// Warmth pill — same tone mapping as `WarmthBadge` so the follow-up
+// indicator on the Interviews page matches the contact list's chip for
+// the same warmth value. See `src/lib/pillStyles.ts`.
+const warmthTones: Record<string, PillTone> = {
+  cold:     "slate",
+  warm:     "amber-soft",
+  hot:      "amber-strong",
+  champion: "amber-strong",
 };
 
 interface InterviewsPageProps {
@@ -402,10 +405,10 @@ export default function InterviewsPage({ jobs, interviews, contacts = [], onAdd,
                           <Users className="h-3.5 w-3.5 text-muted-foreground" />
                           <span className="font-medium text-sm">{contact.name}</span>
                           <span className="text-sm text-muted-foreground">at {contact.company}</span>
-                          {contact.relationshipWarmth && (
-                            <Badge variant="outline" className={cn("text-xs capitalize", warmthStyles[contact.relationshipWarmth] || "")}>
+                          {contact.relationshipWarmth && warmthTones[contact.relationshipWarmth] && (
+                            <span className={cn(pillClass(warmthTones[contact.relationshipWarmth], "xs"), "capitalize")}>
                               {contact.relationshipWarmth}
-                            </Badge>
+                            </span>
                           )}
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
