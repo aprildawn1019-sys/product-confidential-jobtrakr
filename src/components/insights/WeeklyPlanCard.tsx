@@ -6,7 +6,7 @@ import {
 import {
   Sparkles, RefreshCw, ChevronDown, ChevronUp, TrendingUp, TrendingDown,
   Minus, Send, Users, CalendarCheck, Loader2, AlertCircle, Target,
-  MessageCircle, ClipboardList, Compass, Pin, PinOff, Info,
+  MessageCircle, ClipboardList, Compass, Pin, PinOff, Info, Lightbulb,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ const CATEGORY_ICON: Record<string, typeof Target> = {
   applications: ClipboardList,
   "follow-up": Compass,
   preparation: Target,
-  strategy: Sparkles,
+  strategy: Lightbulb,
 };
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -177,8 +177,7 @@ export function WeeklyPlanCard() {
       <CardHeader>
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <CardTitle className="font-display text-base flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-accent" />
+            <CardTitle className="font-display text-base">
               Weekly Review &amp; Plan
             </CardTitle>
             <CardDescription className="text-xs">
@@ -298,7 +297,7 @@ export function WeeklyPlanCard() {
             </div>
             <ol className="space-y-2.5">
               {plan.map((action, idx) => {
-                const Icon = CATEGORY_ICON[action.category || "strategy"] || Sparkles;
+                const Icon = CATEGORY_ICON[action.category || "strategy"] || Lightbulb;
                 const pinned = isPinned(action.id);
                 return (
                   <li
