@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Megaphone, Trash2, Edit2, X } from "lucide-react";
 import type { Campaign } from "@/types/jobTracker";
+import { cn } from "@/lib/utils";
+import { pillClass } from "@/lib/pillStyles";
 
 interface CampaignManagerProps {
   campaigns: Campaign[];

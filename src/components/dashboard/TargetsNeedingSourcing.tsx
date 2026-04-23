@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import CompanyAvatar from "@/components/CompanyAvatar";
 import { getCoverageInfo, type CoverageState } from "@/components/targetcompanies/coverageUtils";
 import { cn } from "@/lib/utils";
+import { pillClass } from "@/lib/pillStyles";
 import type { Contact, TargetCompany } from "@/types/jobTracker";
 
 interface Props {
