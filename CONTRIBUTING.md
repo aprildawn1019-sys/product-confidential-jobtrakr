@@ -14,8 +14,8 @@ Thanks for your interest in contributing! This guide covers everything you need 
 
 ```bash
 # 1. Fork and clone
-git clone https://github.com/<your-username>/jobtrackr.git
-cd jobtrackr
+git clone https://github.com/<your-username>/koudou.git
+cd koudou
 
 # 2. Install dependencies
 npm install

@@ -1,6 +1,6 @@
 ---
 name: Brand mark
-description: Geometric-K Jobtrakr mark in two color-inverted variants. Light variant (navy tile, white K, amber lower arm) for light surfaces; dark variant (white tile, navy K, amber lower arm) for the navy sidebar. Amber lower arm is invariant.
+description: Geometric-K Koudou mark in two color-inverted variants. Light variant (navy tile, white K, amber lower arm) for light surfaces; dark variant (white tile, navy K, amber lower arm) for the navy sidebar. Amber lower arm is invariant.
 type: design
 ---
 
@@ -19,7 +19,7 @@ Two color-inverted variants of the same geometric-K mark. The amber lower arm ("
 - `src/pages/Landing.tsx` imports the **light** variant for nav (`h-9 w-9`) and footer (`h-5 w-5`).
 
 ### Usage rules
-- Always render via `<img src={...} alt="Jobtrakr" />` — do **not** rebuild as inline SVG.
+- Always render via `<img src={...} alt="Koudou" />` — do **not** rebuild as inline SVG.
 - Pick the variant by surface, never by personal preference: dark variant on dark backgrounds, light variant on light backgrounds. Mixing them collapses contrast and the mark disappears (the bug that prompted this memory).
 - Do **not** wrap the mark in an additional tile — the painted tile is part of the asset.
 - To regenerate the dark variant after the light variant changes, re-run `/tmp/invert_mark.py`.

@@ -11,7 +11,7 @@ Sidebar supports a collapsed icon-only state (56px) toggled via a floating chevr
 
 ## Visual treatment (v3)
 
-- Brand lockup: amber rounded-square tile (`bg-sidebar-primary`, `h-6 w-6`) + "Jobtrakr" wordmark in `font-display`. The geometric-K marks (`koudou-mark-*.png`) remain canonical for landing nav and favicon, but the sidebar uses the simpler tile so it doesn't compete with content.
+- Brand lockup: geometric-K mark (`koudou-mark-dark.png`, `h-9 w-9` expanded / `h-10 w-10` collapsed) + "Koudou" wordmark in `font-display text-xl font-bold`. Dark-pane variant of the mark sits on the navy sidebar; the light-pane variant is reserved for light surfaces (Landing, /getting-started). See `mem://style/brand-mark`.
 - Group labels: amber, uppercase, `tracking-[0.16em]`, `text-[11px] font-bold`. **No leading icon, no chevron** — they read as quiet section headers.
 - Nav rows: thin-stroke icons (`strokeWidth={1.75}`, `h-4 w-4`) + 14px label. Active row = navy fill (`bg-sidebar-accent`) **plus** a 2px amber bar on the left edge (`before:` pseudo). Same active treatment in collapsed mode.
 - Footer row: avatar circle (8×8) inline with three compact text+icon pills (Profile / Settings / Help) at `text-xs`.

@@ -141,7 +141,7 @@ If you're running on [Lovable](https://lovable.dev), everything is pre-configure
 
 ```bash
 git clone <your-repo-url>
-cd jobtrackr
+cd koudou
 npm install
 ```
 
