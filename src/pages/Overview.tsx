@@ -84,6 +84,7 @@ export default function Overview({
 
     const apps = { cold: 0, warm: 0, referral: 0, total: 0 };
     const ivs = { cold: 0, warm: 0, referral: 0, total: 0 };
+    const offers = { cold: 0, warm: 0, referral: 0, total: 0 };
     const daysToInterview: number[] = [];
 
     for (const j of jobs) {
@@ -114,6 +115,10 @@ export default function Overview({
         const days = Math.max(0, Math.round((earliest - appliedAt.getTime()) / (24 * 60 * 60 * 1000)));
         daysToInterview.push(days);
       }
+      if (j.status === "offer") {
+        offers[lane]++;
+        offers.total++;
+      }
     }
 
     const conversion = {
@@ -132,7 +137,7 @@ export default function Overview({
         : sorted[mid];
     }
 
-    return { applications: apps, interviews: ivs, conversion, medianDaysToInterview };
+    return { applications: apps, interviews: ivs, offers, conversion, medianDaysToInterview };
   }, [jobs, jobContacts, contactActivities, interviews, windowKey]);
 
   // Weekly velocity chart now lives inside <WeeklyPlanCard /> (collapsible 8-week trend),
@@ -222,14 +227,17 @@ export default function Overview({
                   referral: {
                     applications: pipelineByLane.applications.referral,
                     interviews: pipelineByLane.interviews.referral,
+                    offers: pipelineByLane.offers.referral,
                   },
                   warm: {
                     applications: pipelineByLane.applications.warm,
                     interviews: pipelineByLane.interviews.warm,
+                    offers: pipelineByLane.offers.warm,
                   },
                   cold: {
                     applications: pipelineByLane.applications.cold,
                     interviews: pipelineByLane.interviews.cold,
+                    offers: pipelineByLane.offers.cold,
                   },
                 }}
                 minLaneN={MIN_LANE_N}
