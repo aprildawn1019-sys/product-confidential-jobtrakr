@@ -343,7 +343,7 @@ export default function TargetCompanies({ targetCompanies, jobs, contacts, onAdd
                     {stats.activeApps > 0 && (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button onClick={() => navigate(`/jobs?company=${encodeURIComponent(tc.name)}&status=applied,screening,interviewing,offer`)} className="flex items-center gap-1 text-success font-medium hover:text-success/80 transition-colors">{stats.activeApps} active</button>
+                          <button onClick={() => navigate(`/jobs?company=${encodeURIComponent(tc.name)}&status=applied,screening,interviewing,offer`)} className="flex items-center gap-1 text-primary font-medium hover:text-primary/80 transition-colors">{stats.activeApps} active</button>
                         </TooltipTrigger>
                         <TooltipContent>View jobs with active applications (applied, screening, interviewing, offer)</TooltipContent>
                       </Tooltip>
