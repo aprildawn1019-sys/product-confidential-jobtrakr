@@ -115,6 +115,10 @@ export default function Overview({
         const days = Math.max(0, Math.round((earliest - appliedAt.getTime()) / (24 * 60 * 60 * 1000)));
         daysToInterview.push(days);
       }
+      if (j.status === "offer") {
+        offers[lane]++;
+        offers.total++;
+      }
     }
 
     const conversion = {
@@ -133,7 +137,7 @@ export default function Overview({
         : sorted[mid];
     }
 
-    return { applications: apps, interviews: ivs, conversion, medianDaysToInterview };
+    return { applications: apps, interviews: ivs, offers, conversion, medianDaysToInterview };
   }, [jobs, jobContacts, contactActivities, interviews, windowKey]);
 
   // Weekly velocity chart now lives inside <WeeklyPlanCard /> (collapsible 8-week trend),
