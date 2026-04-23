@@ -169,7 +169,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
           <BrandMark size="lg" surface="dark" />
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-2 py-2" aria-label="Primary">
+        <nav className="sidebar-scroll flex-1 overflow-y-auto px-2 py-2" aria-label="Primary">
           <div className="flex flex-col items-center gap-1">
             {groups.map((g, gi) => (
               <div key={g.label} className="flex flex-col items-center gap-1">
@@ -267,7 +267,7 @@ function SidebarBody({ jobs, hasData, collapsed, onNavigate }: SidebarBodyProps)
         </span>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1" aria-label="Primary">
+      <nav className="sidebar-scroll flex-1 overflow-y-auto px-3 py-3 space-y-1" aria-label="Primary">
         <NavLink
           to="/getting-started"
           onClick={handleNavClick}
