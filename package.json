@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:localdate-tz": "node scripts/test-localdate-tz.mjs"
+    "test:localdate-tz": "node scripts/test-localdate-tz.mjs",
+    "verify:og-headers": "node scripts/verify-og-headers.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
