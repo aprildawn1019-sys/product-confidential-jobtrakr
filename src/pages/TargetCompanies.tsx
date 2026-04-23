@@ -37,30 +37,9 @@ interface TargetCompaniesProps {
   ) => Promise<void>;
 }
 
-// Single-tone navy/amber/slate family — no greens, blues, or reds on
-// pipeline-state pills. Priority signals INTENT (how badly you want it),
-// status signals MOTION (where you are with them).
-//
-// Priority: dream = amber (brand-emphasis), strong = navy (primary intent),
-//           interested = slate (quiet on the list).
-// Status:   researching = slate, applied = navy, connected = amber
-//           (warm relationship, brand emphasis), archived = slate.
-//
-// "Strong priority" (navy) and "Applied status" (navy) intentionally share
-// a tone — both are the "active/committed" signal in their respective axes,
-// and they appear on different pills so collision isn't a scannability risk.
-const priorityConfig: Record<TargetCompanyPriority, { label: string; color: string }> = {
-  dream:      { label: "Dream",      color: "bg-accent/15 text-accent-foreground border-accent/30" },
-  strong:     { label: "Strong",     color: "bg-primary/15 text-primary border-primary/30" },
-  interested: { label: "Interested", color: "bg-muted text-muted-foreground border-border" },
-};
-
-const statusConfig: Record<TargetCompanyStatus, { label: string; color: string }> = {
-  researching: { label: "Researching", color: "bg-muted text-muted-foreground border-border" },
-  applied:     { label: "Applied",     color: "bg-primary/15 text-primary border-primary/30" },
-  connected:   { label: "Connected",   color: "bg-accent/15 text-accent-foreground border-accent/30" },
-  archived:    { label: "Archived",    color: "bg-muted text-muted-foreground border-border" },
-};
+// Priority + status pill tones live in `src/lib/pillStyles.ts` so this page,
+// the dashboard's TargetsNeedingSourcing widget, and PillLegend stay in sync
+// by construction. See `TARGET_PRIORITY_PILLS` / `TARGET_STATUS_PILLS`.
 
 const emptyForm = {
   name: "", website: "", careersUrl: "", industry: "", size: "",

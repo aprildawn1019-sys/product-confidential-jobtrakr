@@ -17,14 +17,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { cn } from "@/lib/utils";
 import type { Job, Interview, Contact } from "@/types/jobTracker";
 import HelpHint from "@/components/help/HelpHint";
-
-// Already on tokens — kept here for the follow-up indicator pill.
-const warmthStyles: Record<string, string> = {
-  cold: "bg-info/15 text-info border-info/30",
-  warm: "bg-warning/15 text-warning border-warning/30",
-  hot: "bg-destructive/15 text-destructive border-destructive/30",
-  champion: "bg-success/15 text-success border-success/30",
-};
+import {
+  pillClass,
+  type PillTone,
+  INTERVIEW_TYPE_PILLS,
+  INTERVIEW_STATUS_PILLS,
+} from "@/lib/pillStyles";
+import PillLegend, { INTERVIEW_TYPE_LEGEND, INTERVIEW_STATUS_LEGEND } from "@/components/PillLegend";
 
 interface InterviewsPageProps {
   jobs: Job[];
@@ -37,28 +36,15 @@ interface InterviewsPageProps {
   getContactsForJob?: (jobId: string) => Contact[];
 }
 
-// Interview-type pills — single-tone navy/amber/slate family.
-// All five rounds are pipeline stages (not statuses), so the pill carries
-// IDENTITY, not urgency. Slate for the early/neutral rounds, amber for the
-// brand-emphasis rounds (onsite + final) where prep matters most. We do
-// NOT use destructive red here — "final round" is high-stakes but not an
-// error condition, and the urgency cue belongs to the date, not the type.
-const typeColors: Record<string, string> = {
-  phone:      "bg-muted text-muted-foreground border-border",
-  technical:  "bg-muted text-muted-foreground border-border",
-  behavioral: "bg-muted text-muted-foreground border-border",
-  onsite:     "bg-accent/15 text-accent-foreground border-accent/30",
-  final:      "bg-accent/15 text-accent-foreground border-accent/30",
-};
-
-// Interview-status pills — same family. Scheduled = navy (active),
-// completed = slate (resolved/quiet), cancelled = slate with strikethrough
-// affordance via opacity in the row itself. Avoid shadcn's default
-// destructive variant for "cancelled" so the row doesn't shout.
-const statusColors: Record<string, string> = {
-  scheduled: "bg-primary/15 text-primary border-primary/30",
-  completed: "bg-muted text-muted-foreground border-border",
-  cancelled: "bg-muted text-muted-foreground border-border",
+// Warmth pill tones — same mapping as `WarmthBadge` so the follow-up
+// indicator on the Interviews page matches the contact list's chip for
+// the same warmth value. Keeps Interviews routing through the shared
+// pill family (no local rainbow `bg-info/warning/destructive` strings).
+const warmthTones: Record<string, PillTone> = {
+  cold:     "slate",
+  warm:     "amber-soft",
+  hot:      "amber-strong",
+  champion: "amber-strong",
 };
 
 type FilterType = "all" | "interviews" | "followups";
