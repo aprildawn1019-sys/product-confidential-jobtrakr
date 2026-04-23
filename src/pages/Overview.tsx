@@ -1,10 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
-} from "recharts";
-import { ArrowLeft, GitBranch, LineChart as LineIcon, Info, Clock } from "lucide-react";
+import { ArrowLeft, GitBranch, Info, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,8 +9,8 @@ import { cn } from "@/lib/utils";
 import type {
   Job, Contact, Interview, ContactActivity, JobContact, RecommendationRequest,
 } from "@/types/jobTracker";
-import { parseISO, startOfWeek, format } from "date-fns";
 import { parseLocalDate } from "@/lib/localDate";
+import { WeeklyPlanCard } from "@/components/insights/WeeklyPlanCard";
 
 interface OverviewProps {
   jobs: Job[];
