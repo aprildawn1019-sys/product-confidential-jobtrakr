@@ -16,6 +16,7 @@ import {
 } from "@/lib/pipelineCounts";
 import { useActionSnoozes } from "@/hooks/useActionSnoozes";
 import { useAiSuggestedActions } from "@/hooks/useAiSuggestedActions";
+import { usePinnedPlanActions, pinnedToDerivedActions } from "@/hooks/usePinnedPlanActions";
 import type {
   Job,
   Contact,
@@ -56,6 +57,7 @@ export default function Dashboard({
 
   const { snoozes, completed, snooze, complete } = useActionSnoozes();
   const { suggestions: aiSuggestions, loading: aiLoading, fetchSuggestions: fetchAi } = useAiSuggestedActions();
+  const { pinned: pinnedPlanItems } = usePinnedPlanActions();
 
   // First-login redirect: brand-new users → Getting Started.
   useEffect(() => {
@@ -73,10 +75,15 @@ export default function Dashboard({
   const activeApps = countActiveJobs(jobs);
   const upcomingInterviewCount = countScheduledInterviews(interviews);
 
+  const mergedAiSuggestions = useMemo(
+    () => [...pinnedToDerivedActions(pinnedPlanItems), ...aiSuggestions],
+    [pinnedPlanItems, aiSuggestions],
+  );
+
   const actions = useMemo(() => deriveActions({
     jobs, contacts, interviews, contactActivities, recommendationRequests,
-    targetCompanies, jobContacts, snoozes, aiSuggestions,
-  }), [jobs, contacts, interviews, contactActivities, recommendationRequests, targetCompanies, jobContacts, snoozes, aiSuggestions]);
+    targetCompanies, jobContacts, snoozes, aiSuggestions: mergedAiSuggestions,
+  }), [jobs, contacts, interviews, contactActivities, recommendationRequests, targetCompanies, jobContacts, snoozes, mergedAiSuggestions]);
 
   const overdueCount = actions.filter(a => a.urgency === "overdue").length;
   const todayCount = actions.filter(a => a.urgency === "today").length;
