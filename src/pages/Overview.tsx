@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { ArrowLeft, GitBranch, LineChart as LineIcon, Activity, Info, Clock } from "lucide-react";
+import { ArrowLeft, GitBranch, LineChart as LineIcon, Info, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import type {
   Job, Contact, Interview, ContactActivity, JobContact, RecommendationRequest,
 } from "@/types/jobTracker";
-import { differenceInCalendarDays, parseISO, startOfWeek, format } from "date-fns";
+import { parseISO, startOfWeek, format } from "date-fns";
 import { parseLocalDate } from "@/lib/localDate";
 
 interface OverviewProps {
