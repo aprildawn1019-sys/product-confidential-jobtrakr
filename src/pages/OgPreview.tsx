@@ -129,7 +129,7 @@ export default function OgPreview() {
       </header>
 
       <Card className="overflow-hidden border-border bg-card">
-        <div className="bg-[hsl(222_47%_11%)] p-6">
+        <div className="bg-primary p-6">
           <img
             src={src}
             alt="Koudou Open Graph card — From first lead to signed offer."
