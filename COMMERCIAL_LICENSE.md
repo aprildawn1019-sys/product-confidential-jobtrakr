@@ -1,4 +1,4 @@
-# Commercial License — Product Confidential
+# Commercial License — Koudou
 
 Koudou is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE), which permits free use for personal, educational, and research purposes.
 
@@ -40,12 +40,12 @@ Koudou is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE), wh
 
 ## How to Obtain a Commercial License
 
-1. **Email**: Send a request to **april@productconfidential.co** with:
+1. **Email**: Send a request to the maintainer with:
    - Your company name and size
    - Intended use case
    - Expected number of users
 
-2. **GitHub**: Open a [Discussion](https://github.com/aprildawn1019-sys/product-confidential-jobtrakr/discussions) in the repository with the `commercial-license` tag.
+2. **GitHub**: Open a [Discussion](https://github.com/koudou-app/koudou/discussions) in the repository with the `commercial-license` tag.
 
 We aim to respond within **2 business days**.
 

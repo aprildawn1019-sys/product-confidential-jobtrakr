@@ -15,7 +15,7 @@ Updated: now
 - CONSTRAINT: Never use AI for match scoring. The user explicitly declined this.
 - No third-party scraping services. Use Edge Function + Gemini for scraping.
 - Exclude gated job boards from auto-searches; use manual check workflow.
-- Branding: 'Koudou' by Product Confidential. PolyForm Noncommercial 1.0.0.
+- Branding: 'Koudou — Your Job Search Command Center'. Tagline: "From first lead to signed offer. Track the entire funnel." PolyForm Noncommercial 1.0.0.
 
 ## Memories
 - [Brand Assets Lockdown](mem://style/brand-assets-lockdown) — src/assets/brand/{marks,spec,BRAND.md} canonical; _archive/ off-limits
@@ -44,5 +44,5 @@ Updated: now
 - [Target Company Sourcing](mem://features/target-company-sourcing) — Coverage taxonomy + SourcingPanel for finding Boosters/Connectors
 - [Open Source Support](mem://tech/open-source-support) — Licensing and changelog management
 - [Recommendations Engine](mem://features/recommendations-engine) — Weighted scoring, auto-scroll deep links
-- [Branding](mem://project/branding) — Jobtrakr metadata and identity
+
 - [Match Scoring Preference](mem://constraints/match-scoring-preference) — Strict rule against AI-automated scoring
