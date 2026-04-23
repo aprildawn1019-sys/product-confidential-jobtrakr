@@ -177,7 +177,8 @@ export function WeeklyPlanCard() {
       <CardHeader>
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <CardTitle className="font-display text-base">
+            <CardTitle className="font-display text-base flex items-center gap-2">
+              <CalendarCheck className="h-4 w-4 text-primary" />
               Weekly Review &amp; Plan
             </CardTitle>
             <CardDescription className="text-xs">
