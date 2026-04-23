@@ -361,46 +361,8 @@ export default function Overview({
         </CardContent>
       </Card>
 
-      {/* Weekly velocity */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <CardTitle className="font-display text-base flex items-center gap-2">
-                <LineIcon className="h-4 w-4 text-info" />
-                Weekly velocity
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Applications submitted, interviews scheduled, and outreach activities — last 8 weeks.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={velocityData} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="week" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-                <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} allowDecimals={false} />
-                <RechartsTooltip
-                  contentStyle={{
-                    background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line type="monotone" dataKey="applications" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="interviews" stroke="hsl(var(--warning))" strokeWidth={2} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="outreach" stroke="hsl(var(--info))" strokeWidth={2} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <PlaceholderHint note="Placeholder formula: weeks start Monday. Applications = jobs whose appliedDate falls in week. Interviews = interviews whose date falls in week (any status). Outreach = contact_activities in week. Awaiting your final definition (status filter? rolling avg?)." />
-        </CardContent>
-      </Card>
+      {/* Weekly Plan — scoreboard + AI-recommended actions + collapsible 8-week trend */}
+      <WeeklyPlanCard />
     </div>
   );
 }
