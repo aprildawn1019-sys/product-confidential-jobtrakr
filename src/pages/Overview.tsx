@@ -371,8 +371,8 @@ export default function Overview({
                   const rate = pipelineByLane.conversion[lane];
                   const sparse = apps < MIN_LANE_N;
                   return (
-                    <div key={lane} className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                    <div key={lane} className="space-y-1 text-center">
+                      <div className="flex items-center justify-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                         <span className={cn("h-2 w-2 rounded-sm", LANE_DOT[lane])} />
                         {LANE_LABEL[lane]}
                       </div>
