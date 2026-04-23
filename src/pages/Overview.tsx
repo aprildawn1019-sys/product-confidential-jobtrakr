@@ -30,12 +30,6 @@ interface OverviewProps {
  */
 type Lane = "cold" | "warm" | "referral";
 
-const LANE_LABEL: Record<Lane, string> = {
-  cold: "Cold",
-  warm: "Warm",
-  referral: "Referral",
-};
-
 const MIN_LANE_N = 5;
 type WindowKey = "30d" | "90d" | "all";
 const WINDOW_DAYS: Record<WindowKey, number | null> = { "30d": 30, "90d": 90, "all": null };
