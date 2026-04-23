@@ -71,6 +71,18 @@ src/assets/brand/
 - Always render via `BrandMark` (which wraps `<img>`). Do **not** rebuild as inline SVG, and do **not** import the PNG directly — the component owns the surface-mapping and tile-radius rules.
 - **Tile shape is always a rounded square, never a hard square.** Corner radius is component-owned (size-proportional via Tailwind `rounded`/`rounded-md`/`rounded-lg`) so every surface reads consistently. Source PNGs are intentionally full-bleed flat-color tiles; the rounded clip is applied in CSS so we can re-tune the radius without re-exporting assets.
 - The amber lower arm is invariant — it's the "forward motion" cue. Do not recolor.
+- **Asset provenance (binding):** `koudou-mark-light.png` is the hand-authored canonical asset. `koudou-mark-dark.png` is generated from it by per-pixel color-swap (navy↔white, amber preserved) — see `/tmp/invert_mark.py` and `.lovable/memory/style/brand-mark.md`. Never re-paint the dark variant with an image model: the legs of the K must stay crisp, and the only way to guarantee that is to derive the dark variant from the clean light variant. If the light variant changes, regenerate the dark variant the same way; do not hand-edit `koudou-mark-dark.png`.
+
+## Sidebar surface (the navy rail)
+
+The navy sidebar is the most-seen brand surface, so its treatment is locked here:
+
+- **Brand lockup (top):** `BrandMark size="md" surface="dark"` + the wordmark "Koudou" in `Space Grotesk 700 @ 20px`. Wordmark uses `leading-none` + `pt-0.5` to optically center against the mark (which carries internal padding). In collapsed mode, only the mark renders, at `size="lg"`.
+- **Icon palette (inverted):** primary-nav glyphs default to **muted brand amber** (`text-sidebar-primary/80`) and lift to **white** (`text-sidebar-foreground`) on hover. Label text stays on the muted ramp (`text-sidebar-muted` → white on hover) — only the **icon** carries the amber signal so the rail reads as quietly chromatic, not loud. This applies to both expanded primary nav and the collapsed icon rail, and to the footer utility rows (Profile / Settings / Help).
+- **Active row:** soft navy fill (`bg-sidebar-accent`) + **amber left bar** (`before:bg-sidebar-primary`, 2px wide, inset 6px top/bottom, fully rounded). When active, the icon flips to **white** so the amber bar is the sole "you are here" cue — the icon does not double-signal. Active label is `font-medium`.
+- **Section labels (groups):** `Space Grotesk 600 @ 11px`, uppercase, `tracking-[0.16em]`, color `--sidebar-group-foreground` (desaturated muted amber). Quieter than the rows by design — they are scaffolding, not navigation.
+- **Footer:** vertical stack of labeled utility rows (Profile, Settings, Help) followed by an identity row (avatar + name) anchored at the very bottom. The avatar is a 28px circle, `bg-sidebar-primary` with `text-sidebar-primary-foreground` initials. The whole identity row is the dropdown trigger (not just the avatar) — the spec affordance is "click your name."
+- **Scrollbar (overlay, hairline-on-hover):** the nav scroll container uses the `.sidebar-scroll` utility (defined in `src/index.css`). Scrollbar is invisible at rest and **does not consume layout width** — this prevents the rail from looking pinched when the thumb appears (the previous bug where header/footer looked wider than the nav). On hover/focus/scroll, a 4px hairline thumb in `--sidebar-foreground / 0.28` fades in (Firefox via `scrollbar-color`, WebKit via `::-webkit-scrollbar-thumb`). Do not switch back to default `overflow-y-auto` without `.sidebar-scroll` — that re-introduces the layout-shift bug.
 
 ## Spec images = binding UX reference
 
