@@ -179,15 +179,21 @@ export default function GettingStarted({
           <div className="relative max-w-3xl">
             {/* Brand lockup mirrors the sidebar header rhythm: h-16 row,
                 gap-2.5 between mark and wordmark, Space Grotesk 700 with
-                leading-none + pt-0.5 optical alignment. On mobile we use
-                the expanded-sidebar size (md/text-xl) so the lockup is
-                identical to what the user sees in the side rail; ≥sm we
-                step up one token (lg/text-2xl) so it carries weight on
-                the larger hero surface without changing optical alignment. */}
+                leading-none + an optical-center nudge on the wordmark to
+                line up the cap midline with the mark midline.
+
+                Mobile (<sm) uses the expanded-sidebar pair exactly:
+                  mark = md (36px),  wordmark = text-xl (20px cap),  pt-0.5
+                ≥sm steps to a hero-weight pair:
+                  mark = lg (40px),  wordmark = text-2xl (24px cap),  pt-1
+                The pt nudge scales with the cap height so the optical
+                centerline stays put when the type steps up. Geometry is
+                identical in light + dark mode (variant swap only changes
+                which PNG paints — the box and font metrics don't move). */}
             <div className="-mx-1 mb-5 flex h-16 items-center gap-2.5">
               <BrandMark size="md" className="sm:hidden" />
               <BrandMark size="lg" className="hidden sm:block" />
-              <span className="pt-0.5 font-display text-xl font-bold leading-none tracking-tight text-foreground sm:text-2xl">
+              <span className="pt-0.5 font-display text-xl font-bold leading-none tracking-tight text-foreground sm:pt-1 sm:text-2xl">
                 Koudou
               </span>
             </div>
