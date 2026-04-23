@@ -17,13 +17,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { cn } from "@/lib/utils";
 import type { Job, Interview, Contact } from "@/types/jobTracker";
 import HelpHint from "@/components/help/HelpHint";
+import { pillClass, type PillTone } from "@/lib/pillStyles";
 
-// Already on tokens — kept here for the follow-up indicator pill.
-const warmthStyles: Record<string, string> = {
-  cold: "bg-info/15 text-info border-info/30",
-  warm: "bg-warning/15 text-warning border-warning/30",
-  hot: "bg-destructive/15 text-destructive border-destructive/30",
-  champion: "bg-success/15 text-success border-success/30",
+// Warmth pill — same tone mapping as `WarmthBadge` so the follow-up
+// indicator on the Interviews page matches the contact list's chip for
+// the same warmth value. See `src/lib/pillStyles.ts`.
+const warmthTones: Record<string, PillTone> = {
+  cold:     "slate",
+  warm:     "amber-soft",
+  hot:      "amber-strong",
+  champion: "amber-strong",
 };
 
 interface InterviewsPageProps {
