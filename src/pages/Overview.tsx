@@ -140,13 +140,19 @@ export default function Overview({
       arr.push(d.getTime());
       activitiesByContact.set(a.contactId, arr);
     }
-    const jobInterviewCount = new Map<string, number>();
+    // Earliest interview timestamp per job (for both "has interview" presence and median time-to-interview)
+    const jobEarliestInterview = new Map<string, number>();
     for (const i of interviews) {
-      jobInterviewCount.set(i.jobId, (jobInterviewCount.get(i.jobId) ?? 0) + 1);
+      const d = parseLocalDate(i.date);
+      if (!d) continue;
+      const t = d.getTime();
+      const prev = jobEarliestInterview.get(i.jobId);
+      if (prev === undefined || t < prev) jobEarliestInterview.set(i.jobId, t);
     }
 
     const apps = { cold: 0, warm: 0, referral: 0, total: 0 };
     const ivs = { cold: 0, warm: 0, referral: 0, total: 0 };
+    const daysToInterview: number[] = [];
 
     for (const j of jobs) {
       if (!j.appliedDate) continue;
@@ -169,9 +175,12 @@ export default function Overview({
 
       apps[lane]++;
       apps.total++;
-      if ((jobInterviewCount.get(j.id) ?? 0) > 0) {
+      const earliest = jobEarliestInterview.get(j.id);
+      if (earliest !== undefined) {
         ivs[lane]++;
         ivs.total++;
+        const days = Math.max(0, Math.round((earliest - appliedAt.getTime()) / (24 * 60 * 60 * 1000)));
+        daysToInterview.push(days);
       }
     }
 
@@ -181,7 +190,17 @@ export default function Overview({
       referral: apps.referral > 0 ? ivs.referral / apps.referral : 0,
     };
 
-    return { applications: apps, interviews: ivs, conversion };
+    // Median days to first interview across all lanes in window
+    let medianDaysToInterview: number | null = null;
+    if (daysToInterview.length > 0) {
+      const sorted = [...daysToInterview].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      medianDaysToInterview = sorted.length % 2 === 0
+        ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
+        : sorted[mid];
+    }
+
+    return { applications: apps, interviews: ivs, conversion, medianDaysToInterview };
   }, [jobs, jobContacts, contactActivities, interviews, windowKey]);
 
   // ---------- Time to first interview (PLACEHOLDER) ----------
