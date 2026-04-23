@@ -5,6 +5,7 @@ import {
   BookOpen,
   CalendarCheck,
   Compass,
+  FileSpreadsheet,
   Info,
   Search,
   Sparkles,
@@ -16,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useHelp } from "@/components/help/HelpProvider";
+import { ImportJobsWizard } from "@/components/onboarding/ImportJobsWizard";
 import type { Contact, Interview, Job, TargetCompany } from "@/types/jobTracker";
 
 // Single tokenized brand component handles the light/dark variant swap
@@ -28,6 +30,8 @@ interface GettingStartedProps {
   targetCompanies?: TargetCompany[];
   interviews?: Interview[];
   coverLetterCount?: number;
+  /** Bulk-insert callback wired from the job tracker store. */
+  onImportJobs?: (jobs: Omit<Job, "id" | "createdAt">[]) => void | Promise<void>;
 }
 
 interface EntryPath {
@@ -50,11 +54,13 @@ export default function GettingStarted({
   contacts = [],
   targetCompanies = [],
   interviews = [],
+  onImportJobs,
 }: GettingStartedProps) {
   const navigate = useNavigate();
   const { openHelp } = useHelp();
   const [profileScore, setProfileScore] = useState<number | null>(null);
   const [tourProgress, setTourProgress] = useState<{ step: number; total: number } | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const startTour = () => window.dispatchEvent(new Event("jobtrakr:start-tour"));
 
