@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useHelp } from "@/components/help/HelpProvider";
 import { ImportJobsWizard } from "@/components/onboarding/ImportJobsWizard";
+import { cn } from "@/lib/utils";
 import type { Contact, Interview, Job, TargetCompany } from "@/types/jobTracker";
 
 // Single tokenized brand component handles the light/dark variant swap
