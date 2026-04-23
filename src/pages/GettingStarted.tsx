@@ -279,6 +279,15 @@ export default function GettingStarted({
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            {onImportJobs && (
+              <QuickActionCard
+                title="Import existing jobs"
+                description="Upload a CSV or XLSX (LinkedIn, Indeed, ATS exports) to seed your tracker in one go."
+                icon={FileSpreadsheet}
+                accent
+                onClick={() => setImportOpen(true)}
+              />
+            )}
             <QuickActionCard
               title="Job Tracker"
               description="Manage applications, statuses, and notes."
