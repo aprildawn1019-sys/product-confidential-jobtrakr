@@ -39,12 +39,6 @@ const LANE_LABEL: Record<Lane, string> = {
   referral: "Referral",
 };
 
-const LANE_BG: Record<Lane, string> = {
-  cold: "bg-[hsl(var(--text-tertiary))]",
-  warm: "bg-[hsl(var(--info))]",
-  referral: "bg-[hsl(var(--success))]",
-};
-
 const LANE_DOT: Record<Lane, string> = {
   cold: "bg-[hsl(var(--text-tertiary))]",
   warm: "bg-[hsl(var(--info))]",
