@@ -21,6 +21,7 @@ import Resumes from "@/pages/Resumes";
 import Settings from "@/pages/Settings";
 import GettingStarted from "@/pages/GettingStarted";
 import Help from "@/pages/Help";
+import OgPreview from "@/pages/OgPreview";
 import { HelpProvider } from "@/components/help/HelpProvider";
 import { useJobTrackerStore } from "@/stores/jobTrackerStore";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -222,6 +223,7 @@ export default function Index() {
           <Route path="cover-letters" element={<CoverLetters jobs={store.jobs} />} />
           <Route path="resumes" element={<Resumes />} />
           <Route path="help" element={<Help />} />
+          <Route path="brand/og-preview" element={<OgPreview />} />
 
           {/* Settings hub with tabs */}
           <Route path="settings" element={<Settings />} />
