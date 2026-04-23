@@ -176,7 +176,7 @@ export default function OgPreview() {
         <Card
           className={cn(
             "border-border bg-card p-5",
-            allPass && "border-l-4 border-l-emerald-500",
+            allPass && "border-l-4 border-l-success",
             anyFail && "border-l-4 border-l-destructive",
           )}
           role="status"
@@ -194,7 +194,7 @@ export default function OgPreview() {
             {checks.map((c) => (
               <li key={c.id} className="flex items-start gap-2">
                 {c.status === "pass" ? (
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
                 ) : (
                   <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
                 )}
