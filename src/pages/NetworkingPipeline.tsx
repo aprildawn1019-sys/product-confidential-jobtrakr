@@ -225,8 +225,16 @@ export default function NetworkingPipeline({
           <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
             Networking Pipeline
           </h1>
-          <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
-            One outcome: <span className="font-medium text-foreground">an inside referral</span>. Three entry points: open jobs, target companies, warm contacts.
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            One outcome: <span className="font-medium text-foreground">an inside referral</span>.
+            {referralsAsked > 0 && (
+              <>
+                {" "}You've made <span className="font-medium text-foreground">{referralsMade}</span> referral{referralsMade === 1 ? "" : "s"} from <span className="font-medium text-foreground">{referralsAsked}</span> ask{referralsAsked === 1 ? "" : "s"}
+                {conversionPct !== null && (
+                  <> · <span className="font-medium text-accent-foreground">{conversionPct}%</span> conversion</>
+                )}.
+              </>
+            )}
           </p>
         </div>
         <Button onClick={() => openNew()} className="shrink-0" size="sm">
@@ -235,39 +243,19 @@ export default function NetworkingPipeline({
         </Button>
       </div>
 
-      {/* ── SCOREBOARD ─────────────────────────────────────────── */}
-      <Card className="flex divide-x divide-border overflow-hidden p-0">
-        {[
-          { label: "Active",         value: totalActive,    sub: "in flight" },
-          { label: "Referrals asked",value: referralsAsked, sub: "requested" },
-          { label: "Referrals made", value: referralsMade,  sub: "to DM" },
-          { label: "Conversion",     value: referralsAsked > 0 ? `${Math.round((referralsMade / referralsAsked) * 100)}%` : "—", sub: "asked → made" },
-        ].map(tile => (
-          <div key={tile.label} className="flex-1 px-4 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{tile.label}</p>
-            <div className="mt-1 flex items-baseline gap-2">
-              <p className="font-display text-2xl font-semibold tracking-tight text-foreground">{tile.value}</p>
-              <p className="text-xs text-muted-foreground">{tile.sub}</p>
-            </div>
-          </div>
-        ))}
-      </Card>
-
       {/* ── ZONE 1: KANBAN (the engine — primary work surface) ──── */}
       <section>
         <header className="mb-3 flex items-baseline justify-between gap-3">
-          <div className="flex items-baseline gap-2">
-            <h2 className="font-display text-lg font-semibold tracking-tight text-foreground">
-              Outreach in flight
-            </h2>
-            <p className="text-xs text-muted-foreground">— warmth builds left-to-right toward the referral</p>
-          </div>
+          <h2 className="font-display text-lg font-semibold tracking-tight text-foreground">
+            Outreach in flight
+          </h2>
         </header>
 
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
-          {ACTIVE_STAGES.map(stage => {
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {ALL_STAGES.map(stage => {
             const cards = outreachByStage[stage];
-            const isMilestone = stage === "referral_asked" || stage === "referral_made";
+            const isAsk = stage === "referral_asked";
+            const isClosed = stage === "closed";
             return (
               <div key={stage} className="flex min-w-0 flex-col">
                 <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
@@ -277,7 +265,7 @@ export default function NetworkingPipeline({
                   <span
                     className={cn(
                       "text-xs font-semibold tabular-nums",
-                      isMilestone ? "text-accent-foreground" : "text-muted-foreground",
+                      isAsk ? "text-accent-foreground" : "text-muted-foreground",
                     )}
                   >
                     {cards.length}
@@ -285,14 +273,15 @@ export default function NetworkingPipeline({
                 </div>
                 <div
                   className={cn(
-                    "min-h-[200px] flex-1 space-y-2 rounded-lg border border-border/60 p-2 transition-colors",
+                    "min-h-[220px] flex-1 space-y-2 rounded-lg border border-border/60 p-2 transition-colors",
                     STAGE_COLUMN_BG[stage],
-                    isMilestone && "border-accent/30",
+                    isAsk && "border-accent/30",
+                    isClosed && "border-dashed",
                   )}
                 >
                   {cards.length === 0 ? (
                     <p className="px-2 py-8 text-center text-xs italic text-muted-foreground/70">
-                      Nothing here.
+                      {isClosed ? "Wins and dead-ends will land here." : "Nothing here."}
                     </p>
                   ) : (
                     cards.map(o => renderOutreachCard(o))
