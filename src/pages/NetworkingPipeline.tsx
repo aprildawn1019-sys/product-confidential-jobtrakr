@@ -32,23 +32,8 @@ const STAGE_TONE: Record<OutreachStage, "amber-strong" | "amber-soft" | "navy-mu
 };
 
 /**
- * Left-edge accent on Kanban cards. Drives instant scan: as eyes move
- * down a column, all cards share a tone; as eyes move *across* columns,
- * the tone warms toward the referral. No new hues — just opacity on the
- * existing primary/accent tokens.
- */
-const STAGE_BORDER: Record<OutreachStage, string> = {
-  identified:      "border-l-muted-foreground/30",
-  contacted:       "border-l-primary/40",
-  in_conversation: "border-l-primary/60",
-  referral_asked:  "border-l-accent/60",
-  referral_made:   "border-l-accent",
-  closed:          "border-l-muted-foreground/20",
-};
-
-/**
- * Per-column header treatment for the Kanban. Same logic as cards: warmth
- * builds left-to-right toward the referral milestone.
+ * Per-column header treatment for the Kanban. Warmth builds left-to-right
+ * toward the referral milestone — same logic as cards.
  */
 const STAGE_COLUMN_BG: Record<OutreachStage, string> = {
   identified:      "bg-muted/40",
