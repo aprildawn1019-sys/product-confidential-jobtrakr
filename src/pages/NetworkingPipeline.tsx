@@ -472,9 +472,9 @@ export default function NetworkingPipeline({
 
       {/* ── ZONE 3: KANBAN (the engine — neutral surface, stage-tinted columns) ── */}
       <section>
-        <header className="mb-2 flex items-baseline gap-2 border-l-[3px] border-foreground/40 pl-2.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">The Engine</p>
-          <h2 className="font-display text-sm font-semibold tracking-tight text-foreground">
+        <header className="mb-2 flex items-baseline gap-2 border-l-[3px] border-foreground/60 pl-2.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-foreground/70">The Engine</p>
+          <h2 className="font-display text-base font-semibold tracking-tight text-foreground">
             Outreach in flight
           </h2>
           <p className="text-[11px] text-muted-foreground">— warmth builds left-to-right</p>
