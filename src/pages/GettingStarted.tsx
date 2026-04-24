@@ -21,9 +21,6 @@ import { ImportJobsWizard } from "@/components/onboarding/ImportJobsWizard";
 import { cn } from "@/lib/utils";
 import type { Contact, Interview, Job, TargetCompany } from "@/types/jobTracker";
 
-// Single tokenized brand component handles the light/dark variant swap
-// internally — see `src/components/brand/BrandMark.tsx`.
-import { BrandMark } from "@/components/brand/BrandMark";
 
 interface GettingStartedProps {
   jobs?: Job[];
