@@ -438,12 +438,11 @@ function EntryPrototypeCard({ path, onClick }: { path: EntryPath; onClick: () =>
       data-tour={path.tourId}
       className={`group relative overflow-hidden rounded-[1.75rem] border p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:p-7 ${toneClasses[path.tone]}`}
     >
-      <div className="absolute right-5 top-4 font-serif text-[3rem] font-bold leading-none tracking-tight sm:text-[4rem] ${numberClasses[path.tone]}" />
       <div className="flex items-start justify-between gap-4">
         <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${iconClasses[path.tone]}`}>
           <Icon className="h-5 w-5" />
         </div>
-        <div className={`font-serif text-[3rem] font-bold leading-none tracking-tight sm:text-[4rem] ${numberClasses[path.tone]}`}>
+        <div className={`font-serif text-[2.5rem] font-bold leading-[3rem] tracking-tight sm:text-[3rem] sm:leading-[3rem] -mt-1 ${numberClasses[path.tone]}`}>
           {path.number}
         </div>
       </div>
