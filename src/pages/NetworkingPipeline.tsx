@@ -179,8 +179,10 @@ export default function NetworkingPipeline({
     return (
       <button
         key={o.id}
+        draggable
+        onDragStart={e => handleDragStart(e, o.id)}
         onClick={() => openEdit(o)}
-        className="group w-full rounded-md border border-border bg-card p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+        className="group w-full cursor-grab rounded-md border border-border bg-card p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:cursor-grabbing"
       >
         <div className="flex items-start gap-3">
           {contact && <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="sm" />}
