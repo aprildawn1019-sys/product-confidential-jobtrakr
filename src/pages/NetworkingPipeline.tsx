@@ -274,205 +274,201 @@ export default function NetworkingPipeline({
         ))}
       </Card>
 
-      {/* ── ZONE 1: HOT OPENINGS — compact horizontal row cards ── */}
-      <section>
-        <header className="mb-2 flex items-center justify-between gap-3 border-l-[3px] border-primary/70 pl-2.5">
-          <div className="flex items-baseline gap-2">
-            <Flame className="h-3.5 w-3.5 self-center text-primary" />
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">Job 1 · Open Roles</p>
-            <h2 className="font-display text-sm font-semibold tracking-tight text-foreground">
-              Hot openings — who can help?
-            </h2>
-          </div>
-        </header>
-        {hotOpenings.length === 0 ? (
-          <Card className="px-3 py-2 text-xs text-muted-foreground">
-            No active job postings yet. <button className="text-primary hover:underline" onClick={() => navigate("/jobs")}>Add a job</button>.
-          </Card>
-        ) : (
-          <div className="space-y-1.5">
-            {hotOpenings.slice(0, 5).map(({ job, headline, contactsAtCompany, targetCompany }) => {
-              const tone = headline ? STAGE_TONE[headline.stage] : (contactsAtCompany.length > 0 ? "amber-soft" : "slate");
-              const accentBar =
-                headline?.stage === "referral_made" ? "bg-accent" :
-                headline?.stage === "referral_asked" ? "bg-accent/60" :
-                headline ? "bg-primary/50" :
-                contactsAtCompany.length > 0 ? "bg-accent/40" : "bg-muted-foreground/20";
-              return (
-                <Card key={job.id} className="relative flex items-center gap-3 overflow-hidden py-2 pl-3 pr-2 transition-colors hover:bg-muted/30">
-                  <div className={cn("absolute inset-y-0 left-0 w-1", accentBar)} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold leading-tight text-foreground">{job.title}</p>
-                    <p className="truncate text-[11px] leading-tight text-muted-foreground">{job.company}</p>
-                  </div>
-                  {contactsAtCompany.length > 0 && (
-                    <div className="hidden shrink-0 items-center -space-x-1.5 sm:flex">
-                      {contactsAtCompany.slice(0, 3).map(c => (
-                        <div key={c.id} className="ring-2 ring-card rounded-full">
-                          <ContactAvatar name={c.name} avatarUrl={c.avatarUrl} size="sm" />
-                        </div>
-                      ))}
-                      {contactsAtCompany.length > 3 && (
-                        <span className="ml-2 text-[10px] font-semibold text-muted-foreground">
-                          +{contactsAtCompany.length - 3}
+      {/* ── ENTRY POINTS: Job 1 + Job 2 side-by-side, top 3 each ─── */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Zone 1 — Hot Openings */}
+        <section>
+          <header className="mb-2 flex items-center justify-between gap-3 border-l-[3px] border-primary/70 pl-2.5">
+            <div className="flex items-baseline gap-2">
+              <Flame className="h-3.5 w-3.5 self-center text-primary" />
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">Job 1 · Open Roles</p>
+            </div>
+            {hotOpenings.length > 3 && (
+              <button onClick={() => navigate("/jobs")} className="text-[11px] text-muted-foreground hover:text-foreground hover:underline">
+                +{hotOpenings.length - 3} more →
+              </button>
+            )}
+          </header>
+          {hotOpenings.length === 0 ? (
+            <Card className="px-3 py-2 text-xs text-muted-foreground">
+              No active job postings yet. <button className="text-primary hover:underline" onClick={() => navigate("/jobs")}>Add a job</button>.
+            </Card>
+          ) : (
+            <div className="space-y-1.5">
+              {hotOpenings.slice(0, 3).map(({ job, headline, contactsAtCompany, targetCompany }) => {
+                const tone = headline ? STAGE_TONE[headline.stage] : (contactsAtCompany.length > 0 ? "amber-soft" : "slate");
+                const accentBar =
+                  headline?.stage === "referral_made" ? "bg-accent" :
+                  headline?.stage === "referral_asked" ? "bg-accent/60" :
+                  headline ? "bg-primary/50" :
+                  contactsAtCompany.length > 0 ? "bg-accent/40" : "bg-muted-foreground/20";
+                return (
+                  <Card key={job.id} className="relative flex items-center gap-2 overflow-hidden py-1.5 pl-2.5 pr-1.5 transition-colors hover:bg-muted/30">
+                    <div className={cn("absolute inset-y-0 left-0 w-1", accentBar)} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-semibold leading-tight text-foreground">{job.title}</p>
+                      <p className="truncate text-[11px] leading-tight text-muted-foreground">{job.company}</p>
+                    </div>
+                    {contactsAtCompany.length > 0 && (
+                      <div className="hidden shrink-0 items-center -space-x-1.5 md:flex">
+                        {contactsAtCompany.slice(0, 2).map(c => (
+                          <div key={c.id} className="ring-2 ring-card rounded-full">
+                            <ContactAvatar name={c.name} avatarUrl={c.avatarUrl} size="sm" />
+                          </div>
+                        ))}
+                        {contactsAtCompany.length > 2 && (
+                          <span className="ml-2 text-[10px] font-semibold text-muted-foreground">
+                            +{contactsAtCompany.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <div className="shrink-0">
+                      {headline ? (
+                        <span className={cn(pillClass(tone, "sm"), "uppercase tracking-wider")}>
+                          {OUTREACH_STAGE_LABEL[headline.stage]}
+                        </span>
+                      ) : contactsAtCompany.length > 0 ? (
+                        <span className={cn(pillClass("amber-soft", "sm"), "uppercase tracking-wider")}>
+                          {contactsAtCompany.length}
+                        </span>
+                      ) : (
+                        <span className={cn(pillClass("slate", "sm"), "uppercase tracking-wider")}>
+                          —
                         </span>
                       )}
                     </div>
-                  )}
-                  <div className="shrink-0">
-                    {headline ? (
-                      <span className={cn(pillClass(tone, "sm"), "uppercase tracking-wider")}>
-                        {OUTREACH_STAGE_LABEL[headline.stage]}
-                      </span>
-                    ) : contactsAtCompany.length > 0 ? (
-                      <span className={cn(pillClass("amber-soft", "sm"), "uppercase tracking-wider")}>
-                        {contactsAtCompany.length} contact{contactsAtCompany.length === 1 ? "" : "s"}
-                      </span>
-                    ) : (
-                      <span className={cn(pillClass("slate", "sm"), "uppercase tracking-wider")}>
-                        No contact
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1">
-                    {headline ? (
-                      <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => openEdit(headline)}>
-                        Update
-                        <ArrowRight className="ml-0.5 h-3 w-3" />
-                      </Button>
-                    ) : contactsAtCompany.length > 0 ? (
+                    <div className="flex shrink-0 items-center">
+                      {headline ? (
+                        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => openEdit(headline)}>
+                          Update
+                        </Button>
+                      ) : contactsAtCompany.length > 0 ? (
+                        <Button
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => openNew({
+                            contactId: contactsAtCompany[0].id,
+                            targetCompanyId: targetCompany?.id,
+                            jobId: job.id,
+                          })}
+                        >
+                          Start
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => navigate("/contacts")}>
+                          Find
+                        </Button>
+                      )}
                       <Button
-                        size="sm"
-                        className="h-7 px-2 text-xs"
-                        onClick={() => openNew({
-                          contactId: contactsAtCompany[0].id,
-                          targetCompanyId: targetCompany?.id,
-                          jobId: job.id,
-                        })}
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => navigate(`/jobs/${job.id}`)}
+                        aria-label="Open job"
                       >
-                        Start
+                        <ExternalLink className="h-3.5 w-3.5" />
                       </Button>
-                    ) : (
-                      <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => navigate("/contacts")}>
-                        Find contact
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => navigate(`/jobs/${job.id}`)}
-                      aria-label="Open job"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </Card>
-              );
-            })}
-            {hotOpenings.length > 5 && (
-              <button onClick={() => navigate("/jobs")} className="text-[11px] text-muted-foreground hover:text-foreground hover:underline">
-                +{hotOpenings.length - 5} more openings →
-              </button>
-            )}
-          </div>
-        )}
-      </section>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
-      {/* ── ZONE 2: TARGET COMPANIES — compact horizontal row cards ── */}
-      <section>
-        <header className="mb-2 flex items-center justify-between gap-3 border-l-[3px] border-accent pl-2.5">
-          <div className="flex items-baseline gap-2">
-            <Target className="h-3.5 w-3.5 self-center text-accent-foreground" />
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-accent-foreground">Job 2 · Dream Companies</p>
-            <h2 className="font-display text-sm font-semibold tracking-tight text-foreground">
-              Target companies — relationship status
-            </h2>
-          </div>
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => navigate("/target-companies")}>
-            Manage
-          </Button>
-        </header>
-        {targetWithStatus.length === 0 ? (
-          <Card className="px-3 py-2 text-xs text-muted-foreground">
-            No target companies yet.{" "}
-            <button className="text-primary hover:underline" onClick={() => navigate("/target-companies")}>Add one</button>.
-          </Card>
-        ) : (
-          <div className="space-y-1.5">
-            {targetWithStatus.slice(0, 5).map(({ target, headline, contactsAtCompany }) => {
-              const accentBar =
-                headline?.stage === "referral_made" ? "bg-accent" :
-                headline?.stage === "referral_asked" ? "bg-accent/60" :
-                headline ? "bg-primary/50" :
-                contactsAtCompany.length > 0 ? "bg-accent/40" : "bg-muted-foreground/20";
-              return (
-                <Card key={target.id} className="relative flex items-center gap-3 overflow-hidden py-2 pl-3 pr-2 transition-colors hover:bg-muted/30">
-                  <div className={cn("absolute inset-y-0 left-0 w-1", accentBar)} />
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent/10 ring-1 ring-accent/20">
-                    <Building2 className="h-3.5 w-3.5 text-accent-foreground" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold leading-tight text-foreground">{target.name}</p>
-                    {target.industry && (
-                      <p className="truncate text-[11px] leading-tight text-muted-foreground">{target.industry}</p>
-                    )}
-                  </div>
-                  {contactsAtCompany.length > 0 && (
-                    <span className="hidden shrink-0 items-center gap-1 text-[11px] text-muted-foreground sm:inline-flex">
-                      <Users className="h-3 w-3" />
-                      {contactsAtCompany.length}
-                    </span>
-                  )}
-                  <div className="shrink-0">
-                    {headline ? (
-                      <span className={cn(pillClass(STAGE_TONE[headline.stage], "sm"), "uppercase tracking-wider")}>
-                        {OUTREACH_STAGE_LABEL[headline.stage]}
-                      </span>
-                    ) : contactsAtCompany.length > 0 ? (
-                      <span className={cn(pillClass("amber-soft", "sm"), "uppercase tracking-wider")}>
-                        No outreach
-                      </span>
-                    ) : (
-                      <span className={cn(pillClass("slate", "sm"), "uppercase tracking-wider")}>
-                        No contact
-                      </span>
-                    )}
-                  </div>
-                  <div className="shrink-0">
-                    {headline ? (
-                      <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => openEdit(headline)}>
-                        Update
-                        <ArrowRight className="ml-0.5 h-3 w-3" />
-                      </Button>
-                    ) : contactsAtCompany.length > 0 ? (
-                      <Button
-                        size="sm"
-                        className="h-7 px-2 text-xs"
-                        onClick={() => openNew({
-                          contactId: contactsAtCompany[0].id,
-                          targetCompanyId: target.id,
-                        })}
-                      >
-                        Start
-                      </Button>
-                    ) : (
-                      <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => navigate("/contacts")}>
-                        Find contact
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              );
-            })}
-            {targetWithStatus.length > 5 && (
+        {/* Zone 2 — Target Companies */}
+        <section>
+          <header className="mb-2 flex items-center justify-between gap-3 border-l-[3px] border-accent pl-2.5">
+            <div className="flex items-baseline gap-2">
+              <Target className="h-3.5 w-3.5 self-center text-accent-foreground" />
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-accent-foreground">Job 2 · Dream Companies</p>
+            </div>
+            {targetWithStatus.length > 3 ? (
               <button onClick={() => navigate("/target-companies")} className="text-[11px] text-muted-foreground hover:text-foreground hover:underline">
-                +{targetWithStatus.length - 5} more companies →
+                +{targetWithStatus.length - 3} more →
               </button>
+            ) : (
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => navigate("/target-companies")}>
+                Manage
+              </Button>
             )}
-          </div>
-        )}
-      </section>
+          </header>
+          {targetWithStatus.length === 0 ? (
+            <Card className="px-3 py-2 text-xs text-muted-foreground">
+              No target companies yet.{" "}
+              <button className="text-primary hover:underline" onClick={() => navigate("/target-companies")}>Add one</button>.
+            </Card>
+          ) : (
+            <div className="space-y-1.5">
+              {targetWithStatus.slice(0, 3).map(({ target, headline, contactsAtCompany }) => {
+                const accentBar =
+                  headline?.stage === "referral_made" ? "bg-accent" :
+                  headline?.stage === "referral_asked" ? "bg-accent/60" :
+                  headline ? "bg-primary/50" :
+                  contactsAtCompany.length > 0 ? "bg-accent/40" : "bg-muted-foreground/20";
+                return (
+                  <Card key={target.id} className="relative flex items-center gap-2 overflow-hidden py-1.5 pl-2.5 pr-1.5 transition-colors hover:bg-muted/30">
+                    <div className={cn("absolute inset-y-0 left-0 w-1", accentBar)} />
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent/10 ring-1 ring-accent/20">
+                      <Building2 className="h-3.5 w-3.5 text-accent-foreground" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-semibold leading-tight text-foreground">{target.name}</p>
+                      {target.industry && (
+                        <p className="truncate text-[11px] leading-tight text-muted-foreground">{target.industry}</p>
+                      )}
+                    </div>
+                    {contactsAtCompany.length > 0 && (
+                      <span className="hidden shrink-0 items-center gap-1 text-[11px] text-muted-foreground md:inline-flex">
+                        <Users className="h-3 w-3" />
+                        {contactsAtCompany.length}
+                      </span>
+                    )}
+                    <div className="shrink-0">
+                      {headline ? (
+                        <span className={cn(pillClass(STAGE_TONE[headline.stage], "sm"), "uppercase tracking-wider")}>
+                          {OUTREACH_STAGE_LABEL[headline.stage]}
+                        </span>
+                      ) : contactsAtCompany.length > 0 ? (
+                        <span className={cn(pillClass("amber-soft", "sm"), "uppercase tracking-wider")}>
+                          No outreach
+                        </span>
+                      ) : (
+                        <span className={cn(pillClass("slate", "sm"), "uppercase tracking-wider")}>
+                          No contact
+                        </span>
+                      )}
+                    </div>
+                    <div className="shrink-0">
+                      {headline ? (
+                        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => openEdit(headline)}>
+                          Update
+                        </Button>
+                      ) : contactsAtCompany.length > 0 ? (
+                        <Button
+                          size="sm"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => openNew({
+                            contactId: contactsAtCompany[0].id,
+                            targetCompanyId: target.id,
+                          })}
+                        >
+                          Start
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => navigate("/contacts")}>
+                          Find
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      </div>
 
       {/* ── ZONE 3: KANBAN (the engine — neutral surface, stage-tinted columns) ── */}
       <section>
