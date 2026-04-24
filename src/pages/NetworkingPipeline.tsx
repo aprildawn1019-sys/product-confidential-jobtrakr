@@ -77,25 +77,15 @@ export default function NetworkingPipeline({
         o.jobId === job.id ||
         (tcMatch && o.targetCompanyId === tcMatch.id && !o.jobId),
       );
-      const stageOrder: Record<OutreachStage, number> = {
-        identified: 1, contacted: 2, in_conversation: 3,
-        referral_asked: 4, referral_made: 5, closed: 0,
-      };
       const headline = related
         .filter(o => o.stage !== "closed")
-        .sort((a, b) => stageOrder[b.stage] - stageOrder[a.stage])[0];
+        .sort((a, b) => STAGE_ORDER[b.stage] - STAGE_ORDER[a.stage])[0];
       const contactsAtCompany = contacts.filter(c => companiesMatch(c.company, job.company));
       return { job, related, headline, contactsAtCompany, targetCompany: tcMatch };
     }).sort((a, b) => {
       // Most-advanced referral path first; jobs with zero contacts last.
-      const score = (x: typeof activeJobs[number] extends never ? never : { headline?: Outreach; contactsAtCompany: Contact[] }) => {
-        if (x.headline) {
-          const stageOrder: Record<OutreachStage, number> = {
-            identified: 1, contacted: 2, in_conversation: 3,
-            referral_asked: 4, referral_made: 5, closed: 0,
-          };
-          return 100 + stageOrder[x.headline.stage];
-        }
+      const score = (x: { headline?: Outreach; contactsAtCompany: Contact[] }) => {
+        if (x.headline) return 100 + STAGE_ORDER[x.headline.stage];
         return x.contactsAtCompany.length > 0 ? 50 : 0;
       };
       return score(b) - score(a);
@@ -108,22 +98,12 @@ export default function NetworkingPipeline({
       .map(target => {
         const related = outreaches.filter(o => o.targetCompanyId === target.id && o.stage !== "closed");
         const contactsAtCompany = contacts.filter(c => companiesMatch(c.company, target.name));
-        const stageOrder: Record<OutreachStage, number> = {
-          identified: 1, contacted: 2, in_conversation: 3,
-          referral_asked: 4, referral_made: 5, closed: 0,
-        };
-        const headline = related.sort((a, b) => stageOrder[b.stage] - stageOrder[a.stage])[0];
+        const headline = related.sort((a, b) => STAGE_ORDER[b.stage] - STAGE_ORDER[a.stage])[0];
         return { target, related, headline, contactsAtCompany };
       })
       .sort((a, b) => {
         const score = (x: { headline?: Outreach; contactsAtCompany: Contact[] }) => {
-          if (x.headline) {
-            const stageOrder: Record<OutreachStage, number> = {
-              identified: 1, contacted: 2, in_conversation: 3,
-              referral_asked: 4, referral_made: 5, closed: 0,
-            };
-            return 100 + stageOrder[x.headline.stage];
-          }
+          if (x.headline) return 100 + STAGE_ORDER[x.headline.stage];
           return x.contactsAtCompany.length > 0 ? 50 : 0;
         };
         return score(b) - score(a);
@@ -132,8 +112,7 @@ export default function NetworkingPipeline({
 
   const outreachByStage = useMemo(() => {
     const map: Record<OutreachStage, Outreach[]> = {
-      identified: [], contacted: [], in_conversation: [],
-      referral_asked: [], referral_made: [], closed: [],
+      identified: [], engaged: [], referral_asked: [], closed: [],
     };
     outreaches.forEach(o => map[o.stage].push(o));
     Object.keys(map).forEach(k => {
@@ -141,10 +120,6 @@ export default function NetworkingPipeline({
     });
     return map;
   }, [outreaches]);
-
-  const totalActive = ACTIVE_STAGES.reduce((sum, s) => sum + outreachByStage[s].length, 0);
-  const referralsMade = outreachByStage.referral_made.length + outreaches.filter(o => o.stage === "closed" && o.referralMadeAt).length;
-  const referralsAsked = outreachByStage.referral_asked.length + referralsMade;
 
   const openNew = (s?: typeof seed) => {
     setEditing(undefined);
