@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ExternalLink, Building2, Briefcase, Calendar, Sparkles, Target, Users, Flame, ArrowRight } from "lucide-react";
+import { Plus, Building2, Briefcase, Calendar, Sparkles, Target, Users, Flame, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import ContactAvatar from "@/components/ContactAvatar";
@@ -8,8 +8,8 @@ import { pillClass } from "@/lib/pillStyles";
 import { cn } from "@/lib/utils";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { Contact, Job, TargetCompany } from "@/types/jobTracker";
-import type { Outreach, OutreachStage } from "@/types/outreach";
-import { OUTREACH_STAGE_LABEL } from "@/types/outreach";
+import type { Outreach, OutreachStage, OutreachOutcome } from "@/types/outreach";
+import { OUTREACH_STAGE_LABEL, OUTREACH_OUTCOME_LABEL } from "@/types/outreach";
 import OutreachDialog from "@/components/networking/OutreachDialog";
 
 interface NetworkingPipelineProps {
@@ -22,29 +22,36 @@ interface NetworkingPipelineProps {
   onDeleteOutreach: (id: string) => Promise<void>;
 }
 
+/** Stage colour tones — warmth builds left-to-right toward the referral ask. */
 const STAGE_TONE: Record<OutreachStage, "amber-strong" | "amber-soft" | "navy-muted" | "slate"> = {
-  identified:      "slate",
-  contacted:       "navy-muted",
-  in_conversation: "navy-muted",
-  referral_asked:  "amber-soft",
-  referral_made:   "amber-strong",
-  closed:          "slate",
+  identified:     "slate",
+  engaged:        "navy-muted",
+  referral_asked: "amber-soft",
+  closed:         "slate",
 };
 
-/**
- * Per-column header treatment for the Kanban. Warmth builds left-to-right
- * toward the referral milestone — same logic as cards.
- */
+/** Per-column background — same warmth gradient. The Closed lane is neutral
+ *  because its meaning is carried by the per-card outcome chip, not the column. */
 const STAGE_COLUMN_BG: Record<OutreachStage, string> = {
-  identified:      "bg-muted/40",
-  contacted:       "bg-primary/[0.04]",
-  in_conversation: "bg-primary/[0.06]",
-  referral_asked:  "bg-accent/[0.06]",
-  referral_made:   "bg-accent/[0.10]",
-  closed:          "bg-muted/40",
+  identified:     "bg-muted/40",
+  engaged:        "bg-primary/[0.05]",
+  referral_asked: "bg-accent/[0.07]",
+  closed:         "bg-muted/40",
 };
 
-const ACTIVE_STAGES: OutreachStage[] = ["identified", "contacted", "in_conversation", "referral_asked", "referral_made"];
+const ALL_STAGES: OutreachStage[] = ["identified", "engaged", "referral_asked", "closed"];
+
+const STAGE_ORDER: Record<OutreachStage, number> = {
+  identified: 1, engaged: 2, referral_asked: 3, closed: 0,
+};
+
+/** Per-outcome chip styling on Closed cards. Only `referral_made` is the win. */
+const OUTCOME_CHIP: Record<OutreachOutcome, { tone: "amber-strong" | "slate"; icon: typeof CheckCircle2 }> = {
+  referral_made: { tone: "amber-strong", icon: CheckCircle2 },
+  no_referral:   { tone: "slate",        icon: XCircle },
+  job_closed:    { tone: "slate",        icon: XCircle },
+  other:         { tone: "slate",        icon: XCircle },
+};
 
 export default function NetworkingPipeline({
   outreaches, contacts, targetCompanies, jobs,
@@ -70,25 +77,15 @@ export default function NetworkingPipeline({
         o.jobId === job.id ||
         (tcMatch && o.targetCompanyId === tcMatch.id && !o.jobId),
       );
-      const stageOrder: Record<OutreachStage, number> = {
-        identified: 1, contacted: 2, in_conversation: 3,
-        referral_asked: 4, referral_made: 5, closed: 0,
-      };
       const headline = related
         .filter(o => o.stage !== "closed")
-        .sort((a, b) => stageOrder[b.stage] - stageOrder[a.stage])[0];
+        .sort((a, b) => STAGE_ORDER[b.stage] - STAGE_ORDER[a.stage])[0];
       const contactsAtCompany = contacts.filter(c => companiesMatch(c.company, job.company));
       return { job, related, headline, contactsAtCompany, targetCompany: tcMatch };
     }).sort((a, b) => {
       // Most-advanced referral path first; jobs with zero contacts last.
-      const score = (x: typeof activeJobs[number] extends never ? never : { headline?: Outreach; contactsAtCompany: Contact[] }) => {
-        if (x.headline) {
-          const stageOrder: Record<OutreachStage, number> = {
-            identified: 1, contacted: 2, in_conversation: 3,
-            referral_asked: 4, referral_made: 5, closed: 0,
-          };
-          return 100 + stageOrder[x.headline.stage];
-        }
+      const score = (x: { headline?: Outreach; contactsAtCompany: Contact[] }) => {
+        if (x.headline) return 100 + STAGE_ORDER[x.headline.stage];
         return x.contactsAtCompany.length > 0 ? 50 : 0;
       };
       return score(b) - score(a);
@@ -101,22 +98,12 @@ export default function NetworkingPipeline({
       .map(target => {
         const related = outreaches.filter(o => o.targetCompanyId === target.id && o.stage !== "closed");
         const contactsAtCompany = contacts.filter(c => companiesMatch(c.company, target.name));
-        const stageOrder: Record<OutreachStage, number> = {
-          identified: 1, contacted: 2, in_conversation: 3,
-          referral_asked: 4, referral_made: 5, closed: 0,
-        };
-        const headline = related.sort((a, b) => stageOrder[b.stage] - stageOrder[a.stage])[0];
+        const headline = related.sort((a, b) => STAGE_ORDER[b.stage] - STAGE_ORDER[a.stage])[0];
         return { target, related, headline, contactsAtCompany };
       })
       .sort((a, b) => {
         const score = (x: { headline?: Outreach; contactsAtCompany: Contact[] }) => {
-          if (x.headline) {
-            const stageOrder: Record<OutreachStage, number> = {
-              identified: 1, contacted: 2, in_conversation: 3,
-              referral_asked: 4, referral_made: 5, closed: 0,
-            };
-            return 100 + stageOrder[x.headline.stage];
-          }
+          if (x.headline) return 100 + STAGE_ORDER[x.headline.stage];
           return x.contactsAtCompany.length > 0 ? 50 : 0;
         };
         return score(b) - score(a);
@@ -125,8 +112,7 @@ export default function NetworkingPipeline({
 
   const outreachByStage = useMemo(() => {
     const map: Record<OutreachStage, Outreach[]> = {
-      identified: [], contacted: [], in_conversation: [],
-      referral_asked: [], referral_made: [], closed: [],
+      identified: [], engaged: [], referral_asked: [], closed: [],
     };
     outreaches.forEach(o => map[o.stage].push(o));
     Object.keys(map).forEach(k => {
@@ -134,10 +120,6 @@ export default function NetworkingPipeline({
     });
     return map;
   }, [outreaches]);
-
-  const totalActive = ACTIVE_STAGES.reduce((sum, s) => sum + outreachByStage[s].length, 0);
-  const referralsMade = outreachByStage.referral_made.length + outreaches.filter(o => o.stage === "closed" && o.referralMadeAt).length;
-  const referralsAsked = outreachByStage.referral_asked.length + referralsMade;
 
   const openNew = (s?: typeof seed) => {
     setEditing(undefined);
@@ -161,6 +143,8 @@ export default function NetworkingPipeline({
     const contact = contactById.get(o.contactId);
     const job = o.jobId ? jobById.get(o.jobId) : undefined;
     const target = targetById.get(o.targetCompanyId);
+    const outcomeChip = o.stage === "closed" && o.outcome ? OUTCOME_CHIP[o.outcome] : null;
+    const OutcomeIcon = outcomeChip?.icon;
     return (
       <button
         key={o.id}
@@ -174,13 +158,24 @@ export default function NetworkingPipeline({
             <p className="truncate text-xs text-muted-foreground">
               {contact?.role ? `${contact.role} · ` : ""}{target?.name ?? contact?.company}
             </p>
-            {job && (
+            {outcomeChip && OutcomeIcon && (
+              <p className={cn(
+                "mt-2 inline-flex max-w-full items-center gap-1 truncate rounded px-1.5 py-0.5 text-[11px] font-medium",
+                outcomeChip.tone === "amber-strong"
+                  ? "bg-accent/15 text-accent-foreground"
+                  : "bg-muted text-muted-foreground",
+              )}>
+                <OutcomeIcon className="h-3 w-3 shrink-0" />
+                <span className="truncate">{OUTREACH_OUTCOME_LABEL[o.outcome!]}</span>
+              </p>
+            )}
+            {job && !outcomeChip && (
               <p className="mt-2 inline-flex max-w-full items-center gap-1 truncate rounded bg-primary/[0.06] px-1.5 py-0.5 text-[11px] font-medium text-primary">
                 <Briefcase className="h-3 w-3 shrink-0" />
                 <span className="truncate">{job.title}</span>
               </p>
             )}
-            {o.nextStepLabel && (
+            {o.nextStepLabel && o.stage !== "closed" && (
               <p className="mt-2 flex items-center gap-1 truncate text-xs text-foreground/80">
                 <Calendar className="h-3 w-3 text-accent-foreground/70" />
                 <span className="truncate">{o.nextStepLabel}</span>
@@ -192,6 +187,12 @@ export default function NetworkingPipeline({
       </button>
     );
   };
+
+  // Conversion = referral wins ÷ everything that reached the ask stage (still open + closed of any kind that came from there).
+  const referralsAsked = outreachByStage.referral_asked.length
+    + outreaches.filter(o => o.stage === "closed" && (o.referralAskedAt || o.outcome === "referral_made")).length;
+  const referralsMade = outreaches.filter(o => o.stage === "closed" && o.outcome === "referral_made").length;
+  const conversionPct = referralsAsked > 0 ? Math.round((referralsMade / referralsAsked) * 100) : null;
 
   if (outreaches.length === 0 && targetCompanies.length === 0 && contacts.length === 0) {
     return (
@@ -224,8 +225,16 @@ export default function NetworkingPipeline({
           <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
             Networking Pipeline
           </h1>
-          <p className="mt-0.5 max-w-2xl text-xs text-muted-foreground">
-            One outcome: <span className="font-medium text-foreground">an inside referral</span>. Three entry points: open jobs, target companies, warm contacts.
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            One outcome: <span className="font-medium text-foreground">an inside referral</span>.
+            {referralsAsked > 0 && (
+              <>
+                {" "}You've made <span className="font-medium text-foreground">{referralsMade}</span> referral{referralsMade === 1 ? "" : "s"} from <span className="font-medium text-foreground">{referralsAsked}</span> ask{referralsAsked === 1 ? "" : "s"}
+                {conversionPct !== null && (
+                  <> · <span className="font-medium text-accent-foreground">{conversionPct}%</span> conversion</>
+                )}.
+              </>
+            )}
           </p>
         </div>
         <Button onClick={() => openNew()} className="shrink-0" size="sm">
@@ -234,39 +243,19 @@ export default function NetworkingPipeline({
         </Button>
       </div>
 
-      {/* ── SCOREBOARD ─────────────────────────────────────────── */}
-      <Card className="flex divide-x divide-border overflow-hidden p-0">
-        {[
-          { label: "Active",         value: totalActive,    sub: "in flight" },
-          { label: "Referrals asked",value: referralsAsked, sub: "requested" },
-          { label: "Referrals made", value: referralsMade,  sub: "to DM" },
-          { label: "Conversion",     value: referralsAsked > 0 ? `${Math.round((referralsMade / referralsAsked) * 100)}%` : "—", sub: "asked → made" },
-        ].map(tile => (
-          <div key={tile.label} className="flex-1 px-4 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{tile.label}</p>
-            <div className="mt-1 flex items-baseline gap-2">
-              <p className="font-display text-2xl font-semibold tracking-tight text-foreground">{tile.value}</p>
-              <p className="text-xs text-muted-foreground">{tile.sub}</p>
-            </div>
-          </div>
-        ))}
-      </Card>
-
       {/* ── ZONE 1: KANBAN (the engine — primary work surface) ──── */}
       <section>
         <header className="mb-3 flex items-baseline justify-between gap-3">
-          <div className="flex items-baseline gap-2">
-            <h2 className="font-display text-lg font-semibold tracking-tight text-foreground">
-              Outreach in flight
-            </h2>
-            <p className="text-xs text-muted-foreground">— warmth builds left-to-right toward the referral</p>
-          </div>
+          <h2 className="font-display text-lg font-semibold tracking-tight text-foreground">
+            Outreach in flight
+          </h2>
         </header>
 
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-5">
-          {ACTIVE_STAGES.map(stage => {
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {ALL_STAGES.map(stage => {
             const cards = outreachByStage[stage];
-            const isMilestone = stage === "referral_asked" || stage === "referral_made";
+            const isAsk = stage === "referral_asked";
+            const isClosed = stage === "closed";
             return (
               <div key={stage} className="flex min-w-0 flex-col">
                 <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
@@ -276,7 +265,7 @@ export default function NetworkingPipeline({
                   <span
                     className={cn(
                       "text-xs font-semibold tabular-nums",
-                      isMilestone ? "text-accent-foreground" : "text-muted-foreground",
+                      isAsk ? "text-accent-foreground" : "text-muted-foreground",
                     )}
                   >
                     {cards.length}
@@ -284,14 +273,15 @@ export default function NetworkingPipeline({
                 </div>
                 <div
                   className={cn(
-                    "min-h-[200px] flex-1 space-y-2 rounded-lg border border-border/60 p-2 transition-colors",
+                    "min-h-[220px] flex-1 space-y-2 rounded-lg border border-border/60 p-2 transition-colors",
                     STAGE_COLUMN_BG[stage],
-                    isMilestone && "border-accent/30",
+                    isAsk && "border-accent/30",
+                    isClosed && "border-dashed",
                   )}
                 >
                   {cards.length === 0 ? (
                     <p className="px-2 py-8 text-center text-xs italic text-muted-foreground/70">
-                      Nothing here.
+                      {isClosed ? "Wins and dead-ends will land here." : "Nothing here."}
                     </p>
                   ) : (
                     cards.map(o => renderOutreachCard(o))

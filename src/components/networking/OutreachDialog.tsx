@@ -5,7 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { OUTREACH_STAGES, type Outreach, type OutreachStage } from "@/types/outreach";
+import {
+  OUTREACH_STAGES,
+  OUTREACH_OUTCOMES,
+  type Outreach,
+  type OutreachStage,
+  type OutreachOutcome,
+} from "@/types/outreach";
 import type { Contact, TargetCompany, Job } from "@/types/jobTracker";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 
@@ -28,7 +34,7 @@ export default function OutreachDialog({
   const [targetCompanyId, setTargetCompanyId] = useState("");
   const [jobId, setJobId] = useState<string>("");
   const [stage, setStage] = useState<OutreachStage>("identified");
-  const [outcome, setOutcome] = useState<string>("");
+  const [outcome, setOutcome] = useState<OutreachOutcome | "">("");
   const [goal, setGoal] = useState("");
   const [notes, setNotes] = useState("");
   const [nextStepDate, setNextStepDate] = useState("");
@@ -41,7 +47,7 @@ export default function OutreachDialog({
     setTargetCompanyId(src.targetCompanyId ?? "");
     setJobId(src.jobId ?? "");
     setStage((src.stage as OutreachStage) ?? "identified");
-    setOutcome(src.outcome ?? "");
+    setOutcome((src.outcome as OutreachOutcome) ?? "");
     setGoal(src.goal ?? "");
     setNotes(src.notes ?? "");
     setNextStepDate(src.nextStepDate ?? "");
@@ -65,7 +71,9 @@ export default function OutreachDialog({
     return jobs.filter(j => companiesMatch(j.company, tc.name));
   }, [targetCompanyId, jobs, targetCompanies]);
 
-  const canSave = contactId && targetCompanyId && stage;
+  // Closed always requires a reason — surface that in the save guard so users can't
+  // silently park an outreach in Closed with no rationale captured.
+  const canSave = !!(contactId && targetCompanyId && stage && (stage !== "closed" || outcome));
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -74,7 +82,7 @@ export default function OutreachDialog({
       targetCompanyId,
       jobId: jobId || undefined,
       stage,
-      outcome: stage === "closed" ? (outcome as "won" | "lost") || undefined : undefined,
+      outcome: stage === "closed" ? (outcome || undefined) as OutreachOutcome | undefined : undefined,
       goal: goal.trim() || undefined,
       notes: notes.trim() || undefined,
       nextStepDate: nextStepDate || undefined,
@@ -152,13 +160,15 @@ export default function OutreachDialog({
             </div>
             {stage === "closed" && (
               <div>
-                <Label className="mb-1.5 block text-xs uppercase tracking-wider text-muted-foreground">Outcome</Label>
-                <Select value={outcome || "none"} onValueChange={(v) => setOutcome(v === "none" ? "" : v)}>
-                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                <Label className="mb-1.5 block text-xs uppercase tracking-wider text-muted-foreground">
+                  Reason <span className="text-destructive">*</span>
+                </Label>
+                <Select value={outcome || ""} onValueChange={(v) => setOutcome(v as OutreachOutcome)}>
+                  <SelectTrigger><SelectValue placeholder="Why is this closed?" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">—</SelectItem>
-                    <SelectItem value="won">Won (interview/offer)</SelectItem>
-                    <SelectItem value="lost">Lost (cooled / declined)</SelectItem>
+                    {OUTREACH_OUTCOMES.map(o => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

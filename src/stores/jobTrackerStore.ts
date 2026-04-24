@@ -718,9 +718,10 @@ export function useJobTrackerStore() {
     const userId = await getUserId();
     if (!userId) return;
     const today = new Date().toISOString().split("T")[0];
-    const stampedAsked = outreach.stage === "referral_asked" || outreach.stage === "referral_made" || outreach.stage === "closed"
+    const isReferralWin = outreach.stage === "closed" && outreach.outcome === "referral_made";
+    const stampedAsked = (outreach.stage === "referral_asked" || outreach.stage === "closed")
       ? (outreach.referralAskedAt || today) : outreach.referralAskedAt || null;
-    const stampedMade = outreach.stage === "referral_made" || outreach.stage === "closed"
+    const stampedMade = isReferralWin
       ? (outreach.referralMadeAt || today) : outreach.referralMadeAt || null;
     const stampedClosed = outreach.stage === "closed"
       ? (outreach.closedAt || today) : outreach.closedAt || null;
@@ -762,25 +763,36 @@ export function useJobTrackerStore() {
     if (updates.referralMadeAt !== undefined) dbUpdates.referral_made_at = updates.referralMadeAt || null;
     if (updates.closedAt !== undefined) dbUpdates.closed_at = updates.closedAt || null;
 
+    const nextStage = updates.stage ?? current.stage;
+    const nextOutcome = updates.outcome ?? current.outcome;
+
     if (updates.stage !== undefined && updates.stage !== current.stage) {
       dbUpdates.stage = updates.stage;
       // Auto-stamp milestones when advancing into them.
-      if ((updates.stage === "referral_asked" || updates.stage === "referral_made" || updates.stage === "closed")
+      if ((updates.stage === "referral_asked" || updates.stage === "closed")
           && !current.referralAskedAt && updates.referralAskedAt === undefined) {
         dbUpdates.referral_asked_at = today;
-      }
-      if ((updates.stage === "referral_made" || updates.stage === "closed")
-          && !current.referralMadeAt && updates.referralMadeAt === undefined) {
-        dbUpdates.referral_made_at = today;
       }
       if (updates.stage === "closed" && !current.closedAt && updates.closedAt === undefined) {
         dbUpdates.closed_at = today;
       }
-      // Clear closed_at if moving back out of closed
+      // Clear closed_at + outcome if moving back out of closed
       if (updates.stage !== "closed" && current.closedAt) {
         dbUpdates.closed_at = null;
         dbUpdates.outcome = null;
       }
+    }
+
+    // Stamp referral_made_at whenever the resulting state is a closed-with-referral_made,
+    // regardless of whether stage or outcome was the field that changed.
+    if (nextStage === "closed" && nextOutcome === "referral_made"
+        && !current.referralMadeAt && updates.referralMadeAt === undefined) {
+      dbUpdates.referral_made_at = today;
+    }
+    // Clear the made-at stamp if the outcome is no longer the win.
+    if (nextStage === "closed" && nextOutcome !== "referral_made"
+        && current.referralMadeAt && updates.referralMadeAt === undefined) {
+      dbUpdates.referral_made_at = null;
     }
 
     const { data } = await supabase.from("outreaches").update(dbUpdates).eq("id", id).select().single();
