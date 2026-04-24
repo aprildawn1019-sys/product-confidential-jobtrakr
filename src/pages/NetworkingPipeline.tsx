@@ -61,6 +61,37 @@ export default function NetworkingPipeline({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Outreach | undefined>();
   const [seed, setSeed] = useState<{ contactId?: string; targetCompanyId?: string; jobId?: string } | undefined>();
+  const [dragOverStage, setDragOverStage] = useState<OutreachStage | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, outreachId: string) => {
+    e.dataTransfer.setData("text/plain", outreachId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const handleDragOver = (e: React.DragEvent, stage: OutreachStage) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverStage !== stage) setDragOverStage(stage);
+  };
+  const handleDragLeave = (stage: OutreachStage) => {
+    if (dragOverStage === stage) setDragOverStage(null);
+  };
+  const handleDrop = async (e: React.DragEvent, stage: OutreachStage) => {
+    e.preventDefault();
+    setDragOverStage(null);
+    const id = e.dataTransfer.getData("text/plain");
+    if (!id) return;
+    const o = outreaches.find(x => x.id === id);
+    if (!o || o.stage === stage) return;
+    // Moving into "closed" requires an outcome — open the dialog pre-set to closed
+    // so the user can select referral made / no referral / job closed / other.
+    if (stage === "closed" && !o.outcome) {
+      setEditing({ ...o, stage: "closed" });
+      setSeed(undefined);
+      setDialogOpen(true);
+      return;
+    }
+    await onUpdateOutreach(id, { stage });
+  };
 
   const contactById = useMemo(() => new Map(contacts.map(c => [c.id, c])), [contacts]);
   const jobById = useMemo(() => new Map(jobs.map(j => [j.id, j])), [jobs]);
