@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ExternalLink, Building2, Briefcase, Calendar, Sparkles, Target, Users, Flame, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Building2, Briefcase, Calendar, Sparkles, Target, Users, Flame, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import ContactAvatar from "@/components/ContactAvatar";
