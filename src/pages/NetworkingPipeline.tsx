@@ -61,6 +61,37 @@ export default function NetworkingPipeline({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Outreach | undefined>();
   const [seed, setSeed] = useState<{ contactId?: string; targetCompanyId?: string; jobId?: string } | undefined>();
+  const [dragOverStage, setDragOverStage] = useState<OutreachStage | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, outreachId: string) => {
+    e.dataTransfer.setData("text/plain", outreachId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const handleDragOver = (e: React.DragEvent, stage: OutreachStage) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverStage !== stage) setDragOverStage(stage);
+  };
+  const handleDragLeave = (stage: OutreachStage) => {
+    if (dragOverStage === stage) setDragOverStage(null);
+  };
+  const handleDrop = async (e: React.DragEvent, stage: OutreachStage) => {
+    e.preventDefault();
+    setDragOverStage(null);
+    const id = e.dataTransfer.getData("text/plain");
+    if (!id) return;
+    const o = outreaches.find(x => x.id === id);
+    if (!o || o.stage === stage) return;
+    // Moving into "closed" requires an outcome — open the dialog pre-set to closed
+    // so the user can select referral made / no referral / job closed / other.
+    if (stage === "closed" && !o.outcome) {
+      setEditing({ ...o, stage: "closed" });
+      setSeed(undefined);
+      setDialogOpen(true);
+      return;
+    }
+    await onUpdateOutreach(id, { stage });
+  };
 
   const contactById = useMemo(() => new Map(contacts.map(c => [c.id, c])), [contacts]);
   const jobById = useMemo(() => new Map(jobs.map(j => [j.id, j])), [jobs]);
@@ -148,8 +179,10 @@ export default function NetworkingPipeline({
     return (
       <button
         key={o.id}
+        draggable
+        onDragStart={e => handleDragStart(e, o.id)}
         onClick={() => openEdit(o)}
-        className="group w-full rounded-md border border-border bg-card p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+        className="group w-full cursor-grab rounded-md border border-border bg-card p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:cursor-grabbing"
       >
         <div className="flex items-start gap-3">
           {contact && <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="sm" />}
@@ -272,16 +305,20 @@ export default function NetworkingPipeline({
                   </span>
                 </div>
                 <div
+                  onDragOver={e => handleDragOver(e, stage)}
+                  onDragLeave={() => handleDragLeave(stage)}
+                  onDrop={e => handleDrop(e, stage)}
                   className={cn(
                     "min-h-[220px] flex-1 space-y-2 rounded-lg border border-border/60 p-2 transition-colors",
                     STAGE_COLUMN_BG[stage],
                     isAsk && "border-accent/30",
                     isClosed && "border-dashed",
+                    dragOverStage === stage && "border-primary/60 bg-primary/[0.08] ring-2 ring-primary/30",
                   )}
                 >
                   {cards.length === 0 ? (
                     <p className="px-2 py-8 text-center text-xs italic text-muted-foreground/70">
-                      {isClosed ? "Wins and dead-ends will land here." : "Nothing here."}
+                      {isClosed ? "Wins and dead-ends will land here." : "Drop a card here or nothing yet."}
                     </p>
                   ) : (
                     cards.map(o => renderOutreachCard(o))
