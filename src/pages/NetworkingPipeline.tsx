@@ -172,7 +172,7 @@ export default function NetworkingPipeline({
     }
   };
 
-  const renderOutreachCard = (o: Outreach, compact = false) => {
+  const renderOutreachCard = (o: Outreach) => {
     const contact = contactById.get(o.contactId);
     const job = o.jobId ? jobById.get(o.jobId) : undefined;
     const target = targetById.get(o.targetCompanyId);
@@ -180,29 +180,23 @@ export default function NetworkingPipeline({
       <button
         key={o.id}
         onClick={() => openEdit(o)}
-        className={cn(
-          "group w-full rounded-md border border-l-[3px] border-border bg-card p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md",
-          STAGE_BORDER[o.stage],
-          compact && "p-2.5",
-        )}
+        className="group w-full rounded-md border border-border bg-card p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
       >
-        <div className="flex items-start gap-2.5">
+        <div className="flex items-start gap-3">
           {contact && <ContactAvatar name={contact.name} avatarUrl={contact.avatarUrl} size="sm" />}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <p className="truncate text-sm font-semibold text-foreground">{contact?.name ?? "Unknown contact"}</p>
-            </div>
+            <p className="truncate text-sm font-semibold text-foreground">{contact?.name ?? "Unknown contact"}</p>
             <p className="truncate text-xs text-muted-foreground">
               {contact?.role ? `${contact.role} · ` : ""}{target?.name ?? contact?.company}
             </p>
             {job && (
-              <p className="mt-1.5 inline-flex max-w-full items-center gap-1 truncate rounded bg-primary/[0.06] px-1.5 py-0.5 text-[10px] font-medium text-primary">
-                <Briefcase className="h-2.5 w-2.5 shrink-0" />
+              <p className="mt-2 inline-flex max-w-full items-center gap-1 truncate rounded bg-primary/[0.06] px-1.5 py-0.5 text-[11px] font-medium text-primary">
+                <Briefcase className="h-3 w-3 shrink-0" />
                 <span className="truncate">{job.title}</span>
               </p>
             )}
             {o.nextStepLabel && (
-              <p className="mt-1.5 flex items-center gap-1 truncate text-[11px] font-medium text-foreground/80">
+              <p className="mt-2 flex items-center gap-1 truncate text-xs text-foreground/80">
                 <Calendar className="h-3 w-3 text-accent-foreground/70" />
                 <span className="truncate">{o.nextStepLabel}</span>
                 {o.nextStepDate && <span className="text-muted-foreground">· {o.nextStepDate}</span>}
