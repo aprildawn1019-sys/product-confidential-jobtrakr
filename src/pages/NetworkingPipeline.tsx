@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ExternalLink, Building2, Briefcase, Calendar, Sparkles, Target, Users, Flame, ArrowRight } from "lucide-react";
+import { Plus, ExternalLink, Building2, Briefcase, Calendar, Sparkles, Target, Users, Flame, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import ContactAvatar from "@/components/ContactAvatar";
@@ -8,8 +8,8 @@ import { pillClass } from "@/lib/pillStyles";
 import { cn } from "@/lib/utils";
 import { companiesMatch } from "@/stores/jobTrackerStore";
 import type { Contact, Job, TargetCompany } from "@/types/jobTracker";
-import type { Outreach, OutreachStage } from "@/types/outreach";
-import { OUTREACH_STAGE_LABEL } from "@/types/outreach";
+import type { Outreach, OutreachStage, OutreachOutcome } from "@/types/outreach";
+import { OUTREACH_STAGE_LABEL, OUTREACH_OUTCOME_LABEL } from "@/types/outreach";
 import OutreachDialog from "@/components/networking/OutreachDialog";
 
 interface NetworkingPipelineProps {
@@ -22,29 +22,36 @@ interface NetworkingPipelineProps {
   onDeleteOutreach: (id: string) => Promise<void>;
 }
 
+/** Stage colour tones — warmth builds left-to-right toward the referral ask. */
 const STAGE_TONE: Record<OutreachStage, "amber-strong" | "amber-soft" | "navy-muted" | "slate"> = {
-  identified:      "slate",
-  contacted:       "navy-muted",
-  in_conversation: "navy-muted",
-  referral_asked:  "amber-soft",
-  referral_made:   "amber-strong",
-  closed:          "slate",
+  identified:     "slate",
+  engaged:        "navy-muted",
+  referral_asked: "amber-soft",
+  closed:         "slate",
 };
 
-/**
- * Per-column header treatment for the Kanban. Warmth builds left-to-right
- * toward the referral milestone — same logic as cards.
- */
+/** Per-column background — same warmth gradient. The Closed lane is neutral
+ *  because its meaning is carried by the per-card outcome chip, not the column. */
 const STAGE_COLUMN_BG: Record<OutreachStage, string> = {
-  identified:      "bg-muted/40",
-  contacted:       "bg-primary/[0.04]",
-  in_conversation: "bg-primary/[0.06]",
-  referral_asked:  "bg-accent/[0.06]",
-  referral_made:   "bg-accent/[0.10]",
-  closed:          "bg-muted/40",
+  identified:     "bg-muted/40",
+  engaged:        "bg-primary/[0.05]",
+  referral_asked: "bg-accent/[0.07]",
+  closed:         "bg-muted/40",
 };
 
-const ACTIVE_STAGES: OutreachStage[] = ["identified", "contacted", "in_conversation", "referral_asked", "referral_made"];
+const ALL_STAGES: OutreachStage[] = ["identified", "engaged", "referral_asked", "closed"];
+
+const STAGE_ORDER: Record<OutreachStage, number> = {
+  identified: 1, engaged: 2, referral_asked: 3, closed: 0,
+};
+
+/** Per-outcome chip styling on Closed cards. Only `referral_made` is the win. */
+const OUTCOME_CHIP: Record<OutreachOutcome, { tone: "amber-strong" | "slate"; icon: typeof CheckCircle2 }> = {
+  referral_made: { tone: "amber-strong", icon: CheckCircle2 },
+  no_referral:   { tone: "slate",        icon: XCircle },
+  job_closed:    { tone: "slate",        icon: XCircle },
+  other:         { tone: "slate",        icon: XCircle },
+};
 
 export default function NetworkingPipeline({
   outreaches, contacts, targetCompanies, jobs,
