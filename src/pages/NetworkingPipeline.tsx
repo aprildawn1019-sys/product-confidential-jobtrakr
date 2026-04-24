@@ -305,16 +305,20 @@ export default function NetworkingPipeline({
                   </span>
                 </div>
                 <div
+                  onDragOver={e => handleDragOver(e, stage)}
+                  onDragLeave={() => handleDragLeave(stage)}
+                  onDrop={e => handleDrop(e, stage)}
                   className={cn(
                     "min-h-[220px] flex-1 space-y-2 rounded-lg border border-border/60 p-2 transition-colors",
                     STAGE_COLUMN_BG[stage],
                     isAsk && "border-accent/30",
                     isClosed && "border-dashed",
+                    dragOverStage === stage && "border-primary/60 bg-primary/[0.08] ring-2 ring-primary/30",
                   )}
                 >
                   {cards.length === 0 ? (
                     <p className="px-2 py-8 text-center text-xs italic text-muted-foreground/70">
-                      {isClosed ? "Wins and dead-ends will land here." : "Nothing here."}
+                      {isClosed ? "Wins and dead-ends will land here." : "Drop a card here or nothing yet."}
                     </p>
                   ) : (
                     cards.map(o => renderOutreachCard(o))
