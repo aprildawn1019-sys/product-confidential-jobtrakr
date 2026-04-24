@@ -21,9 +21,6 @@ import { ImportJobsWizard } from "@/components/onboarding/ImportJobsWizard";
 import { cn } from "@/lib/utils";
 import type { Contact, Interview, Job, TargetCompany } from "@/types/jobTracker";
 
-// Single tokenized brand component handles the light/dark variant swap
-// internally — see `src/components/brand/BrandMark.tsx`.
-import { BrandMark } from "@/components/brand/BrandMark";
 
 interface GettingStartedProps {
   jobs?: Job[];
@@ -184,26 +181,6 @@ export default function GettingStarted({
         <div className="relative overflow-hidden bg-gradient-to-br from-background via-card to-accent/10 p-6 sm:p-8 lg:p-10">
           <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-gradient-to-l from-primary/5 to-transparent lg:block" />
           <div className="relative max-w-3xl">
-            {/* Brand lockup mirrors the sidebar header rhythm: h-16 row,
-                gap-2.5 between mark and wordmark, Space Grotesk 700 with
-                leading-none + an optical-center nudge on the wordmark to
-                line up the cap midline with the mark midline.
-
-                Mobile (<sm) uses the expanded-sidebar pair exactly:
-                  mark = md (36px),  wordmark = text-xl (20px cap),  pt-0.5
-                ≥sm steps to a hero-weight pair:
-                  mark = lg (40px),  wordmark = text-2xl (24px cap),  pt-1
-                The pt nudge scales with the cap height so the optical
-                centerline stays put when the type steps up. Geometry is
-                identical in light + dark mode (variant swap only changes
-                which PNG paints — the box and font metrics don't move). */}
-            <div className="-mx-1 mb-5 flex h-16 items-center gap-2.5">
-              <BrandMark size="md" className="sm:hidden" />
-              <BrandMark size="lg" className="hidden sm:block" />
-              <span className="pt-0.5 font-display text-xl font-bold leading-none tracking-tight text-foreground sm:pt-1 sm:text-2xl">
-                Koudou
-              </span>
-            </div>
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="gap-1.5 border-accent/40 bg-accent/10 text-accent-foreground">
                 <Sparkles className="h-3 w-3" /> Getting Started
