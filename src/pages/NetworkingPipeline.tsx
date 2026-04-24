@@ -143,6 +143,8 @@ export default function NetworkingPipeline({
     const contact = contactById.get(o.contactId);
     const job = o.jobId ? jobById.get(o.jobId) : undefined;
     const target = targetById.get(o.targetCompanyId);
+    const outcomeChip = o.stage === "closed" && o.outcome ? OUTCOME_CHIP[o.outcome] : null;
+    const OutcomeIcon = outcomeChip?.icon;
     return (
       <button
         key={o.id}
@@ -156,13 +158,24 @@ export default function NetworkingPipeline({
             <p className="truncate text-xs text-muted-foreground">
               {contact?.role ? `${contact.role} · ` : ""}{target?.name ?? contact?.company}
             </p>
-            {job && (
+            {outcomeChip && OutcomeIcon && (
+              <p className={cn(
+                "mt-2 inline-flex max-w-full items-center gap-1 truncate rounded px-1.5 py-0.5 text-[11px] font-medium",
+                outcomeChip.tone === "amber-strong"
+                  ? "bg-accent/15 text-accent-foreground"
+                  : "bg-muted text-muted-foreground",
+              )}>
+                <OutcomeIcon className="h-3 w-3 shrink-0" />
+                <span className="truncate">{OUTREACH_OUTCOME_LABEL[o.outcome!]}</span>
+              </p>
+            )}
+            {job && !outcomeChip && (
               <p className="mt-2 inline-flex max-w-full items-center gap-1 truncate rounded bg-primary/[0.06] px-1.5 py-0.5 text-[11px] font-medium text-primary">
                 <Briefcase className="h-3 w-3 shrink-0" />
                 <span className="truncate">{job.title}</span>
               </p>
             )}
-            {o.nextStepLabel && (
+            {o.nextStepLabel && o.stage !== "closed" && (
               <p className="mt-2 flex items-center gap-1 truncate text-xs text-foreground/80">
                 <Calendar className="h-3 w-3 text-accent-foreground/70" />
                 <span className="truncate">{o.nextStepLabel}</span>
@@ -174,6 +187,12 @@ export default function NetworkingPipeline({
       </button>
     );
   };
+
+  // Conversion = referral wins ÷ everything that reached the ask stage (still open + closed of any kind that came from there).
+  const referralsAsked = outreachByStage.referral_asked.length
+    + outreaches.filter(o => o.stage === "closed" && (o.referralAskedAt || o.outcome === "referral_made")).length;
+  const referralsMade = outreaches.filter(o => o.stage === "closed" && o.outcome === "referral_made").length;
+  const conversionPct = referralsAsked > 0 ? Math.round((referralsMade / referralsAsked) * 100) : null;
 
   if (outreaches.length === 0 && targetCompanies.length === 0 && contacts.length === 0) {
     return (
